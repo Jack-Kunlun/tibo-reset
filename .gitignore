@@ -1,0 +1,29 @@
+# 依赖（本项目零**运行时**依赖；node_modules 只在本地与 CI 构建时存在）
+# ⚠ package-lock.json 必须提交：构建期依赖 @resvg/resvg-js（OG 分享图）要靠它锁版本，
+#   不提交的话 CI 每次装到的可能是不同版本 —— 而且 npm ci 根本没有 lock 可用。
+node_modules/
+pnpm-lock.yaml
+
+# 构建产物：dist 由 npm run build 生成
+dist/
+
+# 小程序快照由构建生成，纳入版本管理会污染 diff；
+# 但小程序需要它才能离线首屏，所以这里保留 —— 见 README「小程序数据快照」。
+# miniprogram/data/snapshot.js
+
+# 运行期数据：保留（这是产品本体），只忽略临时文件
+data/*.tmp-*
+
+# ⚠ F9 订阅名单含 openid，属于用户个人信息，**绝不能进仓库**。
+#   它和其余 data/ 文件放在同一个目录，而 CI 会 `git add data` ——
+#   不显式排除就会被推到公开仓库里。
+data/subscriptions.json
+
+# 微信开发者工具的本地私有配置（含个人设置、需要忽略）
+project.private.config.json
+
+# 系统 / 编辑器
+.DS_Store
+*.swp
+.idea/
+.vscode/

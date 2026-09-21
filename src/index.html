@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>等 TIBO 按按钮 · 额度重置观测台</title>
+<meta name="description" content="Codex 额度重置的观测台：距上次重置多久、还要等多久、以及 Tibo 有没有提前预告。" />
+<!--__OG_META__-->
+<style>
+  :root{
+    --paper:#FAF8F4; --paper2:#F2EFE8; --card:#FFFFFF;
+    --ink:#1F1E1B; --ink2:#4A4842; --mist:#8C8880;
+    --line:#E4DFD5;
+    --lan:#3F7376; --bamboo:#5F8455; --cinnabar:#B3563C;
+    --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+    /* 卷轴数字的垂直微调：mono 字体的 ascent 留白会让数字看起来偏高 */
+    --reel-nudge:0em;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--sans); font-size:15px; line-height:1.7;
+    background-image:radial-gradient(circle at 12% 0%,rgba(63,115,118,.05),transparent 45%),
+                     radial-gradient(circle at 88% 8%,rgba(95,132,85,.045),transparent 42%);
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:0 24px 80px}
+
+  /* ---------- 顶栏 ---------- */
+  header.top{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:26px 0 22px;border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex;align-items:baseline;gap:12px}
+  .brand h1{font-size:19px;margin:0;font-weight:650;letter-spacing:.02em}
+  .brand .sub{font-size:12px;color:var(--mist);letter-spacing:.14em;text-transform:uppercase;font-family:var(--mono)}
+  .pulse{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink2);
+    background:var(--paper2);border:1px solid var(--line);padding:5px 12px;border-radius:99px;white-space:nowrap}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--bamboo);box-shadow:0 0 0 0 rgba(95,132,85,.5);animation:bp 2.4s infinite}
+  @keyframes bp{0%{box-shadow:0 0 0 0 rgba(95,132,85,.45)}70%{box-shadow:0 0 0 8px rgba(95,132,85,0)}100%{box-shadow:0 0 0 0 rgba(95,132,85,0)}}
+
+  /* ---------- 信号横幅 ---------- */
+  .sig{
+    margin-top:26px;padding:20px 22px;border-radius:14px;
+    border:1px solid rgba(179,86,60,.34);border-left:4px solid var(--cinnabar);
+    background:linear-gradient(180deg,rgba(179,86,60,.075),rgba(179,86,60,.02));
+  }
+  .sig[data-level="hint"]{
+    border-color:rgba(63,115,118,.32);border-left-color:var(--lan);
+    background:linear-gradient(180deg,rgba(63,115,118,.07),rgba(63,115,118,.02));
+  }
+  .sig-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .sig-badge{font-size:11.5px;letter-spacing:.1em;padding:3px 11px;border-radius:99px;
+    background:var(--cinnabar);color:#fff}
+  .sig[data-level="hint"] .sig-badge{background:var(--lan)}
+  .sig-title{font-size:16px;font-weight:650}
+  .sig-precision{font-size:12px;color:var(--mist);margin-left:auto}
+  .sig-win{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
+    border-radius:10px;overflow:hidden;margin-bottom:14px}
+  .sw{display:grid;grid-template-columns:104px 1fr auto;gap:12px;align-items:baseline;
+    background:var(--card);padding:12px 15px}
+  .sw-k{font-size:12px;color:var(--mist)}
+  .sw-v{font-family:var(--mono);font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .sw-z{font-family:var(--mono);font-size:11.5px;color:var(--mist);white-space:nowrap}
+  .sw-foot{background:var(--card);padding:10px 15px;font-size:12px;color:var(--ink2)}
+  .sig-quote{margin:0 0 12px;padding:13px 16px;background:var(--card);border:1px solid var(--line);
+    border-radius:10px;font-size:13.5px;color:var(--ink2);line-height:1.65}
+  .sig-meta{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--mist)}
+  .sig-meta a{color:var(--lan);text-decoration:none;border-bottom:1px dotted currentColor}
+  .sig-note{color:#8A6A28}
+  .sig-idle{margin-top:22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    font-size:12.5px;color:var(--mist);background:var(--paper2);border:1px solid var(--line);
+    border-radius:10px;padding:12px 16px}
+  .sig-idle b{color:var(--ink2)}
+  .sig-idle-sub{margin-left:auto;font-size:11.5px}
+  .sig-dot{width:7px;height:7px;border-radius:50%;background:var(--mist)}
+
+  /* ---------- Hero ---------- */
+  .hero{padding:46px 0 8px;text-align:center}
+  .hero .label{font-size:12px;letter-spacing:.2em;color:var(--mist);text-transform:uppercase;font-family:var(--mono)}
+
+  /* 逐位卷动：每一位是一个 0–9 的竖条，靠 translateY 滚动。
+     初始位置由构建脚本写死在行内样式里，所以脚本被禁用时数字也是对的，
+     只是不再滚动 —— 属于渐进增强，不是必需品。 */
+  .counter{
+    display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;
+    font-family:var(--mono);font-variant-numeric:tabular-nums;
+    font-size:clamp(38px,8.4vw,84px);line-height:1;font-weight:300;
+    letter-spacing:-.01em;margin:20px 0 8px;
+  }
+  .grp{display:inline-flex;align-items:baseline}
+  .reels{display:inline-flex;align-items:baseline;position:relative;top:var(--reel-nudge)}
+  .reel{display:inline-block;width:.62em;height:1em;overflow:hidden;vertical-align:baseline}
+  .reel .strip{display:block;transition:transform .55s cubic-bezier(.18,.86,.24,1)}
+  .reel .strip i{display:block;height:1em;line-height:1;font-style:normal;text-align:center}
+  .counter .unit{font-size:.24em;line-height:1;color:var(--mist);
+    margin:0 13px 0 9px;letter-spacing:.06em;font-weight:400}
+  .grp:last-child .unit{margin-right:0}
+
+  .hero .since{font-size:13px;color:var(--mist);font-family:var(--mono)}
+  .verdict{
+    display:inline-block;margin-top:24px;padding:11px 22px;border-radius:99px;
+    font-size:13.5px;border:1px solid var(--line);background:var(--card);
+  }
+  .verdict b{font-weight:650}
+  .v-calm{color:var(--bamboo);border-color:rgba(95,132,85,.3);background:rgba(95,132,85,.06)}
+  .v-watch{color:var(--lan);border-color:rgba(63,115,118,.3);background:rgba(63,115,118,.055)}
+  .v-long{color:#8A6A28;border-color:rgba(179,86,60,.28);background:rgba(179,86,60,.05)}
+  .v-rare{color:var(--cinnabar);border-color:rgba(179,86,60,.42);background:rgba(179,86,60,.08)}
+
+  /* ---------- 卡片 ---------- */
+  section{margin-top:56px}
+  .head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-bottom:6px;flex-wrap:wrap}
+  .head h2{font-size:16.5px;margin:0;font-weight:640;letter-spacing:.01em}
+  .head .hint{font-size:12.5px;color:var(--mist)}
+  .lede{font-size:14px;color:var(--ink2);margin:0 0 22px;max-width:62ch}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 20px 12px;
+    box-shadow:0 1px 2px rgba(31,30,27,.03)}
+
+  /* ---------- 指标条 ---------- */
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:26px}
+  .metric{background:var(--card);padding:17px 18px}
+  .metric .k{font-size:11.5px;color:var(--mist);letter-spacing:.06em;margin-bottom:5px}
+  .metric .v{font-family:var(--mono);font-size:25px;font-weight:400;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .metric .v small{font-size:.5em;color:var(--mist);margin-left:3px}
+  .metric .note{font-size:11.5px;color:var(--mist);margin-top:3px}
+  .metric.hi .v{color:var(--lan)}
+
+  /* ---------- 预测 ---------- */
+  .fc-asof{font-size:12px;color:var(--mist);margin:0 0 14px;font-family:var(--mono)}
+  .fc-asof b{color:var(--ink2);font-weight:500}
+  .fc{display:grid;grid-template-columns:minmax(190px,250px) 1fr;gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .fc-main{background:var(--card);padding:24px 22px}
+  .fc-main .k{font-size:11.5px;color:var(--mist);letter-spacing:.06em}
+  .fc-main .v{font-family:var(--mono);font-size:50px;font-weight:300;line-height:1.05;
+    margin:9px 0 6px;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--lan)}
+  .fc-main .v small{font-size:.3em;color:var(--mist);margin-left:5px}
+  .fc-main .range{font-size:12.5px;color:var(--ink2);line-height:1.6}
+  .fc-bars{background:var(--card);padding:22px 24px}
+  .fc-bar{display:grid;grid-template-columns:62px 1fr 54px;align-items:center;gap:12px;margin-bottom:11px}
+  .fc-bar:last-child{margin-bottom:0}
+  .fc-bar .lb{font-size:12.5px;color:var(--ink2);white-space:nowrap}
+  .fc-bar .track{height:8px;background:var(--paper2);border-radius:99px;overflow:hidden}
+  .fc-bar .track i{display:block;height:100%;background:linear-gradient(90deg,var(--lan),#5B9296);border-radius:99px}
+  .fc-bar .pv{font-family:var(--mono);font-size:12.5px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+  .fc-note{font-size:11.5px;color:var(--mist);line-height:1.6;margin:16px 0 0;padding-top:13px;border-top:1px solid var(--line)}
+  .fc-note strong{color:var(--ink2)}
+  .fc-empty{font-size:13px;color:var(--mist);margin:0 0 12px}
+
+  .fc-meta{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+  .fc-block{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+  .fc-block h3{font-size:13px;margin:0 0 14px;font-weight:640;color:var(--ink)}
+  .fc-table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .fc-table th{text-align:left;color:var(--mist);font-weight:400;font-size:11.5px;
+    padding:0 8px 8px 0;border-bottom:1px solid var(--line)}
+  .fc-table td{padding:9px 8px 9px 0;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top}
+  .fc-table tr:last-child td{border-bottom:0}
+  .fc-table td.num{font-family:var(--mono);color:var(--ink);white-space:nowrap}
+  /* 第一列不给它收缩的余地：否则「50% 分位覆盖率」会被折成三行 */
+  .fc-table th:first-child,.fc-table td:first-child{width:1%;white-space:nowrap;padding-right:18px}
+  .fc-table td.num.good{color:var(--bamboo);font-weight:600}
+  .fc-table td.num.bad{color:var(--cinnabar);font-weight:600}
+  .fc-foot{font-size:11.5px;color:var(--mist);margin:14px 0 0;line-height:1.65}
+  .ph{display:grid;grid-template-columns:58px 1fr auto;gap:4px 12px;align-items:baseline;
+    padding:9px 0;border-bottom:1px solid var(--line)}
+  .ph:last-of-type{border-bottom:0}
+  .ph .pi{font-size:11px;color:var(--mist);font-family:var(--mono)}
+  .ph .pt{font-size:11.5px;color:var(--mist);font-family:var(--mono)}
+  .ph .pm{font-family:var(--mono);font-size:16px;color:var(--ink);text-align:right}
+  .ph .pm small{font-size:.62em;color:var(--mist);margin-left:2px}
+  .ph .pn{grid-column:2 / 4;font-size:11px;color:var(--mist)}
+  .fc-warn{list-style:none;margin:16px 0 0;padding:0}
+  .fc-warn li{font-size:12.5px;color:#8A6A28;background:rgba(179,86,60,.05);
+    border:1px solid rgba(179,86,60,.22);border-radius:10px;padding:11px 15px;margin-bottom:9px}
+  .fc-warn li::before{content:"⚠ ";color:var(--cinnabar)}
+
+  /* ---------- 图表 ---------- */
+  /* svg 标签上已写死 width/height 属性，这里只做响应式收缩。
+     不再依赖 height:auto 去推算高度，避免在部分 WebView 内核里塌成 0 高度。
+     min-width + 外层横向滚动：窄面板下不让图表被压到看不清（否则图内 11px 文字
+     在 400px 宽的面板里会缩到 5px，看着就像一片空白）。 */
+  .chart{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+  svg{display:block;width:100%;min-width:520px;height:auto}
+  .legend{display:flex;gap:20px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);padding:14px 4px 6px}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:middle}
+
+  /* ---------- 时间线 ---------- */
+  .tl{list-style:none;margin:0;padding:0}
+  .tl li{display:grid;grid-template-columns:118px 1fr;gap:18px;padding:16px 4px;border-bottom:1px solid var(--line)}
+  .tl li:last-child{border-bottom:0}
+  .tl .when{font-family:var(--mono);font-size:12.5px;color:var(--mist);padding-top:2px}
+  .tl .when b{display:block;color:var(--ink);font-size:14px;font-weight:500;margin-bottom:2px}
+  .tl .body p{margin:0 0 7px;font-size:14px;color:var(--ink2)}
+  .tl .body a{color:var(--lan);text-decoration:none;font-size:12px;font-family:var(--mono);border-bottom:1px dotted currentColor}
+  .tl .body a:hover{color:var(--ink)}
+  .tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:99px;margin-bottom:7px;letter-spacing:.03em}
+  .tag.r{background:rgba(63,115,118,.09);color:var(--lan)}
+  .tag.c{background:rgba(95,132,85,.1);color:var(--bamboo)}
+
+  /* ---------- 页脚 ---------- */
+  footer{margin-top:64px;padding-top:26px;border-top:1px solid var(--line);font-size:12.5px;color:var(--mist);
+    display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+  footer a{color:var(--ink2);text-decoration:none;border-bottom:1px dotted var(--mist)}
+
+  @media(max-width:620px){
+    header.top{flex-wrap:wrap;gap:10px;padding:20px 0 16px}
+    .metrics{grid-template-columns:repeat(auto-fit,minmax(112px,1fr))}
+    .verdict{font-size:12.5px;padding:9px 16px}
+    .tl li{grid-template-columns:1fr;gap:6px}
+    .wrap{padding:0 16px 60px}
+    .fc{grid-template-columns:1fr}
+    .fc-meta{grid-template-columns:1fr}
+    .fc-main .v{font-size:42px}
+    .sw{grid-template-columns:1fr;gap:2px}
+    .sw-z{margin-bottom:4px}
+    .sig-precision{margin-left:0}
+    .sig-idle-sub{margin-left:0}
+    .counter .unit{margin:0 8px 0 6px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <h1>等 TIBO 按按钮</h1>
+      <span class="sub">Reset Observatory</span>
+    </div>
+    <span class="pulse"><span class="dot"></span>观测中 · <span id="upd"><!--__UPD__--></span></span>
+  </header>
+
+  <!-- ============ 信号（有预告时才醒目） ============ -->
+  <!--__SIGNAL__-->
+
+  <!-- ============ HERO ============ -->
+  <div class="hero" id="hero" data-last="<!--__LAST_AT__-->" data-lastlabel="<!--__LAST_LABEL__-->">
+    <div class="label">距上一次额度重置</div>
+    <div class="counter" id="counter"><!--__COUNTER__--></div>
+    <div class="since" id="since"><!--__SINCE__--></div>
+    <!--__VERDICT__-->
+  </div>
+
+  <div class="metrics"><!--__METRICS__--></div>
+
+  <!-- ============ 时间预测 ============ -->
+  <section>
+    <div class="head">
+      <h2>还要等多久</h2>
+    </div>
+    <!--__FORECAST__-->
+  </section>
+
+  <!-- ============ 生存曲线 ============ -->
+  <section>
+    <div class="head">
+      <h2>等待生存曲线</h2>
+      <span class="hint">n = <!--__SURVIVAL_N__--> 次历史间隔</span>
+    </div>
+    <p class="lede">
+      纵轴是「到第 X 天为止，历史上百分之多少的重置已经发生」。曲线越陡，说明节奏越集中；
+      右侧的长尾说明存在极少数超长等待。你现在的位置标在曲线上。
+    </p>
+    <div class="card">
+      <div class="chart"><!--__SURVIVAL__--></div>
+    </div>
+  </section>
+
+  <!-- ============ 点阵分布 ============ -->
+  <section>
+    <div class="head">
+      <h2>每次间隔的离散分布</h2>
+      <span class="hint">按天数排序后分泳道排布，横轴线性等距</span>
+    </div>
+    <p class="lede">
+      每一次重置到下一次重置的间隔天数。平均值被右侧的极端值拉高了 ——
+      这就是为什么用「平均 7 天」倒计时会翻车。
+    </p>
+    <div class="card">
+      <div class="chart"><!--__STRIP__--></div>
+      <div class="legend">
+        <span><i style="background:#3F7376"></i>常规间隔</span>
+        <span><i style="background:#8C8880"></i>偏长间隔</span>
+        <span><i style="background:#B3563C"></i>极端长等待</span>
+        <span><i style="background:#1F1E1B;border-radius:99px"></i>当前所处位置</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 时间线 ============ -->
+  <section>
+    <div class="head">
+      <h2>最近记录</h2>
+      <span class="hint">原文可追溯</span>
+    </div>
+    <div class="card" style="padding:6px 20px"><ul class="tl"><!--__TIMELINE__--></ul></div>
+  </section>
+
+  <footer>
+    <div>数据：公开推文记录，每 30 分钟自动采集 · 最后更新 <span id="gen"><!--__GEN__--></span> 北京</div>
+    <div>由 <a href="#">山风岚自起</a> 建造</div>
+  </footer>
+</div>
+
+<!-- 页面内联数字的机器可读副本（A3 一致性比对）。与页面可见文字出自同一次渲染，
+     含构建锚点 builtAt —— 没有它，静态页面与实时 API 的比对只能靠容差糊。
+     校验：scripts/check-consistency.mjs -->
+<script type="application/json" id="data-digest"><!--__DIGEST__--></script>
+
+<!-- 页面出厂即完整渲染（含两张图表的 SVG）。下面的脚本只负责让倒计时继续滚动，
+     属于可选增强：脚本被禁用时数字依然正确，只是不再跳动。 -->
+<script>
+(function () {
+  var hero = document.getElementById('hero');
+  if (!hero || !hero.dataset.last) return;
+  var last = new Date(hero.dataset.last).getTime();
+  if (isNaN(last)) return;
+
+  var DAY = 86400000;
+  var REEL = '';
+  for (var d = 0; d < 10; d++) REEL += '<i>' + d + '</i>';
+  var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+  var counter = document.getElementById('counter');
+  var since = document.getElementById('since');
+  var groups = counter.querySelectorAll('.grp');
+
+  function setGroup(grp, str) {
+    var box = grp.querySelector('.reels');
+    if (!box) return;
+    var reels = box.children;
+
+    // 位数变了（基本只可能是「天」从 9 变 10）：重建，且不做过渡，
+    // 否则新卷轴会从 0 滚到目标位，看起来像发生了一次重置。
+    if (reels.length !== str.length) {
+      var html = '';
+      for (var i = 0; i < str.length; i++) {
+        html += '<span class="reel"><span class="strip">' + REEL + '</span></span>';
+      }
+      box.innerHTML = html;
+      reels = box.children;
+      for (var j = 0; j < reels.length; j++) {
+        var st = reels[j].firstElementChild;
+        st.style.transition = 'none';
+        st.style.transform = 'translateY(-' + str[j] + 'em)';
+      }
+      void box.offsetWidth;
+      for (var k = 0; k < reels.length; k++) reels[k].firstElementChild.style.transition = '';
+    }
+
+    for (var m = 0; m < reels.length; m++) {
+      var strip = reels[m].firstElementChild;
+      if (!strip) continue;
+      var want = 'translateY(-' + str[m] + 'em)';
+      if (strip.style.transform !== want) strip.style.transform = want;
+    }
+  }
+
+  function tick() {
+    var ms = Date.now() - last;
+    if (ms < 0) return;
+    var d = Math.floor(ms / DAY);
+    var h = Math.floor((ms % DAY) / 3600000);
+    var mi = Math.floor((ms % 3600000) / 60000);
+    var s = Math.floor((ms % 60000) / 1000);
+    if (groups.length === 4) {
+      setGroup(groups[0], String(d));
+      setGroup(groups[1], pad(h));
+      setGroup(groups[2], pad(mi));
+      setGroup(groups[3], pad(s));
+    }
+    since.textContent =
+      '上次重置 ' + hero.dataset.lastlabel + ' · 已过 ' + (d < 1 ? '不足一天' : d + ' 天');
+  }
+
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>

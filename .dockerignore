@@ -1,0 +1,34 @@
+# 镜像里不需要的东西。Dockerfile 用的是 `COPY . .`，
+# 没有这个文件会把 .git、本地截图、原型演示页一起塞进镜像。
+#
+# 注意：data/ 与 miniprogram/ 必须在镜像里 —— 服务要读 data/，
+# 而 build.mjs 要往 miniprogram/data/ 写快照。
+
+# 版本控制
+.git
+.gitignore
+.gitattributes
+
+# CI 配置（镜像里用不到）
+.github
+
+# 构建产物与本地预览（镜像内会重新 build，不要拷旧的）
+dist
+prototype
+
+# 依赖（运行镜像零依赖，这里防止本地 node_modules 被拷进构建上下文）
+node_modules
+pnpm-lock.yaml
+
+# ⚠ package-lock.json 不能排除：构建阶段要跑 `npm ci`，
+#   没有 lock 文件它直接报错。它已纳入版本管理（见 .gitignore 的说明）。
+
+# 运行期临时文件
+data/*.tmp-*
+*.log
+
+# 系统 / 编辑器
+.DS_Store
+*.swp
+.idea
+.vscode

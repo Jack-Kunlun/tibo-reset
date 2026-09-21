@@ -1,0 +1,52 @@
+{
+  "description": "等 TIBO 按按钮 · 额度重置观测台（小程序端）",
+  "miniprogramRoot": "miniprogram/",
+  "compileType": "miniprogram",
+  "appid": "touristappid",
+  "projectname": "tibo-reset",
+  "libVersion": "3.5.5",
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "urlCheck": true,
+    "coverView": true,
+    "nodeModules": false,
+    "checkInvalidKey": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "ignoreUploadUnusedFiles": true,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  },
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "观测台首页",
+          "pathName": "pages/index/index",
+          "query": "",
+          "scene": null
+        },
+        {
+          "name": "重置历史",
+          "pathName": "pages/history/index",
+          "query": "",
+          "scene": null
+        }
+      ]
+    }
+  }
+}

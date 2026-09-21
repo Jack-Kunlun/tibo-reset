@@ -1,0 +1,190 @@
+/* 全局样式：风岚水墨风 —— 宣纸白 + 墨黑 + 雾灰 + 岚青 + 竹青 + 朱砂 */
+
+page {
+  background: #FAF8F4;
+  color: #1F1E1B;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+    "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: 28rpx;
+  line-height: 1.7;
+}
+
+.wrap {
+  padding: 0 32rpx 80rpx;
+}
+
+/* ---------- 卡片与分区 ---------- */
+
+.card {
+  background: #FFFFFF;
+  border: 1rpx solid #E4DFD5;
+  border-radius: 20rpx;
+  overflow: hidden;
+}
+
+.sec-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin: 56rpx 0 16rpx;
+}
+
+.sec-head .t {
+  font-size: 34rpx;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.sec-head .h {
+  font-size: 22rpx;
+  color: #8C8880;
+}
+
+.lede {
+  font-size: 25rpx;
+  color: #4A4842;
+  margin: 0 0 20rpx;
+  line-height: 1.75;
+}
+
+/* ---------- 顶栏 ---------- */
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+  padding: 28rpx 0 24rpx;
+  border-bottom: 1rpx solid #E4DFD5;
+}
+
+.top .brand {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  /* flex:1 + min-width:0 让标题可以压缩换行，而不是把右侧状态徽章挤出屏幕 */
+  flex: 1;
+  min-width: 0;
+}
+
+.top h1 {
+  font-size: 32rpx;
+  font-weight: 650;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.top .sub {
+  font-size: 18rpx;
+  color: #8C8880;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: "SF Mono", Menlo, monospace;
+}
+
+.pulse {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: 8rpx;
+  font-size: 21rpx;
+  color: #4A4842;
+  background: #F2EFE8;
+  border: 1rpx solid #E4DFD5;
+  padding: 5rpx 14rpx;
+  border-radius: 99rpx;
+  white-space: nowrap;
+}
+
+.pulse .dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #5F8455;
+}
+
+.pulse.warn .dot {
+  background: #B3563C;
+}
+
+/* ---------- 兜底提示条 ---------- */
+
+.notice {
+  margin-top: 24rpx;
+  padding: 18rpx 24rpx;
+  border-radius: 14rpx;
+  background: rgba(179, 86, 60, 0.07);
+  border: 1rpx solid rgba(179, 86, 60, 0.26);
+  color: #8A422E;
+  font-size: 23rpx;
+  line-height: 1.6;
+}
+
+/* ---------- 指标格 ---------- */
+
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rpx;
+  background: #E4DFD5;
+  border: 1rpx solid #E4DFD5;
+  border-radius: 18rpx;
+  overflow: hidden;
+  margin-top: 44rpx;
+}
+
+.metric {
+  flex: 1 1 30%;
+  min-width: 190rpx;
+  background: #FFFFFF;
+  padding: 22rpx 24rpx;
+}
+
+.metric .k {
+  font-size: 22rpx;
+  color: #8C8880;
+  letter-spacing: 0.04em;
+}
+
+.metric .v {
+  font-size: 42rpx;
+  font-weight: 620;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric.hi .v {
+  color: #3F7376;
+}
+
+.metric .v .u {
+  font-size: 22rpx;
+  color: #8C8880;
+  font-weight: 400;
+  margin-left: 6rpx;
+}
+
+.metric .note {
+  font-size: 21rpx;
+  color: #8C8880;
+}
+
+/* ---------- 版本 / 页脚 ---------- */
+
+.foot {
+  margin-top: 64rpx;
+  padding-top: 28rpx;
+  border-top: 1rpx solid #E4DFD5;
+  font-size: 22rpx;
+  color: #8C8880;
+  line-height: 1.9;
+}
+
+.foot .nav {
+  display: inline-block;
+  margin-top: 14rpx;
+  color: #3F7376;
+  font-size: 25rpx;
+}

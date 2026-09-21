@@ -1,0 +1,41 @@
+<!-- 历史记录：按时间倒序，每条可复制原推链接 -->
+
+<view class="wrap">
+
+  <view class="top">
+    <view class="brand">
+      <text class="h1">重置历史</text>
+      <text class="sub">{{count}} RECORDS</text>
+    </view>
+    <view class="pulse {{degraded ? 'warn' : ''}}">
+      <text class="dot"></text>
+      <text>{{updText}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{notice}}" class="notice">{{notice}}</view>
+
+  <view class="sum">
+    <text>共 {{count}} 次 · 平均间隔 {{mean}} 天 · 中位 {{median}} 天</text>
+  </view>
+
+  <view wx:if="{{!rows.length}}" class="empty">暂无记录</view>
+
+  <view class="list">
+    <view class="row" wx:for="{{rows}}" wx:key="at">
+      <view class="head">
+        <text class="when">{{item.date}} {{item.time}}</text>
+        <text class="day">{{item.weekday}}</text>
+        <text class="tag {{item.type === 'credit' ? 'c' : 'r'}}">{{item.typeName}}</text>
+        <text wx:if="{{item.gapText}}" class="gap">{{item.gapText}}</text>
+      </view>
+      <view class="txt">{{item.text}}</view>
+      <view wx:if="{{item.url}}" class="lnk" data-url="{{item.url}}" bindtap="onCopy">复制原推链接</view>
+    </view>
+  </view>
+
+  <view class="foot">
+    <navigator class="nav" url="/pages/index/index" open-type="navigate">← 回到观测台</navigator>
+  </view>
+
+</view>

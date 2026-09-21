@@ -1,0 +1,132 @@
+name: collect
+
+# 定时采集 → 重建页面 → 分发到两个方向。
+#
+# 为什么采集跑在 GitHub Actions：x.com 在中国境内不可直连（实测 3/3 超时，http=000），
+# 而 runner 在境外。这是整套架构里唯一能免费拿到境外网络的一环。
+#
+# 产物有两个去处（见 docs/tech-selection.md 3.6）：
+#   1. 提交 data/ → 仓库留档；页面产物由 artifact 交给 Pages
+#   2. POST 到境内服务的 /api/ingest → 小程序 API 的数据源
+# 两路共用同一份数据与同一套模型代码，所以「页面数字 = API 数字」是架构保证，
+# 不是靠人工比对（验收 A3）。
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # 每 30 分钟
+  workflow_dispatch:          # 支持手动触发
+
+permissions:
+  contents: write             # 提交采集数据
+  pages: write                # 发布 Pages
+  id-token: write             # deploy-pages 需要
+
+# 不让两轮采集并行：后一轮的产物会覆盖前一轮，且会抢同一个 git 引用
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  # ---------------------------- 采集、构建、留档 ----------------------------
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      # 构建期依赖只有这一个（@resvg/resvg-js，出 OG 分享图）。
+      # 线上运行时依然零依赖：server/ 不 import 它。
+      - name: 安装构建期依赖
+        run: npm ci
+
+      # ⚠ 必须装在构建之前。Ubuntu runner **默认不带中文字体**，
+      #   缺字体时 resvg 不报错，只是把每个汉字画成一个空方框 ——
+      #   静默产出一张坏掉的分享卡片。scripts/og-image.mjs 里做了前置探测
+      #   （找不到字体就不出图），但正确做法是把字体装上，而不是让它降级。
+      #
+      # continue-on-error：字体只影响分享卡片这张图，不该有能力搞挂整条采集链路。
+      # apt 源抽风时让它跳过，构建会自动降级（不出 og:image），页面照常发布。
+      - name: 安装中文字体
+        continue-on-error: true
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+
+      # 校验在构建之前跑，顺序不能反：
+      # test-shared 要检查 miniprogram/utils/scene.js 与 src/lib/scene.js 是否一致，
+      # 放到构建之后的话副本刚被覆盖，那条检查恒真、等于没有。
+      - name: 校验
+        run: npm run test
+
+      - name: 采集并构建
+        env:
+          # og:url / og:image 要写成绝对地址，用对外分享的那个域名（境内镜像）。
+          # 在仓库 Settings → Variables 配 SITE_URL；不配则构建会明确提示并跳过这两条 meta。
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          node scripts/collect.mjs
+          node scripts/build.mjs
+
+      # A3：页面内联数字必须与 API 返回一致。放在构建之后 ——
+      # 它比的是「刚构建出来的页面」与「现起的服务」，锚点贴近才能精确判等。
+      - name: 校验页面与 API 一致
+        run: node scripts/check-consistency.mjs
+
+      # dist/ 不进版本管理（见 AGENTS.md）：页面产物走下面的 artifact。
+      # 早先这里写的是 `git add data dist`，而 dist 被 .gitignore 排除，
+      # 那一行会让整个步骤直接失败 —— 已修正。
+      - name: 提交采集数据
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data miniprogram/data miniprogram/utils/scene.js
+          if git diff --staged --quiet; then
+            echo "无变化，跳过提交"
+          else
+            git commit -m "chore(data): 自动更新采集数据"
+            git push
+          fi
+
+      - name: 上传页面产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  # ------------------------------ 发布 Pages ------------------------------
+  deploy:
+    needs: refresh
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  # ------------------------- 推送到境内服务 -------------------------
+  # 刻意独立成一个 job，而不是塞进 refresh：
+  # 境内服务不可达时，页面该发的还是要发（数据已经在 refresh 里提交了），
+  # 但这一步必须失败得明明白白 —— 否则就成了「页面是新的、API 是旧的」，
+  # 而这种静默不一致正是本架构最想避免的情况。
+  ingest:
+    needs: refresh
+    runs-on: ubuntu-latest
+    steps:
+      # refresh 已经 push 了最新数据，这里要拿的是那个提交而不是触发时的 SHA。
+      # 若 refresh 无变化跳过提交，分支 HEAD 本身就是最新的，同样正确。
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: 推送到境内服务
+        env:
+          INGEST_URL: ${{ secrets.INGEST_URL }}
+          INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
+        run: node scripts/push-ingest.mjs

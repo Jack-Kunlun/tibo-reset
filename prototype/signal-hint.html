@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>等 TIBO 按按钮 · 额度重置观测台</title>
+<meta name="description" content="Codex 额度重置的观测台：距上次重置多久、还要等多久、以及 Tibo 有没有提前预告。" />
+<style>
+  :root{
+    --paper:#FAF8F4; --paper2:#F2EFE8; --card:#FFFFFF;
+    --ink:#1F1E1B; --ink2:#4A4842; --mist:#8C8880;
+    --line:#E4DFD5;
+    --lan:#3F7376; --bamboo:#5F8455; --cinnabar:#B3563C;
+    --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+    /* 卷轴数字的垂直微调：mono 字体的 ascent 留白会让数字看起来偏高 */
+    --reel-nudge:0em;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--sans); font-size:15px; line-height:1.7;
+    background-image:radial-gradient(circle at 12% 0%,rgba(63,115,118,.05),transparent 45%),
+                     radial-gradient(circle at 88% 8%,rgba(95,132,85,.045),transparent 42%);
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:0 24px 80px}
+
+  /* ---------- 顶栏 ---------- */
+  header.top{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:26px 0 22px;border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex;align-items:baseline;gap:12px}
+  .brand h1{font-size:19px;margin:0;font-weight:650;letter-spacing:.02em}
+  .brand .sub{font-size:12px;color:var(--mist);letter-spacing:.14em;text-transform:uppercase;font-family:var(--mono)}
+  .pulse{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink2);
+    background:var(--paper2);border:1px solid var(--line);padding:5px 12px;border-radius:99px;white-space:nowrap}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--bamboo);box-shadow:0 0 0 0 rgba(95,132,85,.5);animation:bp 2.4s infinite}
+  @keyframes bp{0%{box-shadow:0 0 0 0 rgba(95,132,85,.45)}70%{box-shadow:0 0 0 8px rgba(95,132,85,0)}100%{box-shadow:0 0 0 0 rgba(95,132,85,0)}}
+
+  /* ---------- 信号横幅 ---------- */
+  .sig{
+    margin-top:26px;padding:20px 22px;border-radius:14px;
+    border:1px solid rgba(179,86,60,.34);border-left:4px solid var(--cinnabar);
+    background:linear-gradient(180deg,rgba(179,86,60,.075),rgba(179,86,60,.02));
+  }
+  .sig[data-level="hint"]{
+    border-color:rgba(63,115,118,.32);border-left-color:var(--lan);
+    background:linear-gradient(180deg,rgba(63,115,118,.07),rgba(63,115,118,.02));
+  }
+  .sig-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .sig-badge{font-size:11.5px;letter-spacing:.1em;padding:3px 11px;border-radius:99px;
+    background:var(--cinnabar);color:#fff}
+  .sig[data-level="hint"] .sig-badge{background:var(--lan)}
+  .sig-title{font-size:16px;font-weight:650}
+  .sig-precision{font-size:12px;color:var(--mist);margin-left:auto}
+  .sig-win{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
+    border-radius:10px;overflow:hidden;margin-bottom:14px}
+  .sw{display:grid;grid-template-columns:104px 1fr auto;gap:12px;align-items:baseline;
+    background:var(--card);padding:12px 15px}
+  .sw-k{font-size:12px;color:var(--mist)}
+  .sw-v{font-family:var(--mono);font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .sw-z{font-family:var(--mono);font-size:11.5px;color:var(--mist);white-space:nowrap}
+  .sw-foot{background:var(--card);padding:10px 15px;font-size:12px;color:var(--ink2)}
+  .sig-quote{margin:0 0 12px;padding:13px 16px;background:var(--card);border:1px solid var(--line);
+    border-radius:10px;font-size:13.5px;color:var(--ink2);line-height:1.65}
+  .sig-meta{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--mist)}
+  .sig-meta a{color:var(--lan);text-decoration:none;border-bottom:1px dotted currentColor}
+  .sig-note{color:#8A6A28}
+  .sig-idle{margin-top:22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    font-size:12.5px;color:var(--mist);background:var(--paper2);border:1px solid var(--line);
+    border-radius:10px;padding:12px 16px}
+  .sig-idle b{color:var(--ink2)}
+  .sig-idle-sub{margin-left:auto;font-size:11.5px}
+  .sig-dot{width:7px;height:7px;border-radius:50%;background:var(--mist)}
+
+  /* ---------- Hero ---------- */
+  .hero{padding:46px 0 8px;text-align:center}
+  .hero .label{font-size:12px;letter-spacing:.2em;color:var(--mist);text-transform:uppercase;font-family:var(--mono)}
+
+  /* 逐位卷动：每一位是一个 0–9 的竖条，靠 translateY 滚动。
+     初始位置由构建脚本写死在行内样式里，所以脚本被禁用时数字也是对的，
+     只是不再滚动 —— 属于渐进增强，不是必需品。 */
+  .counter{
+    display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;
+    font-family:var(--mono);font-variant-numeric:tabular-nums;
+    font-size:clamp(38px,8.4vw,84px);line-height:1;font-weight:300;
+    letter-spacing:-.01em;margin:20px 0 8px;
+  }
+  .grp{display:inline-flex;align-items:baseline}
+  .reels{display:inline-flex;align-items:baseline;position:relative;top:var(--reel-nudge)}
+  .reel{display:inline-block;width:.62em;height:1em;overflow:hidden;vertical-align:baseline}
+  .reel .strip{display:block;transition:transform .55s cubic-bezier(.18,.86,.24,1)}
+  .reel .strip i{display:block;height:1em;line-height:1;font-style:normal;text-align:center}
+  .counter .unit{font-size:.24em;line-height:1;color:var(--mist);
+    margin:0 13px 0 9px;letter-spacing:.06em;font-weight:400}
+  .grp:last-child .unit{margin-right:0}
+
+  .hero .since{font-size:13px;color:var(--mist);font-family:var(--mono)}
+  .verdict{
+    display:inline-block;margin-top:24px;padding:11px 22px;border-radius:99px;
+    font-size:13.5px;border:1px solid var(--line);background:var(--card);
+  }
+  .verdict b{font-weight:650}
+  .v-calm{color:var(--bamboo);border-color:rgba(95,132,85,.3);background:rgba(95,132,85,.06)}
+  .v-watch{color:var(--lan);border-color:rgba(63,115,118,.3);background:rgba(63,115,118,.055)}
+  .v-long{color:#8A6A28;border-color:rgba(179,86,60,.28);background:rgba(179,86,60,.05)}
+  .v-rare{color:var(--cinnabar);border-color:rgba(179,86,60,.42);background:rgba(179,86,60,.08)}
+
+  /* ---------- 卡片 ---------- */
+  section{margin-top:56px}
+  .head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-bottom:6px;flex-wrap:wrap}
+  .head h2{font-size:16.5px;margin:0;font-weight:640;letter-spacing:.01em}
+  .head .hint{font-size:12.5px;color:var(--mist)}
+  .lede{font-size:14px;color:var(--ink2);margin:0 0 22px;max-width:62ch}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 20px 12px;
+    box-shadow:0 1px 2px rgba(31,30,27,.03)}
+
+  /* ---------- 指标条 ---------- */
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:26px}
+  .metric{background:var(--card);padding:17px 18px}
+  .metric .k{font-size:11.5px;color:var(--mist);letter-spacing:.06em;margin-bottom:5px}
+  .metric .v{font-family:var(--mono);font-size:25px;font-weight:400;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .metric .v small{font-size:.5em;color:var(--mist);margin-left:3px}
+  .metric .note{font-size:11.5px;color:var(--mist);margin-top:3px}
+  .metric.hi .v{color:var(--lan)}
+
+  /* ---------- 预测 ---------- */
+  .fc-asof{font-size:12px;color:var(--mist);margin:0 0 14px;font-family:var(--mono)}
+  .fc-asof b{color:var(--ink2);font-weight:500}
+  .fc{display:grid;grid-template-columns:minmax(190px,250px) 1fr;gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .fc-main{background:var(--card);padding:24px 22px}
+  .fc-main .k{font-size:11.5px;color:var(--mist);letter-spacing:.06em}
+  .fc-main .v{font-family:var(--mono);font-size:50px;font-weight:300;line-height:1.05;
+    margin:9px 0 6px;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--lan)}
+  .fc-main .v small{font-size:.3em;color:var(--mist);margin-left:5px}
+  .fc-main .range{font-size:12.5px;color:var(--ink2);line-height:1.6}
+  .fc-bars{background:var(--card);padding:22px 24px}
+  .fc-bar{display:grid;grid-template-columns:62px 1fr 54px;align-items:center;gap:12px;margin-bottom:11px}
+  .fc-bar:last-child{margin-bottom:0}
+  .fc-bar .lb{font-size:12.5px;color:var(--ink2);white-space:nowrap}
+  .fc-bar .track{height:8px;background:var(--paper2);border-radius:99px;overflow:hidden}
+  .fc-bar .track i{display:block;height:100%;background:linear-gradient(90deg,var(--lan),#5B9296);border-radius:99px}
+  .fc-bar .pv{font-family:var(--mono);font-size:12.5px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+  .fc-note{font-size:11.5px;color:var(--mist);line-height:1.6;margin:16px 0 0;padding-top:13px;border-top:1px solid var(--line)}
+  .fc-note strong{color:var(--ink2)}
+  .fc-empty{font-size:13px;color:var(--mist);margin:0 0 12px}
+
+  .fc-meta{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+  .fc-block{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+  .fc-block h3{font-size:13px;margin:0 0 14px;font-weight:640;color:var(--ink)}
+  .fc-table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .fc-table th{text-align:left;color:var(--mist);font-weight:400;font-size:11.5px;
+    padding:0 8px 8px 0;border-bottom:1px solid var(--line)}
+  .fc-table td{padding:9px 8px 9px 0;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top}
+  .fc-table tr:last-child td{border-bottom:0}
+  .fc-table td.num{font-family:var(--mono);color:var(--ink);white-space:nowrap}
+  /* 第一列不给它收缩的余地：否则「50% 分位覆盖率」会被折成三行 */
+  .fc-table th:first-child,.fc-table td:first-child{width:1%;white-space:nowrap;padding-right:18px}
+  .fc-table td.num.good{color:var(--bamboo);font-weight:600}
+  .fc-table td.num.bad{color:var(--cinnabar);font-weight:600}
+  .fc-foot{font-size:11.5px;color:var(--mist);margin:14px 0 0;line-height:1.65}
+  .ph{display:grid;grid-template-columns:58px 1fr auto;gap:4px 12px;align-items:baseline;
+    padding:9px 0;border-bottom:1px solid var(--line)}
+  .ph:last-of-type{border-bottom:0}
+  .ph .pi{font-size:11px;color:var(--mist);font-family:var(--mono)}
+  .ph .pt{font-size:11.5px;color:var(--mist);font-family:var(--mono)}
+  .ph .pm{font-family:var(--mono);font-size:16px;color:var(--ink);text-align:right}
+  .ph .pm small{font-size:.62em;color:var(--mist);margin-left:2px}
+  .ph .pn{grid-column:2 / 4;font-size:11px;color:var(--mist)}
+  .fc-warn{list-style:none;margin:16px 0 0;padding:0}
+  .fc-warn li{font-size:12.5px;color:#8A6A28;background:rgba(179,86,60,.05);
+    border:1px solid rgba(179,86,60,.22);border-radius:10px;padding:11px 15px;margin-bottom:9px}
+  .fc-warn li::before{content:"⚠ ";color:var(--cinnabar)}
+
+  /* ---------- 图表 ---------- */
+  /* svg 标签上已写死 width/height 属性，这里只做响应式收缩。
+     不再依赖 height:auto 去推算高度，避免在部分 WebView 内核里塌成 0 高度。
+     min-width + 外层横向滚动：窄面板下不让图表被压到看不清（否则图内 11px 文字
+     在 400px 宽的面板里会缩到 5px，看着就像一片空白）。 */
+  .chart{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+  svg{display:block;width:100%;min-width:520px;height:auto}
+  .legend{display:flex;gap:20px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);padding:14px 4px 6px}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:middle}
+
+  /* ---------- 时间线 ---------- */
+  .tl{list-style:none;margin:0;padding:0}
+  .tl li{display:grid;grid-template-columns:118px 1fr;gap:18px;padding:16px 4px;border-bottom:1px solid var(--line)}
+  .tl li:last-child{border-bottom:0}
+  .tl .when{font-family:var(--mono);font-size:12.5px;color:var(--mist);padding-top:2px}
+  .tl .when b{display:block;color:var(--ink);font-size:14px;font-weight:500;margin-bottom:2px}
+  .tl .body p{margin:0 0 7px;font-size:14px;color:var(--ink2)}
+  .tl .body a{color:var(--lan);text-decoration:none;font-size:12px;font-family:var(--mono);border-bottom:1px dotted currentColor}
+  .tl .body a:hover{color:var(--ink)}
+  .tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:99px;margin-bottom:7px;letter-spacing:.03em}
+  .tag.r{background:rgba(63,115,118,.09);color:var(--lan)}
+  .tag.c{background:rgba(95,132,85,.1);color:var(--bamboo)}
+
+  /* ---------- 页脚 ---------- */
+  footer{margin-top:64px;padding-top:26px;border-top:1px solid var(--line);font-size:12.5px;color:var(--mist);
+    display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+  footer a{color:var(--ink2);text-decoration:none;border-bottom:1px dotted var(--mist)}
+
+  @media(max-width:620px){
+    header.top{flex-wrap:wrap;gap:10px;padding:20px 0 16px}
+    .metrics{grid-template-columns:repeat(auto-fit,minmax(112px,1fr))}
+    .verdict{font-size:12.5px;padding:9px 16px}
+    .tl li{grid-template-columns:1fr;gap:6px}
+    .wrap{padding:0 16px 60px}
+    .fc{grid-template-columns:1fr}
+    .fc-meta{grid-template-columns:1fr}
+    .fc-main .v{font-size:42px}
+    .sw{grid-template-columns:1fr;gap:2px}
+    .sw-z{margin-bottom:4px}
+    .sig-precision{margin-left:0}
+    .sig-idle-sub{margin-left:0}
+    .counter .unit{margin:0 8px 0 6px}
+  }
+</style>
+</head>
+<body>
+<div style="background:#B3563C;color:#fff;padding:12px 18px;font:13px/1.6 -apple-system,'PingFang SC',sans-serif;
+     display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;position:sticky;top:0;z-index:99">
+  <b style="letter-spacing:.04em">原型演示页 · 非真实数据</b>
+  <span style="opacity:.92">信号原型 · 仅线索（不作为信号展示） —— 构造样例：只有额度意图、没有可解析的未来时间。此状态**不得**升级为重置信号，正确表现是信号区保持冷状态、不制造焦虑。</span>
+  <span style="opacity:.72;margin-left:auto">M1 评审用 · 由 scripts/make-prototype.mjs 生成</span>
+</div>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <h1>等 TIBO 按按钮</h1>
+      <span class="sub">Reset Observatory</span>
+    </div>
+    <span class="pulse"><span class="dot"></span>观测中 · <span id="upd">18:00</span></span>
+  </header>
+
+  <!-- ============ 信号（有预告时才醒目） ============ -->
+  
+    <div class="sig-idle">
+      <span class="sig-dot"></span>
+      <span>最近 <b>7</b> 条推文中没有检测到重置预告</span>
+      <span class="sig-idle-sub">已扫描 60 天内的公开发言</span>
+    </div>
+
+  <!-- ============ HERO ============ -->
+  <div class="hero" id="hero" data-last="2026-09-12T08:09:17.000Z" data-lastlabel="2026.09.12 16:09">
+    <div class="label">距上一次额度重置</div>
+    <div class="counter" id="counter"><span class="grp" data-g="d"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-8em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">天</span></span><span class="grp" data-g="h"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-1em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span><span class="reel"><span class="strip" style="transform:translateY(-7em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">时</span></span><span class="grp" data-g="m"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-3em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span><span class="reel"><span class="strip" style="transform:translateY(-4em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">分</span></span><span class="grp" data-g="s"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-2em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span><span class="reel"><span class="strip" style="transform:translateY(-2em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">秒</span></span></div>
+    <div class="since" id="since">上次重置 2026.09.12 16:09 · 已过 8 天</div>
+    <div class="verdict v-long"><b>明显偏久</b> · 历史上 19% 的间隔比现在更长</div>
+  </div>
+
+  <div class="metrics"><div class="metric">
+    <div class="k">平均间隔</div>
+    <div class="v">6.9<small>天</small></div>
+    <div class="note">被极端值拉高</div>
+  </div><div class="metric hi">
+    <div class="k">中位间隔</div>
+    <div class="v">3.1<small>天</small></div>
+    <div class="note">一半情况比这更快</div>
+  </div><div class="metric">
+    <div class="k">最长等待</div>
+    <div class="v">67.7<small>天</small></div>
+    <div class="note">极端长尾</div>
+  </div><div class="metric">
+    <div class="k">记录总数</div>
+    <div class="v">53</div>
+    <div class="note">2025.09.17 起</div>
+  </div><div class="metric">
+    <div class="k">普通重置</div>
+    <div class="v">50</div>
+    <div class="note">额度直给</div>
+  </div><div class="metric">
+    <div class="k">发券型</div>
+    <div class="v">3</div>
+    <div class="note">改成给券</div>
+  </div></div>
+
+  <!-- ============ 时间预测 ============ -->
+  <section>
+    <div class="head">
+      <h2>还要等多久</h2>
+    </div>
+    
+    <p class="fc-asof">
+      计算于 <b>2026.09.21 09:43</b> 北京时间（距上次重置 8.73 天）
+    </p>
+
+    <div class="fc">
+      <div class="fc-main">
+        <div class="k">中位剩余等待</div>
+        <div class="v">1.2<small>天</small></div>
+        <div class="range">
+          约 28 小时 · 80% 区间 <b>0.0 – 6.2</b> 天
+        </div>
+      </div>
+      <div class="fc-bars">
+        <div class="fc-bar">
+      <span class="lb">24 小时内</span>
+      <span class="track"><i style="width:29.7%"></i></span>
+      <span class="pv">29.7%</span>
+    </div><div class="fc-bar">
+      <span class="lb">3 天内</span>
+      <span class="track"><i style="width:65.2%"></i></span>
+      <span class="pv">65.2%</span>
+    </div><div class="fc-bar">
+      <span class="lb">7 天内</span>
+      <span class="track"><i style="width:90.0%"></i></span>
+      <span class="pv">90.0%</span>
+    </div><div class="fc-bar">
+      <span class="lb">14 天内</span>
+      <span class="track"><i style="width:98.4%"></i></span>
+      <span class="pv">98.4%</span>
+    </div><div class="fc-bar">
+      <span class="lb">30 天内</span>
+      <span class="track"><i style="width:100.0%"></i></span>
+      <span class="pv">100.0%</span>
+    </div>
+        <p class="fc-note">概率<strong>未校准</strong>，实际发生率通常比上面显示的高。</p>
+      </div>
+    </div>
+
+    <div class="fc-meta">
+      <div class="fc-block">
+        <h3>样本外回测（n=120）</h3>
+        <table class="fc-table">
+          <tr><th>指标</th><th>实测</th><th>判定</th></tr>
+          <tr>
+            <td>50% 分位覆盖率</td>
+            <td class="num good">50.0%</td>
+            <td>校准良好</td>
+          </tr>
+          <tr>
+            <td>80% 分位覆盖率</td>
+            <td class="num good">86.7%</td>
+            <td>校准良好</td>
+          </tr>
+          <tr>
+            <td>7 天区分度</td>
+            <td class="num bad">≈ 无区分力</td>
+            <td>Brier 0.210 / 盲猜 0.205</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="fc-block">
+        <h3>节奏在加速</h3>
+        <div class="ph">
+      <span class="pi">第 1 段</span>
+      <span class="pt">2025.09.17 → 2026.04.28</span>
+      <span class="pm">12.39<small>天</small></span>
+      <span class="pn">n=18 · 最大 68 天</span>
+    </div><div class="ph">
+      <span class="pi">第 2 段</span>
+      <span class="pt">2026.04.28 → 2026.07.26</span>
+      <span class="pm">4.92<small>天</small></span>
+      <span class="pn">n=18 · 最大 19 天</span>
+    </div><div class="ph">
+      <span class="pi">第 3 段</span>
+      <span class="pt">2026.07.26 → 2026.09.12</span>
+      <span class="pm">3.03<small>天</small></span>
+      <span class="pn">n=16 · 最大 8 天</span>
+    </div>
+        <p class="fc-foot">
+          平均间隔从 12.4 天降到 3.0 天。
+        </p>
+      </div>
+    </div>
+    <ul class="fc-warn"><li>训练样本仅 19 次事件，长尾估计不稳定</li><li>节奏处于明显加速期，任何历史外推都会偏保守（高估等待时间）</li></ul>
+  
+  </section>
+
+  <!-- ============ 生存曲线 ============ -->
+  <section>
+    <div class="head">
+      <h2>等待生存曲线</h2>
+      <span class="hint">n = 52 次历史间隔</span>
+    </div>
+    <p class="lede">
+      纵轴是「到第 X 天为止，历史上百分之多少的重置已经发生」。曲线越陡，说明节奏越集中；
+      右侧的长尾说明存在极少数超长等待。你现在的位置标在曲线上。
+    </p>
+    <div class="card">
+      <div class="chart"><svg id="survival" width="900" height="320" viewBox="0 0 900 320" role="img" aria-label="等待间隔生存曲线" preserveAspectRatio="xMidYMid meet"><defs><linearGradient id="g0" x1="0" y1="22" x2="0" y2="274" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#3F7376" stop-opacity="0.18"/><stop offset="100%" stop-color="#3F7376" stop-opacity="0"/></linearGradient></defs><line x1="54" y1="274" x2="874" y2="274" stroke="#E4DFD5" stroke-width="1"/>
+<line x1="54" y1="211" x2="874" y2="211" stroke="#E4DFD5" stroke-width="1"/>
+<line x1="54" y1="148" x2="874" y2="148" stroke="#E4DFD5" stroke-width="1"/>
+<line x1="54" y1="85" x2="874" y2="85" stroke="#E4DFD5" stroke-width="1"/>
+<line x1="54" y1="22" x2="874" y2="22" stroke="#E4DFD5" stroke-width="1"/>
+<text x="46" y="278" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="end">0%</text>
+<text x="46" y="215" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="end">25%</text>
+<text x="46" y="152" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="end">50%</text>
+<text x="46" y="89" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="end">75%</text>
+<text x="46" y="26" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="end">100%</text>
+<text x="54" y="292" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">0</text>
+<text x="112.57" y="292" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">1</text>
+<text x="171.14" y="292" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">2</text>
+<text x="229.71" y="292" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">3</text>
+<text x="346.86" y="292" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">5</text>
+<text x="464" y="292" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">7</text>
+<text x="639.71" y="292" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">10</text>
+<text x="874" y="292" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">14</text>
+<text x="464" y="314" fill="#8C8880" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="middle">距上次重置的天数</text>
+<path d="M 54 274 L 83.07 274 L 83.07 269.15 L 104.25 269.15 L 104.25 264.31 L 105.27 264.31 L 105.27 259.46 L 111.98 259.46 L 111.98 254.62 L 115 254.62 L 115 249.77 L 115.23 249.77 L 115.23 244.92 L 116.12 244.92 L 116.12 240.08 L 116.9 240.08 L 116.9 235.23 L 126.64 235.23 L 126.64 230.38 L 133.69 230.38 L 133.69 225.54 L 146.05 225.54 L 146.05 220.69 L 150.58 220.69 L 150.58 215.85 L 158.03 215.85 L 158.03 211 L 160.59 211 L 160.59 206.15 L 169.28 206.15 L 169.28 201.31 L 171.73 201.31 L 171.73 196.46 L 172.52 196.46 L 172.52 191.62 L 173.97 191.62 L 173.97 186.77 L 176.23 186.77 L 176.23 181.92 L 180.84 181.92 L 180.84 177.08 L 181.25 177.08 L 181.25 172.23 L 190.35 172.23 L 190.35 167.38 L 203.01 167.38 L 203.01 162.54 L 219.28 162.54 L 219.28 157.69 L 228.23 157.69 L 228.23 152.85 L 232.87 152.85 L 232.87 148 L 242.38 148 L 242.38 143.15 L 251.71 143.15 L 251.71 138.31 L 262.21 138.31 L 262.21 133.46 L 280.26 133.46 L 280.26 128.62 L 284.1 128.62 L 284.1 123.77 L 294.38 123.77 L 294.38 118.92 L 303.43 118.92 L 303.43 114.08 L 361.34 114.08 L 361.34 109.23 L 371.24 109.23 L 371.24 104.38 L 443.06 104.38 L 443.06 99.54 L 469.84 99.54 L 469.84 94.69 L 479.19 94.69 L 479.19 89.85 L 481.36 89.85 L 481.36 85 L 505.36 85 L 505.36 80.15 L 510.8 80.15 L 510.8 75.31 L 548.67 75.31 L 548.67 70.46 L 579.91 70.46 L 579.91 65.62 L 634.2 65.62 L 634.2 60.77 L 638.7 60.77 L 638.7 55.92 L 873.36 55.92 L 873.36 51.08 L 874 51.08 L 874 274 L 54 274 Z" fill="url(#g0)"/>
+<path d="M 54 274 L 83.07 274 L 83.07 269.15 L 104.25 269.15 L 104.25 264.31 L 105.27 264.31 L 105.27 259.46 L 111.98 259.46 L 111.98 254.62 L 115 254.62 L 115 249.77 L 115.23 249.77 L 115.23 244.92 L 116.12 244.92 L 116.12 240.08 L 116.9 240.08 L 116.9 235.23 L 126.64 235.23 L 126.64 230.38 L 133.69 230.38 L 133.69 225.54 L 146.05 225.54 L 146.05 220.69 L 150.58 220.69 L 150.58 215.85 L 158.03 215.85 L 158.03 211 L 160.59 211 L 160.59 206.15 L 169.28 206.15 L 169.28 201.31 L 171.73 201.31 L 171.73 196.46 L 172.52 196.46 L 172.52 191.62 L 173.97 191.62 L 173.97 186.77 L 176.23 186.77 L 176.23 181.92 L 180.84 181.92 L 180.84 177.08 L 181.25 177.08 L 181.25 172.23 L 190.35 172.23 L 190.35 167.38 L 203.01 167.38 L 203.01 162.54 L 219.28 162.54 L 219.28 157.69 L 228.23 157.69 L 228.23 152.85 L 232.87 152.85 L 232.87 148 L 242.38 148 L 242.38 143.15 L 251.71 143.15 L 251.71 138.31 L 262.21 138.31 L 262.21 133.46 L 280.26 133.46 L 280.26 128.62 L 284.1 128.62 L 284.1 123.77 L 294.38 123.77 L 294.38 118.92 L 303.43 118.92 L 303.43 114.08 L 361.34 114.08 L 361.34 109.23 L 371.24 109.23 L 371.24 104.38 L 443.06 104.38 L 443.06 99.54 L 469.84 99.54 L 469.84 94.69 L 479.19 94.69 L 479.19 89.85 L 481.36 89.85 L 481.36 85 L 505.36 85 L 505.36 80.15 L 510.8 80.15 L 510.8 75.31 L 548.67 75.31 L 548.67 70.46 L 579.91 70.46 L 579.91 65.62 L 634.2 65.62 L 634.2 60.77 L 638.7 60.77 L 638.7 55.92 L 873.36 55.92 L 873.36 51.08 L 874 51.08" fill="none" stroke="#3F7376" stroke-width="2" stroke-linejoin="round"/>
+<path d="M 874 51.08 L 874 22" fill="none" stroke="#B3563C" stroke-width="1.8" stroke-dasharray="4 4"/>
+<text x="866" y="29.56" fill="#B3563C" font-size="11.5" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="end" font-weight="400">6 次长于 14 天（最长 67.7 天）</text>
+<line x1="237.62" y1="22" x2="237.62" y2="274" stroke="#8C8880" stroke-width="1" stroke-dasharray="2 5" opacity="0.7"/>
+<text x="237.62" y="14" fill="#8C8880" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="middle">中位 3.1 天</text>
+<line x1="565.46" y1="22" x2="565.46" y2="274" stroke="#1F1E1B" stroke-width="1" stroke-dasharray="3 4" opacity="0.45"/>
+<circle cx="565.46" cy="70.46" r="6" fill="#FAF8F4" stroke="#1F1E1B" stroke-width="2.5"/>
+<text x="577.46" y="56.46" fill="#4A4842" font-size="11.5" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' font-weight="600">现在 · 81%</text></svg></div>
+    </div>
+  </section>
+
+  <!-- ============ 点阵分布 ============ -->
+  <section>
+    <div class="head">
+      <h2>每次间隔的离散分布</h2>
+      <span class="hint">按天数排序后分泳道排布，横轴线性等距</span>
+    </div>
+    <p class="lede">
+      每一次重置到下一次重置的间隔天数。平均值被右侧的极端值拉高了 ——
+      这就是为什么用「平均 7 天」倒计时会翻车。
+    </p>
+    <div class="card">
+      <div class="chart"><svg id="strip" width="900" height="340" viewBox="0 0 900 340" role="img" aria-label="重置间隔点阵分布" preserveAspectRatio="xMidYMid meet"><line x1="54" y1="46" x2="54" y2="294" stroke="#E4DFD5" stroke-width="1" opacity="0.9"/>
+<text x="54" y="312" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">0</text>
+<line x1="109" y1="46" x2="109" y2="294" stroke="#E4DFD5" stroke-width="1" opacity="0.45"/>
+<text x="109" y="312" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">1</text>
+<line x1="164" y1="46" x2="164" y2="294" stroke="#E4DFD5" stroke-width="1" opacity="0.45"/>
+<text x="164" y="312" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">2</text>
+<line x1="219" y1="46" x2="219" y2="294" stroke="#E4DFD5" stroke-width="1" opacity="0.45"/>
+<text x="219" y="312" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">3</text>
+<line x1="274" y1="46" x2="274" y2="294" stroke="#E4DFD5" stroke-width="1" opacity="0.45"/>
+<text x="274" y="312" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">4</text>
+<line x1="329" y1="46" x2="329" y2="294" stroke="#E4DFD5" stroke-width="1" opacity="0.9"/>
+<text x="329" y="312" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">5</text>
+<line x1="384" y1="46" x2="384" y2="294" stroke="#E4DFD5" stroke-width="1" opacity="0.45"/>
+<text x="384" y="312" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">6</text>
+<line x1="439" y1="46" x2="439" y2="294" stroke="#E4DFD5" stroke-width="1" opacity="0.45"/>
+<text x="439" y="312" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">7</text>
+<line x1="494" y1="46" x2="494" y2="294" stroke="#E4DFD5" stroke-width="1" opacity="0.45"/>
+<text x="494" y="312" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">8</text>
+<line x1="549" y1="46" x2="549" y2="294" stroke="#E4DFD5" stroke-width="1" opacity="0.45"/>
+<text x="549" y="312" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">9</text>
+<line x1="604" y1="46" x2="604" y2="294" stroke="#E4DFD5" stroke-width="1" opacity="0.9"/>
+<text x="604" y="312" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">10</text>
+<line x1="659" y1="46" x2="659" y2="294" stroke="#E4DFD5" stroke-width="1" opacity="0.45"/>
+<text x="659" y="312" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">11</text>
+<line x1="714" y1="46" x2="714" y2="294" stroke="#E4DFD5" stroke-width="1" opacity="0.45"/>
+<text x="714" y="312" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">12</text>
+<line x1="769" y1="46" x2="769" y2="294" stroke="#E4DFD5" stroke-width="1" opacity="0.45"/>
+<text x="769" y="312" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">13</text>
+<line x1="824" y1="46" x2="824" y2="294" stroke="#E4DFD5" stroke-width="1" opacity="0.45"/>
+<text x="824" y="312" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">14</text>
+<text x="439" y="334" fill="#8C8880" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="middle">间隔天数</text>
+<line x1="54" y1="170" x2="824" y2="170" stroke="#E4DFD5" stroke-width="1"/>
+<circle cx="81.3" cy="122" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="101.19" cy="134" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="102.15" cy="146" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="108.45" cy="158" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="111.28" cy="170" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="111.5" cy="182" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="112.33" cy="194" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="113.07" cy="206" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="122.21" cy="218" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="128.83" cy="122" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="140.44" cy="134" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="144.7" cy="146" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="151.69" cy="158" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="154.09" cy="170" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="162.25" cy="182" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="164.55" cy="194" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="165.29" cy="206" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="166.65" cy="218" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="168.78" cy="122" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="173.1" cy="134" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="173.49" cy="146" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="182.03" cy="158" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="193.93" cy="170" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="209.2" cy="182" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="217.61" cy="194" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="221.96" cy="206" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="230.9" cy="218" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="239.66" cy="122" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="249.51" cy="134" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="266.47" cy="146" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="270.07" cy="158" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="279.73" cy="170" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="288.22" cy="182" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="342.6" cy="194" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="351.9" cy="206" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="419.34" cy="218" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="444.48" cy="122" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="453.26" cy="134" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="455.3" cy="146" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="477.83" cy="158" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="482.94" cy="170" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="518.51" cy="182" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="547.84" cy="194" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="598.82" cy="206" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="603.05" cy="218" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="823.4" cy="122" r="4.8" fill="#8C8880" opacity="0.85"/>
+<line x1="844" y1="137.5" x2="844" y2="202.5" stroke="#B3563C" stroke-width="1" opacity="0.45"/>
+<circle cx="844" cy="137.5" r="4.8" fill="none" stroke="#B3563C" stroke-width="1.8"/>
+<circle cx="844" cy="150.5" r="4.8" fill="none" stroke="#B3563C" stroke-width="1.8"/>
+<circle cx="844" cy="163.5" r="4.8" fill="none" stroke="#B3563C" stroke-width="1.8"/>
+<circle cx="844" cy="176.5" r="4.8" fill="none" stroke="#B3563C" stroke-width="1.8"/>
+<circle cx="844" cy="189.5" r="4.8" fill="none" stroke="#B3563C" stroke-width="1.8"/>
+<circle cx="844" cy="202.5" r="4.8" fill="none" stroke="#B3563C" stroke-width="1.8"/>
+<text x="62" y="56" fill="#B3563C" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif'>另有 6 次超过 14 天（最长 67.7 天），单独排在右侧</text>
+<line x1="226.43" y1="46" x2="226.43" y2="294" stroke="#8C8880" stroke-width="1" stroke-dasharray="2 5" opacity="0.7"/>
+<text x="226.43" y="36" fill="#8C8880" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="middle">中位 3.1 天</text>
+<line x1="534.27" y1="42" x2="534.27" y2="302" stroke="#1F1E1B" stroke-width="1.5" stroke-dasharray="3 4"/>
+<circle cx="534.27" cy="42" r="3" fill="#1F1E1B"/>
+<text x="534.27" y="30" fill="#4A4842" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="middle" font-weight="600">现在 8.7 天</text></svg></div>
+      <div class="legend">
+        <span><i style="background:#3F7376"></i>常规间隔</span>
+        <span><i style="background:#8C8880"></i>偏长间隔</span>
+        <span><i style="background:#B3563C"></i>极端长等待</span>
+        <span><i style="background:#1F1E1B;border-radius:99px"></i>当前所处位置</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 时间线 ============ -->
+  <section>
+    <div class="head">
+      <h2>最近记录</h2>
+      <span class="hint">原文可追溯</span>
+    </div>
+    <div class="card" style="padding:6px 20px"><ul class="tl"><li>
+      <div class="when"><b>2026.09.12</b>16:09 北京</div>
+      <div class="body">
+        <span class="tag r">普通重置</span>
+        <p>Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG</p>
+        <a href="https://x.com/thsottiaux/status/2098685367058612394" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li><li>
+      <div class="when"><b>2026.09.08</b>09:56 北京</div>
+      <div class="body">
+        <span class="tag r">普通重置</span>
+        <p>All reset for everyone. Enjoy the week with Astra. https://t.co/WBM38JotGO</p>
+        <a href="https://x.com/thsottiaux/status/2097174560412246215" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li><li>
+      <div class="when"><b>2026.09.05</b>08:39 北京</div>
+      <div class="body">
+        <span class="tag c">发券型</span>
+        <p>Because we are beyond happy to have Astra rolled out today ahead of schedule and you have been super patient with us (not really, but it’s ok!)… we will do the full banked reset today too for all Plus, Pro and Business users. Lands end of day.
+
+Happy Astra day and enjoy a phenomenal weekend. 
+
+PS: If you create the account or upgrade before 8pm PT you will get it too. Still time!</p>
+        <a href="https://x.com/thsottiaux/status/2096035437299237298" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li><li>
+      <div class="when"><b>2026.09.04</b>07:12 北京</div>
+      <div class="body">
+        <span class="tag c">发券型</span>
+        <p>We will give one banked reset for every day you don't have access to Astra on your paid ChatGPT plan, starting today.  Team is moving mountains to give access as fast as we can.
+
+First one will land in ~ 3 hours. There is still time to create your account if you don't have one.</p>
+        <a href="https://x.com/thsottiaux/status/2095651088502591861" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li><li>
+      <div class="when"><b>2026.08.31</b>10:29 北京</div>
+      <div class="body">
+        <span class="tag r">普通重置</span>
+        <p>What I wanted to say yesterday is that we hit 25M active users and to celebrate we have now reset usage for all paid subscriptions for ChatGPT Work and Codex.
+
+See you see for more news from The Reset Company. https://t.co/7Yc5znAJIc</p>
+        <a href="https://x.com/thsottiaux/status/2094251180121854309" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li><li>
+      <div class="when"><b>2026.08.30</b>04:43 北京</div>
+      <div class="body">
+        <span class="tag r">普通重置</span>
+        <p>We are reseting usage for all paid users of Codex and ChatGPT Work.
+
+Please continue reading for an update on Codex usage limits. The team has been working around the clock, going through thousands of reports and shipping fixes.
+
+Depending on how you use Codex, you should see your usage go between 10% and 50% further than before.
+
+We really went with a fine comb, with many uncovered small things being longstanding and here is what we found and fixed:
+- Compaction. We were keeping old images during compaction, sometimes making the context large enough to trigger compaction again. After the fix, usage dropped around 10% for users making heavy use of images. Fixed.
+- Memory. Background memory workers could inherit Stop hooks and keep running when the hook wouldn’t let them finish. This affected fewer than 1% of users, with the long tail being pretty bad and we saw one example thread check whether it could stop 15,000 times. Fixed.
+- Goals. In some cases, a set /goal could finish and then keep going past the intended stop condition, or the model would keep retrying broken tools without stopping. We saw examples consume anywhere from 15% to 70% of a weekly allowance. Fixed.
+- Automations. Some custom schedules could run more frequently than configured. Fixed.
+- Subagents. Smaller models (e.g. Luna) sometimes picked more capable helpers without being explicitly asked. The same was true where the orchestrating model not running in /fast mode could request sub-agents to run /fast. Fixed.
+- Computer History. The older implementation could lead to repeatedly summarizing overlapping activity. For some cases we saw it consume up to one fifth of the weekly usage per week. Fixed.
+- Rolling task summaries. Ordinary turns were triggering extra background requests. These added about 1% to token usage. Small each time, but it adds up. We have disabled this.
+- MCP. Some tool results could be encoded twice. We also found tool instructions getting cut off and fetched again. Fixed.
+
+We’ve also made architectural changes to prevent these from regressing and our teams will get paged if it happens regardless. We are also working on showing you directly in the app where your usage goes so you don’t have to guess.
+
+Goes without saying that we’re resetting usage limits and I hope you enjoy a very nice Saturday!</p>
+        <a href="https://x.com/thsottiaux/status/2093801758665715784" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li><li>
+      <div class="when"><b>2026.08.28</b>00:35 北京</div>
+      <div class="body">
+        <span class="tag r">普通重置</span>
+        <p>Never slept better and feeling reseted. Brand new me and brand new usage for all ChatGPT Work and Codex users. Regaining my youth one button press at a time.
+
+Happy Thursday</p>
+        <a href="https://x.com/thsottiaux/status/2093014447833116908" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li><li>
+      <div class="when"><b>2026.08.25</b>22:30 北京</div>
+      <div class="body">
+        <span class="tag r">普通重置</span>
+        <p>@dtzy_88 Ah yeah, forgot to say</p>
+        <a href="https://x.com/thsottiaux/status/2092311059197808936" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li><li>
+      <div class="when"><b>2026.08.24</b>08:46 北京</div>
+      <div class="body">
+        <span class="tag r">普通重置</span>
+        <p>Good Sunday. Reset has been propagated to accounts and we landed some fixes to usage for things mentioned yesterday as issues we found. You should feel a positive difference. More to come tomorrow and will keep communicating. https://t.co/6mgUetJnhg</p>
+        <a href="https://x.com/thsottiaux/status/2091688655828246890" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li><li>
+      <div class="when"><b>2026.08.21</b>19:43 北京</div>
+      <div class="body">
+        <span class="tag c">发券型</span>
+        <p>It's me again. I come bearing great news. 
+
+First of all, we have hit 20M active users for Codex some time this week. Second of all, this is cause for celebration and during the day we will credit every Codex and ChatGPT Work user with a BANKED reset that you can use at your own https://t.co/mooGnI0KJO</p>
+        <a href="https://x.com/thsottiaux/status/2090766694897619318" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li><li>
+      <div class="when"><b>2026.08.13</b>09:01 北京</div>
+      <div class="body">
+        <span class="tag r">普通重置</span>
+        <p>Old news actually from a bunch of days ago, but crossed that 15M. Enjoy a nice reset everyone. Landing in the next hour or so, go /fast. https://t.co/TFRN2SrpCi</p>
+        <a href="https://x.com/thsottiaux/status/2087706104814023111" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li><li>
+      <div class="when"><b>2026.08.11</b>08:27 北京</div>
+      <div class="body">
+        <span class="tag r">普通重置</span>
+        <p>Hi.
+
+It is done. https://t.co/JRYltKvT0v</p>
+        <a href="https://x.com/thsottiaux/status/2086972802457063486" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li><li>
+      <div class="when"><b>2026.08.09</b>04:29 北京</div>
+      <div class="body">
+        <span class="tag r">普通重置</span>
+        <p>That's right, GPT-5.6 Sol is awesome and can be used pretty much anywhere, including in the CC harness. 
+
+To celebrate this, together with the fact that I'm not going anywhere... I have reset usage limits for all paid users of ChatGPT Work and Codex. 
+
+Have fun out there! https://t.co/2rtjtOxFt0</p>
+        <a href="https://x.com/thsottiaux/status/2086188036493344823" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li><li>
+      <div class="when"><b>2026.08.01</b>11:32 北京</div>
+      <div class="body">
+        <span class="tag r">普通重置</span>
+        <p>To celebrate a week of efficiency and let you run 100'000 Luna threads this weekend... that's right... wait for it... I have reset usage limits for Codex and ChatGPT Work.
+
+Enjoy.</p>
+        <a href="https://x.com/thsottiaux/status/2083395449814229287" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li></ul></div>
+  </section>
+
+  <footer>
+    <div>数据：公开推文记录，每 30 分钟自动采集 · 最后更新 <span id="gen">2026.09.20 18:00</span> 北京</div>
+    <div>由 <a href="#">山风岚自起</a> 建造</div>
+  </footer>
+</div>
+
+<!-- 页面出厂即完整渲染（含两张图表的 SVG）。下面的脚本只负责让倒计时继续滚动，
+     属于可选增强：脚本被禁用时数字依然正确，只是不再跳动。 -->
+<script>
+(function () {
+  var hero = document.getElementById('hero');
+  if (!hero || !hero.dataset.last) return;
+  var last = new Date(hero.dataset.last).getTime();
+  if (isNaN(last)) return;
+
+  var DAY = 86400000;
+  var REEL = '';
+  for (var d = 0; d < 10; d++) REEL += '<i>' + d + '</i>';
+  var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+  var counter = document.getElementById('counter');
+  var since = document.getElementById('since');
+  var groups = counter.querySelectorAll('.grp');
+
+  function setGroup(grp, str) {
+    var box = grp.querySelector('.reels');
+    if (!box) return;
+    var reels = box.children;
+
+    // 位数变了（基本只可能是「天」从 9 变 10）：重建，且不做过渡，
+    // 否则新卷轴会从 0 滚到目标位，看起来像发生了一次重置。
+    if (reels.length !== str.length) {
+      var html = '';
+      for (var i = 0; i < str.length; i++) {
+        html += '<span class="reel"><span class="strip">' + REEL + '</span></span>';
+      }
+      box.innerHTML = html;
+      reels = box.children;
+      for (var j = 0; j < reels.length; j++) {
+        var st = reels[j].firstElementChild;
+        st.style.transition = 'none';
+        st.style.transform = 'translateY(-' + str[j] + 'em)';
+      }
+      void box.offsetWidth;
+      for (var k = 0; k < reels.length; k++) reels[k].firstElementChild.style.transition = '';
+    }
+
+    for (var m = 0; m < reels.length; m++) {
+      var strip = reels[m].firstElementChild;
+      if (!strip) continue;
+      var want = 'translateY(-' + str[m] + 'em)';
+      if (strip.style.transform !== want) strip.style.transform = want;
+    }
+  }
+
+  function tick() {
+    var ms = Date.now() - last;
+    if (ms < 0) return;
+    var d = Math.floor(ms / DAY);
+    var h = Math.floor((ms % DAY) / 3600000);
+    var mi = Math.floor((ms % 3600000) / 60000);
+    var s = Math.floor((ms % 60000) / 1000);
+    if (groups.length === 4) {
+      setGroup(groups[0], String(d));
+      setGroup(groups[1], pad(h));
+      setGroup(groups[2], pad(mi));
+      setGroup(groups[3], pad(s));
+    }
+    since.textContent =
+      '上次重置 ' + hero.dataset.lastlabel + ' · 已过 ' + (d < 1 ? '不足一天' : d + ' 天');
+  }
+
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>

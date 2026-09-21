@@ -1,0 +1,24 @@
+# 验收记录（M3）
+
+- 生成时间：2026-09-21T04:02:32.864Z（UTC）
+- 判定方式：`SITE_URL=https://tibo.kunlunmarket.work node scripts/acceptance.mjs --write`
+- 构建锚点：本次验收**先重建** dist（SITE_URL=https://tibo.kunlunmarket.work），所有断言读的是本次产物
+- 结论：自动判定 **10/10 通过**，另有 1 项需人工确认
+
+| # | 验收项 | 判定命令 / 依据 | 实测结果 | 结论 |
+|---|---|---|---|---|
+| A1 | 剥离 <script> 后内容不缺 | `剥离所有 <script> 与注释后逐项断言关键区块` | 9 个区块全在 | 通过 |
+| A2 | 页面无 NaN / undefined / Infinity | `在剥离脚本后的 HTML 上搜三个坏值标记` | 未出现 | 通过 |
+| A4 | 信号误报为 0（真实推文回归） | `node scripts/test-signals.mjs` | ✓ 全部通过（38 项） | 通过 |
+| A5 | 明确信号双解读 + 双时区 | `同上（含 next Tuesday / tomorrow / in 2 hours / 绝对日期用例）` | ✓ 全部通过（38 项） | 通过 |
+| A9 | 图元不越界、文字不小于可读下限 | `node scripts/test-miniprogram.mjs` | ✓ 全部 82 项通过 | 通过 |
+| A3 | 页面内联数字与 API 返回一致 | `node scripts/check-consistency.mjs` | ✓ 全部 24 项通过 | 通过 |
+| A6 | 占位符缺失 / 残留时构建失败（不静默产出空白页） | `在仓库副本里破坏模板后跑 npm run build，断言非零退出` | 模板缺少占位符 <!--__SIGNAL__--> ｜ 存在未替换的占位符：<!--__NOPE__--> | 通过 |
+| A8 | 时间显示与机器时区无关 | `同一 BUILD_NOW 下用三个 TZ 各构建一次并逐字节比较` | Shanghai / UTC / New_York 三次构建字节完全一致 · 页面时间为 2026.09.20 18:00（北京时间） | 通过 |
+| A7 | ≤500px 无横向溢出 | `node scripts/check-layout.mjs（无头 Chrome + iframe 定宽）` | ✓ 7 个宽度页面级均无横向溢出（scrollWidth ≤ clientWidth） ｜ 注：图表容器在窄屏下为内部横向滚动（页面本身不溢出，属既定取舍） | 通过 |
+| A10 | 卡片物料齐备（微信内实际展开需人工确认） | `断言 meta 齐备 + 读 PNG 头取尺寸（构建用 SITE_URL=https://tibo.kunlunmarket.work）` | meta 6 项齐全 · 图 1200×630 | 通过 |
+| A10 | 在微信里分享一次、确认预览展开 | `人工：把链接发到微信（文件传输助手即可）看卡片` | 需你手动做一次 | 待人工 |
+
+> A10 只能部分自动化：卡片文件与 meta 可断言，「分享到微信里真的展开」必须人工做一次。
+> A7 的「无横向溢出」指**页面级**底部不出现横向滚动条；两个图表面板（生存曲线 / 点阵分布）
+> 因 `svg{min-width:520px}` 在窄屏下会**内部**横向滚动，这是避免图内文字被压到 5px 的既定取舍。

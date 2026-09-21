@@ -1,0 +1,192 @@
+<!-- 观测台首页：距上次重置多久 → 有没有预告 → 还要等多久 → 历史分布 -->
+
+<view class="wrap">
+
+  <!-- ============ 顶栏 ============ -->
+  <view class="top">
+    <view class="brand">
+      <text class="h1">等 TIBO 按按钮</text>
+      <text class="sub">RESET OBSERVATORY</text>
+    </view>
+    <view class="pulse {{degraded ? 'warn' : ''}}">
+      <text class="dot"></text>
+      <text>{{updText}}</text>
+    </view>
+  </view>
+
+  <!-- 数据不是实时的就明说，不假装 -->
+  <view wx:if="{{notice}}" class="notice">{{notice}}</view>
+
+  <!-- ============ 信号 ============ -->
+  <view wx:if="{{signal.show}}" class="sig" data-level="{{signal.level}}">
+    <view class="sig-head">
+      <text class="badge">{{signal.badge}}</text>
+      <text class="sig-title">{{signal.title}}</text>
+      <text wx:if="{{signal.precision}}" class="prec">粒度：{{signal.precision}}</text>
+    </view>
+
+    <view wx:if="{{signal.window}}" class="win">
+      <view class="wrow">
+        <text class="k">Tibo 当地时间</text>
+        <text class="v">{{signal.window.sourceZone}}</text>
+        <text class="z">{{signal.window.srcOffset}}</text>
+      </view>
+      <view class="wrow">
+        <text class="k">北京时间</text>
+        <text class="v">{{signal.window.userZone}}</text>
+        <text class="z">{{signal.window.usrOffset}}</text>
+      </view>
+      <view class="wfoot">
+        {{signal.window.diffText}}{{signal.window.crosses ? ' · 换算到北京时间后会跨自然日' : ''}}
+      </view>
+    </view>
+
+    <view class="quote">{{signal.text}}</view>
+
+    <view class="meta">
+      <text>发布于 {{signal.createdText}}</text>
+      <text wx:if="{{signal.timeNote}}" class="note">{{signal.timeNote}}</text>
+      <text wx:if="{{signal.reason}}">判定依据：{{signal.reason}}</text>
+      <text wx:if="{{signal.url}}" class="link" bindtap="onCopySource">复制原推链接</text>
+    </view>
+  </view>
+
+  <view wx:else class="sig-idle">
+    <text class="idot"></text>
+    <text>最近 <text class="b">{{signal.checked}}</text> 条推文中没有检测到重置预告</text>
+    <text class="isub">已扫描 {{signal.lookback}} 天内的公开发言</text>
+  </view>
+
+  <!-- ============ HERO：滚动计时 ============ -->
+  <view class="hero">
+    <view class="label">距上一次额度重置</view>
+
+    <view class="counter">
+      <view class="grp" wx:for="{{counter}}" wx:key="unit" wx:for-item="g">
+        <view class="reels">
+          <view class="reel" wx:for="{{g.digits}}" wx:key="index" wx:for-item="d">
+            <view class="strip" style="transform: translateY(-{{d}}em)">
+              <view class="dg" wx:for="{{digits}}" wx:key="*this" wx:for-item="n">{{n}}</view>
+            </view>
+          </view>
+        </view>
+        <text class="unit">{{g.unit}}</text>
+      </view>
+    </view>
+
+    <view class="since">{{since}}</view>
+    <view class="verdict v-{{verdict.cls}}">
+      <text class="b">{{verdict.text}}</text>
+      <text class="sep"> · </text>
+      <text>{{verdict.tail}}</text>
+    </view>
+  </view>
+
+  <!-- ============ 指标 ============ -->
+  <view class="metrics">
+    <view class="metric" wx:for="{{metrics}}" wx:key="k">
+      <view class="k">{{item.k}}</view>
+      <view class="v {{item.hi ? 'hl' : ''}}">{{item.v}}<text wx:if="{{item.u}}" class="u">{{item.u}}</text></view>
+      <view class="note">{{item.note}}</view>
+    </view>
+  </view>
+
+  <!-- ============ 时间预测 ============ -->
+  <view class="sec-head">
+    <text class="t">还要等多久</text>
+  </view>
+
+  <view wx:if="{{forecast}}" class="fc">
+    <view class="fc-main">
+      <view class="k">中位剩余等待</view>
+      <view class="v">{{forecast.q50}}<text class="u">天</text></view>
+      <view class="range">
+        <text wx:if="{{forecast.hoursText}}">{{forecast.hoursText}} · </text>
+        <text>80% 区间 </text>
+        <text class="b">{{forecast.rangeText}}</text>
+        <text> 天</text>
+      </view>
+    </view>
+
+    <view class="fc-bars">
+      <view class="bar" wx:for="{{forecast.bars}}" wx:key="label">
+        <text class="lb">{{item.label}}</text>
+        <view class="track"><view class="fill" style="width: {{item.w}}%"></view></view>
+        <text class="pv">{{item.pv}}</text>
+      </view>
+      <!-- 概率没有做过校准，这一点必须留在数字旁边，不能用散文代替 -->
+      <view class="cal-tag">概率未经校准 · 实际发生率通常更高</view>
+    </view>
+  </view>
+
+  <view wx:if="{{forecast}}" class="card fc-meta">
+    <view class="fc-block">
+      <view class="bh">样本外回测 · n={{forecast.cal.n}}</view>
+      <view class="row" wx:for="{{forecast.cal.rows}}" wx:key="k">
+        <text class="rk">{{item.k}}</text>
+        <text class="rv {{item.ok ? 'good' : 'bad'}}">{{item.v}}</text>
+        <text class="rj">{{item.j}}</text>
+      </view>
+    </view>
+
+    <view class="fc-block">
+      <view class="bh">节奏在加速</view>
+      <view class="ph" wx:for="{{forecast.phases}}" wx:key="i">
+        <text class="pi">第 {{item.i}} 段</text>
+        <text class="pt">{{item.from}} → {{item.to}}</text>
+        <text class="pm">{{item.mean}} 天</text>
+        <text class="pn">n={{item.n}} · 最大 {{item.max}} 天</text>
+      </view>
+      <view class="bfoot">{{forecast.phaseSummary}}</view>
+    </view>
+  </view>
+
+  <!-- ============ F9 一次性提醒 ============ -->
+  <!-- 文案必须说清「一次授权 = 一次通知」。长期订阅不对工具类目开放，
+       写成「订阅通知」会让用户以为一次授权永久有效 —— 那是误导。 -->
+  <view wx:if="{{remind.show}}" class="remind card">
+    <view class="rd-head">
+      <text class="rd-t">{{remind.title}}</text>
+      <text class="rd-tag">一次性</text>
+    </view>
+    <view class="rd-hint">{{remind.hint}}</view>
+    <view class="rd-btn {{remind.state}}" bindtap="onToggleRemind">{{remind.label}}</view>
+    <view wx:if="{{remind.feedback}}" class="rd-fb {{remind.tone}}">{{remind.feedback}}</view>
+  </view>
+
+  <!-- ============ 生存曲线 ============ -->
+  <view class="sec-head">
+    <text class="t">等待生存曲线</text>
+    <text class="h">n = {{survivalN}} 次历史间隔</text>
+  </view>
+  <view class="lede">
+    纵轴是「到第 X 天为止，历史上百分之多少的重置已经发生」。你现在的位置标在曲线上。
+  </view>
+  <view class="card">
+    <canvas type="2d" id="survival" class="chart chart-survival"></canvas>
+  </view>
+
+  <!-- ============ 点阵分布 ============ -->
+  <view class="sec-head">
+    <text class="t">每次间隔的离散分布</text>
+  </view>
+  <view class="lede">
+    每一次重置到下一次重置的间隔天数。平均值被右侧的极端值拉高了。
+  </view>
+  <view class="card">
+    <canvas type="2d" id="strip" class="chart chart-strip"></canvas>
+    <view class="legend">
+      <view class="lg"><text class="sw sw-lan"></text>常规间隔</view>
+      <view class="lg"><text class="sw sw-mist"></text>偏长间隔</view>
+      <view class="lg"><text class="sw sw-cin"></text>极端长等待</view>
+    </view>
+  </view>
+
+  <!-- ============ 页脚 ============ -->
+  <view class="foot">
+    <view>数据：公开推文记录 · 最后更新 {{genText}} 北京</view>
+    <view>观测账号 x.com/{{account}}</view>
+    <navigator class="nav" url="/pages/history/index" open-type="navigate">查看完整历史记录 →</navigator>
+  </view>
+
+</view>

@@ -1,0 +1,476 @@
+#!/usr/bin/env node
+/**
+ * 小程序侧校验。
+ *
+ * 小程序没法在 CI 里直接跑（要微信开发者工具），但**页面逻辑本身是纯 JS**，
+ * 只依赖两个宿主对象：Page() 和 wx.*。把它们打桩，就能在 Node 里把整条
+ * 渲染链路走一遍 —— 这能在上传之前挡住绝大多数「打开就白屏」的低级错误：
+ * 字段拼错、undefined 渲染、数组越界、canvas 几何画出画布外。
+ *
+ * 校验三件事：
+ *   1. 页面配置能被加载，onLoad/onReady 不抛异常
+ *   2. setData 出去的每一份数据都能安全渲染（无 NaN / undefined / null）
+ *   3. 图表场景在所有目标宽度下都落在画布内（这是「图变成一片空白」的根因之一）
+ */
+
+import { readFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+
+/* ------------------------------ 断言工具 ------------------------------ */
+
+let pass = 0;
+const failures = [];
+
+function check(name, ok, detail = '') {
+  if (ok) {
+    pass++;
+    console.log(`  ✓ ${name}`);
+  } else {
+    failures.push(`${name}${detail ? ' — ' + detail : ''}`);
+    console.log(`  ✗ ${name}${detail ? ' — ' + detail : ''}`);
+  }
+}
+
+/* ------------------------------ 宿主打桩 ------------------------------ */
+
+const storage = new Map();
+
+// 记录所有 setData 载荷，供后面统一做「可渲染性」扫描
+const renders = [];
+
+function makeWx(record) {
+  return {
+    request(opts) {
+      record.requestCount++;
+      // 默认禁用联网：走到这里说明逻辑有问题。
+      // F9 那组用例会用 record.onRequest 临时接管，测完再恢复。
+      if (record.onRequest) return record.onRequest(opts);
+      if (opts && opts.fail) opts.fail({ errMsg: 'url not in domain list' });
+    },
+    createSelectorQuery() {
+      const q = {
+        in: () => q,
+        select: () => q,
+        fields: () => q,
+        // 返回一个假的 canvas 节点：宽度 341、高度按选择器给
+        exec: (cb) => cb([{ node: makeFakeCanvas(), width: 341, height: 208 }]),
+      };
+      return q;
+    },
+    getWindowInfo: () => ({ pixelRatio: 3 }),
+    getSystemInfoSync: () => ({ pixelRatio: 3 }),
+    setStorageSync: (k, v) => storage.set(k, v),
+    getStorageSync: (k) => storage.get(k),
+    removeStorageSync: (k) => storage.delete(k),
+    setClipboardData: () => {},
+    showToast: () => {},
+    stopPullDownRefresh: () => {},
+    showLoading: () => {},
+    hideLoading: () => {},
+    // F9：code 一次性，这里每次调用都换一个，能测出「有没有复用旧 code」
+    login(opts) {
+      record.loginCount++;
+      if (opts && opts.success) opts.success({ code: `code-${record.loginCount}` });
+    },
+    requestSubscribeMessage(opts) {
+      const ids = (opts && opts.tmplIds) || [];
+      record.subscribeCalls.push(ids.join(','));
+      const res = {};
+      for (const id of ids) res[id] = record.subscribeVerdict;
+      if (opts && opts.success) opts.success(res);
+    },
+  };
+}
+
+function makeFakeCanvas() {
+  const ctx = {
+    scale() {},
+    clearRect() {},
+    save() {},
+    restore() {},
+    beginPath() {},
+    moveTo() {},
+    lineTo() {},
+    stroke() {},
+    fill() {},
+    arc() {},
+    fillText() {},
+    createLinearGradient: () => ({ addColorStop() {} }),
+    setLineDash() {},
+  };
+  return { width: 0, height: 0, getContext: () => ctx };
+}
+
+let captured = null;
+globalThis.Page = (cfg) => {
+  captured = cfg;
+};
+globalThis.App = () => {};
+globalThis.getApp = () => ({ globalData: {} });
+// 计时器换成手动驱动，否则 Node 进程会被 setInterval 吊住
+globalThis.setInterval = () => 0;
+globalThis.clearInterval = () => {};
+
+/* ------------------------------ 加载页面 ------------------------------ */
+
+const PAGE_PATH = resolve(ROOT, 'miniprogram/pages/index/index.js');
+
+const wxRecord = { requestCount: 0, loginCount: 0, subscribeCalls: [], subscribeVerdict: 'accept', onRequest: null };
+globalThis.wx = makeWx(wxRecord);
+
+await import(PAGE_PATH);
+if (!captured) {
+  console.error('✗ 页面模块没有调用 Page()，无法继续');
+  process.exit(1);
+}
+
+// 造一个最小页面实例：setData 直接合并到 data，并记下载荷
+const page = Object.assign(Object.create(null), captured, {
+  data: JSON.parse(JSON.stringify(captured.data)),
+});
+page.setData = (patch, cb) => {
+  renders.push(patch);
+  Object.assign(page.data, patch);
+  if (typeof cb === 'function') cb();
+};
+
+console.log('【1】页面生命周期');
+await page.onLoad();
+await Promise.resolve();
+page.onReady();
+await new Promise((r) => setTimeout(r, 30));
+
+check('onLoad / onReady 未抛异常', true);
+check('禁止联网时没有发出请求', wxRecord.requestCount === 0, `实际 ${wxRecord.requestCount} 次`);
+
+/* --------------------------- 2. 数据可渲染性 --------------------------- */
+
+console.log('\n【2】setData 载荷可渲染性');
+
+const payloadText = renders.map((p) => JSON.stringify(p)).join('\n');
+const bad = [];
+if (payloadText.includes('NaN')) bad.push('NaN');
+if (payloadText.includes('undefined')) bad.push('undefined');
+check('载荷中无 NaN / undefined', bad.length === 0, bad.join(', '));
+check('确实产生了 setData 载荷', renders.length > 0, `${renders.length} 次`);
+
+const d = page.data;
+
+console.log('\n【3】滚动计时');
+check('counter 有 4 组（天/时/分/秒）', Array.isArray(d.counter) && d.counter.length === 4, `实际 ${d.counter && d.counter.length}`);
+check(
+  '每组单位依次为 天/时/分/秒',
+  d.counter.map((g) => g.unit).join('') === '天时分秒',
+  d.counter.map((g) => g.unit).join('')
+);
+check(
+  '每一组都是纯数字位',
+  d.counter.every((g) => Array.isArray(g.digits) && g.digits.length >= 1 && g.digits.every((x) => /^[0-9]$/.test(x))),
+  JSON.stringify(d.counter)
+);
+check('时/分/秒固定两位（防止宽度跳动）', d.counter.slice(1).every((g) => g.digits.length === 2), JSON.stringify(d.counter.slice(1)));
+check('since 文案已生成', typeof d.since === 'string' && d.since.includes('上次重置'), d.since);
+check('判定文案已生成', !!d.verdict.text && !!d.verdict.tail, JSON.stringify(d.verdict));
+
+// 手动推进一秒，确认数字真的会变（滚动动画的前提）
+const before = JSON.stringify(page.data.counter);
+page.lastAt = page.lastAt - 1000; // 假装又过了一秒
+page.tick();
+const after = JSON.stringify(page.data.counter);
+check('tick() 会更新数字（滚动有内容可动）', before !== after, `${before} → ${after}`);
+
+// 再推进一整天，确认位数变化的边界（8 天 → 9 天）不会下标越界
+page.lastAt = page.lastAt - 86400000;
+page.tick();
+check('天/时/分/秒进位后仍为纯数字位', page.data.counter.every((g) => g.digits.every((x) => /^[0-9]$/.test(x))), JSON.stringify(page.data.counter));
+
+console.log('\n【4】指标与预测');
+check('指标 6 项', d.metrics.length === 6, `实际 ${d.metrics.length}`);
+check('指标无空值', d.metrics.every((m) => m.v !== '' && m.v != null && m.note), JSON.stringify(d.metrics));
+check('预测已生成', !!d.forecast);
+check('概率条 5 条', d.forecast.bars.length === 5, `实际 ${d.forecast.bars.length}`);
+check(
+  '概率条宽度都在 1%–100%',
+  d.forecast.bars.every((b) => Number(b.w) >= 1 && Number(b.w) <= 100),
+  JSON.stringify(d.forecast.bars.map((b) => b.w))
+);
+check('中位剩余为数值', /^[0-9.]+$/.test(d.forecast.q50), d.forecast.q50);
+check('80% 区间格式正确', /^[0-9.]+ – [0-9.]+$/.test(d.forecast.rangeText), d.forecast.rangeText);
+check('回测表 3 行', d.forecast.cal.rows.length === 3, `实际 ${d.forecast.cal.rows.length}`);
+check('阶段表非空', d.forecast.phases.length >= 2, `实际 ${d.forecast.phases.length}`);
+check(
+  '阶段表日期已格式化（不是 ISO 原文）',
+  d.forecast.phases.every((p) => /^\d{4}\.\d{2}\.\d{2}$/.test(p.from) && /^\d{4}\.\d{2}\.\d{2}$/.test(p.to)),
+  JSON.stringify(d.forecast.phases[0])
+);
+
+console.log('\n【5】信号');
+
+// 断言必须从数据推出，不能写死 —— 否则收录到一条真的预告后这条用例就假失败
+const snapshotSignals = (await import(resolve(ROOT, 'miniprogram/data/snapshot.js'))).default.signals;
+const sigItems =
+  snapshotSignals.level === 'explicit'
+    ? snapshotSignals.signals
+    : snapshotSignals.level === 'hint'
+      ? snapshotSignals.hints
+      : [];
+const sigTop = sigItems.find((s) => s.window) || sigItems[0];
+const expectShow = !!(sigTop && (snapshotSignals.level === 'explicit' || sigTop.window));
+
+check('信号对象存在', !!d.signal);
+check(
+  '醒目态与数据一致（只有拿到时间窗口才醒目）',
+  d.signal.show === expectShow,
+  `show=${d.signal.show} 期望=${expectShow}（level=${snapshotSignals.level}）`
+);
+if (expectShow) {
+  check('醒目态必须给出时间窗口', !!d.signal.window, JSON.stringify(d.signal.window));
+  check('窗口含双时区', !!(d.signal.window && d.signal.window.sourceZone && d.signal.window.userZone), JSON.stringify(d.signal.window));
+  check('窗口含时差说明', !!(d.signal.window && d.signal.window.diffText), d.signal.window && d.signal.window.diffText);
+  check('给出判定依据（不只给结论）', !!d.signal.reason, d.signal.reason);
+  check('给出原文可追溯的发布时刻（双时区）', d.signal.createdText.includes('北京') && d.signal.createdText.includes('当地'), d.signal.createdText);
+} else {
+  check('空闲态给出扫描条数', Number.isFinite(d.signal.checked) && d.signal.checked > 0, String(d.signal.checked));
+  check('空闲态不显示时间窗口', !d.signal.window, JSON.stringify(d.signal.window));
+}
+
+console.log('\n【6】顶栏与页脚');
+check('updText 已生成', typeof d.updText === 'string' && d.updText.length > 0, d.updText);
+check('genText 是北京时间格式', /^\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}$/.test(d.genText), d.genText);
+check('降级时给出明示（不假装是实时数据）', d.degraded === true && d.notice.length > 0, d.notice);
+
+/* --------------------------- 7. 图表几何越界 --------------------------- */
+
+console.log('\n【7】图表几何（多个屏幕宽度）');
+
+const { buildChartData } = await import(resolve(ROOT, 'src/lib/chart-data.js'));
+const { survivalScene, stripScene, sceneBounds } = await import(resolve(ROOT, 'src/lib/scene.js'));
+
+const records = JSON.parse(await readFile(resolve(ROOT, 'data/resets.json'), 'utf8')).records;
+const chart = buildChartData(records, Date.now());
+
+const WIDTHS = [320, 341, 375, 414];
+const SIZES = [
+  { name: '生存曲线', fn: survivalScene, height: 208 },
+  { name: '点阵分布', fn: stripScene, height: 230 },
+];
+
+for (const w of WIDTHS) {
+  for (const s of SIZES) {
+    const scene = s.fn(chart, { layout: 'compact', width: w, height: s.height });
+    const b = sceneBounds(scene);
+    const okX = b.minX >= -0.5 && b.maxX <= w + 0.5;
+    const okY = b.minY >= -0.5 && b.maxY <= s.height + 0.5;
+    check(
+      `${w}px · ${s.name} 在画布内`,
+      okX && okY,
+      `x=[${b.minX.toFixed(1)}, ${b.maxX.toFixed(1)}] y=[${b.minY.toFixed(1)}, ${b.maxY.toFixed(1)}]`
+    );
+    check(`${w}px · ${s.name} 元素非空`, scene.elements.length > 20, `${scene.elements.length} 个图元`);
+  }
+}
+
+// 双端一致性：同一份数据在宽布局与紧凑布局下，必须给出同一个「当前百分位」
+const wide = survivalScene(chart, {});
+const compact = survivalScene(chart, { layout: 'compact', width: 341 });
+const pctOf = (scene) => {
+  const t = scene.elements.find((e) => e.k === 'text' && /^现在 · /.test(e.s));
+  return t ? t.s : null;
+};
+check('宽/紧凑两种布局给出同一个当前百分位', pctOf(wide) === pctOf(compact), `${pctOf(wide)} vs ${pctOf(compact)}`);
+
+/* --------------------------- 8. 明确信号路径 --------------------------- */
+
+console.log('\n【8】明确信号路径（合成推文 —— 平时真实数据里触发不到）');
+
+const { detectSignals } = await import(resolve(ROOT, 'src/lib/signals.mjs'));
+const { buildSignal } = await import(resolve(ROOT, 'miniprogram/utils/view.js'));
+
+const now = Date.parse('2026-09-20T10:00:00.000Z'); // 北京 18:00
+const mkTweet = (text, id) => ({
+  id,
+  account: 'thsottiaux',
+  text,
+  created_at: new Date(now - 3600_000).toISOString(),
+});
+
+const explicitSig = detectSignals(
+  [mkTweet('We heard you. To celebrate, we are going to reset usage limits for everyone next Tuesday.', '9001')],
+  { now, account: 'thsottiaux' }
+);
+check('合成推文被判为明确信号', explicitSig.level === 'explicit', explicitSig.level);
+
+const vm = buildSignal(explicitSig);
+check('横幅进入醒目态', vm.show === true && vm.level === 'explicit', `show=${vm.show} level=${vm.level}`);
+check('明确信号必须给出时间窗口', !!vm.window);
+check('窗口含 Tibo 当地时间', !!(vm.window && vm.window.sourceZone), vm.window && vm.window.sourceZone);
+check('窗口含北京时间', !!(vm.window && vm.window.userZone), vm.window && vm.window.userZone);
+check('窗口含两个时区的 UTC 偏移', !!(vm.window && vm.window.srcOffset && vm.window.usrOffset), JSON.stringify(vm.window));
+check('窗口标注时差', !!(vm.window && vm.window.diffText), vm.window && vm.window.diffText);
+check('给出发布时刻的双时区表述', vm.createdText.includes('北京') && vm.createdText.includes('当地'), vm.createdText);
+check('给出判定依据', !!vm.reason, vm.reason);
+check(
+  '视图模型里没有 undefined / NaN',
+  !JSON.stringify(vm).includes('undefined') && !JSON.stringify(vm).includes('NaN'),
+  JSON.stringify(vm).slice(0, 120)
+);
+
+// 反例：有额度词但通篇没有任何时间表达 —— 不得进醒目态（否则就是制造焦虑）
+const noTimeSig = detectSignals([mkTweet('We are reviewing usage limits across all plans.', '9002')], { now });
+check('该推文确实没有解析出时间窗口', !noTimeSig.hints.some((h) => h.window), JSON.stringify(noTimeSig.hints.map((h) => h.window)));
+check(
+  '有额度意图但无时间窗口时，不进醒目态',
+  buildSignal(noTimeSig).show === false,
+  `show=${buildSignal(noTimeSig).show} level=${noTimeSig.level}`
+);
+
+// 边界：带「this week」这类模糊时间只能算线索，不得升格为明确信号
+const vagueSig = detectSignals([mkTweet('We are actively looking at usage limits this week.', '9004')], { now });
+check(
+  '模糊时间（this week）只能作线索，不得升格为明确信号',
+  vagueSig.level !== 'explicit',
+  `level=${vagueSig.level}`
+);
+check('模糊时间下横幅标为「线索」', buildSignal(vagueSig).badge === '线索' || buildSignal(vagueSig).show === false, JSON.stringify(buildSignal(vagueSig).badge));
+
+// 反例：有未来时间但讲的是发布延期 —— 不得进醒目态
+const launchSig = detectSignals([mkTweet('We are delaying the launch until next Tuesday.', '9003')], { now });
+check(
+  '「发布延期」不被误报成重置预告',
+  buildSignal(launchSig).show === false,
+  `show=${buildSignal(launchSig).show} level=${launchSig.level}`
+);
+
+// buildSignal 的契约：线索带窗口 → 展示但标为「线索」；线索无窗口 → 不展示
+const W = {
+  sourceZone: '2026.09.22（周二）全天',
+  userZone: '2026.09.23（周三）全天',
+  zones: { a: { offset: 'UTC+8' }, b: { offset: 'UTC-7' } },
+  diffText: '北京时间比 Tibo 当地时间快 15 小时',
+};
+const hintWithWin = buildSignal({
+  level: 'hint',
+  checkedTweets: 5,
+  lookbackDays: 60,
+  hints: [{ level: 'hint', window: W, text: 't', precision: 'day', reasons: ['含未来语气'] }],
+});
+check('线索带窗口时展示，但标为「线索」而不是「明确信号」', hintWithWin.show && hintWithWin.badge === '线索', JSON.stringify(hintWithWin.badge));
+
+const hintNoWin = buildSignal({
+  level: 'hint',
+  checkedTweets: 5,
+  lookbackDays: 60,
+  hints: [{ level: 'hint', window: null, text: 't', reasons: [] }],
+});
+check('线索无窗口时不展示（不放没有时间的空话）', hintNoWin.show === false);
+
+/* --------------------- 9. F9 一次性订阅提醒 --------------------- */
+
+console.log('\n【9】F9 一次性订阅提醒');
+
+const sub = await import(resolve(ROOT, 'miniprogram/utils/subscribe.js'));
+const configMod = (await import(resolve(ROOT, 'miniprogram/config.js'))).default;
+const TMPL = 'TMPL_TEST';
+
+check('未配置模板 ID 时不显示入口（不摆一个点了没反应的按钮）', sub.subscribeAvailable() === false);
+check(
+  '入口文案说清「一次授权只能收到一次通知」',
+  /一次/.test(sub.SCOPE_HINT) && /通知/.test(sub.SCOPE_HINT),
+  sub.SCOPE_HINT
+);
+
+// 四种授权结果必须分开说 —— 用户能做的处理完全不同，笼统报「失败」等于没提示
+check('accept → 成功', sub.classifySubscribeResult({ [TMPL]: 'accept' }, TMPL).ok === true);
+check('reject → 提示是他自己点了拒绝', /拒绝/.test(sub.classifySubscribeResult({ [TMPL]: 'reject' }, TMPL).reason));
+check('ban → 指向微信设置里的总开关', /设置/.test(sub.classifySubscribeResult({ [TMPL]: 'ban' }, TMPL).reason));
+check('未知结果 → 不谎报成功', sub.classifySubscribeResult({}, TMPL).ok === false);
+
+// 打开联网与模板 ID，走一遍完整链路
+configMod.enabled = true;
+configMod.subscribeTemplateId = TMPL;
+check('配置齐备后入口可用', sub.subscribeAvailable() === true);
+
+page.initRemind();
+check(
+  '入口显示且按钮文案为「下次重置时提醒我」',
+  page.data.remind.show === true && page.data.remind.label === sub.ACTION_LABEL,
+  JSON.stringify(page.data.remind.label)
+);
+
+let posted = null;
+wxRecord.onRequest = (opts) => {
+  posted = { url: opts.url, method: opts.method, data: opts.data };
+  opts.success({ statusCode: 200, data: { ok: true } });
+};
+
+await page.onToggleRemind();
+check('申请订阅时带上了模板 ID', wxRecord.subscribeCalls.slice(-1)[0] === TMPL, wxRecord.subscribeCalls.join(' | '));
+check('走了一次 wx.login 换 code', wxRecord.loginCount > 0, String(wxRecord.loginCount));
+check(
+  '上报到 /api/subscribe（POST）',
+  posted && /\/api\/subscribe$/.test(posted.url) && posted.method === 'POST',
+  posted && `${posted.method} ${posted.url}`
+);
+check(
+  '上报体含 code 与 templateId，且**不含 openid**',
+  posted && !!posted.data.code && posted.data.templateId === TMPL && !('openid' in posted.data),
+  JSON.stringify(posted && posted.data)
+);
+check('成功后按钮转为「已开启」', page.data.remind.state === 'on' && page.data.remind.tone === 'ok', JSON.stringify(page.data.remind));
+
+// 拒绝分支：不该产生任何网络动作
+wxRecord.subscribeVerdict = 'reject';
+page.initRemind();
+const loginBefore = wxRecord.loginCount;
+const reqBefore = wxRecord.requestCount;
+await page.onToggleRemind();
+check('用户拒绝时不换 code、不上报', wxRecord.loginCount === loginBefore && wxRecord.requestCount === reqBefore);
+check('用户拒绝时给出可操作提示', page.data.remind.tone === 'warn' && /拒绝/.test(page.data.remind.feedback), page.data.remind.feedback);
+check('用户拒绝后状态仍是未开启', page.data.remind.state === 'idle');
+
+// 授权成功但后端同步失败：微信侧已经计入一次授权，不能谎报成功骗用户再点一次
+wxRecord.subscribeVerdict = 'accept';
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 503, data: { error: 'subscribe disabled' } });
+page.initRemind();
+await page.onToggleRemind();
+check(
+  '授权成功但同步失败 → 如实说「可能收不到」，不谎报成功',
+  page.data.remind.state === 'on' && page.data.remind.tone === 'warn' && /同步/.test(page.data.remind.feedback),
+  page.data.remind.feedback
+);
+
+// code 是一次性的：每次调用都必须重新 wx.login
+const codes = [];
+wxRecord.onRequest = (opts) => {
+  codes.push(opts.data && opts.data.code);
+  opts.success({ statusCode: 200, data: { ok: true } });
+};
+await sub.subscribeOnce();
+await sub.subscribeOnce();
+check('每次都重新 wx.login，不复用旧 code', codes.length === 2 && codes[0] !== codes[1], codes.join(' / '));
+
+// 缺模板 ID 时应在本地就拦住，不去骚扰微信接口
+configMod.subscribeTemplateId = '';
+let blocked = false;
+try {
+  await sub.subscribeOnce();
+} catch (err) {
+  blocked = /模板/.test(err.message);
+}
+check('缺模板 ID 时本地报错，不调用微信接口', blocked);
+configMod.subscribeTemplateId = TMPL;
+
+wxRecord.onRequest = null;
+
+/* ------------------------------ 结果 ------------------------------ */
+
+console.log(`\n${'─'.repeat(52)}`);
+if (failures.length) {
+  console.log(`✗ ${failures.length} 项失败 / 共 ${pass + failures.length} 项`);
+  for (const f of failures) console.log(`   · ${f}`);
+  process.exit(1);
+}
+console.log(`✓ 全部 ${pass} 项通过`);
