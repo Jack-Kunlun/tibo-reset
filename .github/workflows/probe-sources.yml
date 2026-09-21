@@ -15,6 +15,7 @@ on:
     paths:
       - 'scripts/probe-sources.mjs'
       - 'scripts/probe-graphql.mjs'
+      - 'scripts/probe-discovery.mjs'
       - '.github/workflows/probe-sources.yml'
 
 permissions:
@@ -40,6 +41,12 @@ jobs:
         continue-on-error: true
         run: node scripts/probe-graphql.mjs 2>&1 | tee graphql-report.txt
 
+      # 阶段三：验证「从站点 HTML 动态发现 bearer / queryId」。
+      # 它同时回答一个前提问题：twitter.com 的 CF 策略是否比 x.com 宽松。
+      - name: 动态发现 queryId
+        continue-on-error: true
+        run: node scripts/probe-discovery.mjs 2>&1 | tee discovery-report.txt
+
       - name: 写入运行摘要
         if: always()
         run: |
@@ -54,5 +61,11 @@ jobs:
             echo ''
             echo '```'
             cat graphql-report.txt 2>/dev/null || echo '（无输出）'
+            echo '```'
+            echo ''
+            echo '## 阶段三：queryId 动态发现'
+            echo ''
+            echo '```'
+            cat discovery-report.txt 2>/dev/null || echo '（无输出）'
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
