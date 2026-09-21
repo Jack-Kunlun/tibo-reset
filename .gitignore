@@ -22,6 +22,11 @@ data/subscriptions.json
 # 微信开发者工具的本地私有配置（含个人设置、需要忽略）
 project.private.config.json
 
+# 开发者工具以 miniprogram/ 为根打开时，会在子目录再生成一份 —— 内含真实 appid，
+# 而仓库根那份有意用 touristappid 占位，所以这份不进仓库。
+# ⚠ 必须锚定路径：裸写 project.config.json 会把要跟踪的根配置一起忽略掉。
+/miniprogram/project.config.json
+
 # 系统 / 编辑器
 .DS_Store
 *.swp
