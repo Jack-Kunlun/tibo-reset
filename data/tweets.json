@@ -1,9 +1,17 @@
 {
   "tweets": [
     {
+      "id": "2101431497437950458",
+      "text": "2026 is the year of linux desktop",
+      "created_at": "2026-09-19T22:01:26.000Z",
+      "kind": "other",
+      "account": "thsottiaux",
+      "first_seen": "2026-09-20T08:17:03.455Z"
+    },
+    {
       "id": "2101157729037586694",
       "text": "We were working on the keynote today with @romainhuet and @sama and most of the fun was trying to figure out how to explain it all to you because there is so much good stuff in there that it's a bit ridiculous all in quick succession. \n\nWe'll have some things next week already to",
-      "created_at": "2026-09-19T22:01:26.000Z",
+      "created_at": "2026-09-19T03:53:34.000Z",
       "kind": "other",
       "account": "thsottiaux",
       "first_seen": "2026-09-20T08:17:03.455Z"
@@ -11,22 +19,14 @@
     {
       "id": "2100645454245720513",
       "text": "Has anyone yet tried to get Astra and Fable to agree on the perfect styleguide? And then host it somewhere with a web mcp.",
-      "created_at": "2026-09-19T03:53:34.000Z",
-      "kind": "other",
-      "account": "thsottiaux",
-      "first_seen": "2026-09-20T08:17:03.455Z"
-    },
-    {
-      "id": "2100363668051603608",
-      "text": "the main thing i was excited about launching this week will be next week instead, but imo worth the wait!",
       "created_at": "2026-09-17T17:57:59.000Z",
       "kind": "other",
       "account": "thsottiaux",
       "first_seen": "2026-09-20T08:17:03.455Z"
     },
     {
-      "id": "2100297380968997327",
-      "text": "We are releasing the latest version of BrokenArXiv and ArXivMath! These benchmarks now focus on conjectures that were refuted in the last month on ArXiv, and models are executed within a harness instead of directly via API.\n\nPerformance remains impressive, with GPT-6 Astra on top https://t.co/UCJHeE1Szl",
+      "id": "2100363668051603608",
+      "text": "Sometimes physics can't be cheated",
       "created_at": "2026-09-16T23:18:15.000Z",
       "kind": "other",
       "account": "thsottiaux",
@@ -34,28 +34,28 @@
     },
     {
       "id": "2100351958167220547",
-      "text": "Sometimes physics can't be cheated",
+      "text": "the main thing i was excited about launching this week will be next week instead, but imo worth the wait!",
       "created_at": "2026-09-16T22:31:44.000Z",
       "kind": "other",
       "account": "thsottiaux",
       "first_seen": "2026-09-20T08:17:03.455Z"
     },
     {
-      "id": "2100180792601420138",
+      "id": "2100297380968997327",
       "text": "Astra\n\n✅ Fast\n✅ Frontier\n✅ Efficient\n✅ For everyone",
-      "created_at": "2026-09-16T11:11:35.000Z",
+      "created_at": "2026-09-16T18:54:51.000Z",
       "kind": "other",
       "account": "thsottiaux",
       "first_seen": "2026-09-20T08:17:03.455Z"
     },
     {
-      "id": "2101431497437950458",
-      "text": "2026 is the year of linux desktop",
-      "created_at": "2025-08-07T06:07:07.899Z",
+      "id": "2100180792601420138",
+      "text": "We are releasing the latest version of BrokenArXiv and ArXivMath! These benchmarks now focus on conjectures that were refuted in the last month on ArXiv, and models are executed within a harness instead of directly via API.\n\nPerformance remains impressive, with GPT-6 Astra on top https://t.co/UCJHeE1Szl",
+      "created_at": "2026-09-16T11:11:35.000Z",
       "kind": "other",
       "account": "thsottiaux",
       "first_seen": "2026-09-20T08:17:03.455Z"
     }
   ],
-  "updated_at": "2026-09-20T08:17:14.320Z"
+  "updated_at": "2026-09-21T12:14:27.936Z"
 }

@@ -1,7 +1,7 @@
 {
   "level": "hint",
-  "generatedAt": "2026-09-21T12:17:28.433Z",
-  "checkedTweets": 6,
+  "generatedAt": "2026-09-21T12:16:24.335Z",
+  "checkedTweets": 7,
   "lookbackDays": 60,
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
@@ -12,8 +12,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.09.21",
       "weekday": "周一",
-      "time": "20:17",
-      "text": "2026.09.21（周一）20:17",
+      "time": "20:16",
+      "text": "2026.09.21（周一）20:16",
       "offset": "UTC+8"
     },
     "b": {
@@ -21,23 +21,20 @@
       "zone": "America/Los_Angeles",
       "date": "2026.09.21",
       "weekday": "周一",
-      "time": "05:17",
-      "text": "2026.09.21（周一）05:17",
+      "time": "05:16",
+      "text": "2026.09.21（周一）05:16",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2101157729037586694",
+    "id": "2101431497437950458",
     "account": "thsottiaux",
-    "text": "We were working on the keynote today with @romainhuet and @sama and most of the fun was trying to figure out how to explain it all to you because there is so much good stuff in there that it's a bit ridiculous all in quick succession. We'll have some things next week already to",
+    "text": "2026 is the year of linux desktop",
     "createdAt": "2026-09-19T22:01:26.000Z",
-    "url": "https://x.com/thsottiaux/status/2101157729037586694",
-    "reasons": [
-      "含未来语气",
-      "含发布/宣传语境（扣分）"
-    ],
+    "url": "https://x.com/thsottiaux/status/2101431497437950458",
+    "reasons": [],
     "createdZones": {
       "a": {
         "label": "北京时间",
@@ -59,8 +56,8 @@
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "hint",
-    "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
+    "level": "none",
+    "rejected": "无额度相关词",
     "intent": 0,
     "window": null
   },
@@ -70,83 +67,10 @@
       "id": "2101157729037586694",
       "account": "thsottiaux",
       "text": "We were working on the keynote today with @romainhuet and @sama and most of the fun was trying to figure out how to explain it all to you because there is so much good stuff in there that it's a bit ridiculous all in quick succession. We'll have some things next week already to",
-      "createdAt": "2026-09-19T22:01:26.000Z",
+      "createdAt": "2026-09-19T03:53:34.000Z",
       "url": "https://x.com/thsottiaux/status/2101157729037586694",
       "reasons": [
         "含未来语气",
-        "含发布/宣传语境（扣分）"
-      ],
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.20",
-          "weekday": "周日",
-          "time": "06:01",
-          "text": "2026.09.20（周日）06:01",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.19",
-          "weekday": "周六",
-          "time": "15:01",
-          "text": "2026.09.19（周六）15:01",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "hint",
-      "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
-      "intent": 0,
-      "window": null
-    },
-    {
-      "id": "2100363668051603608",
-      "account": "thsottiaux",
-      "text": "the main thing i was excited about launching this week will be next week instead, but imo worth the wait!",
-      "createdAt": "2026-09-17T17:57:59.000Z",
-      "url": "https://x.com/thsottiaux/status/2100363668051603608",
-      "reasons": [
-        "含未来语气",
-        "含发布/宣传语境（扣分）"
-      ],
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.18",
-          "weekday": "周五",
-          "time": "01:57",
-          "text": "2026.09.18（周五）01:57",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.17",
-          "weekday": "周四",
-          "time": "10:57",
-          "text": "2026.09.17（周四）10:57",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "hint",
-      "rejected": "含时间表达「next week」但没有额度相关词，不作为重置信号",
-      "intent": 0,
-      "window": null
-    }
-  ],
-  "rejected": [
-    {
-      "id": "2100645454245720513",
-      "account": "thsottiaux",
-      "text": "Has anyone yet tried to get Astra and Fable to agree on the perfect styleguide? And then host it somewhere with a web mcp.",
-      "createdAt": "2026-09-19T03:53:34.000Z",
-      "url": "https://x.com/thsottiaux/status/2100645454245720513",
-      "reasons": [
         "含发布/宣传语境（扣分）"
       ],
       "createdZones": {
@@ -170,20 +94,124 @@
         },
         "diffText": "北京时间比 Tibo 当地时间快 15 小时"
       },
+      "level": "hint",
+      "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
+      "intent": 0,
+      "window": null
+    },
+    {
+      "id": "2100351958167220547",
+      "account": "thsottiaux",
+      "text": "the main thing i was excited about launching this week will be next week instead, but imo worth the wait!",
+      "createdAt": "2026-09-16T22:31:44.000Z",
+      "url": "https://x.com/thsottiaux/status/2100351958167220547",
+      "reasons": [
+        "含未来语气",
+        "含发布/宣传语境（扣分）"
+      ],
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.17",
+          "weekday": "周四",
+          "time": "06:31",
+          "text": "2026.09.17（周四）06:31",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.16",
+          "weekday": "周三",
+          "time": "15:31",
+          "text": "2026.09.16（周三）15:31",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "含时间表达「next week」但没有额度相关词，不作为重置信号",
+      "intent": 0,
+      "window": null
+    }
+  ],
+  "rejected": [
+    {
+      "id": "2101431497437950458",
+      "account": "thsottiaux",
+      "text": "2026 is the year of linux desktop",
+      "createdAt": "2026-09-19T22:01:26.000Z",
+      "url": "https://x.com/thsottiaux/status/2101431497437950458",
+      "reasons": [],
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.20",
+          "weekday": "周日",
+          "time": "06:01",
+          "text": "2026.09.20（周日）06:01",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.19",
+          "weekday": "周六",
+          "time": "15:01",
+          "text": "2026.09.19（周六）15:01",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
       "level": "none",
       "rejected": "无额度相关词",
       "intent": 0,
       "window": null
     },
     {
-      "id": "2100297380968997327",
+      "id": "2100645454245720513",
       "account": "thsottiaux",
-      "text": "We are releasing the latest version of BrokenArXiv and ArXivMath! These benchmarks now focus on conjectures that were refuted in the last month on ArXiv, and models are executed within a harness instead of directly via API. Performance remains impressive, with GPT-6 Astra on top https://t.co/UCJHeE1Szl",
-      "createdAt": "2026-09-16T23:18:15.000Z",
-      "url": "https://x.com/thsottiaux/status/2100297380968997327",
+      "text": "Has anyone yet tried to get Astra and Fable to agree on the perfect styleguide? And then host it somewhere with a web mcp.",
+      "createdAt": "2026-09-17T17:57:59.000Z",
+      "url": "https://x.com/thsottiaux/status/2100645454245720513",
       "reasons": [
         "含发布/宣传语境（扣分）"
       ],
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.18",
+          "weekday": "周五",
+          "time": "01:57",
+          "text": "2026.09.18（周五）01:57",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.17",
+          "weekday": "周四",
+          "time": "10:57",
+          "text": "2026.09.17（周四）10:57",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null
+    },
+    {
+      "id": "2100363668051603608",
+      "account": "thsottiaux",
+      "text": "Sometimes physics can't be cheated",
+      "createdAt": "2026-09-16T23:18:15.000Z",
+      "url": "https://x.com/thsottiaux/status/2100363668051603608",
+      "reasons": [],
       "createdZones": {
         "a": {
           "label": "北京时间",
@@ -211,11 +239,11 @@
       "window": null
     },
     {
-      "id": "2100351958167220547",
+      "id": "2100297380968997327",
       "account": "thsottiaux",
-      "text": "Sometimes physics can't be cheated",
-      "createdAt": "2026-09-16T22:31:44.000Z",
-      "url": "https://x.com/thsottiaux/status/2100351958167220547",
+      "text": "Astra ✅ Fast ✅ Frontier ✅ Efficient ✅ For everyone",
+      "createdAt": "2026-09-16T18:54:51.000Z",
+      "url": "https://x.com/thsottiaux/status/2100297380968997327",
       "reasons": [],
       "createdZones": {
         "a": {
@@ -223,8 +251,8 @@
           "zone": "Asia/Shanghai",
           "date": "2026.09.17",
           "weekday": "周四",
-          "time": "06:31",
-          "text": "2026.09.17（周四）06:31",
+          "time": "02:54",
+          "text": "2026.09.17（周四）02:54",
           "offset": "UTC+8"
         },
         "b": {
@@ -232,8 +260,8 @@
           "zone": "America/Los_Angeles",
           "date": "2026.09.16",
           "weekday": "周三",
-          "time": "15:31",
-          "text": "2026.09.16（周三）15:31",
+          "time": "11:54",
+          "text": "2026.09.16（周三）11:54",
           "offset": "UTC-7"
         },
         "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -246,10 +274,12 @@
     {
       "id": "2100180792601420138",
       "account": "thsottiaux",
-      "text": "Astra ✅ Fast ✅ Frontier ✅ Efficient ✅ For everyone",
+      "text": "We are releasing the latest version of BrokenArXiv and ArXivMath! These benchmarks now focus on conjectures that were refuted in the last month on ArXiv, and models are executed within a harness instead of directly via API. Performance remains impressive, with GPT-6 Astra on top https://t.co/UCJHeE1Szl",
       "createdAt": "2026-09-16T11:11:35.000Z",
       "url": "https://x.com/thsottiaux/status/2100180792601420138",
-      "reasons": [],
+      "reasons": [
+        "含发布/宣传语境（扣分）"
+      ],
       "createdZones": {
         "a": {
           "label": "北京时间",
