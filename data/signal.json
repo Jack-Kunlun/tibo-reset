@@ -1,6 +1,6 @@
 {
   "level": "hint",
-  "generatedAt": "2026-09-21T11:37:22.860Z",
+  "generatedAt": "2026-09-21T12:17:28.433Z",
   "checkedTweets": 6,
   "lookbackDays": 60,
   "sourceZone": "America/Los_Angeles",
@@ -12,8 +12,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.09.21",
       "weekday": "周一",
-      "time": "19:37",
-      "text": "2026.09.21（周一）19:37",
+      "time": "20:17",
+      "text": "2026.09.21（周一）20:17",
       "offset": "UTC+8"
     },
     "b": {
@@ -21,8 +21,8 @@
       "zone": "America/Los_Angeles",
       "date": "2026.09.21",
       "weekday": "周一",
-      "time": "04:37",
-      "text": "2026.09.21（周一）04:37",
+      "time": "05:17",
+      "text": "2026.09.21（周一）05:17",
       "offset": "UTC-7"
     },
     "diffHours": 15,
