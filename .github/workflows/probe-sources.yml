@@ -1,0 +1,45 @@
+name: probe-sources
+
+# 数据源通道诊断。**只读、无副作用**：不写 data/、不提交、不发布。
+#
+# 为什么必须是独立的 workflow 而在本地跑不了：
+#   本地（境内）对 twitter 系域名的 DNS 被污染，x.com 一律超时（实测 3/3，http=000）；
+#   runner 在境外，能连上 x.com 但拿到 403。两个环境的失败模式完全不同，
+#   所以「这条通道到底能不能用」这个问题，只能在 runner 里问。
+#
+# 什么时候跑它：采集连续失败（页面上挂着「数据采集异常」横幅）时，
+#   先跑这个探针，看是「全通道都挂」还是「主链路挂了但备链路还活着」。
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/probe-sources.mjs'
+      - '.github/workflows/probe-sources.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # 输出同时进日志和 step summary：日志便于逐步读，summary 便于直接看结论表。
+      - name: 探测所有候选通道
+        run: node scripts/probe-sources.mjs 2>&1 | tee probe-report.txt
+
+      - name: 写入运行摘要
+        if: always()
+        run: |
+          {
+            echo '## 数据源通道探测结果'
+            echo ''
+            echo '```'
+            tail -n 45 probe-report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
