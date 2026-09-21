@@ -14,6 +14,7 @@ on:
   push:
     paths:
       - 'scripts/probe-sources.mjs'
+      - 'scripts/probe-graphql.mjs'
       - '.github/workflows/probe-sources.yml'
 
 permissions:
@@ -33,13 +34,25 @@ jobs:
       - name: 探测所有候选通道
         run: node scripts/probe-sources.mjs 2>&1 | tee probe-report.txt
 
+      # 阶段二：验证 guest token + GraphQL 能否端到端取到推文正文。
+      # continue-on-error：两段探针互相独立，一段挂掉不该让另一段的结论消失。
+      - name: 验证 GraphQL 链路
+        continue-on-error: true
+        run: node scripts/probe-graphql.mjs 2>&1 | tee graphql-report.txt
+
       - name: 写入运行摘要
         if: always()
         run: |
           {
-            echo '## 数据源通道探测结果'
+            echo '## 阶段一：通道矩阵'
             echo ''
             echo '```'
-            tail -n 45 probe-report.txt
+            tail -n 45 probe-report.txt 2>/dev/null || echo '（无输出）'
+            echo '```'
+            echo ''
+            echo '## 阶段二：GraphQL 链路'
+            echo ''
+            echo '```'
+            cat graphql-report.txt 2>/dev/null || echo '（无输出）'
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
