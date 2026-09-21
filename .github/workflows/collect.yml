@@ -128,7 +128,12 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data miniprogram/data miniprogram/utils/scene.js
+          # 刻意不含 miniprogram/data：它是构建产物，且内嵌了构建时刻
+          # （generatedAt / now，以及由 now 派生的全部预测值），于是**每次构建都不同**
+          # —— 哪怕数据一个字都没动，也照样产生一次提交。这正是此前 48 条提交/天的另一半来源
+          # （采集那半已由 --max-age 短路解决）。
+          # 它由本机在采集后构建并提交（本机是主链路）；CI 这边只负责发布页面。
+          git add data miniprogram/utils/scene.js
           if git diff --staged --quiet; then
             echo "无变化，跳过提交"
           else
