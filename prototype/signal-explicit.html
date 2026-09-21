@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>等 TIBO 按按钮 · 额度重置观测台</title>
 <meta name="description" content="Codex 额度重置的观测台：距上次重置多久、还要等多久、以及 Tibo 有没有提前预告。" />
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="zh_CN" />
+<meta property="og:site_name" content="额度重置观测台" />
+<meta property="og:title" content="等 TIBO 按按钮 · 额度重置观测台" />
+<meta property="og:description" content="Codex 额度重置观测台：距上次重置多久、还要等多久、以及 Tibo 有没有提前预告。" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="等 TIBO 按按钮 · 额度重置观测台" />
+<meta name="twitter:description" content="Codex 额度重置观测台：距上次重置多久、还要等多久、以及 Tibo 有没有提前预告。" />
 <style>
   :root{
     --paper:#FAF8F4; --paper2:#F2EFE8; --card:#FFFFFF;
@@ -38,6 +46,25 @@
     background:var(--paper2);border:1px solid var(--line);padding:5px 12px;border-radius:99px;white-space:nowrap}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--bamboo);box-shadow:0 0 0 0 rgba(95,132,85,.5);animation:bp 2.4s infinite}
   @keyframes bp{0%{box-shadow:0 0 0 0 rgba(95,132,85,.45)}70%{box-shadow:0 0 0 8px rgba(95,132,85,0)}100%{box-shadow:0 0 0 0 rgba(95,132,85,0)}}
+
+  /* ---------- 采集异常提示 ---------- */
+  /* 只在 stats.json.errors 非空时才被渲染出来（renderCollectWarning 返回空串）。
+     刻意比信号横幅弱一档：它是「数据可信度声明」，不是头条。
+     注意这里的动效不依赖 animation-fill-mode —— 动画不跑时圆点照样可见。 */
+  .cwarn{
+    margin-top:18px;padding:13px 18px;border-radius:12px;
+    border:1px solid rgba(179,86,60,.3);border-left:5px solid var(--cinnabar);
+    background:rgba(179,86,60,.055);
+  }
+  .cwarn-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .cwarn-dot{width:7px;height:7px;border-radius:50%;background:var(--cinnabar);flex:0 0 auto;animation:bpc 2.4s infinite}
+  @keyframes bpc{0%{box-shadow:0 0 0 0 rgba(179,86,60,.45)}70%{box-shadow:0 0 0 7px rgba(179,86,60,0)}100%{box-shadow:0 0 0 0 rgba(179,86,60,0)}}
+  .cwarn-h b{font-size:13px;color:#7A3421;letter-spacing:.03em}
+  .cwarn-when{font-size:12px;color:var(--mist);font-family:var(--mono)}
+  .cwarn-b{margin:7px 0 0;font-size:13px;color:var(--ink2);line-height:1.65}
+  .cwarn-l{margin:8px 0 0;padding-left:18px;font-size:12.5px;color:var(--mist);
+    font-family:var(--mono);word-break:break-word}
+  .cwarn-l li{margin:2px 0}
 
   /* ---------- 信号横幅 ---------- */
   .sig{
@@ -238,6 +265,9 @@
     <span class="pulse"><span class="dot"></span>观测中 · <span id="upd">18:00</span></span>
   </header>
 
+  <!-- ============ 采集异常（有异常时才出现） ============ -->
+  
+
   <!-- ============ 信号（有预告时才醒目） ============ -->
   
   <section class="sig" data-level="explicit">
@@ -249,12 +279,12 @@
     <div class="sig-win">
         <div class="sw">
           <span class="sw-k">Tibo 当地时间</span>
-          <span class="sw-v">2026.09.21（周一）00:00 – 23:59</span>
+          <span class="sw-v">2026.09.22（周二）00:00 – 23:59</span>
           <span class="sw-z">UTC-7</span>
         </div>
         <div class="sw">
           <span class="sw-k">北京时间</span>
-          <span class="sw-v">2026.09.21（周一）15:00 → 2026.09.22（周二）14:59</span>
+          <span class="sw-v">2026.09.22（周二）15:00 → 2026.09.23（周三）14:59</span>
           <span class="sw-z">UTC+8</span>
         </div>
         <div class="sw-foot">
@@ -263,7 +293,7 @@
       </div>
     <blockquote class="sig-quote">Quick heads up: I'm going to reset everyone's usage limits tomorrow. Have a good one.</blockquote>
     <div class="sig-meta">
-      <span>发布于 2026.09.21（周一）07:43 北京 · 2026.09.20（周日）16:43 当地</span>
+      <span>发布于 2026.09.21（周一）15:53 北京 · 2026.09.21（周一）00:53 当地</span>
       
       <span>判定依据：命中重置词 reset、命中额度词 limits/usage/credits、含未来语气</span>
       <a href="https://x.com/thsottiaux/status/9100000000000000001" target="_blank" rel="noopener">查看原推 ↗</a>
@@ -273,9 +303,9 @@
   <!-- ============ HERO ============ -->
   <div class="hero" id="hero" data-last="2026-09-12T08:09:17.000Z" data-lastlabel="2026.09.12 16:09">
     <div class="label">距上一次额度重置</div>
-    <div class="counter" id="counter"><span class="grp" data-g="d"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-8em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">天</span></span><span class="grp" data-g="h"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-1em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span><span class="reel"><span class="strip" style="transform:translateY(-7em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">时</span></span><span class="grp" data-g="m"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-3em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span><span class="reel"><span class="strip" style="transform:translateY(-4em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">分</span></span><span class="grp" data-g="s"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-2em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span><span class="reel"><span class="strip" style="transform:translateY(-2em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">秒</span></span></div>
-    <div class="since" id="since">上次重置 2026.09.12 16:09 · 已过 8 天</div>
-    <div class="verdict v-long"><b>明显偏久</b> · 历史上 19% 的间隔比现在更长</div>
+    <div class="counter" id="counter"><span class="grp" data-g="d"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-9em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">天</span></span><span class="grp" data-g="h"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-0em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span><span class="reel"><span class="strip" style="transform:translateY(-1em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">时</span></span><span class="grp" data-g="m"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-4em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span><span class="reel"><span class="strip" style="transform:translateY(-4em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">分</span></span><span class="grp" data-g="s"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-0em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span><span class="reel"><span class="strip" style="transform:translateY(-0em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">秒</span></span></div>
+    <div class="since" id="since">上次重置 2026.09.12 16:09 · 已过 9 天</div>
+    <div class="verdict v-long"><b>明显偏久</b> · 历史上 17% 的间隔比现在更长</div>
   </div>
 
   <div class="metrics"><div class="metric">
@@ -311,34 +341,34 @@
     </div>
     
     <p class="fc-asof">
-      计算于 <b>2026.09.21 09:43</b> 北京时间（距上次重置 8.73 天）
+      计算于 <b>2026.09.21 17:53</b> 北京时间（距上次重置 9.07 天）
     </p>
 
     <div class="fc">
       <div class="fc-main">
         <div class="k">中位剩余等待</div>
-        <div class="v">1.2<small>天</small></div>
+        <div class="v">1.3<small>天</small></div>
         <div class="range">
-          约 28 小时 · 80% 区间 <b>0.0 – 6.2</b> 天
+          约 32 小时 · 80% 区间 <b>0.1 – 6.9</b> 天
         </div>
       </div>
       <div class="fc-bars">
         <div class="fc-bar">
       <span class="lb">24 小时内</span>
-      <span class="track"><i style="width:29.7%"></i></span>
-      <span class="pv">29.7%</span>
+      <span class="track"><i style="width:27.5%"></i></span>
+      <span class="pv">27.5%</span>
     </div><div class="fc-bar">
       <span class="lb">3 天内</span>
-      <span class="track"><i style="width:65.2%"></i></span>
-      <span class="pv">65.2%</span>
+      <span class="track"><i style="width:61.9%"></i></span>
+      <span class="pv">61.9%</span>
     </div><div class="fc-bar">
       <span class="lb">7 天内</span>
-      <span class="track"><i style="width:90.0%"></i></span>
-      <span class="pv">90.0%</span>
+      <span class="track"><i style="width:88.1%"></i></span>
+      <span class="pv">88.1%</span>
     </div><div class="fc-bar">
       <span class="lb">14 天内</span>
-      <span class="track"><i style="width:98.4%"></i></span>
-      <span class="pv">98.4%</span>
+      <span class="track"><i style="width:98.1%"></i></span>
+      <span class="pv">98.1%</span>
     </div><div class="fc-bar">
       <span class="lb">30 天内</span>
       <span class="track"><i style="width:100.0%"></i></span>
@@ -434,9 +464,9 @@
 <text x="866" y="29.56" fill="#B3563C" font-size="11.5" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="end" font-weight="400">6 次长于 14 天（最长 67.7 天）</text>
 <line x1="237.62" y1="22" x2="237.62" y2="274" stroke="#8C8880" stroke-width="1" stroke-dasharray="2 5" opacity="0.7"/>
 <text x="237.62" y="14" fill="#8C8880" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="middle">中位 3.1 天</text>
-<line x1="565.46" y1="22" x2="565.46" y2="274" stroke="#1F1E1B" stroke-width="1" stroke-dasharray="3 4" opacity="0.45"/>
-<circle cx="565.46" cy="70.46" r="6" fill="#FAF8F4" stroke="#1F1E1B" stroke-width="2.5"/>
-<text x="577.46" y="56.46" fill="#4A4842" font-size="11.5" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' font-weight="600">现在 · 81%</text></svg></div>
+<line x1="585.37" y1="22" x2="585.37" y2="274" stroke="#1F1E1B" stroke-width="1" stroke-dasharray="3 4" opacity="0.45"/>
+<circle cx="585.37" cy="65.62" r="6" fill="#FAF8F4" stroke="#1F1E1B" stroke-width="2.5"/>
+<text x="597.37" y="51.62" fill="#4A4842" font-size="11.5" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' font-weight="600">现在 · 83%</text></svg></div>
     </div>
   </section>
 
@@ -539,9 +569,9 @@
 <text x="62" y="56" fill="#B3563C" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif'>另有 6 次超过 14 天（最长 67.7 天），单独排在右侧</text>
 <line x1="226.43" y1="46" x2="226.43" y2="294" stroke="#8C8880" stroke-width="1" stroke-dasharray="2 5" opacity="0.7"/>
 <text x="226.43" y="36" fill="#8C8880" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="middle">中位 3.1 天</text>
-<line x1="534.27" y1="42" x2="534.27" y2="302" stroke="#1F1E1B" stroke-width="1.5" stroke-dasharray="3 4"/>
-<circle cx="534.27" cy="42" r="3" fill="#1F1E1B"/>
-<text x="534.27" y="30" fill="#4A4842" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="middle" font-weight="600">现在 8.7 天</text></svg></div>
+<line x1="552.97" y1="42" x2="552.97" y2="302" stroke="#1F1E1B" stroke-width="1.5" stroke-dasharray="3 4"/>
+<circle cx="552.97" cy="42" r="3" fill="#1F1E1B"/>
+<text x="552.97" y="30" fill="#4A4842" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="middle" font-weight="600">现在 9.1 天</text></svg></div>
       <div class="legend">
         <span><i style="background:#3F7376"></i>常规间隔</span>
         <span><i style="background:#8C8880"></i>偏长间隔</span>
@@ -697,10 +727,86 @@ Enjoy.</p>
   </section>
 
   <footer>
-    <div>数据：公开推文记录，每 30 分钟自动采集 · 最后更新 <span id="gen">2026.09.20 18:00</span> 北京</div>
+    <div>数据：公开推文记录，每 30 分钟自动采集 · 最近一次采集 <span id="gen">2026.09.20 18:00</span> 北京</div>
     <div>由 <a href="#">山风岚自起</a> 建造</div>
   </footer>
 </div>
+
+<!-- 页面内联数字的机器可读副本（A3 一致性比对）。与页面可见文字出自同一次渲染，
+     含构建锚点 builtAt —— 没有它，静态页面与实时 API 的比对只能靠容差糊。
+     校验：scripts/check-consistency.mjs -->
+<script type="application/json" id="data-digest">{
+  "schema": 1,
+  "builtAt": "2026-09-21T09:53:17.306Z",
+  "dataUpdatedAt": "2026-09-20T10:00:57.170Z",
+  "lastResetAt": "2026-09-12T08:09:17.000Z",
+  "records": 53,
+  "sinceDays": 9.07222576388889,
+  "coverageRatio": 0.8269230769230769,
+  "intervals": {
+    "mean": 6.92636774394587,
+    "median": 3.135060769675926,
+    "longest": 67.74240740740741,
+    "shortest": 0.4963194444444444
+  },
+  "remainingDays": {
+    "q25": 0.08944392119347866,
+    "q50": 1.3483683704514768,
+    "q90": 6.877172710897131
+  },
+  "horizons": [
+    {
+      "label": "24 小时内",
+      "p": 0.2753544424526253
+    },
+    {
+      "label": "3 天内",
+      "p": 0.6194805132429533
+    },
+    {
+      "label": "7 天内",
+      "p": 0.8806413739720214
+    },
+    {
+      "label": "14 天内",
+      "p": 0.9806440159318176
+    },
+    {
+      "label": "30 天内",
+      "p": 0.9996972997045974
+    }
+  ],
+  "phases": [
+    {
+      "from": "2025-09-17T04:02:52.000Z",
+      "to": "2026-04-28T05:28:43.000Z",
+      "mean": 12.39220100308642,
+      "n": 18
+    },
+    {
+      "from": "2026-04-28T05:28:43.000Z",
+      "to": "2026-07-25T19:17:12.000Z",
+      "mean": 4.920851980452675,
+      "n": 18
+    },
+    {
+      "from": "2026-07-25T19:17:12.000Z",
+      "to": "2026-09-12T08:09:17.000Z",
+      "mean": 3.0335105613425926,
+      "n": 16
+    }
+  ],
+  "calibration": {
+    "n": 120,
+    "cov50": 0.5,
+    "cov80": 0.8666666666666667
+  },
+  "skill": {
+    "brier": 0.20954700774582397,
+    "baseline": 0.20480607524118083,
+    "score": -0.023148397815153654
+  }
+}</script>
 
 <!-- 页面出厂即完整渲染（含两张图表的 SVG）。下面的脚本只负责让倒计时继续滚动，
      属于可选增强：脚本被禁用时数字依然正确，只是不再跳动。 -->
