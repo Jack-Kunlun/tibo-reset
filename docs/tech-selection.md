@@ -468,7 +468,7 @@ CI 会 `git add data`，不显式排除就会被推进公开仓库。
 | 4 | 增 `Dockerfile` 的 Node 版本 | `node:20-alpine` → `node:24-alpine` |
 | 5 | workflow 的 `node-version` | `'20'` → `'24'` |
 | 6 | 补 Pages 部署 workflow | 现在 `collect.yml` 只提交代码，没有 Pages 发布步骤 |
-| 7 | 初始化 git 仓库 | 项目至今未 `git init` |
+| 7 | 初始化 git 仓库 | ✅ 已执行 —— `main` 分支，远端 `Jack-Kunlun/tibo-reset`。**remote 必须走个人 SSH 别名**，原因见附注第 9 条 |
 
 ### 7.2 境内服务器
 
@@ -619,7 +619,8 @@ GitHub 的 `schedule` 事件在高峰期会延迟，且**仓库连续 60 天无�
 | 2 | `COPY . .` 无 `.dockerignore`，会把 `node_modules`、`.git` 拷进镜像 | `Dockerfile` | 补 `.dockerignore` |
 | 3 | `collect.yml` 只提交代码，没有 Pages 发布步骤 | `.github/workflows/` | 补部署 workflow |
 | 4 | 文档提到的 `miniprogram/utils/paint.js` 不存在 | `docs/decisions.md` D-007 | 已改为实际的 `draw.js` |
-| 5 | 项目未 `git init` | 仓库根 | **尚未执行** —— 目录在，但还没跑过 `git init`；M4 上线前必须完成 |
+| 5 | 项目未 `git init` | 仓库根 | 已完成：初始化于 2026-09-21，`main` 分支，远端 `git@github.com-personal:Jack-Kunlun/tibo-reset.git` |
 | 6 | F8 之后单阶段 `Dockerfile` **构不出来**：`og-image.mjs` 对 resvg 是静态 import，而镜像里没有 `node_modules`，`RUN node scripts/build.mjs` 直接 `ERR_MODULE_NOT_FOUND` | `Dockerfile` | 改两阶段构建（构建阶段 `npm ci` + 装 CJK 字体，运行阶段零依赖） |
 | 7 | `node:24-alpine` 无中文字体，OG 图会静默出成汉字空方框 | `Dockerfile` | 构建阶段换 debian 系基础镜像并装 `fonts-noto-cjk` |
 | 8 | `.dockerignore` 排除了 `package-lock.json`，与「必须提交 lock 文件」的约定冲突，`npm ci` 会失败 | `.dockerignore` | 移出排除列表 |
+| 9 | 本机 `~/.ssh/config` 是**双账号**结构：`github.com` 默认走公司 key（`sbt-zhengyunfeng`），个人号只能走别名 `github.com-personal`。而 git 全局身份也是公司号 —— 直接用 `git@github.com:Jack-Kunlun/...` 会以公司身份访问个人仓库（被拒），commit 作者栏还会写进公司邮箱，在公开仓库里永久可见 | `~/.ssh/config`、仓库 local config | remote 固定用 `git@github.com-personal:...`；仓库 local 身份设 `Jack-Kunlun <47732460+Jack-Kunlun@users.noreply.github.com>` —— 用 noreply 邮箱既能让 GitHub 正确归因，又不把真实邮箱写进公开历史 |
