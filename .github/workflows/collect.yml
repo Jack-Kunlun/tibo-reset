@@ -2,8 +2,16 @@ name: collect
 
 # 定时采集 → 重建页面 → 分发到两个方向。
 #
-# 为什么采集跑在 GitHub Actions：x.com 在中国境内不可直连（实测 3/3 超时，http=000），
-# 而 runner 在境外。这是整套架构里唯一能免费拿到境外网络的一环。
+# 采集有两处发起方，分工明确：
+#   1) **本机（主链路）**：走住宅出口，能过 Cloudflare。采完把 data/ 推上来。
+#   2) **CI（兜底）**：runner 是云机房 IP，会被 Cloudflare 挑战（403），
+#      所以它只在「数据确实陈旧」时才尝试 —— 判据是 --max-age，
+#      避免它把注定失败的采集结果写进 stats.json、让页面白挂一条异常横幅。
+#
+# 为什么不能只靠 CI 采：x.com 的 Cloudflare 拦的是**机房 IP 段**，不是境外 IP。
+#   实测同一时刻：本机出口 200（213KB 完整页面，4/4 稳定），
+#   runner 403 Cloudflare 挑战（x.com / twitter.com / mobile.twitter.com 三个域名一致）。
+#   详见 docs/data-source.md。
 #
 # 产物有两个去处（见 docs/tech-selection.md 3.6）：
 #   1. 提交 data/ → 仓库留档；页面产物由 artifact 交给 Pages
@@ -12,8 +20,15 @@ name: collect
 # 不是靠人工比对（验收 A3）。
 on:
   schedule:
-    - cron: '*/30 * * * *'   # 每 30 分钟
+    - cron: '*/30 * * * *'   # 每 30 分钟（兜底尝试 + 重建页面让倒计时保持新鲜）
   workflow_dispatch:          # 支持手动触发
+  push:
+    # 本机采完数据推上来时触发：直接建页面、发 Pages，不必再采一次。
+    # CI 自己用 GITHUB_TOKEN 推的提交不会触发新的运行，所以不存在循环。
+    paths:
+      - 'data/**'
+      - 'miniprogram/data/**'
+      - 'miniprogram/utils/scene.js'
 
 permissions:
   contents: write             # 提交采集数据
@@ -74,8 +89,12 @@ jobs:
       #   （scripts/render.mjs 的 renderCollectWarning，由 build 读 stats.json.errors 渲染）。
       - name: 采集
         id: collect
+        # push 触发 = 数据刚由本机采好推上来了，再采一次纯属多余；何况 runner 采必被
+        # Cloudflare 挑战，只会把 errors 写进 stats.json，让本机刚清干净的异常横幅又冒出来。
+        # --max-age：数据够新鲜就短路，连请求都不发（见 src/lib/collect.mjs 的说明）。
+        if: github.event_name != 'push'
         continue-on-error: true
-        run: node scripts/collect.mjs
+        run: node scripts/collect.mjs --max-age=120
 
       - name: 采集失败时显式告警
         if: steps.collect.outcome == 'failure'

@@ -65,28 +65,50 @@ function unescapeJs(s) {
 /* --------------------------- 自建采集：X 页面 --------------------------- */
 
 export function parseTweets(html) {
-  const ids = new Set();
-  for (const b of html.match(/client:([A-Za-z0-9+/=]+):/g) ?? []) {
-    try {
-      const decoded = Buffer.from(b.slice(7, -1), 'base64').toString('utf8');
-      if (decoded.startsWith('Tweet:')) ids.add(decoded.slice(6));
-    } catch {
-      /* 忽略非 base64 片段 */
+  const tweets = [];
+
+  // 逐条推文**就近配对**，而不是「全部 full_text 抓成一个数组、全部 created_at_ms 抓成另一个数组，
+  // 再按索引硬配」。后者有个必然的错位：payload 里除了推文，用户对象也带 created_at_ms
+  // （UserCore 的账号注册时间），多出来的那一个会把整条链推歪一位 ——
+  // 实测 7 条推文配到 8 个时间戳，第一条推文的时间被写成账号注册时间 2025-08-07，
+  // 而它实际是 2026-09-19 发的。这个错误会一路传到「距上次重置多少天」这个核心数字上。
+  //
+  // RSC payload 里同一条推文的字段是聚在一起的，所以就近取就够：
+  //   client:<base64 "Tweet:id">:legacy  = { … }                                  ← id 在这
+  //   client:<base64 "Tweet:id">:details = { full_text:"…", …, created_at_ms:… }  ← 正文与时间在这
+  // 实测 id 在正文前 < 1000 字符，时间在正文后 < 500 字符，下面的窗口都留了数倍余量。
+  for (const m of html.matchAll(/full_text:"((?:[^"\\]|\\.)*)"/g)) {
+    const at = m.index;
+
+    // id：向前找最近的 Tweet 类型 key
+    let id = null;
+    const before = html.slice(Math.max(0, at - 4000), at);
+    const keys = [...before.matchAll(/client:([A-Za-z0-9+/=]+):/g)];
+    for (let i = keys.length - 1; i >= 0; i--) {
+      let decoded;
+      try {
+        decoded = Buffer.from(keys[i][1], 'base64').toString('utf8');
+      } catch {
+        continue; // 不是 base64 的片段，跳过
+      }
+      if (decoded.startsWith('Tweet:')) {
+        id = decoded.slice(6);
+        break;
+      }
     }
+
+    // created_at_ms：向后找最近的一个；窗口上限取下一条推文正文之前，避免越界借用别人的时间
+    const after = html.slice(at, at + 2500);
+    const t = after.match(/created_at_ms:(\d{13})/);
+
+    tweets.push({
+      id,
+      text: unescapeJs(m[1]),
+      created_at: t ? new Date(Number(t[1])).toISOString() : null,
+    });
   }
 
-  const texts = [...html.matchAll(/full_text:"((?:[^"\\]|\\.)*)"/g)].map((m) =>
-    unescapeJs(m[1])
-  );
-  const times = [...html.matchAll(/created_at_ms:(\d{13})/g)].map((m) => Number(m[1]));
-
-  const sortedIds = [...ids].sort((a, b) => (BigInt(b) > BigInt(a) ? 1 : -1));
-
-  return texts.map((text, i) => ({
-    id: sortedIds[i] ?? null,
-    text,
-    created_at: times[i] ? new Date(times[i]).toISOString() : null,
-  }));
+  return tweets;
 }
 
 /* ----------------------------- 事件分类 ----------------------------- */
@@ -170,10 +192,11 @@ export function buildStats(records) {
  * 采集 + 合并 + 落盘。
  *
  * @param {object} opts
- * @param {string} opts.dataDir        数据目录
- * @param {boolean} opts.bootstrap     是否执行历史回填（冷启动用）
- * @param {boolean} opts.skipLive      跳过实时采集（离线自检用）
- * @returns {Promise<{ok:boolean, stats:object, errors:string[]}>}
+ * @param {string} opts.dataDir               数据目录
+ * @param {boolean} opts.bootstrap            是否执行历史回填（冷启动用）
+ * @param {boolean} opts.skipLive             跳过实时采集（离线自检用）
+ * @param {number} opts.skipIfFresherThanMs   数据比这个时限还新时，直接跳过实时采集
+ * @returns {Promise<{ok:boolean, stats:object, errors:string[], skippedFresh:boolean}>}
  */
 export async function runCollection(opts = {}) {
   const dataDir = opts.dataDir ?? resolve(process.cwd(), 'data');
@@ -197,14 +220,39 @@ export async function runCollection(opts = {}) {
     .sort((a, b) => new Date(b.announced_at) - new Date(a.announced_at));
 
   // 2) 实时推文
+  //
+  // 新鲜度短路（opts.skipIfFresherThanMs）：数据已经足够新时，本轮连请求都不发。
+  //
+  // 为什么需要它：采集有两处发起方 —— 本机（住宅出口，能过 Cloudflare）与 CI（机房 IP，
+  // 被 Cloudflare 挑战）。本机是主链路，CI 只是兜底。若 CI 不看数据新鲜度照样去采，
+  // 它那次注定失败，会把 stats.json 的 errors 写成非空，于是本机刚清掉的
+  // 「数据采集异常」横幅又被贴回页面上 —— 明明数据是新鲜的，却告警说采不到。
+  // 有了短路，CI 只在数据确实陈旧时才尝试，那种失败才是真该告警的情况。
   let live = await readJson(resolve(dataDir, 'tweets.json'), { tweets: [] });
-  if (!opts.skipLive) {
+  const lastLiveAt = live.updated_at ? new Date(live.updated_at).getTime() : 0;
+  const liveAgeMs = Date.now() - lastLiveAt;
+  const freshEnough =
+    opts.skipIfFresherThanMs > 0 && lastLiveAt > 0 && liveAgeMs < opts.skipIfFresherThanMs;
+  let skippedFresh = false;
+
+  if (opts.skipLive) {
+    // 离线自检：不碰网络，只重算统计
+  } else if (freshEnough) {
+    skippedFresh = true;
+  } else {
     try {
       const fresh = await fetchLiveTweets(opts.account);
       const merged = new Map(live.tweets.map((t) => [t.id ?? t.text.slice(0, 40), t]));
+      const now = new Date().toISOString();
       for (const t of fresh) {
         const key = t.id ?? t.text.slice(0, 40);
-        if (!merged.has(key)) merged.set(key, { ...t, first_seen: new Date().toISOString() });
+        const prev = merged.get(key);
+        // 已存在时**用本轮采集覆盖**，而不是跳过。
+        // 只有「只增不改」时，解析器修好了、旧数据里的错值也回不来 ——
+        // 例如 2026-09-21 修掉的时间戳错位，就是靠这一步把已有推文的时间纠正过来的。
+        // 唯一保留的是 first_seen：它是本地记账（我们最早看到这条的时刻），
+        // 不是推文自身的属性，不该被覆盖。
+        merged.set(key, prev ? { ...prev, ...t, first_seen: prev.first_seen ?? now } : { ...t, first_seen: now });
       }
       live = {
         tweets: [...merged.values()].sort(
@@ -215,6 +263,24 @@ export async function runCollection(opts = {}) {
     } catch (err) {
       errors.push(`实时采集失败：${err.message}`);
     }
+  }
+
+  // 短路时到此为止：本轮什么都没做，就不该写任何文件。
+  //
+  // 写了会让「有无变化」的判断失去意义 —— stats.json 的 generated_at 是采集运行时刻，
+  // 每轮都会变，CI 就会为它单独提交一次，于是每 30 分钟污染一条提交历史，
+  // 而数据其实一个字都没动（这正是此前 48 条提交/天的来源）。
+  // 不写文件，「没变化」就真的意味着没变化。
+  if (skippedFresh) {
+    return {
+      ok: errors.length === 0,
+      stats: buildStats(history.records),
+      signals: await readJson(resolve(dataDir, 'signal.json'), {}),
+      errors,
+      skippedFresh: true,
+      liveAgeMs,
+      collectedAt: new Date().toISOString(),
+    };
   }
 
   const stats = buildStats(history.records);
@@ -239,6 +305,8 @@ export async function runCollection(opts = {}) {
     stats,
     signals,
     errors,
+    skippedFresh,
+    liveAgeMs,
     collectedAt: new Date().toISOString(),
   };
 }
