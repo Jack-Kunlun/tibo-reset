@@ -63,6 +63,23 @@ miniprogram/         微信小程序
 2. **不出现关于模型自身的元叙述**（如「本模型不预测 X，只回答 Y」）。
    数字和单位可以留，解释「为什么这个数字可信」的散文删掉。
 3. 需要披露的**数据**（覆盖率、区分度、样本量）必须留 —— 那是数字，不是散文。
+4. **时间字段的措辞必须与它的真实语义一致**。`stats.json` 的 `generated_at` 是
+   「采集**运行**时刻」，不是「数据新鲜度」—— 采集失败时它照样推进，所以页面与卡片上
+   写的是「最近一次采集」。数据新鲜度另取 `tweets.json` 的 `updated_at`（只在采集
+   **成功**时才推进）。拿前者冒充后者，就是在页面上说一句当时并不成立的话。
+
+## 发布链的降级规则
+
+**采集失败不得阻断发布，但也不得静默。** 数据本来就存在 `data/` 里，构建与发布并不
+依赖本轮网络是否成功。所以 `collect.yml` 里「采集」与「构建页面」是**两个 step**，
+采集标 `continue-on-error`，失败时给 `::warning` + step summary。
+
+- ⛔ **禁止**把 `collect.mjs` 与 `build.mjs` 塞进同一个 `run:` 块 —— 两者共用 `bash -e`
+  语义，采集一失败，构建那一行根本不执行，一次网络抖动就赔掉整条发布链
+  （2026-09-21 的 403 事故：采集挂了 → build 没跑 → deploy 不执行 → 线上停在旧产物）。
+- 降级的另一半在页面上：`scripts/render.mjs` 的 `renderCollectWarning` 读
+  `stats.json.errors`，在页面顶部显示「数据采集异常」。少了它，降级就变成静默陈旧。
+- 这两条都有回归断言，见 `scripts/test-collect-warning.mjs`。
 
 ## 构建期的两个环境变量
 
@@ -86,7 +103,7 @@ miniprogram/         微信小程序
 ### 一次跑完
 
 ```bash
-npm run check                              # 6 个测试套件 + 构建 + A3 一致性（不依赖 Chrome）
+npm run check                              # 7 个测试套件 + 构建 + A3 一致性（不依赖 Chrome）
 SITE_URL=https://<你的域名> npm run accept  # A1–A10 全量验收（会先自动重建 dist）
 ```
 
@@ -104,6 +121,7 @@ node scripts/test-miniprogram.mjs   # 小程序图元在目标尺寸下不越界
 node scripts/test-og.mjs            # OG 卡：缺字体守卫 / 尺寸 / 安全区 / meta 三态
 node scripts/test-ingest.mjs        # POST /api/ingest 的鉴权与落盘
 node scripts/test-subscribe.mjs     # F9 订阅链路（token 缓存 / 永久失败码 / 水位线）
+node scripts/test-collect-warning.mjs  # 采集异常外显 + 发布链不得被采集失败阻断
 node scripts/check-consistency.mjs  # A3：页面数字 ↔ API
 node scripts/check-layout.mjs       # A7：窄屏横向溢出（需要 Chrome）
 node scripts/diagnose.mjs           # 复现全部回测与校准数字
