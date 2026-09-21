@@ -423,6 +423,53 @@ export function renderDigest(m, prediction) {
   ).replace(/</g, '\\u003c');
 }
 
+/* --------------------------- 采集异常提示 --------------------------- */
+
+/** 只接受能解析的 ISO 串；其余（undefined / 空串 / 垃圾值）一律当作「没有」 */
+const isoOrNull = (v) => (typeof v === 'string' && Number.isFinite(Date.parse(v)) ? v : null);
+
+/**
+ * 「数据采集异常」提示条。**没有异常时返回空串**，页面什么都不多。
+ *
+ * 为什么必须有它：发布链被改成「采集失败不阻断」之后（见 collect.yml），
+ * 页面会在数据陈旧的情况下照常上线。不把这个状态显示出来，就等于把 CI 里的
+ * 报错藏进日志 —— 正是本架构最想避免的「静默不一致」。
+ *
+ * 措辞刻意只承诺它确实知道的事：
+ *   - 只说「本轮采集失败」，**不说**「数据是新的」
+ *   - 推文数据的最后成功更新时间单列，取自 tweets.json 的 `updated_at` ——
+ *     那个字段只在实时采集**成功**时才推进，是可靠的「数据新鲜度」
+ *
+ * ⚠ 不要拿 stats.json 的 `generated_at` 代表数据新鲜度：它每轮都刷新，
+ *   采集失败时记的是**失败时刻**。用它当「最后更新」会撒谎。
+ */
+export function renderCollectWarning(info) {
+  // 必须是数组判定，不能只写 `?? []`：stats.json 是可手改的，errors 万一是字符串
+  // （旧 schema、手工编辑），`.filter` 会直接抛 TypeError，把整条构建带下去。
+  // 这个函数的职责是「有异常时把异常说出来」，它自己绝不能成为那个异常。
+  const errors = (Array.isArray(info?.errors) ? info.errors : []).filter(Boolean);
+  if (!errors.length) return '';
+
+  const at = isoOrNull(info?.attemptedAt);
+  const live = isoOrNull(info?.lastLiveAt);
+
+  return [
+    '<div class="cwarn" role="status">',
+    '  <div class="cwarn-h">',
+    '    <span class="cwarn-dot"></span>',
+    '    <b>数据采集异常</b>',
+    at ? `    <span class="cwarn-when">本轮尝试 ${esc(fmtDateTime(at))} 北京</span>` : '',
+    '  </div>',
+    '  <p class="cwarn-b">本轮自动采集失败，页面数字来自仓库中已有的数据 —— 实时推文与重置信号可能滞后。' +
+      (live ? `推文数据最后更新于 ${esc(fmtDateTime(live))} 北京。` : '') +
+      '</p>',
+    `  <ul class="cwarn-l">${errors.map((e) => `<li>${esc(e)}</li>`).join('')}</ul>`,
+    '</div>',
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
 /* ------------------------------ 汇总 ------------------------------ */
 
 export function renderAll(m, prediction, signals, opts = {}) {
@@ -431,6 +478,7 @@ export function renderAll(m, prediction, signals, opts = {}) {
   return {
     OG_META: renderOgMeta(opts.og),
     DIGEST: renderDigest(m, prediction),
+    COLLECT_WARNING: renderCollectWarning(opts.collect),
     SIGNAL: renderSignal(signals),
     COUNTER: renderCounter(m),
     SINCE: renderSince(m),

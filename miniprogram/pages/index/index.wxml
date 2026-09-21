@@ -210,7 +210,7 @@
 
   <!-- ============ 页脚 ============ -->
   <view class="foot">
-    <view>数据：公开推文记录 · 最后更新 {{genText}} 北京</view>
+    <view>数据：公开推文记录 · 最近一次采集 {{genText}} 北京</view>
     <view>观测账号 x.com/{{account}}</view>
     <navigator class="nav" url="/pages/history/index" open-type="navigate">查看完整历史记录 →</navigator>
   </view>

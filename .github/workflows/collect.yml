@@ -61,14 +61,41 @@ jobs:
       - name: 校验
         run: npm run test
 
-      - name: 采集并构建
+      # ⚠ 采集与构建必须是**两个 step**，不能合进一个 run 块。
+      #   合在一起时它们共用同一份 bash -e 语义：采集一失败，构建那一行根本不执行，
+      #   于是「一次网络抖动」赔掉的是整条发布链。2026-09-21 的 403 事故就是这样：
+      #   采集挂了 → build 没跑 → deploy（needs: refresh）不执行 → 线上停在旧产物。
+      #
+      #   数据本来就在 data/ 里存着一份（上一轮成功采集的结果），构建与发布并不依赖
+      #   本轮网络是否成功。所以采集失败应当**降级**而非**阻断**。
+      #
+      #   关键约束：降级不能降成静默。失败必须从两个地方露出来 ——
+      #   下面的告警注解（CI 侧）+ 页面上的「数据采集异常」提示
+      #   （scripts/render.mjs 的 renderCollectWarning，由 build 读 stats.json.errors 渲染）。
+      - name: 采集
+        id: collect
+        continue-on-error: true
+        run: node scripts/collect.mjs
+
+      - name: 采集失败时显式告警
+        if: steps.collect.outcome == 'failure'
+        run: |
+          echo "::warning title=本轮采集失败::已改用仓库中现有数据继续构建与发布，页面会显示「数据采集异常」提示。详情见上方「采集」步骤日志。"
+          {
+            echo "### ⚠ 本轮采集失败，已用现有数据继续发布"
+            echo ""
+            echo "发布链未被阻断：构建与发布用的是仓库里上一轮成功采集的数据。"
+            echo "该状态会在页面上显示为「数据采集异常」，不会静默。"
+            echo ""
+            echo "失败详情见本次运行中「采集」步骤的日志。"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 构建页面
         env:
           # og:url / og:image 要写成绝对地址，用对外分享的那个域名（境内镜像）。
           # 在仓库 Settings → Variables 配 SITE_URL；不配则构建会明确提示并跳过这两条 meta。
           SITE_URL: ${{ vars.SITE_URL }}
-        run: |
-          node scripts/collect.mjs
-          node scripts/build.mjs
+        run: node scripts/build.mjs
 
       # A3：页面内联数字必须与 API 返回一致。放在构建之后 ——
       # 它比的是「刚构建出来的页面」与「现起的服务」，锚点贴近才能精确判等。

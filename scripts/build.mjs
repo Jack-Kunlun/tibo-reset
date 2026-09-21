@@ -78,7 +78,20 @@ if (!og) {
 
 /* ---------------------------- 网页 ---------------------------- */
 
-const parts = renderAll(model, prediction, signals, { og });
+const parts = renderAll(model, prediction, signals, {
+  og,
+  // 采集异常必须显示在页面上，不能只留在 CI 日志里 ——
+  // 发布链已改成「采集失败不阻断」（见 .github/workflows/collect.yml 的注释），
+  // 页面会在数据陈旧时照常上线，那就必须自己把这件事说出来。
+  //
+  // lastLiveAt 取 tweets.json 的 `updated_at`：它只在实时采集**成功**时才推进。
+  // 不要换成 statsFile.generated_at —— 那个每轮都刷新，采集失败时记的是失败时刻。
+  collect: {
+    errors: statsFile.errors ?? [],
+    attemptedAt: statsFile.generated_at ?? null,
+    lastLiveAt: tweets.updated_at ?? null,
+  },
+});
 
 // 用函数式替换：字符串形式的 replace 会把内容里的 $& / $1 当特殊序列处理
 let html = template;

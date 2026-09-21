@@ -40,6 +40,25 @@
   .dot{width:7px;height:7px;border-radius:50%;background:var(--bamboo);box-shadow:0 0 0 0 rgba(95,132,85,.5);animation:bp 2.4s infinite}
   @keyframes bp{0%{box-shadow:0 0 0 0 rgba(95,132,85,.45)}70%{box-shadow:0 0 0 8px rgba(95,132,85,0)}100%{box-shadow:0 0 0 0 rgba(95,132,85,0)}}
 
+  /* ---------- 采集异常提示 ---------- */
+  /* 只在 stats.json.errors 非空时才被渲染出来（renderCollectWarning 返回空串）。
+     刻意比信号横幅弱一档：它是「数据可信度声明」，不是头条。
+     注意这里的动效不依赖 animation-fill-mode —— 动画不跑时圆点照样可见。 */
+  .cwarn{
+    margin-top:18px;padding:13px 18px;border-radius:12px;
+    border:1px solid rgba(179,86,60,.3);border-left:5px solid var(--cinnabar);
+    background:rgba(179,86,60,.055);
+  }
+  .cwarn-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .cwarn-dot{width:7px;height:7px;border-radius:50%;background:var(--cinnabar);flex:0 0 auto;animation:bpc 2.4s infinite}
+  @keyframes bpc{0%{box-shadow:0 0 0 0 rgba(179,86,60,.45)}70%{box-shadow:0 0 0 7px rgba(179,86,60,0)}100%{box-shadow:0 0 0 0 rgba(179,86,60,0)}}
+  .cwarn-h b{font-size:13px;color:#7A3421;letter-spacing:.03em}
+  .cwarn-when{font-size:12px;color:var(--mist);font-family:var(--mono)}
+  .cwarn-b{margin:7px 0 0;font-size:13px;color:var(--ink2);line-height:1.65}
+  .cwarn-l{margin:8px 0 0;padding-left:18px;font-size:12.5px;color:var(--mist);
+    font-family:var(--mono);word-break:break-word}
+  .cwarn-l li{margin:2px 0}
+
   /* ---------- 信号横幅 ---------- */
   .sig{
     margin-top:26px;padding:20px 22px;border-radius:14px;
@@ -233,6 +252,9 @@
     <span class="pulse"><span class="dot"></span>观测中 · <span id="upd"><!--__UPD__--></span></span>
   </header>
 
+  <!-- ============ 采集异常（有异常时才出现） ============ -->
+  <!--__COLLECT_WARNING__-->
+
   <!-- ============ 信号（有预告时才醒目） ============ -->
   <!--__SIGNAL__-->
 
@@ -300,7 +322,7 @@
   </section>
 
   <footer>
-    <div>数据：公开推文记录，每 30 分钟自动采集 · 最后更新 <span id="gen"><!--__GEN__--></span> 北京</div>
+    <div>数据：公开推文记录，每 30 分钟自动采集 · 最近一次采集 <span id="gen"><!--__GEN__--></span> 北京</div>
     <div>由 <a href="#">山风岚自起</a> 建造</div>
   </footer>
 </div>

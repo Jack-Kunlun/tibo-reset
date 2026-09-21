@@ -268,7 +268,7 @@ ${normalize}
   </div>
 
   <div class="foot">
-    <div>数据：公开推文记录 · 最后更新 ${esc(fmtDateTime(now))} 北京</div>
+    <div>数据：公开推文记录 · 最近一次采集 ${esc(fmtDateTime(now))} 北京</div>
     <div>观测账号 x.com/thsottiaux</div>
   </div>
 

@@ -242,7 +242,7 @@ ${statCol(M + 668, '历史记录', n.count, '次', `${n.firstDate} 起`)}
 ${body}
 </g>
 
-${txt(M, LY.footer, `数据每 30 分钟自动采集 · 最后更新 ${n.updated} 北京时间`, {
+${txt(M, LY.footer, `数据每 30 分钟自动采集 · 最近一次采集 ${n.updated} 北京时间`, {
     size: 16,
     fill: PALETTE.mist,
   })}
