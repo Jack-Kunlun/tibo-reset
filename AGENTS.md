@@ -81,6 +81,26 @@ miniprogram/         微信小程序
   `stats.json.errors`，在页面顶部显示「数据采集异常」。少了它，降级就变成静默陈旧。
 - 这两条都有回归断言，见 `scripts/test-collect-warning.mjs`。
 
+## 数据源：出口 IP 决定采集成败
+
+x.com 的 Cloudflare 拦的是**云机房 IP 段**，不是境外 IP。同一时刻实测：本机（住宅出口）
+HTTP 200 / 213KB 完整页面 / 4 次重试全中；runner（AWS）403 挑战页。
+已被证伪的绕行路径（换域名、官方嵌入接口、第三方镜像、免费代理）见 `docs/data-source.md`，
+**别再重复试一遍**。
+
+- 本机是**主链路**，CI 只是兜底。动采集相关代码时，别假设 runner 采得到。
+- CI 兜底必须带 `--max-age`。否则它那次注定失败的采集会把 `errors` 写进 `stats.json`，
+  让页面上刚被本机清干净的「数据采集异常」横幅又贴回来 —— 数据明明是新鲜的。
+- 短路时**不写任何文件**。写了 `generated_at`（采集运行时刻）就会变，CI 会为它单独提交，
+  于是每 30 分钟污染一条提交历史，而数据一个字都没动。
+- CI 的提交范围**不含** `miniprogram/data/snapshot.js`。它是构建产物，内嵌了构建时刻
+  （`generatedAt` / `now` 及其派生的全部预测值），每次构建都不同；提交它等于换个来源
+  继续污染历史。它由本机构建后提交。
+- 改 `parseTweets` 前后**必须**跑 `node scripts/test-parse.mjs`。它锁的是 RSC payload 的
+  **结构契约**：`created_at_ms` 不只出现在推文上 —— 用户对象（UserCore）也带一个，
+  那是账号注册时间。按索引硬配会让整条链错位一位（实测 7 条推文配 8 个时间戳），
+  且不报错、不崩溃，只让页面数字悄悄错掉。该函数此前零测试覆盖。
+
 ## 构建期的两个环境变量
 
 | 变量 | 作用 | 不设的后果 |
@@ -103,7 +123,7 @@ miniprogram/         微信小程序
 ### 一次跑完
 
 ```bash
-npm run check                              # 7 个测试套件 + 构建 + A3 一致性（不依赖 Chrome）
+npm run check                              # 8 个测试套件 + 构建 + A3 一致性（不依赖 Chrome）
 SITE_URL=https://<你的域名> npm run accept  # A1–A10 全量验收（会先自动重建 dist）
 ```
 
@@ -116,6 +136,7 @@ SITE_URL=https://<你的域名> npm run accept  # A1–A10 全量验收（会先
 
 ```bash
 node scripts/test-signals.mjs       # 信号解析用例
+node scripts/test-parse.mjs         # 推文解析：字段按对象就近配对（防时间戳错位）
 node scripts/test-shared.mjs        # 共享层：图元越界 / 同步一致性
 node scripts/test-miniprogram.mjs   # 小程序图元在目标尺寸下不越界
 node scripts/test-og.mjs            # OG 卡：缺字体守卫 / 尺寸 / 安全区 / meta 三态
