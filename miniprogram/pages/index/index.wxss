@@ -104,38 +104,163 @@
   color: #7A3421;
 }
 
+/* 等待已经偏久时让它轻微呼吸 —— 把结论持续推到眼前，而不是一条静态标签。
+   常规区间内不呼吸：那时没什么可提醒的，一直闪反而变成噪音。 */
+.verdict.v-long,
+.verdict.v-rare {
+  animation: breathe 3.2s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(179, 86, 60, 0); }
+  50%      { box-shadow: 0 0 0 8rpx rgba(179, 86, 60, 0.09); }
+}
+
+/* ---------- 等待进度尺 ---------- */
+
+.gauge {
+  margin-top: 26rpx;
+  padding: 0 8rpx;
+}
+
+.g-track {
+  height: 10rpx;
+  border-radius: 99rpx;
+  background: #EDE9E1;
+  overflow: hidden;
+}
+
+.g-fill {
+  height: 100%;
+  border-radius: 99rpx;
+  transform-origin: left center;
+  /* 从 0 长出来，比直接显示一个静态百分比更有「时间在走」的意味 */
+  animation: grow 1.15s cubic-bezier(0.2, 0.75, 0.3, 1) both;
+  animation-delay: 0.35s;
+}
+
+@keyframes grow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.g-cool .g-fill { background: linear-gradient(90deg, rgba(95, 132, 85, 0.55), #5F8455); }
+.g-warm .g-fill { background: linear-gradient(90deg, rgba(63, 115, 118, 0.55), #3F7376); }
+.g-hot  .g-fill { background: linear-gradient(90deg, rgba(179, 86, 60, 0.55), #B3563C); }
+
+.g-text {
+  margin-top: 12rpx;
+  font-size: 21rpx;
+  color: #8C8880;
+  text-align: center;
+}
+
+.g-hot .g-text {
+  color: #8A422E;
+}
+
+/* ---------- 进场 ---------- */
+/* 让静止的首屏有「依次到位」的顺序感。刻意做得很轻：
+   唱主角的是信号横幅，其它区块只是跟着浮现。 */
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(20rpx); }
+  to   { opacity: 1; transform: none; }
+}
+
+.top,
+.sig,
+.hero,
+.metrics,
+.fc,
+.remind,
+.card,
+.foot {
+  animation: rise 0.55s cubic-bezier(0.2, 0.75, 0.3, 1) both;
+}
+
+.top     { animation-delay: 0.02s; }
+.sig     { animation-delay: 0.06s; }
+.hero    { animation-delay: 0.1s; }
+.metrics { animation-delay: 0.16s; }
+.fc      { animation-delay: 0.2s; }
+.remind  { animation-delay: 0.24s; }
+.card    { animation-delay: 0.28s; }
+.foot    { animation-delay: 0.32s; }
+
 /* ---------- 信号横幅 ---------- */
+/* 有信号时这里是全页视觉重量最大的块。做法是「晕染 + 大字 + 呼吸」，
+   而不是换成深色底 —— 深色底会和整站的水墨宣纸基调打架。 */
 
 .sig {
+  position: relative;
+  overflow: hidden;
   margin-top: 28rpx;
-  padding: 26rpx 28rpx;
+  padding: 28rpx 28rpx 24rpx;
   border-radius: 22rpx;
-  border: 1rpx solid rgba(179, 86, 60, 0.32);
+  border: 1rpx solid rgba(179, 86, 60, 0.34);
   border-left: 8rpx solid #B3563C;
-  background: rgba(179, 86, 60, 0.06);
+  background:
+    radial-gradient(120% 88% at 0% 0%, rgba(179, 86, 60, 0.15), rgba(179, 86, 60, 0.03) 62%, rgba(255, 255, 255, 0) 100%),
+    #FFFFFF;
 }
 
 .sig[data-level="hint"] {
   border-color: rgba(63, 115, 118, 0.3);
   border-left-color: #3F7376;
-  background: rgba(63, 115, 118, 0.06);
+  background:
+    radial-gradient(120% 88% at 0% 0%, rgba(63, 115, 118, 0.14), rgba(63, 115, 118, 0.03) 62%, rgba(255, 255, 255, 0) 100%),
+    #FFFFFF;
+}
+
+/* 呼吸光斑：让「有信号」这件事一直可见，而不是静着一张卡片 */
+.sig-halo {
+  position: absolute;
+  top: -70rpx;
+  left: -70rpx;
+  width: 280rpx;
+  height: 280rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(179, 86, 60, 0.3), rgba(179, 86, 60, 0) 70%);
+  animation: halo 3.8s ease-in-out infinite;
+}
+
+.sig[data-level="hint"] .sig-halo {
+  background: radial-gradient(circle, rgba(63, 115, 118, 0.28), rgba(63, 115, 118, 0) 70%);
+}
+
+@keyframes halo {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%      { opacity: 0.95; transform: scale(1.16); }
 }
 
 .sig-head {
+  position: relative;
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
   gap: 12rpx;
-  margin-bottom: 20rpx;
+  margin-bottom: 8rpx;
 }
 
 .badge {
   font-size: 21rpx;
   letter-spacing: 0.08em;
-  padding: 4rpx 18rpx;
+  padding: 5rpx 18rpx;
   border-radius: 99rpx;
   background: #B3563C;
   color: #FFFFFF;
+}
+
+/* 徽章上的活点：与光斑同频，暗示「还在扫」 */
+.badge .bdot {
+  display: inline-block;
+  width: 10rpx;
+  height: 10rpx;
+  margin-right: 8rpx;
+  border-radius: 50%;
+  background: #FFFFFF;
+  animation: halo 1.9s ease-in-out infinite;
 }
 
 .sig[data-level="hint"] .badge {
@@ -148,8 +273,96 @@
   flex: 1;
 }
 
-.prec {
-  font-size: 22rpx;
+/* ---------- 大字公告 ---------- */
+/* 人从「Tibo 说下周二重置」里最先抓住的就是那个星期 —— 它该是最大的字 */
+
+.ann {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  padding: 14rpx 0 22rpx;
+}
+
+.ann-cap {
+  font-size: 21rpx;
+  color: #8C8880;
+  letter-spacing: 0.16em;
+}
+
+.ann-big {
+  font-size: 100rpx;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: 0.04em;
+  color: #B3563C;
+}
+
+.sig[data-level="hint"] .ann-big {
+  color: #3F7376;
+}
+
+.ann-sub {
+  font-size: 24rpx;
+  color: #4A4842;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 预告倒计时 ---------- */
+
+.cd {
+  position: relative;
+  padding: 18rpx 0 20rpx;
+  margin-bottom: 22rpx;
+  text-align: center;
+  border-top: 1rpx dashed rgba(179, 86, 60, 0.3);
+  border-bottom: 1rpx dashed rgba(179, 86, 60, 0.3);
+}
+
+.cd-cap {
+  display: block;
+  font-size: 21rpx;
+  color: #8C8880;
+  letter-spacing: 0.1em;
+  margin-bottom: 10rpx;
+}
+
+.cd-row {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 12rpx;
+}
+
+.cd-g {
+  display: flex;
+  align-items: baseline;
+  gap: 3rpx;
+}
+
+.cd-v {
+  font-size: 46rpx;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+  color: #1F1E1B;
+  letter-spacing: 0.01em;
+}
+
+.cd-u {
+  font-size: 20rpx;
+  color: #8C8880;
+}
+
+/* 窗口已开启：整组转竹青，与「还在等」区分开 */
+.cd.is-over .cd-v {
+  color: #5F8455;
+}
+
+.wprec {
+  display: block;
+  padding: 12rpx 20rpx 14rpx;
+  font-size: 21rpx;
   color: #8C8880;
 }
 
@@ -241,6 +454,13 @@
   height: 12rpx;
   border-radius: 50%;
   background: #B0ABA2;
+  /* 静默态也得有一点动静：它在说「我们还在扫」，不是在说「没数据」 */
+  animation: idleScan 2.6s ease-in-out infinite;
+}
+
+@keyframes idleScan {
+  0%, 100% { opacity: 0.35; transform: scale(0.86); }
+  50%      { opacity: 1; transform: scale(1.1); }
 }
 
 .sig-idle .b {

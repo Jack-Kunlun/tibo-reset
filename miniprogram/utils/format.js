@@ -83,6 +83,36 @@ export function reelGroups(el) {
   ];
 }
 
+/**
+ * 倒计时：距某个未来时刻还剩多久。
+ *
+ * 没有复用 elapsed —— 那是「已过去多久」，会把负值 clamp 成 0，
+ * 而倒计时必须区分「还没到」和「窗口已经开了」这两种状态。
+ */
+export function countdown(toTs, now = Date.now()) {
+  const ms = toTs - now;
+  const a = Math.abs(ms);
+  const DAY = 86400000;
+  return {
+    ms,
+    over: ms <= 0,
+    d: Math.floor(a / DAY),
+    h: Math.floor((a % DAY) / 3600000),
+    m: Math.floor((a % 3600000) / 60000),
+    s: Math.floor((a % 60000) / 1000),
+  };
+}
+
+/** 倒计时数字组：与 reelGroups 同构，便于同一套样式渲染 */
+export function countdownGroups(cd) {
+  return [
+    { v: String(cd.d), unit: '天' },
+    { v: pad2(cd.h), unit: '时' },
+    { v: pad2(cd.m), unit: '分' },
+    { v: pad2(cd.s), unit: '秒' },
+  ];
+}
+
 /** 判定文案：当前等待在历史中处于什么位置 */
 export function verdict(pct) {
   const p = Math.round(pct * 100);

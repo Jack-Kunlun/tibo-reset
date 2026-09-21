@@ -465,6 +465,58 @@ configMod.subscribeTemplateId = TMPL;
 
 wxRecord.onRequest = null;
 
+/* ------------------------------ 10. 预告可视化 ------------------------------ */
+
+const { countdown, countdownGroups } = await import(resolve(ROOT, 'miniprogram/utils/format.js'));
+const { buildGauge } = await import(resolve(ROOT, 'miniprogram/utils/view.js'));
+
+console.log('\n【10】预告倒计时 / 大字公告 / 等待进度尺');
+
+{
+  // 倒计时：页面靠 over 切换「距窗口开启」与「窗口已开启」两套文案
+  const ahead = countdown(now + 2 * 3600_000 + 30_000, now);
+  check(
+    '未到窗口 → over=false 且时长正确',
+    ahead.over === false && ahead.h === 2 && ahead.m === 0,
+    `${ahead.h}h${ahead.m}m${ahead.s}s`
+  );
+  check('已过窗口 → over=true（文案要换）', countdown(now - 1000, now).over === true);
+  check(
+    '倒计时分组为 天/时/分/秒',
+    countdownGroups(ahead).map((g) => g.unit).join('/') === '天/时/分/秒',
+    countdownGroups(ahead).map((g) => g.v).join(':')
+  );
+
+  // 大字公告：星期必须能被单独摘出来 —— 它是这块视觉的主角
+  const sigTue = detectSignals([mkTweet('We will reset all usage limits next Tuesday.', '9101')], { now });
+  const vmTue = buildSignal(sigTue);
+  check('合成预告判为明确信号', sigTue.level === 'explicit', sigTue.level);
+  check('大字公告取到星期', vmTue.headline && vmTue.headline.big === '周二', vmTue.headline && vmTue.headline.big);
+  check(
+    '副行带日期与时段',
+    !!(vmTue.headline && /^\d+\.\d+ ·/.test(vmTue.headline.sub)),
+    vmTue.headline && vmTue.headline.sub
+  );
+  check(
+    '窗口时间戳直通（倒计时依赖它）',
+    typeof (vmTue.window && vmTue.window.fromTs) === 'number',
+    String(vmTue.window && vmTue.window.fromTs)
+  );
+
+  // 进度尺：档位决定颜色，边界值不能含糊
+  check('83% → hot', buildGauge({ pct: 0.83 }).cls === 'hot', buildGauge({ pct: 0.83 }).fill);
+  check('70% 边界 → hot', buildGauge({ pct: 0.7 }).cls === 'hot');
+  check('60% → warm', buildGauge({ pct: 0.6 }).cls === 'warm');
+  check('20% → cool', buildGauge({ pct: 0.2 }).cls === 'cool');
+  check('刻度文案带百分位', /83%/.test(buildGauge({ pct: 0.83 }).text), buildGauge({ pct: 0.83 }).text);
+  check('无数据 → null（模板 wx:if 兜住）', buildGauge(null) === null);
+  check(
+    'pct 越界被夹到 0–100',
+    buildGauge({ pct: 1.4 }).fill === '100.0' && buildGauge({ pct: -0.2 }).fill === '0.0',
+    `${buildGauge({ pct: 1.4 }).fill} / ${buildGauge({ pct: -0.2 }).fill}`
+  );
+}
+
 /* ------------------------------ 结果 ------------------------------ */
 
 console.log(`\n${'─'.repeat(52)}`);

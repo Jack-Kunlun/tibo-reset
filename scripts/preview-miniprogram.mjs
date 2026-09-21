@@ -23,8 +23,8 @@ import { fileURLToPath } from 'node:url';
 import { buildChartData } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
 import { detectSignals } from '../src/lib/signals.mjs';
-import { elapsed, reelGroups, fmtDateTime, fmtClock, verdict as makeVerdict } from '../miniprogram/utils/format.js';
-import { buildSignal, buildMetrics, buildForecast } from '../miniprogram/utils/view.js';
+import { countdown, countdownGroups, elapsed, reelGroups, fmtDateTime, fmtClock, verdict as makeVerdict } from '../miniprogram/utils/format.js';
+import { buildGauge, buildSignal, buildMetrics, buildForecast } from '../miniprogram/utils/view.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = async (p) => JSON.parse(await readFile(resolve(ROOT, p), 'utf8'));
@@ -40,14 +40,28 @@ const wxssToCss = (s) =>
 const [resets, tweets] = await Promise.all([read('data/resets.json'), read('data/tweets.json')]);
 const now = Date.now();
 
+// --demo-signal：注入一条合成推文，把「有预告」这条路径点亮。
+// 真实数据里可能长期没有预告，而信号横幅恰恰是全页视觉重量最大的地方 ——
+// 不点亮一次，改了样式也没人看得见，回归时更会忘了它还存不存在。
+const DEMO_SIGNAL = process.argv.includes('--demo-signal');
+const DEMO_TWEET = {
+  id: 'demo-signal',
+  text: 'We will reset all usage limits next Tuesday.',
+  created_at: new Date(now - 5 * 3600_000).toISOString(),
+  kind: 'other',
+  account: 'thsottiaux',
+};
+const tweetPool = DEMO_SIGNAL ? [DEMO_TWEET, ...tweets.tweets] : tweets.tweets;
+
 const chart = buildChartData(resets.records, now);
 const prediction = predictAll(resets.records, { now });
-const signals = detectSignals(tweets.tweets, { now, account: 'thsottiaux' });
+const signals = detectSignals(tweetPool, { now, account: 'thsottiaux' });
 
 const lastAt = new Date(chart.lastAt).getTime();
 const counter = reelGroups(elapsed(lastAt));
 const v = makeVerdict(chart.pct);
 const metrics = buildMetrics(chart);
+const gauge = buildGauge(chart);
 const sig = buildSignal(signals);
 const forecast = buildForecast(prediction);
 
@@ -74,19 +88,44 @@ const counterHtml = counter
   )
   .join('');
 
+const cdHtml = (groups) =>
+  groups
+    .map(
+      (g) => `<div class="cd-g"><span class="cd-v">${esc(g.v)}</span><span class="cd-u">${esc(g.unit)}</span></div>`
+    )
+    .join('');
+
 const signalHtml = sig.show
   ? `<div class="sig" data-level="${sig.level}">
+      <div class="sig-halo"></div>
       <div class="sig-head">
-        <span class="badge">${esc(sig.badge)}</span>
+        <span class="badge"><span class="bdot"></span>${esc(sig.badge)}</span>
         <span class="sig-title">${esc(sig.title)}</span>
-        ${sig.precision ? `<span class="prec">粒度：${esc(sig.precision)}</span>` : ''}
       </div>
+      ${
+        sig.headline
+          ? `<div class="ann">
+              <span class="ann-cap">预告时间</span>
+              <span class="ann-big">${esc(sig.headline.big)}</span>
+              <span class="ann-sub">${esc(sig.headline.sub)}</span>
+            </div>`
+          : ''
+      }
+      ${
+        sig.window && sig.window.fromTs
+          ? `<div class="cd">
+              <span class="cd-cap">距预告窗口开启</span>
+              <div class="cd-row">${cdHtml(countdownGroups(countdown(sig.window.fromTs, now)))}</div>
+            </div>`
+          : ''
+      }
       ${
         sig.window
           ? `<div class="win">
               <div class="wrow"><span class="k">Tibo 当地时间</span><span class="v">${esc(sig.window.sourceZone)}</span><span class="z">${esc(sig.window.srcOffset)}</span></div>
               <div class="wrow"><span class="k">北京时间</span><span class="v">${esc(sig.window.userZone)}</span><span class="z">${esc(sig.window.usrOffset)}</span></div>
               <div class="wfoot">${esc(sig.window.diffText)}${sig.window.crosses ? ' · 换算到北京时间后会跨自然日' : ''}</div>
+              ${sig.precision ? `<span class="wprec">粒度：${esc(sig.precision)}</span>` : ''}
             </div>`
           : ''
       }
@@ -198,6 +237,14 @@ ${normalize}
     <div class="verdict v-${v.cls}"><span class="b">${esc(v.text)}</span><span class="sep"> · </span><span>${esc(
       v.tail
     )}</span></div>
+    ${
+      gauge
+        ? `<div class="gauge g-${gauge.cls}">
+            <div class="g-track"><div class="g-fill" style="width:${gauge.fill}%"></div></div>
+            <div class="g-text">${esc(gauge.text)}</div>
+          </div>`
+        : ''
+    }
   </div>
 
   <div class="metrics">${metricsHtml}</div>

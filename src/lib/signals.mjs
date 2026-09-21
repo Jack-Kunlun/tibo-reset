@@ -359,6 +359,13 @@ function describeWindow(w, sourceZone, userZone) {
   const sameSourceDay = sf.year === st.year && sf.month === st.month && sf.day === st.day;
 
   return {
+    // 时间戳以**数字**形式再带一份：window.from 是 ISO 字符串，而小程序端
+    // 解析 ISO 在个别机型上有兼容差异（format.js 顶部刻意绕开 Intl 也是同一考虑）。
+    // 倒计时每秒都在跑，这里不给它留解析歧义的余地。
+    fromTs: w.from,
+    toTs: w.to,
+    // 起始日的结构化日期（北京时间视角），供大字公告直接拼装
+    userFrom: { y: f.year, m: f.month, d: f.day, hh: f.hour, mm: f.minute, weekdayCN: f.weekdayCN },
     sourceZone: sameSourceDay
       ? `${sf.year}.${sf.month}.${sf.day}（${sf.weekdayCN}）${sf.hour}:${sf.minute} – ${st.hour}:${st.minute}`
       : `${sf.year}.${sf.month}.${sf.day}（${sf.weekdayCN}）${sf.hour}:${sf.minute} → ${st.year}.${st.month}.${st.day}（${st.weekdayCN}）${st.hour}:${st.minute}`,

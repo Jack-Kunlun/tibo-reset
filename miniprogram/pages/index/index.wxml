@@ -18,11 +18,30 @@
   <view wx:if="{{notice}}" class="notice">{{notice}}</view>
 
   <!-- ============ 信号 ============ -->
+  <!-- 有预告时这块是全页视觉重量最大的地方：星期用最大字号，秒级倒计时压在下面。
+       只有「情绪」没有时间的推文进不到这里（规则见 utils/view.js 的 buildSignal）。 -->
   <view wx:if="{{signal.show}}" class="sig" data-level="{{signal.level}}">
+    <view class="sig-halo"></view>
+
     <view class="sig-head">
-      <text class="badge">{{signal.badge}}</text>
+      <text class="badge"><text class="bdot"></text>{{signal.badge}}</text>
       <text class="sig-title">{{signal.title}}</text>
-      <text wx:if="{{signal.precision}}" class="prec">粒度：{{signal.precision}}</text>
+    </view>
+
+    <view wx:if="{{signal.headline}}" class="ann">
+      <text class="ann-cap">预告时间</text>
+      <text class="ann-big">{{signal.headline.big}}</text>
+      <text class="ann-sub">{{signal.headline.sub}}</text>
+    </view>
+
+    <view wx:if="{{signal.cd}}" class="cd {{signal.cd.over ? 'is-over' : ''}}">
+      <text class="cd-cap">{{signal.cd.label}}</text>
+      <view class="cd-row">
+        <view class="cd-g" wx:for="{{signal.cd.groups}}" wx:key="unit">
+          <text class="cd-v">{{item.v}}</text>
+          <text class="cd-u">{{item.unit}}</text>
+        </view>
+      </view>
     </view>
 
     <view wx:if="{{signal.window}}" class="win">
@@ -39,6 +58,7 @@
       <view class="wfoot">
         {{signal.window.diffText}}{{signal.window.crosses ? ' · 换算到北京时间后会跨自然日' : ''}}
       </view>
+      <text wx:if="{{signal.precision}}" class="wprec">粒度：{{signal.precision}}</text>
     </view>
 
     <view class="quote">{{signal.text}}</view>
@@ -79,6 +99,12 @@
       <text class="b">{{verdict.text}}</text>
       <text class="sep"> · </text>
       <text>{{verdict.tail}}</text>
+    </view>
+
+    <!-- 等待进度尺：同一件事的视觉版本 —— 扫一眼就知道「等了多久」 -->
+    <view wx:if="{{gauge}}" class="gauge g-{{gauge.cls}}">
+      <view class="g-track"><view class="g-fill" style="width:{{gauge.fill}}%"></view></view>
+      <view class="g-text">{{gauge.text}}</view>
     </view>
   </view>
 

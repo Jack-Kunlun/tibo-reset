@@ -9,10 +9,10 @@
 
 import config from '../../config.js';
 import { loadState } from '../../utils/api.js';
-import { buildSignal, buildMetrics, buildForecast } from '../../utils/view.js';
+import { buildGauge, buildSignal, buildMetrics, buildForecast } from '../../utils/view.js';
 import { survivalScene, stripScene } from '../../utils/scene.js';
 import { drawScene, setupCanvas } from '../../utils/draw.js';
-import { elapsed, reelGroups, verdict as makeVerdict, fmtDateTime, fmtClock } from '../../utils/format.js';
+import { countdown, countdownGroups, elapsed, reelGroups, verdict as makeVerdict, fmtDateTime, fmtClock } from '../../utils/format.js';
 import {
   ACTION_LABEL,
   DONE_LABEL,
@@ -107,11 +107,14 @@ Page({
 
     this.chart = chart;
     this.lastAt = lastAt;
+    // 换了一批数据，倒计时的去重键必须作废 —— 否则新窗口的第一秒不会渲染
+    this._cdKey = null;
 
     this.setData(
       {
         metrics: buildMetrics(chart),
         signal: buildSignal(state.signals),
+        gauge: buildGauge(chart),
         forecast: buildForecast(state.prediction),
         survivalN: chart ? chart.gapDays.length : 0,
         genText: fmtDateTime(genTs),
@@ -150,14 +153,45 @@ Page({
   },
 
   tick() {
-    if (!this.lastAt) return;
-    const groups = reelGroups(elapsed(this.lastAt));
-    // 只在数字真的变了才 setData：秒位每秒都变，但天/时/分不动时
-    // 把它们一起重发会让 4 组卷轴全部重排，白白掉帧
-    const sig = groups.map((g) => g.digits.join('')).join('|');
-    if (sig === this._sig) return;
-    this._sig = sig;
-    this.setData({ counter: groups });
+    const now = Date.now();
+    const patch = {};
+
+    if (this.lastAt) {
+      const groups = reelGroups(elapsed(this.lastAt, now));
+      // 只在数字真的变了才 setData：秒位每秒都变，但天/时/分不动时
+      // 把它们一起重发会让 4 组卷轴全部重排，白白掉帧
+      const sig = groups.map((g) => g.digits.join('')).join('|');
+      if (sig !== this._sig) {
+        this._sig = sig;
+        patch.counter = groups;
+      }
+    }
+
+    const cd = this.tickCountdown(now);
+    if (cd) patch['signal.cd'] = cd;
+
+    if (Object.keys(patch).length) this.setData(patch);
+  },
+
+  /**
+   * 预告窗口的倒计时，与主计数共用同一次 tick —— 不额外开定时器。
+   * 同样只在「秒」真的变了才 setData，避免整块横幅跟着重排。
+   */
+  tickCountdown(now) {
+    const s = this.data.signal;
+    const fromTs = s && s.window && s.window.fromTs;
+    if (!fromTs) return null;
+
+    const cd = countdown(fromTs, now);
+    const key = cd.over ? 'over' : `${cd.d}:${cd.h}:${cd.m}:${cd.s}`;
+    if (key === this._cdKey) return null;
+    this._cdKey = key;
+
+    return {
+      over: cd.over,
+      groups: countdownGroups(cd),
+      label: cd.over ? '预告窗口已开启' : '距预告窗口开启',
+    };
   },
 
   /* ------------------------------ 图表 ------------------------------ */

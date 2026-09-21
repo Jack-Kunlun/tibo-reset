@@ -20,6 +20,30 @@ const PRECISION_TEXT = {
 /* ------------------------------ 信号 ------------------------------ */
 
 /**
+ * 预告窗口的「大字公告」。
+ *
+ * 星期是最大的字 —— 人从「Tibo 说下周二重置」里最先抓住的就是「周二」，
+ * 日期与时段退到副行。把一整串「2026.09.23（周三）08:00 → 09.24 14:59」
+ * 原样铺在最显眼的位置，等于把数据当排版用。
+ */
+function headlineOf(top, w) {
+  const uf = w && w.userFrom;
+  if (!uf) return null;
+
+  const md = `${Number(uf.m)}.${Number(uf.d)}`;
+  const hhmm = `${String(uf.hh).padStart(2, '0')}:${String(uf.mm).padStart(2, '0')}`;
+  const p = top.precision || '';
+  const pText = PRECISION_TEXT[p] || '';
+
+  if (p === 'week' || p === 'week-part') {
+    return { big: '本周', sub: `${md} 起 · ${pText}` };
+  }
+
+  const tail = p === 'evening' ? '当晚' : p === 'instant' ? `${hhmm} 前后` : '全天';
+  return { big: uf.weekdayCN || md, sub: `${md} · ${tail}` };
+}
+
+/**
  * 信号横幅视图模型。
  *
  * 规范：**只有拿到了「时间窗口」才进醒目态**。
@@ -48,6 +72,8 @@ export function buildSignal(sig) {
     badge: meta.badge,
     title: meta.title,
     precision: PRECISION_TEXT[top.precision] || top.precision || '',
+    // 大字公告：星期 + 日期/时段，见 headlineOf
+    headline: headlineOf(top, w),
     window: w
       ? {
           sourceZone: w.sourceZone,
@@ -56,6 +82,9 @@ export function buildSignal(sig) {
           usrOffset: (w.zones && w.zones.a && w.zones.a.offset) || '',
           diffText: (w.zones && w.zones.diffText) || '',
           crosses: !!w.crossesUserDay,
+          // 数字时间戳直通，供页面做每秒倒计时（不做字符串反解析）
+          fromTs: w.fromTs ?? null,
+          toTs: w.toTs ?? null,
         }
       : null,
     text: top.text || '',
@@ -81,6 +110,25 @@ export function buildMetrics(chart) {
     { k: '普通重置', v: String(chart.count - chart.creditCount), note: '额度直给' },
     { k: '发券型', v: String(chart.creditCount), note: '改成给券' },
   ];
+}
+
+/* ------------------------------ 等待进度尺 ------------------------------ */
+
+/**
+ * 把「当前等待在历史中处于什么位置」画成一条进度尺。
+ *
+ * 这个信息 verdict 已经用文字说过一遍了。但文字是抽象的 ——
+ * 一条快填满的尺子不用读，扫一眼就知道「已经等很久了」。
+ * 颜色跟着档位走：常规竹青、偏长岚青、明显偏久朱砂。
+ */
+export function buildGauge(chart) {
+  if (!chart) return null;
+  const p = Math.max(0, Math.min(1, chart.pct));
+  return {
+    fill: (p * 100).toFixed(1),
+    cls: p >= 0.7 ? 'hot' : p >= 0.5 ? 'warm' : 'cool',
+    text: `已超过历史上 ${Math.round(p * 100)}% 的重置间隔`,
+  };
 }
 
 /* ------------------------------ 预测 ------------------------------ */
