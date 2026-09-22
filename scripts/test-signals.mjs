@@ -51,10 +51,28 @@ console.log('\n【1】明确信号：必须识别出等级、窗口，并给出�
     r.window?.from === '2026-09-22T07:00:00.000Z',
     `实际 ${r.window?.from}`
   );
+  // D-019：窗口文案按**粒度**定形，具体时刻优先，区间只在时间本来就含糊时出现。
+  // 这一条是「只说到天」的情形 —— 当地写「全天」，北京只给**开启那一刻**，
+  // 跨自然日这个事实退到 rangeNote 里说一句。
+  //
+  // 旧版是「当地 00:00 – 23:59 / 北京 15:00 → 次日 14:59」：把天粒度硬展开成钟点
+  // 区间（读起来像他定在午夜），又把北京那行的具体时刻夹在跨日箭头里。
   check(
-    '换算到北京时间跨自然日（9/22 15:00 → 9/23 14:59）',
-    r.window?.crossesUserDay === true && r.window.userZone.includes('15:00') && r.window.userZone.includes('14:59'),
-    `实际 ${r.window?.userZone}`
+    '「只说到天」：当地写「全天」，不展开成钟点区间',
+    r.window?.sourceZone === '2026.09.22（周二） 全天',
+    `实际 ${r.window?.sourceZone}`
+  );
+  check(
+    '「只说到天」：北京只给开启那一刻（含倒计时锚点 openText）',
+    r.window?.userZone === '2026.09.22（周二）15:00 起' &&
+      r.window?.openText === '2026.09.22（周二）15:00',
+    `实际 ${r.window?.userZone} / ${r.window?.openText}`
+  );
+  check(
+    '跨自然日退到 rangeNote，不再占主位',
+    r.window?.rangeNote === '窗口到北京 2026.09.23（周三）14:59 为止' &&
+      r.window?.crossesUserDay === true,
+    `实际 ${r.window?.rangeNote} / crosses=${r.window?.crossesUserDay}`
   );
   check(
     '时区说明含 15 小时时差',
@@ -62,6 +80,39 @@ console.log('\n【1】明确信号：必须识别出等级、窗口，并给出�
     `实际 ${r.window?.zones?.diffText}`
   );
   check('给出原推链接', (r.url ?? '').endsWith('/status/1'), `实际 ${r.url}`);
+}
+
+{
+  // 真到了钟点 → 两边各给**一个时刻**，不摆区间（D-019）。
+  const r = run("We'll reset everyone's usage limits at 3am on Tuesday.", '2026-09-17T17:57:59.000Z');
+  check(
+    '「星期 + 钟点」以钟点为准 → 精度 instant',
+    r.level === 'explicit' && r.precision === 'instant',
+    `实际 ${r.level} / ${r.precision}`
+  );
+  check(
+    '有时刻：当地 03:00、北京 18:00，各一个时刻',
+    r.window?.sourceZone === '2026.09.22（周二）03:00' &&
+      r.window?.userZone === '2026.09.22（周二）18:00',
+    `实际 ${r.window?.sourceZone} / ${r.window?.userZone}`
+  );
+  check(
+    '有时刻时没有 rangeNote —— 区间说明只服务于「收敛过」的窗口',
+    !r.window?.rangeNote,
+    `实际 ${r.window?.rangeNote}`
+  );
+}
+
+{
+  // 整周与「只说到天」相反：时间**本来就含糊**，这时候区间才是诚实的表达。
+  // 一刀切成单点会让页面报出一个他不认得的时刻。
+  const r = run('banked credits for everyone next week', '2026-09-17T17:57:59.000Z');
+  check(
+    '整周仍用区间（含糊粒度不假装精确）',
+    typeof r.window?.sourceZone === 'string' &&
+      (r.window.sourceZone.includes('–') || r.window.sourceZone.includes('→')),
+    `实际 ${r.window?.sourceZone}`
+  );
 }
 
 {

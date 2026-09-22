@@ -36,6 +36,9 @@
 
     <view wx:if="{{signal.cd}}" class="cd {{signal.cd.over ? 'is-over' : ''}}">
       <text class="cd-cap">{{signal.cd.label}}</text>
+      <!-- 倒计时的**锚点**必须挨着数字：只给一个跳动的数、不说它数到哪一刻，
+           用户没法核对 —— 这正是「你这时间也不对啊」那条反馈的来源。 -->
+      <text wx:if="{{signal.window.openText}}" class="cd-anchor">北京时间 {{signal.window.openText}}</text>
       <view class="cd-row">
         <view class="cd-g" wx:for="{{signal.cd.groups}}" wx:key="unit">
           <text class="cd-v">{{item.v}}</text>
@@ -56,7 +59,7 @@
         <text class="z">{{signal.window.usrOffset}}</text>
       </view>
       <view class="wfoot">
-        {{signal.window.diffText}}{{signal.window.crosses ? ' · 换算到北京时间后会跨自然日' : ''}}
+        {{signal.window.diffText}}{{signal.window.rangeNote ? ' · ' + signal.window.rangeNote : ''}}
       </view>
       <text wx:if="{{signal.precision}}" class="wprec">粒度：{{signal.precision}}</text>
     </view>

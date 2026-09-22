@@ -167,13 +167,16 @@ export function renderSignal(sig) {
   //      不是用户能拿走的信息；现在那几条推文直接作为这条预告的证据列出来，
   //      归属关系一眼可见（见 decisions.md 的 D-018）。
   const forecasts = sig.forecasts ?? [];
-  for (const f of forecasts) blocks.push(forecastBlock(f, sig));
+  // 倒数的初始数字要在**构建时**就算准。generatedAt 就是 detectSignals 的 now，
+  // 与页面其它数字出自同一次计算，不会出现「页面上的秒数与实际差半分钟」。
+  const now = Date.parse(sig.generatedAt ?? '') || Date.now();
+  for (const f of forecasts) blocks.push(forecastBlock(f, sig, now));
 
   // ② 线索：只在没有预告时才兜底。
   //    线索是「有时间没意图」或「有意图没时间」的弱依据，跟硬信号并列会稀释前者。
   if (!forecasts.length) {
     const h = (sig.hints ?? []).find((s) => s.window) ?? null;
-    if (h) blocks.push(hintBlock(h, sig));
+    if (h) blocks.push(hintBlock(h, sig, now));
   }
 
   if (!blocks.length) {
@@ -202,11 +205,17 @@ export function renderSignal(sig) {
  *
  * 两个时区都必须给 —— 推文的时间语境在人家那边，看的人在这边。
  * 跨夏令时时差会变，所以偏移量（UTC-7 / UTC+8）也标出来。
+ *
+ * 行里的值由 signals.mjs 的 describeWindow 按粒度决定（具体时刻优先，
+ * 区间只在整周那种含糊粒度下出现）。这里**不再自己拼时间字符串** ——
+ * 曾经两处各拼一份，于是「当地 00:00 – 23:59」和「北京 15:00 → 次日 14:59」
+ * 这两种凭空长出来的精度同时上了页面。
  */
 function windowBlock(w) {
   if (!w) return '';
   const src = w.zones?.b;
   const usr = w.zones?.a;
+  const foot = [w.zones?.diffText ?? '', w.rangeNote ?? ''].filter(Boolean).join(' · ');
   return `<div class="sig-win">
         <div class="sw">
           <span class="sw-k">Tibo 当地时间</span>
@@ -218,10 +227,44 @@ function windowBlock(w) {
           <span class="sw-v">${esc(w.userZone)}</span>
           <span class="sw-z">${esc(usr?.offset ?? '')}</span>
         </div>
-        <div class="sw-foot">
-          ${esc(w.zones?.diffText ?? '')}${w.crossesUserDay ? ' · 换算到北京时间后会跨自然日' : ''}
-        </div>
+        <div class="sw-foot">${esc(foot)}</div>
       </div>`;
+}
+
+/**
+ * 「距窗口开启」倒数 —— 挂在窗口块上方。
+ *
+ * ── 为什么要它 ──────────────────────────────────────────────────────
+ * 老大原话：「距离窗口开启时间倒数应该也动起来，另外你这时间也不对啊，
+ * 应该是距离北京时间的倒数。」两件事都在这一个块里解决：
+ *   ① 网页端此前**根本没有**这个倒数（只有小程序有），页首那个跳动的数字是
+ *      「距上一次重置」——往回看的。往前看的那个反而不会动。
+ *   ② 只给一个跳动的数字、不写它数到哪一刻，读的人没法核对。所以标签里
+ *      直接挂上**北京时间的锚点**（`w.openText`）：数字和时刻在同一行，
+ *      对不上就是我对不上。
+ *
+ * 复用页首那套卷轴（`group()` / `.grp` / `.reel`）：同一种数字只该有一种动法。
+ * 初始位置在构建时就写死，脚本被禁用时数字依然正确，只是不再滚动。
+ */
+function windowCountdown(w, now) {
+  if (!w || !Number.isFinite(w.fromTs)) return '';
+  const left = Math.max(0, w.fromTs - now);
+  const d = Math.floor(left / DAY);
+  const h = Math.floor((left % DAY) / 3_600_000);
+  const mi = Math.floor((left % 3_600_000) / 60_000);
+  const s = Math.floor((left % 60_000) / 1000);
+  const over = left <= 0;
+  return `
+    <div class="sig-cd" data-from="${w.fromTs}" data-over="${over ? 1 : 0}">
+      <span class="cd-cap">距窗口开启</span>
+      <span class="cd-anchor">北京时间 ${esc(w.openText ?? '')}</span>
+      <span class="cd-row">${group('d', String(d), '天')}${group('h', pad(h), '时')}${group(
+        'm',
+        pad(mi),
+        '分'
+      )}${group('s', pad(s), '秒')}</span>
+      <span class="cd-over">窗口已开启 · 随时可能重置</span>
+    </div>`;
 }
 
 /**
@@ -243,7 +286,7 @@ function windowBlock(w) {
  * 把这件事写明，用户才能区分「系统没看见」和「看见了但没采信」——
  * 前者是缺陷，后者是判断，两者的可信度完全不同。
  */
-function forecastBlock(f, sig) {
+function forecastBlock(f, sig, now) {
   const t = LEVEL_TEXT[f.level] ?? LEVEL_TEXT.explicit;
   const ev = f.evidence ?? [];
   const c = f.counts ?? { hard: 0, soft: 0 };
@@ -280,6 +323,7 @@ function forecastBlock(f, sig) {
       <span class="sig-title">${t.title}</span>
       ${f.precision ? `<span class="sig-precision">粒度：${esc(PRECISION_TEXT[f.precision] ?? f.precision)}</span>` : ''}
     </div>
+    ${windowCountdown(f.window, now)}
     ${windowBlock(f.window)}
     ${evBlock}
     ${meta.length ? `<div class="sig-meta">${meta.join('')}</div>` : ''}
@@ -322,7 +366,7 @@ function evidenceItem(e) {
  * 所以形态退化成「一条推文 + 它的窗口」。窗口样式与预告块共用，
  * 但 badge 与配色走 hint 档，不会跟硬信号混淆。
  */
-function hintBlock(top, sig) {
+function hintBlock(top, sig, now) {
   const t = LEVEL_TEXT[top.level] ?? LEVEL_TEXT.hint;
   const cz = top.createdZones ?? {};
 

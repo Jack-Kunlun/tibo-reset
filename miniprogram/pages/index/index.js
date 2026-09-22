@@ -190,7 +190,9 @@ Page({
     return {
       over: cd.over,
       groups: countdownGroups(cd),
-      label: cd.over ? '预告窗口已开启' : '距预告窗口开启',
+      // 窗口开了就不再报读数，只报状态 —— 与网页端 .sig-cd[data-over="1"] 同一口径。
+      // 文案也跟网页端对齐（此前写「距预告窗口开启」，两端不一致）。
+      label: cd.over ? '窗口已开启 · 随时可能重置' : '距窗口开启',
     };
   },
 

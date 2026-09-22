@@ -114,7 +114,8 @@ const signalHtml = sig.show
       ${
         sig.window && sig.window.fromTs
           ? `<div class="cd">
-              <span class="cd-cap">距预告窗口开启</span>
+              <span class="cd-cap">距窗口开启</span>
+              ${sig.window.openText ? `<span class="cd-anchor">北京时间 ${esc(sig.window.openText)}</span>` : ''}
               <div class="cd-row">${cdHtml(countdownGroups(countdown(sig.window.fromTs, now)))}</div>
             </div>`
           : ''
@@ -124,7 +125,7 @@ const signalHtml = sig.show
           ? `<div class="win">
               <div class="wrow"><span class="k">Tibo 当地时间</span><span class="v">${esc(sig.window.sourceZone)}</span><span class="z">${esc(sig.window.srcOffset)}</span></div>
               <div class="wrow"><span class="k">北京时间</span><span class="v">${esc(sig.window.userZone)}</span><span class="z">${esc(sig.window.usrOffset)}</span></div>
-              <div class="wfoot">${esc(sig.window.diffText)}${sig.window.crosses ? ' · 换算到北京时间后会跨自然日' : ''}</div>
+              <div class="wfoot">${esc(sig.window.diffText)}${sig.window.rangeNote ? ` · ${esc(sig.window.rangeNote)}` : ''}</div>
               ${sig.precision ? `<span class="wprec">粒度：${esc(sig.precision)}</span>` : ''}
             </div>`
           : ''

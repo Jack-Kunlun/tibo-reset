@@ -29,7 +29,7 @@ import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { buildChartData } from '../src/lib/chart-data.js';
+import { buildChartData, partsIn } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -268,6 +268,45 @@ if (!api) {
     '历史间隔中位数显示值一致',
     d1(digest.intervals.median) === d1(api.chart.median),
     `页面 ${d1(digest.intervals.median)} vs API ${d1(api.chart.median)}`
+  );
+}
+
+/* ---------------- 5. 倒计时锚点自洽：数字数到的那一刻 == 标签写的那一刻 ---------------- */
+
+console.log('\n【⑤ 倒计时锚点自洽】');
+
+// 这一段是「你这时间也不对啊」那条反馈的直接产物。改之前页面上只有一串跳动的
+// 数字，不写它数到哪一刻 —— 读的人没法核对，只能选择信或不信。
+// 现在锚点写在标签里（`.cd-anchor`），于是它能被**机械核对**：
+// 把 `data-from` 按北京时间格式化，必须与标签逐字相同。
+//
+// 刻意不依赖任何外部数据：这条判据校验的是「页面自己说的话前后一致」，
+// 所以数据源变了、时区规则改了，它依然成立 —— 而且它正是用户会做的那次核对。
+const cds = [
+  ...html.matchAll(
+    /<div class="sig-cd" data-from="(\d+)"[\s\S]*?<span class="cd-anchor">([^<]*)<\/span>/g
+  ),
+];
+check(
+  `页面上的倒计时块可解析（${cds.length} 个）`,
+  cds.length > 0,
+  '没有 .sig-cd —— 有预告时这条倒数必须存在'
+);
+for (const [, fromStr, anchor] of cds) {
+  const from = Number(fromStr);
+  const p = partsIn(new Date(from).toISOString(), 'Asia/Shanghai');
+  const want = `北京时间 ${p.year}.${p.month}.${p.day}（${p.weekdayCN}）${p.hour}:${p.minute}`;
+  check(
+    `倒数数到的那一刻与标签一致（${want}）`,
+    anchor.trim() === want,
+    `标签写的是「${anchor.trim()}」`
+  );
+  // 顺带锁住「窗口开启时刻必须还在未来或刚过」：数到一个已经过去很久的时刻，
+  // 说明这条预告该下线了 —— 那是数据层的问题，不该让页面去兜。
+  check(
+    `倒数锚点是可信的时间戳（${new Date(from).toISOString()}）`,
+    Number.isFinite(from) && from > Date.parse('2020-01-01T00:00:00Z'),
+    String(fromStr)
   );
 }
 

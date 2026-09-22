@@ -516,6 +516,29 @@ function weekdayCNof(dayNum) {
 
 const fmt = (isoStr, zone) => partsIn(isoStr, zone);
 
+/**
+ * 窗口的文案表述。
+ *
+ * ── 一条规矩：**具体时刻优先，区间只在时间本来就含糊时出现** ──────────
+ * 老大原话：「tibo 当地时间为什么还不是具体的时间，北京时间也只需填具体时间，
+ * 只有时间不明确的时候才是时间段。」
+ *
+ * 改之前的两行是这么写的（实测 2026-09-22 那一次）：
+ *   Tibo 当地时间   2026.09.22（周二）00:00 – 23:59
+ *   北京时间       2026.09.22（周二）15:00 → 2026.09.23（周三）14:59
+ *
+ * 两行都不对，而且是两种不同的不对：
+ *   ① 「00:00 – 23:59」把「周二」这个**天粒度**硬展开成钟点区间，读起来像
+ *      「他定在当地午夜重置」—— 可他一个钟点都没说过。**这是凭空长出来的精度。**
+ *   ② 北京那行的 `15:00 → 次日 14:59` 是把 ① 又换算了一遍，于是页面上唯一的
+ *      「具体时间」被夹在一个跨自然日的箭头里，看不出哪一刻是**窗口开启**。
+ *
+ * 现在按粒度分三种走：
+ *   - `instant`（真说了钟点）→ 两边各给**一个时刻**；
+ *   - 当地一整天（`day` 粒度）→ 当地写「哪天 + 全天」，北京只给**开启那一刻**，
+ *     区间降级成 `rangeNote` 里的一句说明；
+ *   - 整周 / 一周内的某几天 → 时间**本来就含糊**，区间才是诚实的表达，照给区间。
+ */
 function describeWindow(w, sourceZone, userZone) {
   const f = fmt(new Date(w.from).toISOString(), userZone);
   const t2 = fmt(new Date(w.to).toISOString(), userZone);
@@ -525,6 +548,40 @@ function describeWindow(w, sourceZone, userZone) {
   const sameUserDay = f.year === t2.year && f.month === t2.month && f.day === t2.day;
   const sameSourceDay = sf.year === st.year && sf.month === st.month && sf.day === st.day;
 
+  const datetime = (p) => `${p.year}.${p.month}.${p.day}（${p.weekdayCN}）${p.hour}:${p.minute}`;
+  const dayOnly = (p) => `${p.year}.${p.month}.${p.day}（${p.weekdayCN}）`;
+
+  // 「当地一整天」：起止落在同一天、起 00:00 止 23:59。只有 day 粒度会长这样，
+  // 所以它等价于「他说了是哪一天，但没说钟点」。
+  const wholeLocalDay =
+    sameSourceDay && sf.hour === '00' && sf.minute === '00' && st.hour === '23' && st.minute === '59';
+  const instant = w.precision === 'instant';
+
+  let sourceText;
+  let userText;
+  let rangeNote = '';
+
+  if (instant) {
+    sourceText = datetime(sf);
+    userText = datetime(f);
+  } else if (wholeLocalDay) {
+    // 「全天」前留一个空格：窄屏的窗口值独占一行、宽度刚好卡在临界点上，
+    // 不留这个空格浏览器会在「全 / 天」之间断行（实测小程序端 15px 字号）。
+    // 断在词中间比多一个空格难看得多。
+    sourceText = `${dayOnly(sf)} 全天`;
+    // 「起」不能省：省掉之后「09.22 15:00」会被读成「他定在 15:00 重置」，
+    // 而 15:00 只是这个当地日的左端点。差别就是一句话的真假。
+    userText = `${datetime(f)} 起`;
+    rangeNote = `窗口到北京 ${datetime(t2)} 为止`;
+  } else {
+    sourceText = sameSourceDay
+      ? `${dayOnly(sf)}${sf.hour}:${sf.minute} – ${st.hour}:${st.minute}`
+      : `${datetime(sf)} → ${datetime(st)}`;
+    userText = sameUserDay
+      ? `${dayOnly(f)}${f.hour}:${f.minute} – ${t2.hour}:${t2.minute}`
+      : `${datetime(f)} → ${datetime(t2)}`;
+  }
+
   return {
     // 时间戳以**数字**形式再带一份：window.from 是 ISO 字符串，而小程序端
     // 解析 ISO 在个别机型上有兼容差异（format.js 顶部刻意绕开 Intl 也是同一考虑）。
@@ -533,13 +590,15 @@ function describeWindow(w, sourceZone, userZone) {
     toTs: w.to,
     // 起始日的结构化日期（北京时间视角），供大字公告直接拼装
     userFrom: { y: f.year, m: f.month, d: f.day, hh: f.hour, mm: f.minute, weekdayCN: f.weekdayCN },
-    sourceZone: sameSourceDay
-      ? `${sf.year}.${sf.month}.${sf.day}（${sf.weekdayCN}）${sf.hour}:${sf.minute} – ${st.hour}:${st.minute}`
-      : `${sf.year}.${sf.month}.${sf.day}（${sf.weekdayCN}）${sf.hour}:${sf.minute} → ${st.year}.${st.month}.${st.day}（${st.weekdayCN}）${st.hour}:${st.minute}`,
-    userZone: sameUserDay
-      ? `${f.year}.${f.month}.${f.day}（${f.weekdayCN}）${f.hour}:${f.minute} – ${t2.hour}:${t2.minute}`
-      : `${f.year}.${f.month}.${f.day}（${f.weekdayCN}）${f.hour}:${f.minute} → ${t2.year}.${t2.month}.${t2.day}（${t2.weekdayCN}）${t2.hour}:${t2.minute}`,
-    // 跨日提醒：源头是「某天全天」，但换算到北京时间往往会跨两个自然日
+    sourceZone: sourceText,
+    userZone: userText,
+    // 窗口开启那一刻（北京时间视角，单点）。倒计时的锚点要写在标签里 ——
+    // 页面上只给一个跳动的数字、不说它数到哪一刻，读的人没法核对，
+    // 这正是「你这时间也不对啊」那一条反馈的来源。
+    openText: datetime(f),
+    // 区间说明。只在对窗口做了「收敛成单点」的粒度下才有内容，
+    // 让读者知道还有一段范围，但不把它摆在主位上。
+    rangeNote,
     crossesUserDay: !sameUserDay,
     zones: dualZone(new Date(w.from).toISOString(), userZone, sourceZone, '北京时间', 'Tibo 当地时间'),
   };

@@ -325,6 +325,16 @@
   font-size: 21rpx;
   color: #8C8880;
   letter-spacing: 0.1em;
+  margin-bottom: 4rpx;
+}
+
+/* 倒计时的锚点（北京时间的开启时刻）。挨着数字显示是刻意的 ——
+   只给一个跳动的数、不说它数到哪一刻，用户没法核对。 */
+.cd-anchor {
+  display: block;
+  font-size: 22rpx;
+  color: #4A4842;
+  font-variant-numeric: tabular-nums;
   margin-bottom: 10rpx;
 }
 
@@ -354,8 +364,14 @@
   color: #8C8880;
 }
 
-/* 窗口已开启：整组转竹青，与「还在等」区分开 */
-.cd.is-over .cd-v {
+/* 窗口已开启：把一屏 0 收掉，只留一句「已开启」并整体转竹青。
+   继续摆着 0天00时00分00秒 是没信息量的读数 —— 而「已开启」本身有信息量：
+   重置随时可能落地。与网页端 .sig-cd[data-over="1"] 同一口径。 */
+.cd.is-over .cd-row {
+  display: none;
+}
+
+.cd.is-over .cd-cap {
   color: #5F8455;
 }
 
@@ -394,6 +410,11 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   flex: 1;
+  /* 「2026.09.22（周二） 全天」这一串在窄屏刚好卡在临界宽度上。默认规则允许
+     在**汉字之间**断行，于是会断成「…（周二） 全 / 天」—— 断在词中间比换行难看得多。
+     keep-all 把断点限制到空格处（值里本来就有空格），break-word 兜底防止溢出。 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .wrow .z {

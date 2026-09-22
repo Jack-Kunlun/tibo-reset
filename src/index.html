@@ -71,12 +71,13 @@
   .cwarn-l li{margin:2px 0}
 
   /* ---------- 信号横幅 ---------- */
-  /* 尺寸整体收过一轮：这不是审美问题，是首屏问题 —— 预告卡每高 1px，
-     下面的倒计时就往下 1px。实测（含 4 条依据推文）1280×720 视口下
-     倒计时底部原本落在 768px，被切掉一截；压掉 ~70px 后完整进第一屏。
-     详细数字见 decisions.md 的 D-018。 */
+  /* 尺寸整体收过两轮：这不是审美问题，是首屏问题 —— 预告卡每高 1px，
+     下面的倒计时就往下 1px。第一轮（D-018）为放下 4 条依据推文收了 ~70px；
+     第二轮（D-019）为放下「距窗口开启」这条倒数条又收了 21px。实测 1280×720
+     视口下倒计时底部从 712px 回到 691px，重新拿到 29px 余量。
+     两轮的详细数字都记在 decisions.md 里。 */
   .sig{
-    margin-top:18px;padding:18px 20px;border-radius:14px;
+    margin-top:12px;padding:14px 20px;border-radius:14px;
     border:1px solid rgba(179,86,60,.34);border-left:4px solid var(--cinnabar);
     background:linear-gradient(180deg,rgba(179,86,60,.075),rgba(179,86,60,.02));
   }
@@ -86,14 +87,36 @@
   }
   /* 多条预告并排时给彼此留出间距 */
   .sig + .sig{margin-top:16px}
-  .sig-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .sig-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}
   .sig-badge{font-size:11.5px;letter-spacing:.1em;padding:3px 11px;border-radius:99px;
     background:var(--cinnabar);color:#fff}
   .sig[data-level="hint"] .sig-badge{background:var(--lan)}
   .sig-title{font-size:16px;font-weight:650}
   .sig-precision{font-size:12px;color:var(--mist);margin-left:auto}
+  /* ---------- 距窗口开启 ---------- */
+  /* 挂在窗口块上方。注意页首那个跳动的数字是「距上一次重置」——**往回看**的；
+     往前看的这个此前只在小程序里有，网页端根本没有（见 decisions.md 的 D-019）。
+     标签里挂**北京时间的锚点**：只给一个跳动的数字、不写它数到哪一刻，
+     读的人没法核对，那正是「你这时间也不对啊」的来源。
+     卷轴样式直接复用页首那套（.grp / .reel / .reels 都是全局类），
+     同一种数字只该有一种动法。 */
+  .sig-cd{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+    margin:0 0 8px;padding:8px 14px;border-radius:10px;
+    background:var(--card);border:1px solid var(--line)}
+  .cd-cap{font-size:11.5px;letter-spacing:.1em;color:var(--mist);flex:0 0 auto}
+  .cd-anchor{font-family:var(--mono);font-size:11.5px;color:var(--ink2);flex:0 0 auto}
+  /* 数字排在最后一行、靠右 —— 与页首的大倒计时拉开主次：那个是主角，这个是注脚。 */
+  .cd-row{display:flex;align-items:baseline;margin-left:auto;
+    font-family:var(--mono);font-variant-numeric:tabular-nums;
+    font-size:26px;line-height:1;font-weight:300;letter-spacing:-.01em}
+  .cd-over{display:none;margin-left:auto;font-size:12.5px;color:var(--cinnabar);font-weight:600}
+  .sig-cd[data-over="1"] .cd-row{display:none}
+  .sig-cd[data-over="1"] .cd-over{display:block}
+  .cd-row .unit{font-size:.45em;line-height:1;color:var(--mist);
+    margin:0 9px 0 5px;letter-spacing:.06em;font-weight:400}
+  .cd-row .grp:last-child .unit{margin-right:0}
   .sig-win{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
-    border-radius:10px;overflow:hidden;margin-bottom:12px}
+    border-radius:10px;overflow:hidden;margin-bottom:9px}
   .sw{display:grid;grid-template-columns:104px 1fr auto;gap:12px;align-items:baseline;
     background:var(--card);padding:10px 14px}
   .sw-k{font-size:12px;color:var(--mist)}
@@ -308,6 +331,10 @@
     .ev-top{flex-wrap:wrap}
     .sig-precision{margin-left:0}
     .sig-idle-sub{margin-left:0}
+    /* 倒数条在窄屏必然换行（「距窗口开启」+ 锚点 + 数字挤不进一行）。
+       换行后数字独占一行，`margin-left:auto` 会把它推到最右、看起来像掉队，
+       所以窄屏改成整行居中。 */
+    .cd-row{margin-left:0;width:100%;justify-content:center}
     .counter .unit{margin:0 8px 0 6px}
   }
 </style>
@@ -408,18 +435,30 @@
      属于可选增强：脚本被禁用时数字依然正确，只是不再跳动。 -->
 <script>
 (function () {
-  var hero = document.getElementById('hero');
-  if (!hero || !hero.dataset.last) return;
-  var last = new Date(hero.dataset.last).getTime();
-  if (isNaN(last)) return;
-
   var DAY = 86400000;
   var REEL = '';
   for (var d = 0; d < 10; d++) REEL += '<i>' + d + '</i>';
   var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+
+  // ① 距上一次重置（页首）。往回看的那条。
+  var hero = document.getElementById('hero');
+  var last = hero && hero.dataset.last ? new Date(hero.dataset.last).getTime() : NaN;
   var counter = document.getElementById('counter');
   var since = document.getElementById('since');
-  var groups = counter.querySelectorAll('.grp');
+  var heroGroups = counter ? counter.querySelectorAll('.grp') : null;
+  var heroOk = Number.isFinite(last) && heroGroups && heroGroups.length === 4;
+
+  // ② 距窗口开启（预告卡内）。往前看的那条 —— 网页端此前根本没有它。
+  //    不写成独立的 IIFE：用一个 `if (hero) return` 开头的老写法，会让
+  //    页首一旦缺元素就连带把这块也关掉，两块倒计时不该互相牵连。
+  var cds = [];
+  var cdNodes = document.querySelectorAll('.sig-cd');
+  for (var n = 0; n < cdNodes.length; n++) {
+    var row = cdNodes[n].querySelector('.cd-row');
+    var from = Number(cdNodes[n].dataset.from);
+    if (!row || !isFinite(from)) continue;
+    cds.push({ el: cdNodes[n], row: row, from: from, groups: row.querySelectorAll('.grp') });
+  }
 
   function setGroup(grp, str) {
     var box = grp.querySelector('.reels');
@@ -452,21 +491,48 @@
     }
   }
 
+  function parts(ms) {
+    return {
+      d: Math.floor(ms / DAY),
+      h: Math.floor((ms % DAY) / 3600000),
+      m: Math.floor((ms % 3600000) / 60000),
+      s: Math.floor((ms % 60000) / 1000),
+    };
+  }
+
   function tick() {
-    var ms = Date.now() - last;
-    if (ms < 0) return;
-    var d = Math.floor(ms / DAY);
-    var h = Math.floor((ms % DAY) / 3600000);
-    var mi = Math.floor((ms % 3600000) / 60000);
-    var s = Math.floor((ms % 60000) / 1000);
-    if (groups.length === 4) {
-      setGroup(groups[0], String(d));
-      setGroup(groups[1], pad(h));
-      setGroup(groups[2], pad(mi));
-      setGroup(groups[3], pad(s));
+    var now = Date.now();
+
+    if (heroOk) {
+      var ms = now - last;
+      if (ms >= 0) {
+        var p = parts(ms);
+        setGroup(heroGroups[0], String(p.d));
+        setGroup(heroGroups[1], pad(p.h));
+        setGroup(heroGroups[2], pad(p.m));
+        setGroup(heroGroups[3], pad(p.s));
+        since.textContent =
+          '上次重置 ' + hero.dataset.lastlabel + ' · 已过 ' + (p.d < 1 ? '不足一天' : p.d + ' 天');
+      }
     }
-    since.textContent =
-      '上次重置 ' + hero.dataset.lastlabel + ' · 已过 ' + (d < 1 ? '不足一天' : d + ' 天');
+
+    for (var i = 0; i < cds.length; i++) {
+      var c = cds[i];
+      var left = c.from - now;
+      // 窗口开了就换成一行文字。继续数「负数」只会变成没有意义的读数；
+      // 而「已开启」这件事本身是有信息量的：重置随时可能落地。
+      if (left <= 0) {
+        if (c.el.dataset.over !== '1') c.el.dataset.over = '1';
+        continue;
+      }
+      if (c.el.dataset.over !== '0') c.el.dataset.over = '0';
+      if (c.groups.length !== 4) continue;
+      var q = parts(left);
+      setGroup(c.groups[0], String(q.d));
+      setGroup(c.groups[1], pad(q.h));
+      setGroup(c.groups[2], pad(q.m));
+      setGroup(c.groups[3], pad(q.s));
+    }
   }
 
   tick();

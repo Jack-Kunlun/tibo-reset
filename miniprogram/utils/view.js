@@ -158,7 +158,13 @@ function windowView(w) {
     srcOffset: (w.zones && w.zones.b && w.zones.b.offset) || '',
     usrOffset: (w.zones && w.zones.a && w.zones.a.offset) || '',
     diffText: (w.zones && w.zones.diffText) || '',
-    crosses: !!w.crossesUserDay,
+    // 区间说明。由数据层按粒度决定：「当地一整天」时北京那行只给开启那一刻，
+    // 剩下的范围退到这里说一句；整周那种含糊粒度则整行本来就是区间，这里为空。
+    rangeNote: w.rangeNote || '',
+    // 倒计时的锚点（北京时间的开启时刻）。**必须显示在倒计时旁边** ——
+    // 只给一个跳动的数字、不说它数到哪一刻，用户没法核对，
+    // 那正是「你这时间也不对啊」这条反馈的来源。
+    openText: w.openText || '',
     // 数字时间戳直通，供页面做每秒倒计时（不做字符串反解析）
     fromTs: w.fromTs ?? null,
     toTs: w.toTs ?? null,
