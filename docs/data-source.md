@@ -9,10 +9,11 @@
 
 | 项 | 结论 |
 |---|---|
-| 主链路 | **本机采集**（住宅出口 IP），采完把 `data/` 推上来 |
-| 兜底 | **CI 采集**，仅在数据陈旧时尝试；runner 是机房 IP，必被 Cloudflare 挑战（403） |
-| 原创推文 | 来自 profile 首屏，**只有最近 7 条**（约 3 天） |
-| 他的回复 | 首屏拿不到、搜索不可用 → 靠**回复雷达**从别人推文的详情页里捞（抽样，非穷举） |
+| 主链路 | **本机登录态浏览器**（CDP 驱动已登录的 Chrome），滚动收割完整时间线 |
+| 兜底 1 | 免登录 HTML 首屏（本机没开 Chrome 时），**只覆盖最近 7 条** |
+| 兜底 2 | **CI 采集**，仅在数据陈旧时尝试；runner 是机房 IP，必被 Cloudflare 挑战（403） |
+| 采集范围 | **上一次明确重置往前 24 小时 → 现在**（见 §4.1） |
+| 他的回复 | 时间线不含回复、搜索不可用 → 靠**回复雷达**从别人推文的详情页里捞（抽样，非穷举） |
 | 403 的性质 | **不是「X 封了境外 IP」，是 Cloudflare 拦云机房 IP 段** |
 | 页面异常横幅 | 由数据新鲜度决定，不再由「某一次采集尝试的成败」决定 |
 | 采集频率 | 本机决定（建议 1 小时一次），CI 每 30 分钟兜底一次 |
@@ -123,11 +124,73 @@ payload 里配对作者靠的是**物理顺序**：一条推文的作者 `screen
 
 ---
 
-## 4. 因此：采集分两处
+## 4. 采集主链路：本机登录态浏览器
+
+### 4.1 为什么必须登录
+
+未登录的 profile 首屏只给 **7 条**原创。这不是「少一点」——2026-09-12 那次重置的
+**5 条全部落在 7 条窗口之外**（含 "Reset all propagated"），观测台一次都没看见
+它本该盯住的那件事。7 条是 X 的权限设计，不是换请求头能解的问题（已穷举验证，见 §3）。
+
+改走登录态后，同一时间点的抓取对比：
+
+| 口径 | 覆盖到 09-12 当天的重置帖 | 09-11 以来条数 |
+|---|---|---|
+| 未登录首屏 | ❌ 0 条 | 7 |
+| 登录态时间线 | ✅ 全部 5 条 | 16 |
+
+**采集下界 = `resets.json` 里最近一条 `type: "reset"` 往前推 24 小时。**
+（实现在 `src/lib/collect.mjs` 的 `resetFloorMs()`。）
+
+为什么不硬切在重置那一刻：重置当天的前序预告常早于最终确认推文。09-12 那组就是
+—— 03:20 的「Hi Astra users. A reset and a quick update…」在前，08:09 的
+「Reset all propagated」在后，相隔 5 小时。硬切在 08:09 会把 03:20 那条切掉，
+而它恰恰是本轮最该被看见的一条。
+
+### 4.2 怎么跑起来
+
+走 Chrome DevTools Protocol（`src/lib/browser.mjs`）：不需要 Apple Events、
+不需要任何系统授权、不读 cookie 文件。
+
+```bash
+# 一次性：起一个独立 profile 的 Chrome，在里面登录 x.com
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  --user-data-dir="$HOME/.tibo-reset-chrome" --no-sandbox \
+  --proxy-server="127.0.0.1:7890" \
+  --remote-debugging-port=9222 --remote-allow-origins='*' \
+  "https://x.com/login"
+```
+
+之后 `node scripts/collect.mjs` 会自己接上去：端口已在监听就**复用**（不打扰你开着的
+窗口），否则用同一个 profile 起一个 headless 实例，采完自己退出。
+登录态留在那个 profile 目录里（**在 `$HOME` 下，绝不进仓库**）。
+
+四个踩过的坑：
+
+| 坑 | 现象 | 处理 |
+|---|---|---|
+| headless 的 UA | x.com 稳定返回 **403**（正文 53B） | 加 `--user-agent=<真实 Chrome UA>`。**别把 403 归因到代理出口 IP** |
+| 默认 profile | 远程调试被禁用（Chrome ≥136 起） | 必须用独立 `--user-data-dir` |
+| 跳屏滚动 | **静默丢条目**：同一窗口跳屏拿到 12 条，小步拿到 16 条 | 小步滚动（一屏的 85%），不能用 `scrollTo(0, scrollHeight)` |
+| host sandbox | Chrome 自身沙箱初始化失败 | 加 `--no-sandbox` |
+
+### 4.3 免登录 HTML 的已知缺陷：不能用来判断推文归属
+
+这条降级路径把 RSC payload 里出现过的 `full_text` 全部收下，而 payload 里**混着
+别人的推文**。实测有两条被记成 Tibo 的，实际分属 `@sama` 与 `@j_dekoninck`
+（把原始 URL 打开，X 会直接跳到对方主页）。
+
+浏览器路径没有这个问题：只收 `article` 里带 `/thsottiaux/status/<id>` 的条目。
+所以 `data/tweets.json` 里 `foundVia: "timeline"` 的行属于**低可信度历史数据**，
+`foundVia: "timeline-browser"` 才是可归因的。
+
+---
+
+## 5. 采集的分工与触发
 
 ```
 本机（住宅出口）
-  node scripts/collect.mjs        # 采 x.com，成功
+  node scripts/collect.mjs        # CDP 驱动已登录的 Chrome，滚动收割完整时间线
   node scripts/build.mjs          # 构建页面与小程序数据
   git add data miniprogram/utils/scene.js && git commit && git push
         │
@@ -135,6 +198,10 @@ payload 里配对作者靠的是**物理顺序**：一条推文的作者 `screen
 GitHub Actions（机房出口）
   push 触发 → 跳过采集 → 构建页面 → 提交（无变化则跳过）→ 发布 Pages → 推送境内服务
 ```
+
+CI 上不尝试浏览器路径（没有 Chrome、也没有登录 profile），走免登录 HTML 兜底；
+那条路径在机房 IP 上本来就会被 Cloudflare 挑战，所以 CI 的作用只是「数据陈旧时
+再试一次，试成功了更好，失败了页面照常发布并挂出异常提示」。
 
 ### 回复雷达
 
@@ -190,15 +257,31 @@ CI 会为它单独提交，于是每 30 分钟污染一条提交历史，而数�
 
 ---
 
-## 5. 日常怎么用
+## 6. 日常怎么用
 
 ### 本机采集（正常情况）
+
+前提：本机有一个已登录 x.com 的 Chrome profile（`$HOME/.tibo-reset-chrome`，
+登录一次即可，见 §4.2）。
 
 ```bash
 npm run collect        # 采集
 npm run build          # 构建
 git add data miniprogram && git commit -m "chore(data): ..." && git push
 ```
+
+采集结束会打印**覆盖范围**：
+
+```
+--- 覆盖范围 ---
+  来源      ✓ 登录态浏览器（完整时间线）
+  采集下界  2026-09-11T08:09:17.000Z（上一次重置 - 缓冲）
+  库内推文  16 条
+```
+
+看到「⚠ 免登录首屏（降级，只有最近 7 条）」就要当回事：数据确实写进去了，
+但覆盖不到上一次重置 —— 那等同于回到了「漏掉 09-12 那次重置」的状态。
+`data/tweets.json` 里的 `source` / `degraded` 字段会一起记下这件事。
 
 推送后 CI 会自动建页面并发布，不需要额外操作。
 
@@ -224,7 +307,7 @@ node scripts/probe-sources.mjs     # 通道体检：六个候选组一次探完
 
 ---
 
-## 6. 已知的未解项
+## 7. 已知的未解项
 
 - **CI 无法独立采集**。本机长期关机时，数据会停更，页面会挂出异常横幅。
   这是**有意的**：宁可显示陈旧，也不假装新鲜。

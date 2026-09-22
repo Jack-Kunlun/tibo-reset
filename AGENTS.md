@@ -28,6 +28,7 @@ server/              后端服务（零依赖，node:http）
 src/index.html       网页模板（含 <!--__KEY__--> 占位符）
 src/lib/             共享逻辑（纯 JS）
   collect.mjs          采集（CLI 与后端共用）
+  browser.mjs          ★ 登录态时间线采集（CDP 驱动 Chrome，主链路）
   predict.mjs          风险模型 / 回测 / 校准
   signals.mjs          重置信号识别
   chart-data.js        ★ 从记录构建统一图表数据（双端共用）
@@ -81,14 +82,30 @@ miniprogram/         微信小程序
   `stats.json.errors`，在页面顶部显示「数据采集异常」。少了它，降级就变成静默陈旧。
 - 这两条都有回归断言，见 `scripts/test-collect-warning.mjs`。
 
-## 数据源：出口 IP 决定采集成败
+## 数据源：主链路是本机登录态浏览器
+
+**采集范围的红线：必须是「上一次明确重置往前 24 小时 → 现在」的全部帖子。**
+未登录的 profile 首屏只给 **7 条**，而 2026-09-12 那次重置的 5 条全在 7 条之外 ——
+观测台因此一次都没看见它本该盯住的那件事。所以主链路走 CDP 驱动已登录的 Chrome
+（`src/lib/browser.mjs`），下界由 `resetFloorMs()` 算。改采集时不要退回「拿最新 N 条」。
 
 x.com 的 Cloudflare 拦的是**云机房 IP 段**，不是境外 IP。同一时刻实测：本机（住宅出口）
 HTTP 200 / 213KB 完整页面 / 4 次重试全中；runner（AWS）403 挑战页。
-已被证伪的绕行路径（换域名、官方嵌入接口、第三方镜像、免费代理）见 `docs/data-source.md`，
-**别再重复试一遍**。
+已被证伪的绕行路径（换域名、官方嵌入接口、第三方镜像、免费代理、AppleScript）
+见 `docs/data-source.md`，**别再重复试一遍**。
 
 - 本机是**主链路**，CI 只是兜底。动采集相关代码时，别假设 runner 采得到。
+- 浏览器路径失败时**降级到免登录首屏**，但降级必须外显：`tweets.json` 里写
+  `source: 'html'` + `degraded`，CLI 打「⚠ 降级，只有最近 7 条」。静默降级等于回到
+  漏掉 09-12 那次重置的状态。
+- **滚动必须小步**（一屏的 85%），不能用 `scrollTo(0, scrollHeight)`。X 的列表虚拟化，
+  跳屏那一下渲染掉又卸载的条目永久丢失 —— 实测同一窗口跳屏 12 条、小步 16 条，
+  不报错、不告警，只是悄悄少。
+- **不要用登录态路径去判断推文归属之外的东西**：免登录 HTML payload 里**混着别人的
+  推文**（实测两条被记成 Tibo 的，实际分属 `@sama` 与 `@j_dekoninck`）。所以
+  `foundVia: 'timeline'` 的行是低可信历史数据，`'timeline-browser'` 才可归因。
+- headless 必须伪装 UA（否则 x.com 稳定 403），profile 目录必须在 `$HOME` 下
+  （独立目录 + 绝不进仓库），启动要带 `--no-sandbox`。理由见 `docs/data-source.md` §4.2。
 - CI 兜底必须带 `--max-age`。否则它那次注定失败的采集会把 `errors` 写进 `stats.json`，
   让页面上刚被本机清干净的「数据采集异常」横幅又贴回来 —— 数据明明是新鲜的。
 - 短路时**不写任何文件**。写了 `generated_at`（采集运行时刻）就会变，CI 会为它单独提交，
@@ -100,6 +117,8 @@ HTTP 200 / 213KB 完整页面 / 4 次重试全中；runner（AWS）403 挑战页
   **结构契约**：`created_at_ms` 不只出现在推文上 —— 用户对象（UserCore）也带一个，
   那是账号注册时间。按索引硬配会让整条链错位一位（实测 7 条推文配 8 个时间戳），
   且不报错、不崩溃，只让页面数字悄悄错掉。该函数此前零测试覆盖。
+- `scripts/test-parse.mjs` 同时锁 `normalizeTimelineItems()` 与 `resetFloorMs()`：
+  去重、下界含端点、无重置记录时不下界。这两处出错同样是静默少数据。
 
 ## 构建期的两个环境变量
 

@@ -1,11 +1,15 @@
 /**
  * 采集与统计 —— 供 CLI 脚本与后端服务共用。
  *
- * 采集链路有两条：
- *   1) 自建采集：抓 x.com/<account> 的未登录 HTML。页面内嵌 React Server Components
- *      载荷，键名不带引号，因此只能用正则而非 JSON.parse。
- *      免登录、免 API Key（X 官方 Basic 档 $200/月）、零成本 —— 这是长期主链路。
- *   2) 历史回填：公开 API，仅用于冷启动，记录里标注 attribution。
+ * 采集链路有三条，优先级从高到低：
+ *   1) 登录态采集（主链路，见 ./browser.mjs）：驱动本机已登录的 Chrome 滚动收割
+ *      完整时间线。未登录的 x.com 只给 profile 首屏 **7 条**原创，覆盖不到
+ *      「上一次重置」—— 2026-09-12 那次重置的 5 条全在 7 条窗口之外，
+ *      观测台一次都没看见它本该盯住的那件事。
+ *   2) 免登录 HTML（降级）：抓 x.com/<account> 首屏，内嵌 React Server Components
+ *      载荷键名不带引号，只能用正则而非 JSON.parse。只覆盖最近 7 条，
+ *      浏览器路径不可用时（如 CI 无 Chrome）才走这条。
+ *   3) 历史回填：公开 API，仅用于冷启动，记录里标注 attribution。
  */
 
 import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
@@ -13,6 +17,7 @@ import { dirname, resolve } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { detectSignals } from './signals.mjs';
+import { collectTimeline } from './browser.mjs';
 
 const execFileP = promisify(execFile);
 
@@ -289,6 +294,50 @@ export async function fetchLiveTweets(account = SOURCE_ACCOUNT) {
     }));
 }
 
+/**
+ * 登录态采集：驱动本机已登录的 Chrome，滚动收割完整时间线。
+ *
+ * 失败一律抛错，把「要不要降级」留给调用方决定。这里的失败都是**静默丢数据**
+ * 型的（profile 过期退回未登录、页面结构变了、收割到 0 条）—— 吞掉它，
+ * 表面上一切正常，实际覆盖范围已经悄悄缩回 7 条。
+ */
+export async function fetchLiveTweetsViaBrowser(account = SOURCE_ACCOUNT, opts = {}) {
+  const result = await collectTimeline({
+    handle: account,
+    sinceMs: opts.sinceMs ?? 0,
+    maxSteps: opts.maxSteps,
+    onProgress: opts.onProgress,
+  });
+  if (!result.loggedIn) throw new Error('Chrome profile 未登录 x.com');
+  if (!result.tweets.length) throw new Error('浏览器收割到 0 条推文');
+  return result.tweets.map((t) => ({
+    ...t,
+    kind: classify(t.text),
+    account,
+    role: 'post',
+    foundVia: 'timeline-browser',
+    inReplyTo: null,
+  }));
+}
+
+/**
+ * 本轮采集的时间下界：上一次**明确重置**再往前留一段缓冲。
+ *
+ * 为什么不硬切在重置那一刻：重置当天的前序预告常早于最终确认推文。
+ * 2026-09-12 那组正是如此 —— 03:20「Hi Astra users. A reset and a quick update…」
+ * 在前，08:09「Reset all propagated」在后，相隔 5 小时。硬切在 08:09 会把
+ * 03:20 那条切掉，而它恰恰是本轮最该被看见的一条。
+ *
+ * 返回 0 表示没有可用锚点（尚无历史记录），此时不做下界裁剪。
+ */
+export function resetFloorMs(records, bufferHours = 24) {
+  const latest = (records ?? [])
+    .filter((r) => r?.type === 'reset' && r.announced_at)
+    .sort((a, b) => new Date(b.announced_at) - new Date(a.announced_at))[0];
+  if (!latest) return 0;
+  return new Date(latest.announced_at).getTime() - bufferHours * 3_600_000;
+}
+
 export async function fetchHistory() {
   const raw = JSON.parse(await get(HISTORY_API));
   return (raw?.data ?? []).map((r) => ({
@@ -474,6 +523,10 @@ export async function runCollection(opts = {}) {
   const freshEnough =
     opts.skipIfFresherThanMs > 0 && lastLiveAt > 0 && liveAgeMs < opts.skipIfFresherThanMs;
   let skippedFresh = false;
+  /** 本轮实时数据来自哪条链路：'browser'（登录态，完整）| 'html'（降级，仅 7 条）。 */
+  let liveSource = null;
+  /** 登录态采集的时间下界（ISO），即「上一次重置 - 缓冲」。 */
+  let coverageSince = null;
 
   // 把一批推文并进 live。已存在的**用新版本覆盖**，而不是跳过 ——
   // 只有「只增不改」时，解析器修好了、旧数据里的错值也回不来（2026-09-21 修掉的
@@ -501,11 +554,52 @@ export async function runCollection(opts = {}) {
   } else if (freshEnough) {
     skippedFresh = true;
   } else {
-    try {
-      const fresh = await fetchLiveTweets(opts.account);
-      live = { tweets: mergeInto(live.tweets, fresh), updated_at: new Date().toISOString() };
-    } catch (err) {
-      errors.push(`实时采集失败：${err.message}`);
+    // 主链路是登录态浏览器采集。CI 上没有 Chrome、也没有登录 profile，
+    // 所以默认只在非 CI 环境尝试；显式传 opts.browser 可覆盖。
+    const useBrowser = opts.browser ?? (process.env.X_BROWSER !== '0' && !process.env.CI);
+    const floor = opts.sinceMs ?? resetFloorMs(history.records, opts.resetBufferHours);
+
+    let fresh = null;
+    let browserError = null;
+    if (useBrowser) {
+      try {
+        fresh = await fetchLiveTweetsViaBrowser(opts.account, {
+          sinceMs: floor,
+          maxSteps: opts.maxSteps,
+          onProgress: opts.onProgress,
+        });
+        liveSource = 'browser';
+        if (floor > 0) coverageSince = new Date(floor).toISOString();
+      } catch (err) {
+        browserError = err.message;
+      }
+    }
+
+    // 降级：免登录首屏。
+    //
+    // 这条路径只覆盖最近 7 条 —— 它「聊胜于无」，不是「够用」。2026-09-12 那次
+    // 重置的 5 条全在 7 条之外，正是覆盖不足导致观测台漏掉了自己该盯的事。
+    // 所以降级这件事必须**写进数据里**（tweets.json 的 source / degraded），
+    // 不能被当成正常情况。
+    if (!fresh) {
+      try {
+        fresh = await fetchLiveTweets(opts.account);
+        liveSource = 'html';
+      } catch (err) {
+        errors.push(
+          `实时采集失败：${err.message}${browserError ? `（浏览器路径：${browserError}）` : ''}`
+        );
+      }
+    }
+
+    if (fresh) {
+      live = {
+        tweets: mergeInto(live.tweets, fresh),
+        updated_at: new Date().toISOString(),
+        source: liveSource,
+        ...(coverageSince ? { coverage_since: coverageSince } : {}),
+        ...(liveSource === 'html' && browserError ? { degraded: browserError } : {}),
+      };
     }
 
     // 2b) 回复雷达：他的预告常出现在「他回复别人的推文」里，而回复不进 profile 首屏。
@@ -539,7 +633,11 @@ export async function runCollection(opts = {}) {
       }
 
       if (hits.length) {
-        live = { tweets: mergeInto(live.tweets, hits), updated_at: new Date().toISOString() };
+        live = {
+          ...live,
+          tweets: mergeInto(live.tweets, hits),
+          updated_at: new Date().toISOString(),
+        };
       }
 
       // 历次命中过的「被回复者」值得在下一轮继续盯（经证实他会去回复这些人）
@@ -608,6 +706,9 @@ export async function runCollection(opts = {}) {
     radar: radarReport,
     skippedFresh,
     liveAgeMs,
+    source: liveSource,
+    coverageSince,
+    tweetCount: live.tweets.length,
     collectedAt: new Date().toISOString(),
   };
 }

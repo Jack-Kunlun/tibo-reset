@@ -1,7 +1,7 @@
 {
   "level": "hint",
-  "generatedAt": "2026-09-22T01:52:22.261Z",
-  "checkedTweets": 7,
+  "generatedAt": "2026-09-22T03:21:52.166Z",
+  "checkedTweets": 16,
   "lookbackDays": 60,
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
@@ -12,8 +12,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.09.22",
       "weekday": "周二",
-      "time": "09:52",
-      "text": "2026.09.22（周二）09:52",
+      "time": "11:21",
+      "text": "2026.09.22（周二）11:21",
       "offset": "UTC+8"
     },
     "b": {
@@ -21,8 +21,8 @@
       "zone": "America/Los_Angeles",
       "date": "2026.09.21",
       "weekday": "周一",
-      "time": "18:52",
-      "text": "2026.09.21（周一）18:52",
+      "time": "20:21",
+      "text": "2026.09.21（周一）20:21",
       "offset": "UTC-7"
     },
     "diffHours": 15,
@@ -104,11 +104,118 @@
       "window": null
     },
     {
-      "id": "2100351958167220547",
+      "id": "2100121084817502216",
       "account": "thsottiaux",
-      "text": "the main thing i was excited about launching this week will be next week instead, but imo worth the wait!",
-      "createdAt": "2026-09-16T22:31:44.000Z",
-      "url": "https://x.com/thsottiaux/status/2100351958167220547",
+      "text": "11pm on a Tuesday, big startup energy",
+      "createdAt": "2026-09-16T07:14:19.000Z",
+      "url": "https://x.com/thsottiaux/status/2100121084817502216",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.16",
+          "weekday": "周三",
+          "time": "15:14",
+          "text": "2026.09.16（周三）15:14",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.16",
+          "weekday": "周三",
+          "time": "00:14",
+          "text": "2026.09.16（周三）00:14",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "含时间表达「tuesday」但没有额度相关词，不作为重置信号",
+      "intent": 0,
+      "window": null
+    },
+    {
+      "id": "2099922755655479624",
+      "account": "thsottiaux",
+      "text": "2026 is the year of efficiency and Tuesday is for random swag drops on your door handle",
+      "createdAt": "2026-09-15T18:06:14.000Z",
+      "url": "https://x.com/thsottiaux/status/2099922755655479624",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.16",
+          "weekday": "周三",
+          "time": "02:06",
+          "text": "2026.09.16（周三）02:06",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.15",
+          "weekday": "周二",
+          "time": "11:06",
+          "text": "2026.09.15（周二）11:06",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "含时间表达「tuesday」但没有额度相关词，不作为重置信号",
+      "intent": 0,
+      "window": null
+    },
+    {
+      "id": "2099744972195131850",
+      "account": "thsottiaux",
+      "text": "This week will also be a level of ships that you could have expected for DevDay 2025. Crazy",
+      "createdAt": "2026-09-15T06:19:47.000Z",
+      "url": "https://x.com/thsottiaux/status/2099744972195131850",
+      "reasons": [
+        "含未来语气"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.15",
+          "weekday": "周二",
+          "time": "14:19",
+          "text": "2026.09.15（周二）14:19",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.14",
+          "weekday": "周一",
+          "time": "23:19",
+          "text": "2026.09.14（周一）23:19",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "含时间表达「this week」但没有额度相关词，不作为重置信号",
+      "intent": 0,
+      "window": null
+    },
+    {
+      "id": "2098639827084480864",
+      "account": "thsottiaux",
+      "text": "Astra powered ships this week - Images 2.5 - GPT-Live-1 - Agents API - Data Agent - ChatGPT for Financial Services and yet it’s not yet DevDay. Busy plans for next week too.",
+      "createdAt": "2026-09-12T05:08:20.000Z",
+      "url": "https://x.com/thsottiaux/status/2098639827084480864",
       "reasons": [
         "含未来语气",
         "含发布/宣传语境（扣分）"
@@ -119,19 +226,19 @@
         "a": {
           "label": "北京时间",
           "zone": "Asia/Shanghai",
-          "date": "2026.09.17",
-          "weekday": "周四",
-          "time": "06:31",
-          "text": "2026.09.17（周四）06:31",
+          "date": "2026.09.12",
+          "weekday": "周六",
+          "time": "13:08",
+          "text": "2026.09.12（周六）13:08",
           "offset": "UTC+8"
         },
         "b": {
           "label": "Tibo 当地时间",
           "zone": "America/Los_Angeles",
-          "date": "2026.09.16",
-          "weekday": "周三",
-          "time": "15:31",
-          "text": "2026.09.16（周三）15:31",
+          "date": "2026.09.11",
+          "weekday": "周五",
+          "time": "22:08",
+          "text": "2026.09.11（周五）22:08",
           "offset": "UTC-7"
         },
         "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -286,24 +393,22 @@
       "window": null
     },
     {
-      "id": "2100180792601420138",
+      "id": "2100295443620007993",
       "account": "thsottiaux",
-      "text": "We are releasing the latest version of BrokenArXiv and ArXivMath! These benchmarks now focus on conjectures that were refuted in the last month on ArXiv, and models are executed within a harness instead of directly via API. Performance remains impressive, with GPT-6 Astra on top https://t.co/UCJHeE1Szl",
-      "createdAt": "2026-09-16T11:11:35.000Z",
-      "url": "https://x.com/thsottiaux/status/2100180792601420138",
-      "reasons": [
-        "含发布/宣传语境（扣分）"
-      ],
+      "text": "What is ChatGPT",
+      "createdAt": "2026-09-16T18:47:10.000Z",
+      "url": "https://x.com/thsottiaux/status/2100295443620007993",
+      "reasons": [],
       "viaContext": false,
       "inReplyTo": null,
       "createdZones": {
         "a": {
           "label": "北京时间",
           "zone": "Asia/Shanghai",
-          "date": "2026.09.16",
-          "weekday": "周三",
-          "time": "19:11",
-          "text": "2026.09.16（周三）19:11",
+          "date": "2026.09.17",
+          "weekday": "周四",
+          "time": "02:47",
+          "text": "2026.09.17（周四）02:47",
           "offset": "UTC+8"
         },
         "b": {
@@ -311,8 +416,8 @@
           "zone": "America/Los_Angeles",
           "date": "2026.09.16",
           "weekday": "周三",
-          "time": "04:11",
-          "text": "2026.09.16（周三）04:11",
+          "time": "11:47",
+          "text": "2026.09.16（周三）11:47",
           "offset": "UTC-7"
         },
         "diffText": "北京时间比 Tibo 当地时间快 15 小时"

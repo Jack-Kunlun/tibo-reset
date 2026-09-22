@@ -20,7 +20,9 @@ import {
   parseTweetDetail,
   pickRadarCandidates,
   rankRadarCandidates,
+  resetFloorMs,
 } from '../src/lib/collect.mjs';
+import { normalizeTimelineItems } from '../src/lib/browser.mjs';
 
 let pass = 0;
 const failures = [];
@@ -278,6 +280,64 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
     `实际 ${ranked.map((x) => x.id).join(',')}`
   );
   check('无 id 的仍然被排除（抓不了详情页）', rankRadarCandidates([{ id: null, text: 'reset' }]).length === 0, '');
+}
+
+/* ============== 登录态时间线：采集下界与结果规范化 ============== */
+
+{
+  // 为什么下界要往前留缓冲：2026-09-12 那次，重置确认推文在 08:09Z，
+  // 而前序预告「Hi Astra users. A reset and a quick update…」在 03:20Z ——
+  // 相隔 5 小时。硬切在 08:09 会把 03:20 那条切掉，而它恰恰是本轮最该被
+  // 看见的一条（旧口径只取首屏 7 条，连这两条都没见过）。
+  const records = [
+    { type: 'reset', announced_at: '2026-09-12T08:09:17.000Z' },
+    { type: 'credit', announced_at: '2026-09-14T20:00:00.000Z' }, // 更晚，但不是重置
+    { type: 'reset', announced_at: '2026-09-08T01:56:57.501Z' },
+  ];
+  const floor = resetFloorMs(records);
+  check(
+    '下界锚在「最近一次 reset」，不是最近一条记录',
+    floor === new Date('2026-09-11T08:09:17.000Z').getTime(),
+    `实际 ${new Date(floor).toISOString()}`
+  );
+  check('无重置记录时不做裁剪（返回 0）', resetFloorMs([]) === 0 && resetFloorMs(null) === 0, '');
+  check(
+    '缓冲小时数可调（0 = 硬切在重置时刻）',
+    resetFloorMs(records, 0) === new Date('2026-09-12T08:09:17.000Z').getTime()
+  );
+
+  const items = [
+    {
+      id: '2098685367058612394',
+      time: '2026-09-12T08:09:17.000Z',
+      text: 'Reset all propagated.',
+      url: 'https://x.com/thsottiaux/status/2098685367058612394',
+    },
+    { id: '2098623000000000000', time: '2026-09-12T03:20:36.000Z', text: 'Hi Astra users.' },
+    // 虚拟列表会把同一条重复渲染进 DOM，必须按 id 去重
+    { id: '2098685367058612394', time: '2026-09-12T08:09:17.000Z', text: 'Reset all propagated.' },
+    { id: '', time: '2026-09-13T00:00:00.000Z', text: '这是转发别人的推文' },
+    { id: 'no-time', time: '', text: '缺时间' },
+    { id: 'blank-text', time: '2026-09-13T00:00:00.000Z', text: '   ' },
+    { id: '2032988000000000000', time: '2026-05-27T15:04:28.000Z', text: '远早于下界的旧推文' },
+  ];
+  const kept = normalizeTimelineItems(items, { handle: 'thsottiaux', sinceMs: floor });
+  check('按 id 去重', kept.length === 2, `实际 ${kept.length}`);
+  check(
+    '按时间从新到旧',
+    kept[0]?.id === '2098685367058612394' && kept[1]?.id === '2098623000000000000',
+    kept.map((t) => t.id).join(',')
+  );
+  check('丢掉没有自己 status 链接的条目（转发）', !kept.some((t) => t.id === ''));
+  check('丢掉缺时间 / 正文为空的条目', !kept.some((t) => t.id === 'no-time' || t.id === 'blank-text'));
+  check('早于下界的被裁掉', !kept.some((t) => t.id === '2032988000000000000'));
+  check('下界是**含**的（边界那条要留下）', kept.some((t) => t.id === '2098623000000000000'));
+  check(
+    '缺 url 时按 handle 补一条',
+    kept[1]?.url === 'https://x.com/thsottiaux/status/2098623000000000000',
+    kept[1]?.url
+  );
+  check('空输入不抛错', normalizeTimelineItems(undefined).length === 0, '');
 }
 
 /* ======================== 结果 ======================== */
