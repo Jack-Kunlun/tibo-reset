@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-09-12T08:09:17.000Z",
     "last_text": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG",
-    "days_since_last": 9.868323564814816,
+    "days_since_last": 9.961810844907408,
     "avg_interval_days": 6.926367743945869,
     "median_interval_days": 3.216273148148148,
     "sd_interval_days": 11.40364106280428,
@@ -14,23 +14,18 @@
     "reset_count": 50,
     "hit_within_avg": 0.6923076923076923
   },
-  "generated_at": "2026-09-22T04:59:40.201Z",
+  "generated_at": "2026-09-22T07:14:17.524Z",
   "collect": {
-    "mode": "incremental",
-    "source": "browser",
-    "stoppedBy": "known",
+    "mode": null,
+    "source": null,
+    "stoppedBy": null,
     "newTweets": 0,
     "knownCount": 69,
-    "reply": {
-      "mode": "incremental",
-      "stoppedBy": "known",
-      "steps": 1,
-      "harvested": 2,
-      "withContext": 2,
-      "authorsMissing": 0
-    },
+    "reply": null,
     "replyError": null
   },
   "last_full_at": "2026-09-22T04:36:24.366Z",
-  "errors": []
+  "errors": [
+    "实时采集失败：HTTP 403"
+  ]
 }
