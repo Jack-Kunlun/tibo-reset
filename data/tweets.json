@@ -6,7 +6,10 @@
       "created_at": "2026-09-19T22:01:26.000Z",
       "kind": "other",
       "account": "thsottiaux",
-      "first_seen": "2026-09-20T08:17:03.455Z"
+      "first_seen": "2026-09-20T08:17:03.455Z",
+      "role": "post",
+      "foundVia": "timeline",
+      "inReplyTo": null
     },
     {
       "id": "2101157729037586694",
@@ -14,7 +17,10 @@
       "created_at": "2026-09-19T03:53:34.000Z",
       "kind": "other",
       "account": "thsottiaux",
-      "first_seen": "2026-09-20T08:17:03.455Z"
+      "first_seen": "2026-09-20T08:17:03.455Z",
+      "role": "post",
+      "foundVia": "timeline",
+      "inReplyTo": null
     },
     {
       "id": "2100645454245720513",
@@ -22,7 +28,10 @@
       "created_at": "2026-09-17T17:57:59.000Z",
       "kind": "other",
       "account": "thsottiaux",
-      "first_seen": "2026-09-20T08:17:03.455Z"
+      "first_seen": "2026-09-20T08:17:03.455Z",
+      "role": "post",
+      "foundVia": "timeline",
+      "inReplyTo": null
     },
     {
       "id": "2100363668051603608",
@@ -30,7 +39,10 @@
       "created_at": "2026-09-16T23:18:15.000Z",
       "kind": "other",
       "account": "thsottiaux",
-      "first_seen": "2026-09-20T08:17:03.455Z"
+      "first_seen": "2026-09-20T08:17:03.455Z",
+      "role": "post",
+      "foundVia": "timeline",
+      "inReplyTo": null
     },
     {
       "id": "2100351958167220547",
@@ -38,7 +50,10 @@
       "created_at": "2026-09-16T22:31:44.000Z",
       "kind": "other",
       "account": "thsottiaux",
-      "first_seen": "2026-09-20T08:17:03.455Z"
+      "first_seen": "2026-09-20T08:17:03.455Z",
+      "role": "post",
+      "foundVia": "timeline",
+      "inReplyTo": null
     },
     {
       "id": "2100297380968997327",
@@ -46,7 +61,10 @@
       "created_at": "2026-09-16T18:54:51.000Z",
       "kind": "other",
       "account": "thsottiaux",
-      "first_seen": "2026-09-20T08:17:03.455Z"
+      "first_seen": "2026-09-20T08:17:03.455Z",
+      "role": "post",
+      "foundVia": "timeline",
+      "inReplyTo": null
     },
     {
       "id": "2100180792601420138",
@@ -54,8 +72,11 @@
       "created_at": "2026-09-16T11:11:35.000Z",
       "kind": "other",
       "account": "thsottiaux",
-      "first_seen": "2026-09-20T08:17:03.455Z"
+      "first_seen": "2026-09-20T08:17:03.455Z",
+      "role": "post",
+      "foundVia": "timeline",
+      "inReplyTo": null
     }
   ],
-  "updated_at": "2026-09-21T22:11:15.765Z"
+  "updated_at": "2026-09-22T01:52:04.852Z"
 }

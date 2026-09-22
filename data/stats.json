@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-09-12T08:09:17.000Z",
     "last_text": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG",
-    "days_since_last": 9.73357837962963,
+    "days_since_last": 9.738255335648148,
     "avg_interval_days": 6.926367743945869,
     "median_interval_days": 3.216273148148148,
     "sd_interval_days": 11.40364106280428,
@@ -14,8 +14,6 @@
     "reset_count": 50,
     "hit_within_avg": 0.6923076923076923
   },
-  "generated_at": "2026-09-22T01:45:38.200Z",
-  "errors": [
-    "实时采集失败：HTTP 403"
-  ]
+  "generated_at": "2026-09-22T01:52:22.278Z",
+  "errors": []
 }
