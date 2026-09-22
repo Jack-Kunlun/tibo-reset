@@ -2,11 +2,11 @@
 // 离线首屏数据快照：采集脚本 → 构建 → 小程序内置。
 export default {
   "schema": 1,
-  "generatedAt": "2026-09-22T07:36:04.155Z",
-  "dataUpdatedAt": "2026-09-22T07:31:20.209Z",
+  "generatedAt": "2026-09-22T20:07:04.596Z",
+  "dataUpdatedAt": "2026-09-22T20:06:32.485Z",
   "account": "thsottiaux",
   "chart": {
-    "now": 1790062564155,
+    "now": 1790107624596,
     "count": 53,
     "gapDays": [
       49.678206018518516,
@@ -120,8 +120,8 @@ export default {
     "median": 3.135060769675926,
     "longest": 67.74240740740741,
     "shortest": 0.4963194444444444,
-    "sinceDays": 9.976934664351852,
-    "pct": 0.8461538461538461,
+    "sinceDays": 10.498467546296297,
+    "pct": 0.8653846153846154,
     "firstAt": "2025-09-17T04:02:52.000Z",
     "lastAt": "2026-09-12T08:09:17.000Z",
     "lastText": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG",
@@ -554,8 +554,8 @@ export default {
     ]
   },
   "prediction": {
-    "asOf": "2026-09-22T07:36:04.155Z",
-    "sinceDays": 9.976934664351852,
+    "asOf": "2026-09-22T20:07:04.596Z",
+    "sinceDays": 10.498467546296297,
     "last": {
       "at": "2026-09-12T08:09:17.000Z",
       "text": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG"
@@ -566,134 +566,134 @@ export default {
         "halfLifeDays": 45,
         "prior": 3
       },
-      "baseRate": 0.2537931189834681,
+      "baseRate": 0.2503452582220816,
       "nIntervals": 20,
       "nEvents": 19,
       "buckets": [
         {
           "from": 0,
           "to": 1,
-          "exposure": 12.171014074539725,
+          "exposure": 12.081633323872158,
           "events": 0,
-          "rate": 0.05018645116335138
+          "rate": 0.04979803967766927
         },
         {
           "from": 1,
           "to": 2,
-          "exposure": 10.210624488930973,
-          "events": 2.917525955779734,
-          "rate": 0.27848080276694337
+          "exposure": 10.136929072790192,
+          "events": 2.894182447457241,
+          "rate": 0.27747871682382974
         },
         {
           "from": 2,
           "to": 3,
-          "exposure": 6.5169629121857,
-          "events": 3.9352187282618396,
-          "rate": 0.49349757149926793
+          "exposure": 6.472820967398419,
+          "events": 3.90373252641605,
+          "rate": 0.49138142873195917
         },
         {
           "from": 3,
           "to": 5,
-          "exposure": 6.666076288865987,
-          "events": 3.2016491893698564,
-          "rate": 0.40999351007452045
+          "exposure": 6.62874239969638,
+          "events": 3.1760323737423213,
+          "rate": 0.4078485003952746
         },
         {
           "from": 5,
           "to": 8,
-          "exposure": 6.201678126012002,
-          "events": 0.5041530240211514,
-          "rate": 0.13753278082984155
+          "exposure": 6.176061078858593,
+          "events": 0.5001192294669904,
+          "rate": 0.13634989930656238
         },
         {
           "from": 8,
           "to": 14,
-          "exposure": 2.2498653501502224,
-          "events": 0.6124671771071438,
-          "rate": 0.2616917658694306
+          "exposure": 2.7692144778343923,
+          "events": 0.6075667467895554,
+          "rate": 0.2354917687105616
         },
         {
           "from": 14,
           "to": 30,
           "exposure": 0,
           "events": 0,
-          "rate": 0.2537931189834681
+          "rate": 0.2503452582220816
         },
         {
           "from": 30,
           "to": null,
           "exposure": 0,
           "events": 0,
-          "rate": 0.2537931189834681
+          "rate": 0.2503452582220816
         }
       ]
     },
     "prediction": {
-      "sinceDays": 9.976934664351852,
+      "sinceDays": 10.498467546296297,
       "horizons": [
         {
           "h": 1,
           "label": "24 小时内",
-          "p": 0.2302517501723529
+          "p": 0.20981783279983246
         },
         {
           "h": 3,
           "label": "3 天内",
-          "p": 0.5439146416439946
+          "p": 0.5066198496968947
         },
         {
           "h": 7,
           "label": "7 天内",
-          "p": 0.8360721038355872
+          "p": 0.8173907823307982
         },
         {
           "h": 14,
           "label": "14 天内",
-          "p": 0.9722600159271534
+          "p": 0.9683438754218339
         },
         {
           "h": 30,
           "label": "30 天内",
-          "p": 0.9995218424809464
+          "p": 0.9994233919265789
         }
       ],
-      "expectedRemaining": 3.0589044878380793,
-      "median": 2.648716050568386,
-      "q25": 0.2955392954141557,
-      "q75": 4.5333162423572535,
-      "q90": 8.143700698579813,
-      "dailyRate": 0.2616917658694306,
-      "q50": 1.8449388600549033
+      "expectedRemaining": 3.3320956918112654,
+      "median": 2.943403008756026,
+      "q25": 0.41784543361044213,
+      "q75": 4.941505731599241,
+      "q90": 8.601613929300001,
+      "dailyRate": 0.2354917687105616,
+      "q50": 2.139625818242543
     },
     "rawPrediction": {
-      "q50": 2.648716050568386,
-      "q90": 8.947477889093296,
-      "expectedRemaining": 3.8626816783515623,
+      "q50": 2.943403008756026,
+      "q90": 9.405391119813483,
+      "expectedRemaining": 4.135872882324748,
       "horizons": [
         {
           "h": 1,
           "label": "24 小时内",
-          "p": 0.2302517501723529
+          "p": 0.20981783279983246
         },
         {
           "h": 3,
           "label": "3 天内",
-          "p": 0.5439146416439946
+          "p": 0.5066198496968947
         },
         {
           "h": 7,
           "label": "7 天内",
-          "p": 0.8360721038355872
+          "p": 0.8173907823307982
         },
         {
           "h": 14,
           "label": "14 天内",
-          "p": 0.9722600159271534
+          "p": 0.9683438754218339
         },
         {
           "h": 30,
           "label": "30 天内",
-          "p": 0.9995218424809464
+          "p": 0.9994233919265789
         }
       ]
     },
@@ -716,14 +716,14 @@ export default {
       "target": 7,
       "iterations": 400,
       "p": {
-        "lo": 0.5456092158722724,
-        "mid": 0.6940849443915288,
-        "hi": 0.805044501878613
+        "lo": 0.5392287645118456,
+        "mid": 0.683588852704629,
+        "hi": 0.7943270821753132
       },
       "medianDays": {
-        "lo": 2.5785375440575615,
-        "mid": 4.443743184797279,
-        "hi": 6.34075087780114
+        "lo": 2.680584693034411,
+        "mid": 4.566693959383217,
+        "hi": 6.462546572982378
       }
     },
     "phases": [
@@ -752,18 +752,15 @@ export default {
         "max": 8.445625
       }
     ],
-    "warnings": [
-      "训练样本仅 19 次事件，长尾估计不稳定",
-      "节奏处于明显加速期，任何历史外推都会偏保守（高估等待时间）"
-    ]
+    "warnings": []
   },
   "signals": {
     "level": "explicit",
-    "generatedAt": "2026-09-22T07:36:04.155Z",
-    "checkedTweets": 75,
+    "generatedAt": "2026-09-22T20:07:04.596Z",
+    "checkedTweets": 81,
     "lookbackDays": 60,
-    "windowFrom": "2026-07-24T07:36:04.155Z",
-    "windowTo": "2026-09-22T07:36:04.155Z",
+    "windowFrom": "2026-07-24T20:07:04.596Z",
+    "windowTo": "2026-09-22T20:07:04.596Z",
     "sourceZone": "America/Los_Angeles",
     "sourceZoneLabel": "太平洋时间",
     "userZone": "Asia/Shanghai",
@@ -771,10 +768,10 @@ export default {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.09.22",
-        "weekday": "周二",
-        "time": "15:36",
-        "text": "2026.09.22（周二）15:36",
+        "date": "2026.09.23",
+        "weekday": "周三",
+        "time": "04:07",
+        "text": "2026.09.23（周三）04:07",
         "offset": "UTC+8"
       },
       "b": {
@@ -782,36 +779,36 @@ export default {
         "zone": "America/Los_Angeles",
         "date": "2026.09.22",
         "weekday": "周二",
-        "time": "00:36",
-        "text": "2026.09.22（周二）00:36",
+        "time": "13:07",
+        "text": "2026.09.22（周二）13:07",
         "offset": "UTC-7"
       },
       "diffHours": 15,
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
     "latest": {
-      "id": "2102292452329820272",
+      "id": "2102484207163584745",
       "account": "thsottiaux",
-      "text": "Huge!!",
-      "createdAt": "2026-09-22T07:02:33.000Z",
-      "url": "https://x.com/thsottiaux/status/2102292452329820272",
+      "text": "u2!",
+      "createdAt": "2026-09-22T19:44:31.000Z",
+      "url": "https://x.com/thsottiaux/status/2102484207163584745",
       "reasons": [
-        "上下文：回复 @steipete「Proud to say that we did our homewor…」"
+        "上下文：回复 @amorriscode「congrats on the launch!…」"
       ],
       "viaContext": false,
       "inReplyTo": {
-        "account": "steipete",
+        "account": "amorriscode",
         "id": "",
-        "text": "Proud to say that we did our homework. They found nothing critical."
+        "text": "congrats on the launch!"
       },
       "createdZones": {
         "a": {
           "label": "北京时间",
           "zone": "Asia/Shanghai",
-          "date": "2026.09.22",
-          "weekday": "周二",
-          "time": "15:02",
-          "text": "2026.09.22（周二）15:02",
+          "date": "2026.09.23",
+          "weekday": "周三",
+          "time": "03:44",
+          "text": "2026.09.23（周三）03:44",
           "offset": "UTC+8"
         },
         "b": {
@@ -819,8 +816,8 @@ export default {
           "zone": "America/Los_Angeles",
           "date": "2026.09.22",
           "weekday": "周二",
-          "time": "00:02",
-          "text": "2026.09.22（周二）00:02",
+          "time": "12:44",
+          "text": "2026.09.22（周二）12:44",
           "offset": "UTC-7"
         },
         "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -1821,20 +1818,21 @@ export default {
       }
     ],
     "counts": {
-      "scanned": 75,
+      "scanned": 81,
       "explicit": 2,
       "occurred": 2,
       "hint": 9,
-      "none": 62
+      "none": 68,
+      "rejected": 68
     },
-    "truncated": true
+    "truncated": false
   },
   "stats": {
     "total": 53,
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-09-12T08:09:17.000Z",
     "last_text": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG",
-    "days_since_last": 9.973647476851852,
+    "days_since_last": 10.498095138888889,
     "avg_interval_days": 6.926367743945869,
     "median_interval_days": 3.216273148148148,
     "sd_interval_days": 11.40364106280428,
