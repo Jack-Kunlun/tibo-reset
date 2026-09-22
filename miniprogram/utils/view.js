@@ -44,65 +44,31 @@ function headlineOf(top, w) {
 }
 
 /**
- * 「已发生」的「大字公告」。
- *
- * 与预告用**同一套排版**但不同语义：预告的大字是星期（「下周二」—— 人先抓时间）；
- * 已发生的大字是日期本身，副行给时刻与「距今多久」。它是一件已经落地的事实，
- * 不能套「即将到来的时段」那个框架。
- */
-function occurredHeadlineOf(top, sig) {
-  const cz = top.createdZones;
-  if (!cz || !cz.a) return null;
-  const DAY = 86_400_000;
-  // date 形如 "2026.09.12"，取月日两段即可（年份由副行的上下文承担）
-  const md = String(cz.a.date || '')
-    .split('.')
-    .slice(1)
-    .map(Number)
-    .join('.');
-
-  const at = top.occurredAt || top.createdAt;
-  const ageMs =
-    sig && sig.generatedAt ? new Date(sig.generatedAt).getTime() - new Date(at).getTime() : NaN;
-  const age =
-    !Number.isFinite(ageMs) || ageMs < 0
-      ? ''
-      : ageMs < 3_600_000
-        ? `${Math.max(1, Math.round(ageMs / 60_000))} 分钟前`
-        : ageMs < DAY
-          ? `${(ageMs / 3_600_000).toFixed(1)} 小时前`
-          : `${(ageMs / DAY).toFixed(1)} 天前`;
-
-  return { big: cz.a.weekday || md, sub: `${md} ${cz.a.time || ''} · ${age}`.trim() };
-}
-
-/**
  * 信号横幅视图模型。
  *
  * 规范：**只有拿到了「时间窗口」才进醒目态**。
  * 只有情绪没有时间的推文（「快了」「soon」）不足以支撑一个横幅 ——
  * 那会变成制造焦虑的假信号。
  *
- * 例外是「已发生」：它没有未来窗口，但有**发生时刻**这个硬时间戳，
- * 而且它正是观测台要回答的主问题（上次重置是什么时候），所以照样进醒目态。
+ * 这一区**只讲未来**：预告（可行动）> 线索（弱依据兜底）。
  *
- * 优先级：预告（可行动）> 已发生（是事实）> 线索（弱依据兜底）。
- * 旧实现是 `explicit ? signals : hint ? hints : []` 三选一 —— 只要没有预告，
- * 就退到线索档，于是横幅上显示的是「11pm on a Tuesday」这类与额度无关的推文，
- * 而真正的重置（「Reset all propagated」）根本不出现。
+ * ⚠ 已经发生过的重置**不在这里列举**。它是往回看的事实，而这块回答的是
+ *   「下一次什么时候」。同一段事实已经有载体 —— 首页顶部的「距上次重置 N 天」
+ *   与重置历史页 —— 再把它顶上横幅，只是复述，还挤掉真正可行动的信息。
+ *   检测能力保留在数据层（`signals.occurred` 照常识别与计数），只是不参与呈现。
+ *
+ * 旧实现是 `explicit ? signals : hint ? hints : []` 三选一 —— 只要没有预告就退到
+ * 线索档，于是横幅上显示的是「11pm on a Tuesday」这类与额度无关的推文，
+ * 而真正的重置根本不出现。现在预告优先，线索只在没有预告时兜底。
  */
 export function buildSignal(sig) {
   if (!sig) return { show: false, checked: 0, lookback: 60, windowFrom: '' };
 
   const explicit = (sig.signals || []).find((s) => s.window) || null;
-  if (explicit) return signalView(explicit, 'explicit', sig);
-
-  // detectSignals 已按时间倒序输出，取第一条即最近的那次重置
-  const occurred = (sig.occurred || [])[0] || null;
-  if (occurred) return signalView(occurred, 'occurred', sig);
+  if (explicit) return signalView(explicit, 'explicit');
 
   const hint = (sig.hints || []).find((s) => s.window) || null;
-  if (hint) return signalView(hint, 'hint', sig);
+  if (hint) return signalView(hint, 'hint');
 
   return {
     show: false,
@@ -113,23 +79,21 @@ export function buildSignal(sig) {
   };
 }
 
-function signalView(top, level, sig) {
+function signalView(top, level) {
   const w = top.window || null;
   const meta =
     level === 'explicit'
       ? { badge: '明确信号', title: 'Tibo 已预告下一次额度重置' }
-      : level === 'occurred'
-        ? { badge: '已发生', title: '检测到一次已完成的额度重置' }
-        : { badge: '线索', title: '有一条与额度相关的时间线索' };
+      : { badge: '线索', title: '有一条与额度相关的时间线索' };
 
   return {
     show: true,
     level,
     badge: meta.badge,
     title: meta.title,
-    precision: level === 'occurred' ? '' : PRECISION_TEXT[top.precision] || top.precision || '',
-    // 大字公告：预告 → 星期 + 日期/时段；已发生 → 日期 + 时刻 + 距今多久
-    headline: w ? headlineOf(top, w) : occurredHeadlineOf(top, sig),
+    precision: PRECISION_TEXT[top.precision] || top.precision || '',
+    // 大字公告：星期 + 日期/时段
+    headline: headlineOf(top, w),
     window: w
       ? {
           sourceZone: w.sourceZone,

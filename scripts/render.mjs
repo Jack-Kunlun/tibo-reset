@@ -118,7 +118,6 @@ export function renderMetrics(m) {
 
 const LEVEL_TEXT = {
   explicit: { label: '明确信号', title: 'Tibo 已预告下一次额度重置' },
-  occurred: { label: '已发生', title: '检测到一次已完成的额度重置' },
   hint: { label: '线索', title: '有一条与额度相关的时间线索' },
   none: { label: '暂无信号', title: '最近没有检测到重置信号' },
 };
@@ -130,9 +129,6 @@ const PRECISION_TEXT = {
   instant: '具体时刻前后',
 };
 
-/** 「已发生」最多并列展示几块 —— 再多就该去「最近记录」区看了。 */
-const MAX_OCCURRED_BLOCKS = 2;
-
 /**
  * 信号横幅。
  *
@@ -143,11 +139,18 @@ const MAX_OCCURRED_BLOCKS = 2;
  *   4) 原文可追溯，并写明「依据什么词判定的」
  *   5) 没有信号时也要有一行状态，否则用户会怀疑检测是不是坏了
  *
- * 分级并排展示，而不是**三选一**：
- *   旧实现是 `level === 'explicit' ? signals : level === 'hint' ? hints : []` ——
- *   只要没有明确预告，就退到线索档，于是页面上出现的是 5 条随机营销推文
- *   （「11pm on a Tuesday」），而真正的重置（「Reset all propagated」）根本不显示。
- *   现在：预告在前（可行动）、已发生在后（是事实），线索只在两者都没有时才兜底。
+ * 这一区**只讲未来**：预告（可行动）> 线索（弱依据兜底）。
+ *
+ * ⚠ 已经发生过的重置**不在这里列举**。它是**往回看**的事实，而本区回答的是
+ *   「下一次什么时候」。同一段事实的载体已经有三个 —— 顶部的「距上次重置 N 天」
+ *   倒计时、下方的「最近记录」、以及每轮的采集日志 —— 再在页首铺两块原文卡片，
+ *   既把倒计时挤到首屏之外，也只是复述。检测能力保留在数据层（`signals.occurred`
+ *   照常识别与计数），只是不参与这里的呈现。
+ *
+ * 旧实现是 `level === 'explicit' ? signals : level === 'hint' ? hints : []` ——
+ * 只要没有明确预告就退到线索档，于是页面上出现的是 5 条随机营销推文
+ * （「11pm on a Tuesday」），而真正的重置根本不显示。现在预告优先，线索只在
+ * 没有预告时兜底。
  */
 export function renderSignal(sig) {
   if (!sig) return '';
@@ -157,26 +160,20 @@ export function renderSignal(sig) {
   // ① 明确预告：他对下一次重置给了时间，可行动。
   for (const s of sig.signals ?? []) blocks.push(signalBlock(s, sig));
 
-  // ② 已发生的重置：事实。它此前被整类丢弃 —— 观测台要回答的第一个问题
-  //    就是「上次重置是什么时候」，把已发生的事实丢掉等于不回答自己的主问题。
-  const occurred = [...(sig.occurred ?? [])].sort(
-    (a, b) => new Date(b.occurredAt ?? b.createdAt) - new Date(a.occurredAt ?? a.createdAt)
-  );
-  for (const s of occurred.slice(0, MAX_OCCURRED_BLOCKS)) blocks.push(signalBlock(s, sig));
-
-  // ③ 线索：只在没有任何硬结论时才兜底。
-  //    线索是「有时间没意图」或「有意圖没时间」的弱依据，跟硬信号并列会稀释前者。
+  // ② 线索：只在没有预告时才兜底。
+  //    线索是「有时间没意图」或「有意图没时间」的弱依据，跟硬信号并列会稀释前者。
   if (!blocks.length) {
     const h = (sig.hints ?? []).find((s) => s.window) ?? null;
     if (h) blocks.push(signalBlock(h, sig));
   }
 
   if (!blocks.length) {
-    const extra = occurred.length ? '' : (sig.hints ?? []).length ? '，' + sig.hints.length + ' 条线索' : '';
+    const hints = (sig.hints ?? []).length;
+    const extra = hints ? `，${hints} 条线索` : '';
     return `
     <div class="sig-idle">
       <span class="sig-dot"></span>
-      <span>时间窗内 <b>${sig.checkedTweets}</b> 条推文中没有检测到重置信号${extra}</span>
+      <span>时间窗内 <b>${sig.checkedTweets}</b> 条推文中没有检测到重置预告${extra}</span>
       <span class="sig-idle-sub">时间窗自 ${esc(String(sig.windowFrom ?? '').slice(0, 10))} 起 · 共扫 ${sig.checkedTweets} 条</span>
     </div>`;
   }
@@ -191,18 +188,15 @@ export function renderSignal(sig) {
   return blocks.join('');
 }
 
-/** 构造单个信号块（预告与已发生共用骨架，差异在时间区与标题）。 */
+/** 构造单个信号块。 */
 function signalBlock(top, sig) {
   const t = LEVEL_TEXT[top.level] ?? LEVEL_TEXT.hint;
-  const isOccurred = top.level === 'occurred';
   const w = top.window;
   const src = w?.zones?.b;
   const usr = w?.zones?.a;
   const cz = top.createdZones ?? {};
 
-  // 预告 → 给出时间窗口；已发生 → 给出发生时刻 + 距今多久。
-  // 两者的区别不是排版，而是语义：窗口是「还没到的一段区间」，
-  // 拿窗口的框去装一个已经过去的时刻会读成「要在这个区间里发生」，是错的。
+  // 预告 → 给出时间窗口：窗口是「还没到的一段区间」，所以必须两个时区都换算。
   let timeBlock = '';
   if (w) {
     timeBlock = `<div class="sig-win">
@@ -220,31 +214,11 @@ function signalBlock(top, sig) {
           ${esc(w.zones?.diffText ?? '')}${w.crossesUserDay ? ' · 换算到北京时间后会跨自然日' : ''}
         </div>
       </div>`;
-  } else if (isOccurred) {
-    const at = top.occurredAt ?? top.createdAt;
-    const age = new Date(sig.generatedAt).getTime() - new Date(at).getTime();
-    timeBlock = `<div class="sig-win">
-        <div class="sw">
-          <span class="sw-k">Tibo 当地时间</span>
-          <span class="sw-v">${esc(cz.b?.text ?? '')}</span>
-          <span class="sw-z">${esc(cz.b?.offset ?? '')}</span>
-        </div>
-        <div class="sw">
-          <span class="sw-k">北京时间</span>
-          <span class="sw-v">${esc(cz.a?.text ?? '')}</span>
-          <span class="sw-z">${esc(cz.a?.offset ?? '')}</span>
-        </div>
-        <div class="sw-foot">
-          ${esc(cz.diffText ?? '')} · 距今约 ${esc(fmtAge(age))}
-        </div>
-      </div>`;
   }
 
-  const precision = !isOccurred && top.precision
+  const precision = top.precision
     ? `<span class="sig-precision">粒度：${PRECISION_TEXT[top.precision] ?? top.precision}</span>`
-    : isOccurred && typeof top.confidence === 'number'
-      ? `<span class="sig-precision">置信度 ${Math.round(top.confidence * 100)}%</span>`
-      : '';
+    : '';
 
   return `
   <section class="sig" data-level="${esc(top.level ?? 'hint')}">
@@ -256,22 +230,12 @@ function signalBlock(top, sig) {
     ${timeBlock}
     <blockquote class="sig-quote">${esc(top.text)}</blockquote>
     <div class="sig-meta">
-      ${isOccurred
-        ? ''
-        : `<span>发布于 ${esc(cz.a?.text ?? dualZone(top.createdAt, CJK, sig.sourceZone, '北京时间', '当地时间').a.text)} 北京 · ${esc(cz.b?.text ?? '')} 当地</span>`}
+      <span>发布于 ${esc(cz.a?.text ?? dualZone(top.createdAt, CJK, sig.sourceZone, '北京时间', '当地时间').a.text)} 北京 · ${esc(cz.b?.text ?? '')} 当地</span>
       ${top.timeNote ? `<span class="sig-note">${esc(top.timeNote)}</span>` : ''}
       ${top.reasons?.length ? `<span>判定依据：${esc(top.reasons.join('、'))}</span>` : ''}
       ${top.url ? `<a href="${esc(top.url)}" target="_blank" rel="noopener">查看原推 ↗</a>` : ''}
     </div>
   </section>`;
-}
-
-/** 把毫秒差说成人话。用于「已发生」那一块。 */
-function fmtAge(ms) {
-  if (!Number.isFinite(ms) || ms < 0) return '刚刚';
-  if (ms < 3_600_000) return `${Math.max(1, Math.round(ms / 60_000))} 分钟前`;
-  if (ms < DAY) return `${(ms / 3_600_000).toFixed(1)} 小时前`;
-  return `${(ms / DAY).toFixed(1)} 天前`;
 }
 
 /* ------------------------------ 图 表 ------------------------------ */

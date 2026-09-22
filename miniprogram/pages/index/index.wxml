@@ -73,7 +73,7 @@
 
   <view wx:else class="sig-idle">
     <text class="idot"></text>
-    <text>时间窗内 <text class="b">{{signal.checked}}</text> 条推文中没有检测到重置信号</text>
+    <text>时间窗内 <text class="b">{{signal.checked}}</text> 条推文中没有检测到重置预告</text>
     <text class="isub">时间窗自 {{signal.windowFrom}} 起</text>
   </view>
 

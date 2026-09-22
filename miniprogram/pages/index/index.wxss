@@ -213,15 +213,6 @@
     #FFFFFF;
 }
 
-/* 已发生：事实，不是待办。用竹绿（与「观测中」同族），与朱砂（需留意）区分。 */
-.sig[data-level="occurred"] {
-  border-color: rgba(95, 132, 85, 0.32);
-  border-left-color: #5F8455;
-  background:
-    radial-gradient(120% 88% at 0% 0%, rgba(95, 132, 85, 0.15), rgba(95, 132, 85, 0.03) 62%, rgba(255, 255, 255, 0) 100%),
-    #FFFFFF;
-}
-
 /* 呼吸光斑：让「有信号」这件事一直可见，而不是静着一张卡片 */
 .sig-halo {
   position: absolute;
@@ -236,10 +227,6 @@
 
 .sig[data-level="hint"] .sig-halo {
   background: radial-gradient(circle, rgba(63, 115, 118, 0.28), rgba(63, 115, 118, 0) 70%);
-}
-
-.sig[data-level="occurred"] .sig-halo {
-  background: radial-gradient(circle, rgba(95, 132, 85, 0.28), rgba(95, 132, 85, 0) 70%);
 }
 
 @keyframes halo {
@@ -280,10 +267,6 @@
   background: #3F7376;
 }
 
-.sig[data-level="occurred"] .badge {
-  background: #5F8455;
-}
-
 .sig-title {
   font-size: 30rpx;
   font-weight: 650;
@@ -318,10 +301,6 @@
 
 .sig[data-level="hint"] .ann-big {
   color: #3F7376;
-}
-
-.sig[data-level="occurred"] .ann-big {
-  color: #5F8455;
 }
 
 .ann-sub {

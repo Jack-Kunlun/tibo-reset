@@ -212,31 +212,29 @@ console.log('\n【5】信号');
 // 断言必须从数据推出，不能写死 —— 否则收录到一条真的预告后这条用例就假失败
 const snapshotSignals = (await import(resolve(ROOT, 'miniprogram/data/snapshot.js'))).default.signals;
 
-// 期望值与 buildSignal 的优先级同构：预告（有窗口）> 已发生（无窗口，但有硬时间戳）
-// > 线索（须有窗口）。「已发生」是唯一可以没有窗口却仍进醒目态的一档 ——
-// 它不是「快了」那种空话，而是有确切发生时刻的既成事实。
+// 期望值与 buildSignal 的优先级同构：预告（有窗口）> 线索（须有窗口）。
+// 「已发生」不参与横幅 —— 它是往回看的事实，横幅只讲未来。见 【8b】。
 const hasExplicitWin = (snapshotSignals.signals || []).some((s) => s.window);
 const hasOccurred = (snapshotSignals.occurred || []).length > 0;
 const hasHintWin = (snapshotSignals.hints || []).some((s) => s.window);
-const expectShow = hasExplicitWin || hasOccurred || hasHintWin;
-const expectOccurred = !hasExplicitWin && hasOccurred;
+const expectShow = hasExplicitWin || hasHintWin;
 
 check('信号对象存在', !!d.signal);
 check(
-  '醒目态与数据一致（预告 > 已发生 > 线索）',
+  '醒目态与数据一致（预告 > 线索，不含已发生）',
   d.signal.show === expectShow,
   `show=${d.signal.show} 期望=${expectShow}（level=${snapshotSignals.level} occurred=${hasOccurred}）`
 );
-if (expectOccurred) {
-  check('已发生态：不给倒计时窗口（窗口是预告的语义）', d.signal.window === null, JSON.stringify(d.signal.window));
-  check('已发生态：徽标为「已发生」', d.signal.badge === '已发生', d.signal.badge);
+// 这一条是本轮的回归点：数据里明明有 2 条已发生的重置，但它不该把横幅顶起来 ——
+// 顶上首页的是「距上次重置 N 天」，不是复述一遍那段事实。
+if (hasOccurred && !hasExplicitWin && !hasHintWin) {
   check(
-    '已发生态：大字给出日期与时刻',
-    !!(d.signal.headline && d.signal.headline.big && d.signal.headline.sub),
-    JSON.stringify(d.signal.headline)
+    '已发生的重置不进横幅（数据里有，横幅里没有）',
+    d.signal.show === false,
+    `occurred=${(snapshotSignals.occurred || []).length} 但 show=${d.signal.show} level=${d.signal.level}`
   );
-  check('给出判定依据（不只给结论）', !!d.signal.reason, d.signal.reason);
-} else if (expectShow) {
+}
+if (expectShow) {
   check('醒目态必须给出时间窗口', !!d.signal.window, JSON.stringify(d.signal.window));
   check('窗口含双时区', !!(d.signal.window && d.signal.window.sourceZone && d.signal.window.userZone), JSON.stringify(d.signal.window));
   check('窗口含时差说明', !!(d.signal.window && d.signal.window.diffText), d.signal.window && d.signal.window.diffText);
@@ -377,14 +375,15 @@ const hintNoWin = buildSignal({
 });
 check('线索无窗口时不展示（不放没有时间的空话）', hintNoWin.show === false);
 
-/* ---------------- 8b. 「已发生」路径（此前被整类丢弃） ---------------- */
+/* ------------- 8b. 「已发生」：识别保留，但不进横幅 ------------- */
 
 /*
- * 这是本轮修复的核心回归点。
- *
- * 旧实现只认「预告」，把已经发生的重置判成「已完成的过去事件，不是预告」→ 直接
- * 丢掉。于是横幅的取值逻辑退到线索档，页面上显示的是「11pm on a Tuesday」这类
- * 与额度无关的推文，而「Reset all propagated」那条 —— 观测台存在的理由 —— 不出现。
+ * 两个层次必须分开看：
+ *   ① **识别层** —— 已经发生的重置要被认出来。旧实现把它判成「已完成的过去事件，
+ *      不是预告」直接丢掉，于是数据里根本看不见 09-12 那次重置。这条回归保留。
+ *   ② **呈现层** —— 认出来之后**不在页首列举**。横幅回答的是「下一次什么时候」，
+ *      而「已发生」是往回看的事实，它的载体是首页顶部的「距上次重置 N 天」与
+ *      重置历史页。再在页首铺卡片，既把倒计时挤出首屏，也只是复述同一件事。
  */
 
 const occurredTweets = [
@@ -402,7 +401,7 @@ const occurredTweets = [
   },
 ];
 const occSig = detectSignals(occurredTweets, { now });
-check('已发生的重置被识别出来', occSig.occurred.length === 1, `实际 ${occSig.occurred.length}`);
+check('已发生的重置被识别出来（识别层保留）', occSig.occurred.length === 1, `实际 ${occSig.occurred.length}`);
 check('汇总等级为 occurred', occSig.level === 'occurred', occSig.level);
 check(
   '与额度无关的推文不会被算进已发生',
@@ -412,28 +411,17 @@ check(
 
 const occVm = buildSignal(occSig);
 check(
-  '已发生 → 进醒目态（它有硬时间戳，不是「快了」这类空话）',
-  occVm.show === true,
-  `show=${occVm.show}`
-);
-check('已发生 → 徽标为「已发生」', occVm.badge === '已发生', occVm.badge);
-check(
-  '已发生 → 不给倒计时窗口（窗口的语义是「未来某段区间」）',
-  occVm.window === null,
-  JSON.stringify(occVm.window)
+  '已发生不进横幅（不在页首列举既成事实）',
+  occVm.show === false,
+  `show=${occVm.show} level=${occVm.level}`
 );
 check(
-  '已发生 → 大字给出日期与时刻',
-  !!(occVm.headline && occVm.headline.big && occVm.headline.sub),
-  JSON.stringify(occVm.headline)
-);
-check(
-  '已发生 → 视图模型里没有 undefined / NaN',
-  !JSON.stringify(occVm).includes('undefined') && !JSON.stringify(occVm).includes('NaN'),
-  JSON.stringify(occVm).slice(0, 140)
+  '不进横幅时仍给空闲态字段（扫描条数不丢）',
+  Number.isFinite(occVm.checked) && occVm.checked > 0,
+  String(occVm.checked)
 );
 
-// 预告优先于已发生：两者并存时，前景该是「下一次什么时候」（可行动），
+// 预告优先：两者并存时，前景该是「下一次什么时候」（可行动），
 // 而不是「刚发生过」（已是既成事实）。
 const bothSig = detectSignals(
   [

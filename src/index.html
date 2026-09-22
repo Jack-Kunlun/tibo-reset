@@ -80,19 +80,12 @@
     border-color:rgba(63,115,118,.32);border-left-color:var(--lan);
     background:linear-gradient(180deg,rgba(63,115,118,.07),rgba(63,115,118,.02));
   }
-  /* 已发生的重置：这是**事实**而不是待办，所以用竹绿（与「观测中」同族），
-     与朱砂（＝需要你留意/行动）区分开。 */
-  .sig[data-level="occurred"]{
-    border-color:rgba(95,132,85,.34);border-left-color:var(--bamboo);
-    background:linear-gradient(180deg,rgba(95,132,85,.075),rgba(95,132,85,.02));
-  }
-  /* 多个信号块并排时（预告 + 已发生）给彼此留出间距 */
+  /* 多条预告并排时给彼此留出间距 */
   .sig + .sig{margin-top:16px}
   .sig-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
   .sig-badge{font-size:11.5px;letter-spacing:.1em;padding:3px 11px;border-radius:99px;
     background:var(--cinnabar);color:#fff}
   .sig[data-level="hint"] .sig-badge{background:var(--lan)}
-  .sig[data-level="occurred"] .sig-badge{background:var(--bamboo)}
   .sig-title{font-size:16px;font-weight:650}
   .sig-precision{font-size:12px;color:var(--mist);margin-left:auto}
   .sig-win{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
