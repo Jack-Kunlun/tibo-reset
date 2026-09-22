@@ -185,7 +185,22 @@ async function withBrowser({ port, proxy }) {
   if (proxy) args.push(`--proxy-server=${proxy}`);
   args.push('about:blank');
 
-  const proc = spawn(CHROME_BIN, args, { stdio: ['ignore', 'ignore', 'ignore'] });
+  const proc = spawn(CHROME_BIN, args, { stdio: ['ignore', 'ignore', 'pipe'] });
+
+  // 留着 Chrome 自己的报错，失败时能说清原因。
+  // 不加这层，起不来时只能报「端口未就绪」—— 而 Chrome 已经把真正的原因
+  // （profile 被占用、参数不认识、它自己的沙箱起不来）写在那一行里了。
+  const tail = [];
+  proc.stderr.on('data', (chunk) => {
+    for (const line of String(chunk).split('\n')) {
+      const s = line.trim();
+      // macOS 上必然刷屏、且与启动成败无关的两类噪声
+      if (!s || /CVDisplayLink|Trying to load the allocator/.test(s)) continue;
+      tail.push(s);
+      if (tail.length > 12) tail.shift();
+    }
+  });
+
   const close = async () => {
     try {
       proc.kill();
@@ -194,7 +209,9 @@ async function withBrowser({ port, proxy }) {
     }
   };
 
-  for (let i = 0; i < 60; i++) {
+  // ≈120 秒。首次用一个新 profile 冷启动会明显慢于热启动（实测冷启 >18s、
+  // 热启 <7s），预算给小了会把「只是慢」误判成「起不来」。
+  for (let i = 0; i < 400; i++) {
     await sleep(300);
     try {
       const ver = JSON.parse(await httpGet(`http://127.0.0.1:${port}/json/version`));
@@ -204,7 +221,10 @@ async function withBrowser({ port, proxy }) {
     }
   }
   await close();
-  throw new Error('Chrome 调试端口未就绪（检查 CHROME_BIN / X_PROFILE_DIR）');
+  throw new Error(
+    `Chrome 调试端口未就绪（profile: ${PROFILE_DIR}）` +
+      (tail.length ? `\n    Chrome 说：\n      ${tail.join('\n      ')}` : '')
+  );
 }
 
 /**
