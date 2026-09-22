@@ -7,7 +7,7 @@
  * 横幅长什么样」这种平时根本触发不到的路径。
  */
 
-import { fmtDate, pct1, trim1 } from './format.js';
+import { fmtDate, fmtClock, pct1, trim1 } from './format.js';
 
 const PRECISION_TEXT = {
   day: '全天',
@@ -57,19 +57,25 @@ function headlineOf(top, w) {
  *   与重置历史页 —— 再把它顶上横幅，只是复述，还挤掉真正可行动的信息。
  *   检测能力保留在数据层（`signals.occurred` 照常识别与计数），只是不参与呈现。
  *
+ * ── 预告是「一条预告 + 里面 N 条推文」，不再是「横幅 + 另一个折叠块」──
+ * 老大的原话：「这些信息应该合并成一条预告，然后是一条预告里面 4 条推文。」
+ * 合并逻辑在数据层（signals.mjs 的 buildForecasts），端上只是画出来 ——
+ * 网页、小程序、采集日志共用同一份结论。
+ *
  * 旧实现是 `explicit ? signals : hint ? hints : []` 三选一 —— 只要没有预告就退到
  * 线索档，于是横幅上显示的是「11pm on a Tuesday」这类与额度无关的推文，
  * 而真正的重置根本不出现。现在预告优先，线索只在没有预告时兜底。
  */
 export function buildSignal(sig) {
-  if (!sig) return { show: false, checked: 0, lookback: 60, windowFrom: '', hypothesis: null };
-  const hy = hypothesisView(sig.hypothesis);
+  if (!sig) return { show: false, checked: 0, lookback: 60, windowFrom: '' };
 
-  const explicit = (sig.signals || []).find((s) => s.window) || null;
-  if (explicit) return { ...signalView(explicit, 'explicit'), hypothesis: hy };
+  // 预告：一个时间窗口一条。数据层给的是数组（理论上可能有多个未来窗口），
+  // 端上只展示**最先到期**的那条 —— 手机屏幕上并列两块预告纯属噪音。
+  const f = (sig.forecasts || [])[0] || null;
+  if (f) return forecastView(f);
 
   const hint = (sig.hints || []).find((s) => s.window) || null;
-  if (hint) return { ...signalView(hint, 'hint'), hypothesis: hy };
+  if (hint) return signalView(hint, 'hint');
 
   return {
     show: false,
@@ -77,36 +83,94 @@ export function buildSignal(sig) {
     lookback: sig.lookbackDays,
     windowFrom: sig.windowFrom || '',
     hintCount: (sig.hints || []).length,
-    hypothesis: hy,
   };
 }
 
 /**
- * 综合假设的**摘要**视图（小程序端不下发完整证据链）。
+ * 预告视图：窗口（结论）+ 依据推文（支撑）。
  *
- * 老大问的是「他不是都有 3am on a tuesday 这样的回复了吗，为什么没有明确时间」。
- * 这件事必须能在端上说清：那些钟点系统**一条都没漏**，只是单条看没有额度语境、
- * 不足以决定窗口。把原因写明，用户才能区分「系统没看见」与「看见了但没采信」——
- * 前者是缺陷，后者是判断，两者的可信度完全不同。
- *
- * 不下发完整证据链的原因同 `rejected`（见 build.mjs）：快照跟着小程序包走，
- * 而手机上这个列表没有折叠交互，铺开会把正文推走。
+ * 依据**默认收起**：手机一屏放不下「窗口 + 4 条推文 + 倒计时」，而倒计时是
+ * 这一页的主角。摘要行照常显示「依据 4 条推文 · 2 条承诺 · 2 条同日提及」，
+ * 归属关系一眼可见，要看详情点一下。
  */
-function hypothesisView(h) {
-  if (!h || !(h.evidence || []).length) return null;
-  const c = h.counts || {};
-  const unadopted = (h.clockHints || []).filter((x) => !x.adopted);
+function forecastView(f) {
+  const w = f.window || null;
+  const ev = (f.evidence || []).map(evidenceView);
+  const c = f.counts || {};
+  const unadopted = (f.clockHints || []).filter((x) => !x.adopted);
+
   return {
-    day: h.day || '',
-    summary: `综合 ${h.evidence.length} 条推文指向这一天（${c.hard || 0} 承诺${
-      c.soft ? ` + ${c.soft} 同日提及` : ''
-    }）`,
-    clockNote: unadopted.length
+    show: true,
+    level: 'explicit',
+    badge: '明确信号',
+    title: 'Tibo 已预告下一次额度重置',
+    precision: PRECISION_TEXT[f.precision] || f.precision || '',
+    headline: headlineOf(f, w),
+    window: windowView(w),
+    ev,
+    evCount: ev.length,
+    evOpen: false,
+    evMix: [c.hard ? `${c.hard} 条承诺` : '', c.soft ? `${c.soft} 条同日提及` : '']
+      .filter(Boolean)
+      .join(' · '),
+    // 「看见了但没采信」必须能与「根本没看见」区分 —— 前者是判断，后者是缺陷
+    evNote: unadopted.length
       ? `另见 ${unadopted.map((x) => x.word).join(' / ')} 钟点线索，语境与额度无关，未纳入窗口`
       : '',
+    text: f.text || '',
+    timeNote: f.timeNote || '',
+    reason: (f.reasons || []).join('、'),
+    createdText: '',
+    url: f.url || '',
   };
 }
 
+/**
+ * 证据条目：这条预告依据的一条推文。
+ *
+ * 时间换算到北京时间并写明 —— 旧版这里贴的是 UTC，与页面其它地方自相矛盾。
+ * 「承诺 / 提及」的标签不能省：前者决定窗口，后者只是旁证，混起来会让人
+ * 以为这几条推文分量相等。正文截到 180 字，够看清说了什么，看全文点链接。
+ */
+function evidenceView(e) {
+  const ts = e.createdAt ? new Date(e.createdAt).getTime() : NaN;
+  const when = Number.isFinite(ts) ? `${fmtDate(ts).slice(5)} ${fmtClock(ts)}` : '';
+  return {
+    id: e.id || '',
+    when,
+    weight: e.weight === 'hard' ? 'hard' : 'soft',
+    tag: e.weight === 'hard' ? '承诺' : '提及',
+    // 「原创 / 回复」的区别要留（他大量线索埋在回复里），但「回复 @xxx」太长，
+    // 手机上跟时间、标签挤在一行会顶断。缩成「↩ @xxx」，信息没丢。
+    via: e.via && e.via !== '原创' ? `↩ ${e.via.replace(/^回复\s*/, '')}` : '原创',
+    word: e.timeWord || '',
+    text: (e.text || '').slice(0, 180),
+    url: e.url || '',
+  };
+}
+
+/** 窗口视图（预告与线索共用）。 */
+function windowView(w) {
+  if (!w) return null;
+  return {
+    sourceZone: w.sourceZone,
+    userZone: w.userZone,
+    srcOffset: (w.zones && w.zones.b && w.zones.b.offset) || '',
+    usrOffset: (w.zones && w.zones.a && w.zones.a.offset) || '',
+    diffText: (w.zones && w.zones.diffText) || '',
+    crosses: !!w.crossesUserDay,
+    // 数字时间戳直通，供页面做每秒倒计时（不做字符串反解析）
+    fromTs: w.fromTs ?? null,
+    toTs: w.toTs ?? null,
+  };
+}
+
+/**
+ * 线索视图：**没有预告时**才出现的弱依据兜底。
+ *
+ * 线索是没有证据链可挂的单条推文（有时间没意图、或有意图没时间），
+ * 所以形态退化成「一条推文 + 它的窗口」，与预告共用窗口渲染。
+ */
 function signalView(top, level) {
   const w = top.window || null;
   const meta =
@@ -122,19 +186,13 @@ function signalView(top, level) {
     precision: PRECISION_TEXT[top.precision] || top.precision || '',
     // 大字公告：星期 + 日期/时段
     headline: headlineOf(top, w),
-    window: w
-      ? {
-          sourceZone: w.sourceZone,
-          userZone: w.userZone,
-          srcOffset: (w.zones && w.zones.b && w.zones.b.offset) || '',
-          usrOffset: (w.zones && w.zones.a && w.zones.a.offset) || '',
-          diffText: (w.zones && w.zones.diffText) || '',
-          crosses: !!w.crossesUserDay,
-          // 数字时间戳直通，供页面做每秒倒计时（不做字符串反解析）
-          fromTs: w.fromTs ?? null,
-          toTs: w.toTs ?? null,
-        }
-      : null,
+    window: windowView(w),
+    // 没有依据推文可挂 → evCount 为 0，模板据此渲染单条原文
+    ev: [],
+    evCount: 0,
+    evOpen: false,
+    evMix: '',
+    evNote: '',
     text: top.text || '',
     timeNote: top.timeNote || '',
     reason: (top.reasons || []).join('、'),

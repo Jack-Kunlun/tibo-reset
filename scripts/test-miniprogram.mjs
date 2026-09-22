@@ -214,10 +214,12 @@ const snapshotSignals = (await import(resolve(ROOT, 'miniprogram/data/snapshot.j
 
 // 期望值与 buildSignal 的优先级同构：预告（有窗口）> 线索（须有窗口）。
 // 「已发生」不参与横幅 —— 它是往回看的事实，横幅只讲未来。见 【8b】。
-const hasExplicitWin = (snapshotSignals.signals || []).some((s) => s.window);
+// 预告的判据从 `signals` 换成 `forecasts`：合并下沉到数据层之后，
+// 横幅认的是「一个时间窗口一条预告」（见 decisions.md 的 D-018）。
+const hasForecast = (snapshotSignals.forecasts || []).length > 0;
 const hasOccurred = (snapshotSignals.occurred || []).length > 0;
 const hasHintWin = (snapshotSignals.hints || []).some((s) => s.window);
-const expectShow = hasExplicitWin || hasHintWin;
+const expectShow = hasForecast || hasHintWin;
 
 check('信号对象存在', !!d.signal);
 check(
@@ -227,7 +229,7 @@ check(
 );
 // 这一条是本轮的回归点：数据里明明有 2 条已发生的重置，但它不该把横幅顶起来 ——
 // 顶上首页的是「距上次重置 N 天」，不是复述一遍那段事实。
-if (hasOccurred && !hasExplicitWin && !hasHintWin) {
+if (hasOccurred && !hasForecast && !hasHintWin) {
   check(
     '已发生的重置不进横幅（数据里有，横幅里没有）',
     d.signal.show === false,
@@ -239,7 +241,39 @@ if (expectShow) {
   check('窗口含双时区', !!(d.signal.window && d.signal.window.sourceZone && d.signal.window.userZone), JSON.stringify(d.signal.window));
   check('窗口含时差说明', !!(d.signal.window && d.signal.window.diffText), d.signal.window && d.signal.window.diffText);
   check('给出判定依据（不只给结论）', !!d.signal.reason, d.signal.reason);
-  check('给出原文可追溯的发布时刻（双时区）', d.signal.createdText.includes('北京') && d.signal.createdText.includes('当地'), d.signal.createdText);
+
+  if (hasForecast) {
+    // 本轮的核心结构：**一条预告，里面 N 条推文**。
+    // 旧版把同一件事拆成「横幅（只挂最新一条原文）+ 另起一行计数 + 独立摘要块」，
+    // 端上要在三处之间自己拼归属关系。
+    check('预告里挂着依据推文', d.signal.evCount >= 1, `实际 ${d.signal.evCount}`);
+    check(
+      '依据条数与数据层一致（不各算各的）',
+      d.signal.evCount === snapshotSignals.forecasts[0].evidence.length,
+      `${d.signal.evCount} vs ${snapshotSignals.forecasts[0].evidence.length}`
+    );
+    check('依据默认收起（一屏放不下「窗口 + 推文 + 倒计时」）', d.signal.evOpen === false, String(d.signal.evOpen));
+    check(
+      '每条依据都带：北京时间 / 承诺或提及 / 原文 / 原推链接',
+      d.signal.ev.length > 0 &&
+        d.signal.ev.every(
+          (e) => /^\d{2}\.\d{2} \d{2}:\d{2}$/.test(e.when) && e.tag && e.text && e.url
+        ),
+      JSON.stringify(d.signal.ev[0] || {})
+    );
+    check(
+      '权重取值只有 hard / soft（渲染层据此分色）',
+      d.signal.ev.every((e) => e.weight === 'hard' || e.weight === 'soft'),
+      d.signal.ev.map((e) => e.weight).join(',')
+    );
+    check('摘要行说清构成（承诺几条、同日提及几条）', d.signal.evMix.includes('承诺'), d.signal.evMix);
+    check('没有依据可挂时不会渲染空的依据块', d.signal.ev.length === 0 || !!d.signal.evMix, String(d.signal.ev.length));
+  } else {
+    // 线索形态：单条推文 + 它的窗口，没有证据链
+    check('线索形态：给出原文', !!d.signal.text, d.signal.text);
+    check('线索形态：没有依据列表（不渲染空块）', d.signal.evCount === 0, String(d.signal.evCount));
+    check('线索形态：给出发布时刻（双时区）', d.signal.createdText.includes('北京') && d.signal.createdText.includes('当地'), d.signal.createdText);
+  }
 } else {
   check('空闲态给出扫描条数', Number.isFinite(d.signal.checked) && d.signal.checked > 0, String(d.signal.checked));
   check('空闲态不显示时间窗口', !d.signal.window, JSON.stringify(d.signal.window));
@@ -318,7 +352,17 @@ check('窗口含 Tibo 当地时间', !!(vm.window && vm.window.sourceZone), vm.w
 check('窗口含北京时间', !!(vm.window && vm.window.userZone), vm.window && vm.window.userZone);
 check('窗口含两个时区的 UTC 偏移', !!(vm.window && vm.window.srcOffset && vm.window.usrOffset), JSON.stringify(vm.window));
 check('窗口标注时差', !!(vm.window && vm.window.diffText), vm.window && vm.window.diffText);
-check('给出发布时刻的双时区表述', vm.createdText.includes('北京') && vm.createdText.includes('当地'), vm.createdText);
+// explicit 形态的「发布时刻」由**依据推文**承担 —— 横幅本身就是这几条推文的合并，
+// 再在页脚复述一次就是重复。时间一律北京时间（旧版这里贴的是 UTC，同一条推文
+// 在页面上会有两个相差 8 小时的时间戳）。
+check(
+  '依据推文带北京时间（旧版此处贴的是 UTC）',
+  vm.ev.length === 1 && /^\d{2}\.\d{2} \d{2}:\d{2}$/.test(vm.ev[0].when),
+  JSON.stringify(vm.ev[0] || {})
+);
+check('合成推文 → 一条预告，里面 1 条推文', vm.evCount === 1, `实际 ${vm.evCount}`);
+check('合成推文的依据也带权重（承诺）', vm.ev[0] && vm.ev[0].weight === 'hard', JSON.stringify(vm.ev[0] || {}));
+check('依据默认收起（手机一屏放不下）', vm.evOpen === false, String(vm.evOpen));
 check('给出判定依据', !!vm.reason, vm.reason);
 check(
   '视图模型里没有 undefined / NaN',

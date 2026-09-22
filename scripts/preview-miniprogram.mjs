@@ -129,9 +129,35 @@ const signalHtml = sig.show
             </div>`
           : ''
       }
-      <div class="quote">${esc(sig.text)}</div>
+      ${
+        sig.evCount
+          ? `<details class="ev" open>
+              <summary class="ev-head">
+                <span class="ev-t">依据 ${sig.evCount} 条推文</span>
+                ${sig.evMix ? `<span class="ev-mix">${esc(sig.evMix)}</span>` : ''}
+                <span class="ev-toggle">收起/展开</span>
+              </summary>
+              <div class="ev-body">
+                ${sig.evNote ? `<div class="ev-note">${esc(sig.evNote)}</div>` : ''}
+                ${sig.ev
+                  .map(
+                    (e) => `<div class="ev-item ${e.weight}">
+                  <div class="ev-top">
+                    <span class="ev-when">${esc(e.when)} 北京</span>
+                    <span class="ev-tag ${e.weight}">${esc(e.tag)}</span>
+                    ${e.via ? `<span class="ev-via">${esc(e.via)}</span>` : ''}
+                    ${e.word ? `<span class="ev-word">${esc(e.word)}</span>` : ''}
+                  </div>
+                  <div class="ev-quote">${esc(e.text)}</div>
+                </div>`
+                  )
+                  .join('')}
+              </div>
+            </details>`
+          : `<div class="quote">${esc(sig.text)}</div>`
+      }
       <div class="meta">
-        <span>发布于 ${esc(sig.createdText)}</span>
+        ${sig.createdText ? `<span>发布于 ${esc(sig.createdText)}</span>` : ''}
         ${sig.timeNote ? `<span class="note">${esc(sig.timeNote)}</span>` : ''}
         ${sig.reason ? `<span>判定依据：${esc(sig.reason)}</span>` : ''}
       </div>

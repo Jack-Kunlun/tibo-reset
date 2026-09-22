@@ -437,27 +437,112 @@
 
 /* 综合证据摘要：虚线框 + 灰底，视觉上明确「这是复核材料，不是结论」。
    和网页端的样子保持一致，两端看同一份数据应当有同一套语义。 */
-.chain {
-  margin-top: 22rpx;
-  padding: 16rpx 20rpx;
-  border: 1rpx dashed rgba(140, 136, 128, 0.42);
+/* 预告依据的推文：一条预告 = 一个时间窗口，支撑它的推文就列在这条里面（见 D-018）。
+   默认收起 —— 手机一屏放不下「窗口 + 4 条推文 + 倒计时」，而倒计时是这一页的主角。 */
+.ev {
+  margin-top: 20rpx;
+  border: 1rpx solid rgba(140, 136, 128, 0.28);
   border-radius: 14rpx;
   background: #F2EFE8;
-  display: flex;
-  flex-direction: column;
-  gap: 8rpx;
+  overflow: hidden;
 }
 
-.chain-sum {
-  font-size: 22rpx;
+.ev-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  padding: 16rpx 20rpx;
+}
+
+.ev-t {
+  font-size: 23rpx;
+  color: #1F1E1B;
+  font-weight: 600;
+}
+
+.ev-mix {
+  font-size: 21rpx;
+  color: #8C8880;
+}
+
+.ev-toggle {
+  margin-left: auto;
+  font-size: 21rpx;
+  color: #3F7376;
+}
+
+.ev-body {
+  padding: 0 20rpx 18rpx;
+  border-top: 1rpx solid rgba(140, 136, 128, 0.28);
+}
+
+.ev-note {
+  display: block;
+  padding-top: 14rpx;
+  font-size: 21rpx;
+  color: #8C8880;
+  line-height: 1.6;
+}
+
+.ev-item {
+  margin-top: 16rpx;
+  padding-left: 16rpx;
+  border-left: 4rpx solid rgba(140, 136, 128, 0.5);
+}
+
+.ev-item.hard {
+  border-left-color: #3F7376;
+}
+
+.ev-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  font-size: 21rpx;
+  color: #8C8880;
+}
+
+.ev-when {
+  font-family: monospace;
+}
+
+.ev-tag {
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  background: rgba(140, 136, 128, 0.16);
+  color: #8C8880;
+  font-size: 20rpx;
+}
+
+.ev-tag.hard {
+  background: rgba(63, 115, 118, 0.14);
+  color: #3F7376;
+}
+
+.ev-via {
+  color: #4A4842;
+}
+
+.ev-word {
+  font-family: monospace;
+  color: #4A4842;
+}
+
+.ev-quote {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 23rpx;
   color: #4A4842;
   line-height: 1.6;
 }
 
-.chain-note {
+.ev-link {
+  display: inline-block;
+  margin-top: 8rpx;
   font-size: 21rpx;
-  color: #8C8880;
-  line-height: 1.6;
+  color: #3F7376;
 }
 
 .sig-idle {

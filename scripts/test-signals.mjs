@@ -593,6 +593,79 @@ const DAY_922 = Date.UTC(2026, 8, 22) / 86_400_000;
   );
 }
 
+/* ==================== 6. 预告合并（一条预告 + 里面 N 条推文） ==================== */
+
+console.log('\n【6】预告：一个窗口一条，支撑它的推文挂在里面');
+
+{
+  // 真实数据的回归 —— 老大的原话「这些信息应该合并成一条预告，
+  // 然后是一条预告里面 4 条推文」。09-22 那个窗口他先后说了两次
+  // （09-19 回复里铺垫、09-22 原创宣布），另有 2 条同日提及，
+  // 页面上必须是**一条预告**挂着这 4 条，而不是三处各说一半。
+  const tweets = JSON.parse(await readFile(resolve(ROOT, 'data/tweets.json'), 'utf8')).tweets;
+  const sig = detectSignals(tweets, { now: new Date('2026-09-22T04:40:00.000Z').getTime() });
+
+  check('真实数据：2 条 explicit 合并成 1 条预告', sig.forecasts.length === 1, `实际 ${sig.forecasts.length}`);
+  const f = sig.forecasts[0];
+  check('这一条预告里挂了 4 条推文', f.evidence.length === 4, `实际 ${f.evidence.length}`);
+  check(
+    '4 条推文的构成：2 条承诺 + 2 条同日提及',
+    f.counts.hard === 2 && f.counts.soft === 2,
+    JSON.stringify(f.counts)
+  );
+  check('正文取最新那条（他最后把话说全了）', f.text.includes('I promised a reset'), f.text.slice(0, 40));
+  check('同一窗口说了 2 次 → sources 记为 2', f.sources === 2, `实际 ${f.sources}`);
+  check(
+    '预告的窗口与综合假设一致（都取自硬证据）',
+    f.window.fromTs === sig.hypothesis.window.fromTs &&
+      f.window.toTs === sig.hypothesis.window.toTs,
+    `${f.window.fromTs} vs ${sig.hypothesis.window.fromTs}`
+  );
+  check('未采纳的钟点线索跟着这条预告走', f.clockHints.length === 2, `实际 ${f.clockHints.length}`);
+  check(
+    '证据条目字段完整（渲染层直接吃，不再二次组装）',
+    f.evidence.every((e) => e.id && e.createdAt && e.text && e.via && e.weight),
+    JSON.stringify(Object.keys(f.evidence[0] ?? {}))
+  );
+}
+
+{
+  // 反向闸门：**不同窗口不能合并**。他先说周四、后改口周二时，
+  // 把两个互斥的窗口拍成一条，比不合并更危险 —— 那会给出一个
+  // 谁也不认的时间。
+  const now = new Date('2026-09-22T04:40:00.000Z').getTime();
+  const sig = detectSignals(
+    [
+      { id: 'tue', text: 'I promised a reset for Tuesday', created_at: '2026-09-22T04:31:00.000Z' },
+      { id: 'thu', text: "we'll reset the limits on Thursday", created_at: '2026-09-21T04:00:00.000Z' },
+    ],
+    { now }
+  );
+
+  check('两个不同窗口 → 两条预告', sig.forecasts.length === 2, `实际 ${sig.forecasts.length}`);
+  check(
+    '各挂各的证据：假设只锚定一个日子，另一条退化为单条',
+    sig.forecasts[0].evidence.length === 1 && sig.forecasts[1].evidence.length === 1,
+    sig.forecasts.map((f) => f.evidence.length).join(',')
+  );
+  check(
+    '先到期的窗口排前面',
+    sig.forecasts[0].window.fromTs < sig.forecasts[1].window.fromTs,
+    sig.forecasts.map((f) => f.window.sourceZone).join(' | ')
+  );
+}
+
+{
+  // 没有承诺就没有预告。只有时间线索的推文走 hint 档，不产生 forecasts。
+  const now = new Date('2026-09-22T04:40:00.000Z').getTime();
+  const sig = detectSignals(
+    [{ id: 's1', text: '3am on a tuesday', created_at: '2026-09-21T06:26:00.000Z' }],
+    { now }
+  );
+  check('没有承诺 → 不产生预告', sig.forecasts.length === 0, `实际 ${sig.forecasts.length}`);
+  check('但线索照常保留（hint 档兜底）', sig.hints.length >= 1, `实际 ${sig.hints.length}`);
+}
+
 /* ================================ 结果 ================================ */
 
 console.log(`\n${'─'.repeat(56)}`);

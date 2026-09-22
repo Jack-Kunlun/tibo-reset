@@ -35,7 +35,7 @@
   /* ---------- 顶栏 ---------- */
   header.top{
     display:flex;align-items:center;justify-content:space-between;gap:16px;
-    padding:26px 0 22px;border-bottom:1px solid var(--line);
+    padding:20px 0 16px;border-bottom:1px solid var(--line);
   }
   .brand{display:flex;align-items:baseline;gap:12px}
   /* 品牌标。源图是**不透明黑底**的方形图，这里只加圆角裁切与极轻投影，不做抠底 ——
@@ -71,8 +71,12 @@
   .cwarn-l li{margin:2px 0}
 
   /* ---------- 信号横幅 ---------- */
+  /* 尺寸整体收过一轮：这不是审美问题，是首屏问题 —— 预告卡每高 1px，
+     下面的倒计时就往下 1px。实测（含 4 条依据推文）1280×720 视口下
+     倒计时底部原本落在 768px，被切掉一截；压掉 ~70px 后完整进第一屏。
+     详细数字见 decisions.md 的 D-018。 */
   .sig{
-    margin-top:26px;padding:20px 22px;border-radius:14px;
+    margin-top:18px;padding:18px 20px;border-radius:14px;
     border:1px solid rgba(179,86,60,.34);border-left:4px solid var(--cinnabar);
     background:linear-gradient(180deg,rgba(179,86,60,.075),rgba(179,86,60,.02));
   }
@@ -82,20 +86,20 @@
   }
   /* 多条预告并排时给彼此留出间距 */
   .sig + .sig{margin-top:16px}
-  .sig-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .sig-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
   .sig-badge{font-size:11.5px;letter-spacing:.1em;padding:3px 11px;border-radius:99px;
     background:var(--cinnabar);color:#fff}
   .sig[data-level="hint"] .sig-badge{background:var(--lan)}
   .sig-title{font-size:16px;font-weight:650}
   .sig-precision{font-size:12px;color:var(--mist);margin-left:auto}
   .sig-win{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
-    border-radius:10px;overflow:hidden;margin-bottom:14px}
+    border-radius:10px;overflow:hidden;margin-bottom:12px}
   .sw{display:grid;grid-template-columns:104px 1fr auto;gap:12px;align-items:baseline;
-    background:var(--card);padding:12px 15px}
+    background:var(--card);padding:10px 14px}
   .sw-k{font-size:12px;color:var(--mist)}
   .sw-v{font-family:var(--mono);font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
   .sw-z{font-family:var(--mono);font-size:11.5px;color:var(--mist);white-space:nowrap}
-  .sw-foot{background:var(--card);padding:10px 15px;font-size:12px;color:var(--ink2)}
+  .sw-foot{background:var(--card);padding:8px 14px;font-size:12px;color:var(--ink2)}
   .sig-quote{margin:0 0 12px;padding:13px 16px;background:var(--card);border:1px solid var(--line);
     border-radius:10px;font-size:13.5px;color:var(--ink2);line-height:1.65}
   .sig-meta{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--mist)}
@@ -108,38 +112,55 @@
   .sig-idle-sub{margin-left:auto;font-size:11.5px}
   .sig-dot{width:7px;height:7px;border-radius:50%;background:var(--mist)}
 
-  /* ---------- 综合证据链 ---------- */
-  /* 默认收起：它是**复核材料**，不参与首屏叙事。
-     这个页面吃过堆砌的亏 —— 把已发生的重置各铺一块卡片挂页首，
-     倒计时就被挤出了第一屏（见 decisions.md 的 D-014）。 */
-  .sig-chain{margin-top:18px;border:1px dashed var(--line);border-radius:12px;
+  /* ---------- 预告里的依据推文 ---------- */
+  /* 一条预告 = 一个时间窗口，**支撑它的推文挂在这条预告里面**，不另起一块。
+     旧版把同一个结论拆成「横幅 + 另有 N 条 + 折叠证据」三处，读的人得自己拼；
+     那行「另有 N 条不重复列出」陈述的还是「我做了去重」这个实现细节（见 D-018）。
+     宽屏默认展开 —— 证据是这条预告的可追溯性，不是可选项。但页首堆砌的亏吃过
+     （D-014），所以每条只占两行：元信息一行、原文一行（clamp 到两行），两列并排。
+     窄屏默认收起（见页面脚本）：单列铺开 4 条会把倒计时顶出第一屏，实测
+     390×844 下预告卡高 1152px。收起时「依据 N 条推文」那行仍然可见，
+     归属关系不丢，只是详情要点一下。脚本被禁用时保持展开 —— 退化成「都在」。 */
+  .sig-ev{margin:0 0 10px;border:1px solid var(--line);border-radius:10px;
     background:var(--paper2);overflow:hidden}
-  .sig-chain summary{list-style:none;cursor:pointer;padding:12px 16px;display:flex;
-    gap:14px;align-items:baseline;flex-wrap:wrap;font-size:12.5px;color:var(--ink2)}
-  .sig-chain summary::-webkit-details-marker{display:none}
-  .sig-chain summary::before{content:"▸";color:var(--mist);font-size:11px;
+  .ev-head{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;
+    padding:9px 14px;font-size:12px;color:var(--ink2);cursor:pointer;
+    list-style:none;transition:background .15s ease}
+  .ev-head::-webkit-details-marker{display:none}
+  .ev-head::before{content:"▸";color:var(--mist);font-size:11px;flex:0 0 auto;
     transition:transform .18s ease}
-  .sig-chain[open] summary::before{transform:rotate(90deg)}
-  .sig-chain summary:hover{background:rgba(63,115,118,.045)}
-  .chain-sum b{color:var(--ink);font-weight:600}
-  .chain-hint{font-size:11.5px;color:var(--mist)}
-  .chain-list{list-style:none;margin:0;padding:2px 16px 12px;border-top:1px solid var(--line)}
-  .chain-item{padding:10px 0 10px 13px;border-left:2px solid var(--mist);margin-top:10px}
-  .chain-item[data-weight="hard"]{border-left-color:var(--lan)}
-  .chain-head{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;
-    font-size:11.5px;color:var(--mist)}
-  .chain-when{font-family:var(--mono);font-variant-numeric:tabular-nums}
-  .chain-tag{font-size:10.5px;letter-spacing:.08em;padding:1px 8px;border-radius:99px;
-    background:rgba(140,136,128,.16);color:var(--mist)}
-  .chain-tag[data-weight="hard"]{background:rgba(63,115,118,.14);color:var(--lan)}
-  .chain-via{color:var(--ink2)}
-  .chain-word{font-family:var(--mono);color:var(--ink2)}
-  .chain-quote{margin:6px 0 0;font-size:12.5px;color:var(--ink2);line-height:1.6}
-  .chain-link{display:inline-block;margin-top:5px;font-size:11.5px;color:var(--lan);
-    text-decoration:none;border-bottom:1px dotted currentColor}
+  .sig-ev[open] .ev-head{border-bottom:1px solid var(--line)}
+  .sig-ev[open] .ev-head::before{transform:rotate(90deg)}
+  .ev-head:hover{background:rgba(63,115,118,.045)}
+  .ev-head b{color:var(--ink);font-weight:650}
+  .ev-hint{font-size:11.5px;color:var(--mist)}
+  .ev-list{list-style:none;margin:0;padding:9px 14px 11px;display:grid;gap:8px}
+  @media (min-width:760px){.ev-list{grid-template-columns:1fr 1fr;gap:8px 22px}}
+  .ev-item{padding-left:11px;border-left:2px solid var(--mist);min-width:0}
+  .ev-item[data-weight="hard"]{border-left-color:var(--lan)}
+  .ev-top{display:flex;gap:11px;align-items:baseline;flex-wrap:nowrap;
+    font-size:11.5px;color:var(--mist);min-width:0}
+  .ev-when{font-family:var(--mono);font-variant-numeric:tabular-nums;flex:0 0 auto}
+  .ev-tag{font-size:10.5px;letter-spacing:.08em;padding:1px 8px;border-radius:99px;
+    flex:0 0 auto;background:rgba(140,136,128,.16);color:var(--mist)}
+  .ev-tag[data-weight="hard"]{background:rgba(63,115,118,.14);color:var(--lan)}
+  /* 来源与时间词允许被压缩：它们短小但会长（「↩ @udiWertheimer」「coming in tuesday」），
+     一旦把这行顶断，「原推 ↗」就被甩到下一行，看起来像另一个条目的东西。
+     压成省略号比换行好 —— 完整值在 title 里，原推里也有。 */
+  .ev-via,.ev-word{flex:0 1 auto;min-width:0;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .ev-via{color:var(--ink2)}
+  .ev-word{font-family:var(--mono);color:var(--ink2)}
+  .ev-flag{font-size:10.5px;color:#8A6A28;flex:0 0 auto}
+  .ev-link{flex:0 0 auto;font-size:11.5px;color:var(--lan);text-decoration:none;
+    border-bottom:1px dotted currentColor;white-space:nowrap}
+  .ev-quote{margin:3px 0 0;font-size:12.5px;color:var(--ink2);line-height:1.5;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 
   /* ---------- Hero ---------- */
-  .hero{padding:46px 0 8px;text-align:center}
+  /* padding 从 46px 收到 30px，理由同 .sig 那一段：倒计时是这一页的主角，
+     它必须在第一屏完整可见（实测口径：counter 的底部 ≤ 视口高度）。 */
+  .hero{padding:30px 0 8px;text-align:center}
   .hero .label{font-size:12px;letter-spacing:.2em;color:var(--mist);text-transform:uppercase;font-family:var(--mono)}
 
   /* 逐位卷动：每一位是一个 0–9 的竖条，靠 translateY 滚动。
@@ -149,7 +170,7 @@
     display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;
     font-family:var(--mono);font-variant-numeric:tabular-nums;
     font-size:clamp(38px,8.4vw,84px);line-height:1;font-weight:300;
-    letter-spacing:-.01em;margin:20px 0 8px;
+    letter-spacing:-.01em;margin:15px 0 8px;
   }
   .grp{display:inline-flex;align-items:baseline}
   .reels{display:inline-flex;align-items:baseline;position:relative;top:var(--reel-nudge)}
@@ -276,8 +297,15 @@
     .fc{grid-template-columns:1fr}
     .fc-meta{grid-template-columns:1fr}
     .fc-main .v{font-size:42px}
-    .sw{grid-template-columns:1fr;gap:2px}
-    .sw-z{margin-bottom:4px}
+    .sw{grid-template-columns:1fr auto;gap:2px 10px;padding:9px 12px}
+    /* 窄屏把「时区」提到标签同一行、值独占整行：堆三行时窗口块要 311px，
+       而它是预告卡里最高的一块（实测 390×844）。 */
+    .sw-k{grid-column:1;grid-row:1}
+    .sw-z{grid-column:2;grid-row:1;text-align:right;margin-bottom:0}
+    .sw-v{grid-column:1/-1;grid-row:2;font-size:13.5px}
+    /* 窄屏下面窄，硬压成一行会把来源和时间词都截秃；这里允许换行，
+       链接紧跟在前一个元素后面（不再靠右），换行也不会看成另一条。 */
+    .ev-top{flex-wrap:wrap}
     .sig-precision{margin-left:0}
     .sig-idle-sub{margin-left:0}
     .counter .unit{margin:0 8px 0 6px}
@@ -443,6 +471,35 @@
 
   tick();
   setInterval(tick, 1000);
+})();
+
+/* 窄屏默认收起「依据 N 条推文」。
+   证据挂在这条预告里面是个**结构**问题，跟屏宽无关；能不能一眼看到 4 条是
+   排版问题 —— 窄屏单列铺开 4 条会把倒计时顶出第一屏（实测 390×844 下预告卡
+   高 1152px，倒计时落到 1238px）。所以窄屏折一下：摘要行「依据 4 条推文 ·
+   2 条承诺 · 2 条同日提及」照常可见，归属关系不丢，详情点一下。
+   ⚠ 这里只负责窄屏收起，**不负责展开** —— HTML 里本来就带 open，
+      脚本被禁用/报错时页面退化成「全部展开」，内容一条都不会少。 */
+(function () {
+  var boxes = document.querySelectorAll('details.sig-ev');
+  if (!boxes.length) return;
+  var mq = window.matchMedia('(max-width: 759px)');
+
+  function sync() {
+    for (var i = 0; i < boxes.length; i++) {
+      if (boxes[i].dataset.kept) continue; // 用户自己动过，就不跟屏宽抢了
+      boxes[i].open = !mq.matches;
+    }
+  }
+
+  for (var i = 0; i < boxes.length; i++) {
+    var sum = boxes[i].querySelector('summary');
+    if (sum) sum.addEventListener('click', function () { this.parentNode.dataset.kept = '1'; });
+  }
+
+  sync();
+  if (mq.addEventListener) mq.addEventListener('change', sync);
+  else if (mq.addListener) mq.addListener(sync);
 })();
 </script>
 </body>

@@ -61,21 +61,48 @@
       <text wx:if="{{signal.precision}}" class="wprec">粒度：{{signal.precision}}</text>
     </view>
 
-    <view class="quote">{{signal.text}}</view>
-
-    <view class="meta">
-      <text>发布于 {{signal.createdText}}</text>
-      <text wx:if="{{signal.timeNote}}" class="note">{{signal.timeNote}}</text>
-      <text wx:if="{{signal.reason}}">判定依据：{{signal.reason}}</text>
-      <text wx:if="{{signal.url}}" class="link" bindtap="onCopySource">复制原推链接</text>
+    <!-- **这条预告依据的推文**。一条预告 = 一个时间窗口，支撑它的推文就列在这里，
+         不另起一块 —— 旧版是「横幅（只挂最新一条原文）+ 另起一行计数 + 独立摘要块」，
+         读的人得自己在这三处之间拼出归属关系（见 decisions.md 的 D-018）。
+         默认收起：手机一屏装不下「窗口 + 4 条推文 + 倒计时」，而倒计时是这一页的主角；
+         摘要行照常显示条数与构成，归属关系不会丢。 -->
+    <view wx:if="{{signal.evCount}}" class="ev">
+      <view class="ev-head" bindtap="onToggleEv">
+        <text class="ev-t">依据 {{signal.evCount}} 条推文</text>
+        <text wx:if="{{signal.evMix}}" class="ev-mix">{{signal.evMix}}</text>
+        <text class="ev-toggle">{{signal.evOpen ? '收起' : '展开'}}</text>
+      </view>
+      <view wx:if="{{signal.evOpen}}" class="ev-body">
+        <text wx:if="{{signal.evNote}}" class="ev-note">{{signal.evNote}}</text>
+        <view
+          wx:for="{{signal.ev}}"
+          wx:key="id"
+          class="ev-item {{item.weight === 'hard' ? 'hard' : ''}}"
+        >
+          <view class="ev-top">
+            <text class="ev-when">{{item.when}} 北京</text>
+            <text class="ev-tag {{item.weight}}">{{item.tag}}</text>
+            <text wx:if="{{item.via}}" class="ev-via">{{item.via}}</text>
+            <text wx:if="{{item.word}}" class="ev-word">{{item.word}}</text>
+          </view>
+          <text class="ev-quote">{{item.text}}</text>
+          <text
+            wx:if="{{item.url}}"
+            class="ev-link"
+            data-url="{{item.url}}"
+            bindtap="onCopySource"
+          >复制原推链接</text>
+        </view>
+      </view>
     </view>
 
-    <!-- 综合证据摘要：同一天有多条推文指到时要显式说出来。
-         它的价值不在「多列几条」，而在**区分两种沉默** ——
-         「系统没看见那天有钟点线索」是缺陷，「看见了但判它语境无关」是判断。 -->
-    <view wx:if="{{signal.hypothesis}}" class="chain">
-      <text class="chain-sum">{{signal.hypothesis.summary}}</text>
-      <text wx:if="{{signal.hypothesis.clockNote}}" class="chain-note">{{signal.hypothesis.clockNote}}</text>
+    <view wx:if="{{!signal.evCount}}" class="quote">{{signal.text}}</view>
+
+    <view class="meta">
+      <text wx:if="{{signal.createdText}}">发布于 {{signal.createdText}}</text>
+      <text wx:if="{{signal.timeNote}}" class="note">{{signal.timeNote}}</text>
+      <text wx:if="{{signal.reason}}">判定依据：{{signal.reason}}</text>
+      <text wx:if="{{signal.url && !signal.evCount}}" class="link" bindtap="onCopySource">复制原推链接</text>
     </view>
   </view>
 

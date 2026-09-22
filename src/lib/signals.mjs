@@ -901,6 +901,106 @@ export function buildHypothesis(analyzed, opts = {}) {
   };
 }
 
+/**
+ * 把「预告」和**支撑它的推文**绑成一条 —— 一条预告，里面 N 条推文。
+ *
+ * ── 这一层为什么必须存在 ────────────────────────────────────────────
+ * 老大的原话：「这些信息应该合并成一条预告，然后是一条预告里面 4 条推文。」
+ * 在这之前，同一件事被拆成了三处呈现，读的人得自己拼：
+ *   ① 预告横幅 —— 只挂**最新那条**推文的原文；
+ *   ② 一行「另有 1 条指向同一时间窗口的预告（先铺垫、后宣布），不重复列出」；
+ *   ③ 一个独立的可折叠块「综合 4 条推文指向 2026.09.22」。
+ * 其中 ② 尤其糟：它陈述的是**我做了去重**这个实现细节，不是用户能拿去用的信息 ——
+ * 页面上出现「另有 N 条不重复列出」，等于把内部取舍当成内容往外发。
+ *
+ * ── 合并的边界是「时间窗口」，不是「推文条数」 ──────────────────────
+ * 一个窗口 = 一条预告；同一窗口下有几条推文，就是这条预告的几条证据。
+ * 窗口不同则是**另一条**预告，各挂各的证据。所以按 `dayNum` 分组，
+ * 而不是把所有 explicit 简单拍成一条 —— 后者会在「他先说周四、后改口周二」时
+ * 把两个互斥的窗口混成一条，那比不合并更危险。
+ *
+ * @param {Array} signals    detectSignals 里的 explicit 列表
+ * @param {object|null} hypothesis 跨推文聚合结果（只锚定一个日子）
+ * @returns {Array} 按窗口开始时间升序的预告列表
+ */
+export function buildForecasts(signals = [], hypothesis = null) {
+  const groups = new Map();
+  for (const s of signals ?? []) {
+    const w = s?.window;
+    if (!w) continue; // 没有窗口就没有「预告」可言，只是情绪
+    const key = Number.isFinite(w.dayNum)
+      ? `d${w.dayNum}`
+      : `t${w.fromTs ?? w.from}|${w.toTs ?? w.to}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(s);
+  }
+
+  const list = [...groups.values()].map((items) => {
+    // 同一窗口里挑**表述最完整**的那条当正文：先比精度，再比时间新旧。
+    // 他习惯先铺垫、后宣布 —— 后一条通常把话说全（「I promised a reset for Tuesday」）。
+    const lead = [...items].sort(
+      (a, b) =>
+        (PRECISION_RANK[b.precision] ?? 0) - (PRECISION_RANK[a.precision] ?? 0) ||
+        new Date(b.createdAt) - new Date(a.createdAt)
+    )[0];
+
+    const matched =
+      hypothesis && Number.isFinite(lead.window.dayNum) && hypothesis.dayNum === lead.window.dayNum;
+
+    // 证据 = 指向这个窗口的推文。正常情况下来自综合假设（同一天的硬承诺 + 同日提及）；
+    // 假设只锚定一个日子，所以当另一个窗口存在时它自己撑起证据链 —— 退化为单条，
+    // 但**结构保持一致**，渲染层不需要写两套。
+    const evidence = matched && hypothesis.evidence.length
+      ? hypothesis.evidence
+      : [asEvidence(lead, 'hard', '承诺了这一天')];
+
+    return {
+      level: 'explicit',
+      day: matched ? hypothesis.day : null,
+      precision: lead.precision,
+      // 窗口永远是硬证据的产物（与 buildHypothesis 同一口径）
+      window: { ...lead.window, precision: lead.precision },
+      // 正文取 lead：预告本身说的那句话
+      text: lead.text,
+      url: lead.url,
+      reasons: lead.reasons ?? [],
+      timeNote: lead.timeNote ?? '',
+      createdAt: lead.createdAt,
+      createdZones: lead.createdZones,
+      // 同一窗口下他嘴上说了几次 —— 不是页面的主角，但它是「他反复在提」的证据
+      sources: items.length,
+      evidence,
+      counts: {
+        hard: evidence.filter((e) => e.weight === 'hard').length,
+        soft: evidence.filter((e) => e.weight === 'soft').length,
+      },
+      clockHints: matched ? hypothesis.clockHints : [],
+    };
+  });
+
+  // 先到的窗口排前面：真要出现两个未来窗口，先看更早到期的那个。
+  return list.sort((a, b) => (a.window.fromTs ?? 0) - (b.window.fromTs ?? 0));
+}
+
+/** 把一条信号降级成证据条目（结构对齐 buildHypothesis 的 evidence）。 */
+function asEvidence(a, weight, contributes) {
+  return {
+    id: a.id,
+    createdAt: a.createdAt,
+    text: a.text,
+    url: a.url,
+    via: a.inReplyTo ? `回复 @${a.inReplyTo.account ?? '?'}` : '原创',
+    weight,
+    contributes,
+    timeWord: a.timeWord ?? null,
+    precision: a.precision ?? null,
+    ambiguous: false,
+    note: null,
+    from: a.window?.from ?? null,
+    to: a.window?.to ?? null,
+  };
+}
+
 /* ------------------------------- 入口 ------------------------------- */
 
 /**
@@ -960,6 +1060,11 @@ export function detectSignals(tweets, opts = {}) {
         ? 'hint'
         : 'none';
 
+  // 综合假设：把指向同一天的推文收成一条证据链，分明 hard / soft。
+  // 这是「不只是抓到一条 reset 就结束」的落点 —— 单条结论之外，
+  // 还要说清「有哪些推文共同指向这个时间、哪些没被采用、为什么」。
+  const hypothesis = buildHypothesis(analyzed);
+
   return {
     level,
     generatedAt: new Date(now).toISOString(),
@@ -983,10 +1088,12 @@ export function detectSignals(tweets, opts = {}) {
     occurred,
     hints: hints.slice(0, MAX_LISTED),
     rejected: rejected.slice(0, MAX_LISTED),
-    // 综合假设：把指向同一天的推文收成一条证据链，分明 hard / soft。
-    // 这是「不只是抓到一条 reset 就结束」的落点 —— 单条结论之外，
-    // 还要说清「有哪些推文共同指向这个时间、哪些没被采用、为什么」。
-    hypothesis: buildHypothesis(analyzed),
+    // 综合假设：跨推文聚合的产物，回答「凭什么说这个时间」。
+    hypothesis,
+    // 预告：**一个时间窗口 = 一条预告**，每条挂着支撑它的推文（1 条或多条）。
+    // 渲染层只认这个字段 —— 页面上不再有「横幅 + 另一行计数 + 另一个折叠块」
+    // 这种把一个结论拆三处的排法（见 decisions.md 的 D-018）。
+    forecasts: buildForecasts(explicit, hypothesis),
     counts: {
       scanned: list.length,
       explicit: explicit.length,

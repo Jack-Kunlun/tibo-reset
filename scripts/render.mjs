@@ -157,40 +157,23 @@ export function renderSignal(sig) {
 
   const blocks = [];
 
-  // ① 明确预告：他对下一次重置给了时间，可行动。
+  // ① 预告：**一条预告就是一个时间窗口**，支撑它的推文挂在这条里面。
   //
-  //    **按时间窗口去重**。他习惯先铺垫、后宣布 —— 实测 2026-09-22 那一对：
-  //    09-19 在别人的帖子底下回「still coming in Tuesday」，09-22 原创说
-  //    「I promised a reset for Tuesday」，两条指向同一个窗口、信息量并不叠加。
-  //    并列展示的代价却很实在：把下面那个倒计时挤出首屏 ——
-  //    而倒计时才是这一页的主角，「会不会重置」只是它的注脚。
+  //    `forecasts` 来自 signals.mjs 的 buildForecasts()，合并逻辑在数据层 ——
+  //    网页、小程序、采集日志共用同一份结论，不会各算各的。
   //
-  //    同一个窗口只留时间最新的那条（越晚的表述越完整），其余折成一行计数 ——
-  //    是「合并」不是「丢弃」，条数仍然说得清。
-  const exps = [];
-  const seenWin = new Set();
-  for (const s of sig.signals ?? []) {
-    const key = s.window
-      ? `${s.window.fromTs ?? s.window.from ?? ''}|${s.window.toTs ?? s.window.to ?? ''}`
-      : `id:${s.id}`;
-    if (seenWin.has(key)) continue;
-    seenWin.add(key);
-    exps.push(s);
-  }
-  for (const s of exps) blocks.push(signalBlock(s, sig));
-
-  const mergedSignal = (sig.signals?.length ?? 0) - exps.length;
-  if (mergedSignal > 0) {
-    blocks.push(
-      `<div class="sig-idle"><span class="sig-dot"></span><span>另有 <b>${mergedSignal}</b> 条指向同一时间窗口的预告（先铺垫、后宣布），不重复列出</span></div>`
-    );
-  }
+  //    ⚠ 这里**不再有**「另有 N 条指向同一时间窗口的预告（先铺垫、后宣布），
+  //      不重复列出」那一行。它陈述的是「我做了去重」这个实现细节，
+  //      不是用户能拿走的信息；现在那几条推文直接作为这条预告的证据列出来，
+  //      归属关系一眼可见（见 decisions.md 的 D-018）。
+  const forecasts = sig.forecasts ?? [];
+  for (const f of forecasts) blocks.push(forecastBlock(f, sig));
 
   // ② 线索：只在没有预告时才兜底。
   //    线索是「有时间没意图」或「有意图没时间」的弱依据，跟硬信号并列会稀释前者。
-  if (!exps.length) {
+  if (!forecasts.length) {
     const h = (sig.hints ?? []).find((s) => s.window) ?? null;
-    if (h) blocks.push(signalBlock(h, sig));
+    if (h) blocks.push(hintBlock(h, sig));
   }
 
   if (!blocks.length) {
@@ -211,81 +194,20 @@ export function renderSignal(sig) {
     );
   }
 
-  // ③ 综合证据链。放在最后，且默认收起。
-  const chain = renderHypothesis(sig.hypothesis);
-  if (chain) blocks.push(chain);
-
   return blocks.join('');
 }
 
 /**
- * 综合假设的证据链。
+ * 时间窗口块：Tibo 当地时间 + 北京时间各一行。
  *
- * ── 为什么是 `<details>` 而不是直接铺开 ──────────────────────────────
- * 这个页面已经吃过一次堆砌的亏：把「已发生」的两条重置各铺一块卡片挂在页首，
- * 结果把倒计时挤出了第一屏（见 D-014）。证据链是**复核材料**，不是结论本身，
- * 所以默认收起；summary 一行给出够用的结论性信息 —— 几条承诺、有没有
- * 没被采用的钟点线索。想看细节的人点开。
- *
- * ── 为什么要说「未采用的钟点线索」 ──────────────────────────────────
- * 老大的原话是「他不是都有 3am on a tuesday 这样的回复了吗，为什么没有明确时间」。
- * 那些钟点**系统一条都没漏掉**，只是单条看没有额度语境、不足以决定窗口。
- * 把这件事写明，用户才能区分「系统没看见」和「看见了但没采信」——
- * 前者是缺陷，后者是判断。两者的可信度完全不同。
+ * 两个时区都必须给 —— 推文的时间语境在人家那边，看的人在这边。
+ * 跨夏令时时差会变，所以偏移量（UTC-7 / UTC+8）也标出来。
  */
-function renderHypothesis(h) {
-  if (!h || !(h.evidence ?? []).length) return '';
-  const c = h.counts ?? { hard: 0, soft: 0 };
-  const unadopted = (h.clockHints ?? []).filter((x) => !x.adopted);
-
-  const summary =
-    `综合 <b>${h.evidence.length}</b> 条推文指向 <b>${esc(h.day ?? '')}</b>` +
-    `（<b>${c.hard ?? 0}</b> 条承诺${c.soft ? ` + ${c.soft} 条同日提及` : ''}）`;
-
-  const clockNote = unadopted.length
-    ? `<span class="chain-hint">另见 ${unadopted.map((x) => esc(x.word)).join(' / ')} 钟点线索，语境与额度无关，未纳入窗口</span>`
-    : '';
-
-  const rows = h.evidence
-    .map((e) => {
-      const when = String(e.createdAt ?? '').slice(0, 16).replace('T', ' ');
-      const tag = e.weight === 'hard' ? '承诺' : '提及';
-      const word = e.timeWord ? `<span class="chain-word">${esc(e.timeWord)}</span>` : '';
-      return `<li class="chain-item" data-weight="${esc(e.weight ?? 'soft')}">
-        <div class="chain-head">
-          <span class="chain-when">${esc(when)}</span>
-          <span class="chain-tag" data-weight="${esc(e.weight ?? 'soft')}">${tag}</span>
-          <span class="chain-via">${esc(e.via ?? '')}</span>
-          ${word}
-        </div>
-        <blockquote class="chain-quote">${esc(String(e.text ?? '').slice(0, 160))}</blockquote>
-        ${e.url ? `<a class="chain-link" href="${esc(e.url)}" target="_blank" rel="noopener">原推 ↗</a>` : ''}
-      </li>`;
-    })
-    .join('');
-
-  return `
-  <details class="sig-chain">
-    <summary>
-      <span class="chain-sum">${summary}</span>
-      ${clockNote}
-    </summary>
-    <ul class="chain-list">${rows}</ul>
-  </details>`;
-}
-
-/** 构造单个信号块。 */
-function signalBlock(top, sig) {
-  const t = LEVEL_TEXT[top.level] ?? LEVEL_TEXT.hint;
-  const w = top.window;
-  const src = w?.zones?.b;
-  const usr = w?.zones?.a;
-  const cz = top.createdZones ?? {};
-
-  // 预告 → 给出时间窗口：窗口是「还没到的一段区间」，所以必须两个时区都换算。
-  let timeBlock = '';
-  if (w) {
-    timeBlock = `<div class="sig-win">
+function windowBlock(w) {
+  if (!w) return '';
+  const src = w.zones?.b;
+  const usr = w.zones?.a;
+  return `<div class="sig-win">
         <div class="sw">
           <span class="sw-k">Tibo 当地时间</span>
           <span class="sw-v">${esc(w.sourceZone)}</span>
@@ -300,20 +222,118 @@ function signalBlock(top, sig) {
           ${esc(w.zones?.diffText ?? '')}${w.crossesUserDay ? ' · 换算到北京时间后会跨自然日' : ''}
         </div>
       </div>`;
-  }
+}
 
-  const precision = top.precision
-    ? `<span class="sig-precision">粒度：${PRECISION_TEXT[top.precision] ?? top.precision}</span>`
+/**
+ * 一条预告 —— **一个单元**：时间窗口（结论）+ 支撑它的推文（依据）。
+ *
+ * 老大原话：「这些信息应该合并成一条预告，然后是一条预告里面 4 条推文。」
+ * 在此之前同一件事被拆在横幅、计数行、折叠块三处，读的人得自己拼出
+ * 「这条预告是这 4 条推文共同支撑的」。
+ *
+ * ── 依据默认展开，但要压得住高度 ────────────────────────────────────
+ * 证据是这条预告的**可追溯性**，不是可选的复核材料 —— 藏着等于要求用户
+ * 先信结论再决定要不要验，顺序反了。但页首堆砌的亏这个页面吃过（D-014），
+ * 所以每条只占两行：元信息一行、原文一行（原文 clamp 到两行，看全文点原推），
+ * 宽屏下两列并排。
+ *
+ * ── 为什么要写「未采纳的钟点线索」 ──────────────────────────────────
+ * 老大的原话是「他不是都有 3am on a tuesday 这样的回复了吗，为什么没有明确时间」。
+ * 那些钟点**系统一条都没漏**，只是单条看没有额度语境、不足以决定窗口。
+ * 把这件事写明，用户才能区分「系统没看见」和「看见了但没采信」——
+ * 前者是缺陷，后者是判断，两者的可信度完全不同。
+ */
+function forecastBlock(f, sig) {
+  const t = LEVEL_TEXT[f.level] ?? LEVEL_TEXT.explicit;
+  const ev = f.evidence ?? [];
+  const c = f.counts ?? { hard: 0, soft: 0 };
+  const unadopted = (f.clockHints ?? []).filter((x) => !x.adopted);
+
+  const mix = [c.hard ? `<b>${c.hard}</b> 条承诺` : '', c.soft ? `<b>${c.soft}</b> 条同日提及` : '']
+    .filter(Boolean)
+    .join(' · ');
+
+  const evBlock = ev.length
+    ? `<details class="sig-ev" open>
+      <summary class="ev-head">
+        <span>依据 <b>${ev.length}</b> 条推文</span>
+        ${mix ? `<span>${mix}</span>` : ''}
+        ${
+          unadopted.length
+            ? `<span class="ev-hint">另见 ${unadopted.map((x) => esc(x.word)).join(' / ')} 钟点线索，语境与额度无关，未纳入窗口</span>`
+            : ''
+        }
+      </summary>
+      <ul class="ev-list">${ev.map(evidenceItem).join('')}</ul>
+    </details>`
     : '';
+
+  const meta = [
+    f.timeNote ? `<span class="sig-note">${esc(f.timeNote)}</span>` : '',
+    f.reasons?.length ? `<span>判定依据：${esc(f.reasons.join('、'))}</span>` : '',
+  ].filter(Boolean);
+
+  return `
+  <section class="sig" data-level="${esc(f.level ?? 'explicit')}">
+    <div class="sig-head">
+      <span class="sig-badge">${t.label}</span>
+      <span class="sig-title">${t.title}</span>
+      ${f.precision ? `<span class="sig-precision">粒度：${esc(PRECISION_TEXT[f.precision] ?? f.precision)}</span>` : ''}
+    </div>
+    ${windowBlock(f.window)}
+    ${evBlock}
+    ${meta.length ? `<div class="sig-meta">${meta.join('')}</div>` : ''}
+  </section>`;
+}
+
+/**
+ * 证据条目：**这条预告依据的一条推文**。
+ *
+ * 时间一律换算到**北京时间**再显示并写明「北京」—— 旧版直接把
+ * `createdAt.slice(0,16)` 的 **UTC** 贴出来，与页面其它地方（全部北京）自相矛盾，
+ * 同一条推文在页面上会出现两个相差 8 小时的时间戳。
+ * 「承诺 / 提及」的标签不能省：前者决定窗口，后者只是旁证，
+ * 混在一起会让人以为 4 条推文的分量相等。
+ */
+function evidenceItem(e) {
+  const weight = e.weight === 'hard' ? 'hard' : 'soft';
+  const when = e.createdAt ? `${fmtDate(e.createdAt).slice(5)} ${fmtTime(e.createdAt)}` : '';
+  // 「原创 / 回复」的区别必须留 —— 他大量时间线索埋在回复里，这对复核很重要。
+  // 但「回复 @udiWertheimer」九个字会把这行顶到换行，连带把链接甩到下一行，
+  // 看起来像另一个条目的东西。缩成「↩ @udiWertheimer」，信息没丢。
+  const via = e.via && e.via !== '原创' ? `↩ ${e.via.replace(/^回复\s*/, '')}` : '原创';
+  return `<li class="ev-item" data-weight="${weight}">
+      <div class="ev-top">
+        ${when ? `<span class="ev-when">${esc(when)} 北京</span>` : ''}
+        <span class="ev-tag" data-weight="${weight}">${weight === 'hard' ? '承诺' : '提及'}</span>
+        <span class="ev-via" title="原创 / 回复 —— 他大量时间线索埋在回复里">${esc(via)}</span>
+        ${e.timeWord ? `<span class="ev-word" title="判定命中的时间词">${esc(e.timeWord)}</span>` : ''}
+        ${e.ambiguous ? '<span class="ev-flag">待考</span>' : ''}
+        ${e.url ? `<a class="ev-link" href="${esc(e.url)}" target="_blank" rel="noopener">原推 ↗</a>` : ''}
+      </div>
+      <p class="ev-quote">${esc(e.text ?? '')}</p>
+    </li>`;
+}
+
+/**
+ * 线索块：**没有预告时**才出现的弱依据兜底。
+ *
+ * 线索是「有时间没意图」或「有意图没时间」的单条推文，没有证据链可挂，
+ * 所以形态退化成「一条推文 + 它的窗口」。窗口样式与预告块共用，
+ * 但 badge 与配色走 hint 档，不会跟硬信号混淆。
+ */
+function hintBlock(top, sig) {
+  const t = LEVEL_TEXT[top.level] ?? LEVEL_TEXT.hint;
+  const cz = top.createdZones ?? {};
 
   return `
   <section class="sig" data-level="${esc(top.level ?? 'hint')}">
     <div class="sig-head">
       <span class="sig-badge">${t.label}</span>
       <span class="sig-title">${t.title}</span>
-      ${precision}
+      ${top.precision ? `<span class="sig-precision">粒度：${esc(PRECISION_TEXT[top.precision] ?? top.precision)}</span>` : ''}
     </div>
-    ${timeBlock}
+    ${windowBlock(top.window)}
     <blockquote class="sig-quote">${esc(top.text)}</blockquote>
     <div class="sig-meta">
       <span>发布于 ${esc(cz.a?.text ?? dualZone(top.createdAt, CJK, sig.sourceZone, '北京时间', '当地时间').a.text)} 北京 · ${esc(cz.b?.text ?? '')} 当地</span>

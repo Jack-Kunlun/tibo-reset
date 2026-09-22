@@ -304,8 +304,25 @@ Page({
 
   /* ------------------------------ 交互 ------------------------------ */
 
-  onCopySource() {
-    const url = this.data.signal && this.data.signal.url;
+  /**
+   * 展开/收起「依据 N 条推文」。
+   *
+   * ⚠ 只 setData 打开状态，**不重算 evidence** —— 列表随 signal 一起下发过了，
+   *   重算会把每秒都在 ticking 的横幅整块触发重排。
+   */
+  onToggleEv() {
+    const s = this.data.signal;
+    if (!s || !s.evCount) return;
+    this.setData({ 'signal.evOpen': !s.evOpen });
+  },
+
+  /**
+   * 复制原推链接。优先用条目自己的 `data-url`（预告里每条推文各有一个链接），
+   * 回退到横幅的主链接（线索档只有一条推文，链接挂在横幅上）。
+   */
+  onCopySource(e) {
+    const fromItem = e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.url;
+    const url = fromItem || (this.data.signal && this.data.signal.url);
     if (!url) return;
     // 个人主体小程序不能用 web-view，所以外链只能复制出去让用户在浏览器打开
     wx.setClipboardData({
