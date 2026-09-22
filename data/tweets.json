@@ -1,6 +1,114 @@
 {
   "tweets": [
     {
+      "id": "2102292452329820272",
+      "text": "Huge!!",
+      "created_at": "2026-09-22T07:02:33.000Z",
+      "url": "https://x.com/thsottiaux/status/2102292452329820272",
+      "inReplyTo": {
+        "account": "steipete",
+        "id": "",
+        "text": "Proud to say that we did our homework. They found nothing critical.",
+        "created_at": "2026-09-21T14:57:58.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-22T07:31:20.141Z"
+    },
+    {
+      "id": "2102290126344974551",
+      "text": "Negroni is on you",
+      "created_at": "2026-09-22T06:53:19.000Z",
+      "url": "https://x.com/thsottiaux/status/2102290126344974551",
+      "inReplyTo": {
+        "account": "FintechKristen",
+        "id": "",
+        "text": "Plenty of payment APIs to go around 😘",
+        "created_at": "2026-09-21T19:48:10.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-22T07:31:20.141Z"
+    },
+    {
+      "id": "2102289624945352906",
+      "text": "Sergio is indeed on fire",
+      "created_at": "2026-09-22T06:51:19.000Z",
+      "url": "https://x.com/thsottiaux/status/2102289624945352906",
+      "inReplyTo": {
+        "account": "matteing",
+        "id": "",
+        "text": "The team is cooking crazy right now. The levels are unreal.",
+        "created_at": "2026-09-22T02:39:18.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-22T07:31:20.141Z"
+    },
+    {
+      "id": "2102289383068180659",
+      "text": "ah yes, that elusive and unlimited ambient inference that they don’t want to know you about",
+      "created_at": "2026-09-22T06:50:22.000Z",
+      "url": "https://x.com/thsottiaux/status/2102289383068180659",
+      "inReplyTo": {
+        "account": "thdxr",
+        "id": "",
+        "text": "we've made some significant breakthroughs and now have a pathway to becoming the best inference provider outside of openai and anthropic a true provider, not passing through to others gonna take longer than i'd like but it's going to be worth the effort",
+        "created_at": "2026-09-21T12:13:50.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-22T07:31:20.141Z"
+    },
+    {
+      "id": "2102284586713522193",
+      "text": "Burn those tokens",
+      "created_at": "2026-09-22T06:31:18.000Z",
+      "url": "https://x.com/thsottiaux/status/2102284586713522193",
+      "inReplyTo": {
+        "account": "Cch_Chichieh",
+        "id": "",
+        "text": "i still have 50% left lmao, need to burn through it before the drop",
+        "created_at": "2026-09-22T06:30:50.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-22T07:31:20.141Z"
+    },
+    {
+      "id": "2102284352801427520",
+      "text": "Good choice, good choice",
+      "created_at": "2026-09-22T06:30:22.000Z",
+      "url": "https://x.com/thsottiaux/status/2102284352801427520",
+      "inReplyTo": {
+        "account": "neogoose_btw",
+        "id": "",
+        "text": "Career update: not anymore. I have joined OpenAI and I am starting my journey of working on Chatgpt and Codex core harness. Extremely excited and thrilled to start locking in! My personal goal: make codex feel as fast and efficient as possible/reasonable.",
+        "created_at": "2026-09-21T19:52:55.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-22T07:31:20.141Z"
+    },
+    {
       "id": "2102254445082116335",
       "text": "Ladies and gentlemen... start... your... ENGINES. We are almost Tuesday and I promised a reset for Tuesday. Among some other things. See you soon.",
       "created_at": "2026-09-22T04:31:32.000Z",
@@ -1140,7 +1248,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-09-22T04:59:40.155Z",
+  "updated_at": "2026-09-22T07:31:20.142Z",
   "source": "browser",
   "coverage_since": "2026-09-11T08:09:17.000Z"
 }
