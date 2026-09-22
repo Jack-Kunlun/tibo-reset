@@ -147,7 +147,16 @@ const snapshot = {
   // 50+ 条，实测这一项就占快照的一半（47KB / 92KB）。而快照是要跟着小程序包下发的
   // （它的存在就是为了「域名没备案时也能出首屏」），不该被排查材料撑大。
   // 计数照旧保留在 counts 里，「扫了多少、排除多少」仍然说得清。
-  signals: { ...signals, rejected: [] },
+  //
+  // rejected 被清空，所以 truncated 必须**重算**：沿用原值会让快照自相矛盾 ——
+  // 保留数是 0 条、却标着「触顶」，将来谁去读就会渲染出「排除项保留了最近的
+  // 0 / 共 62 条」这种句子。快照里确实只带 hints，故截断状态只由 hints 决定。
+  // （小程序端目前两个字段都不读，这一行只是不让错值留在产物里。）
+  signals: {
+    ...signals,
+    rejected: [],
+    truncated: (signals.hints?.length ?? 0) < (signals.counts?.hint ?? 0),
+  },
   stats: statsFile.stats ?? null,
   collectErrors: statsFile.errors ?? [],
 };

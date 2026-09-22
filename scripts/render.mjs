@@ -160,6 +160,28 @@ const PRECISION_TEXT = {
  * （「11pm on a Tuesday」），而真正的重置根本不显示。现在预告优先，线索只在
  * 没有预告时兜底。
  */
+/**
+ * 留档触顶提示（`truncated`）。**必须两条渲染路径都带上** —— 早退那条
+ * （本轮一个信号都没有）原先把它整个吞掉，于是「什么都没检测到 + 留档触顶」
+ * 就成了静默截断，正好是 AGENTS.md 那条红线的反面。
+ *
+ * 文案只列**真触顶**的列表，写成「保留 X / 共 Y」，并点明保留的是最近的那批。
+ * 旧版把两个**不同列表**的长度并排写成「只保留了前 9 / 60 条」—— 9 是 hints
+ * （那一轮并没触顶，9 条全在）、60 是 rejected（触顶）。读起来像「60 条里只留了
+ * 9 条」，与事实无关，读者会据此以为留档被砍掉了六分之五。
+ */
+function truncationNote(sig) {
+  if (!sig?.truncated) return '';
+  const bits = [];
+  const note = (kept, all, label) => {
+    if (all > kept) bits.push(`${label}保留了最近的 ${kept} / 共 ${all} 条`);
+  };
+  note((sig.hints ?? []).length, sig.counts?.hint ?? 0, '线索');
+  note((sig.rejected ?? []).length, sig.counts?.rejected ?? 0, '排除项');
+  if (!bits.length) return '';
+  return `<div class="sig-idle"><span class="sig-dot"></span><span>留档超出上限 · ${bits.join(' · ')}</span></div>`;
+}
+
 export function renderSignal(sig) {
   if (!sig) return '';
 
@@ -187,6 +209,9 @@ export function renderSignal(sig) {
     if (h) blocks.push(hintBlock(h, sig, now));
   }
 
+  // 留档触顶提示要在**两条路径**上都出现（含下面那条早退），理由见 truncationNote。
+  const truncNote = truncationNote(sig);
+
   if (!blocks.length) {
     const hints = (sig.hints ?? []).length;
     const extra = hints ? `，${hints} 条线索` : '';
@@ -195,15 +220,10 @@ export function renderSignal(sig) {
       <span class="sig-dot"></span>
       <span>时间窗内 <b>${sig.checkedTweets}</b> 条推文中没有检测到重置预告${extra}</span>
       <span class="sig-idle-sub">时间窗自 ${esc(String(sig.windowFrom ?? '').slice(0, 10))} 起 · 共扫 ${sig.checkedTweets} 条</span>
-    </div>`;
+    </div>${truncNote}`;
   }
 
-  // 因体积上限被截断时要说出来 —— 静默截断正是这次修掉的那类问题。
-  if (sig.truncated) {
-    blocks.push(
-      `<div class="sig-idle"><span class="sig-dot"></span><span>线索/排除项超出留档上限，signal.json 中只保留了前 ${sig.hints?.length ?? 0} / ${sig.rejected?.length ?? 0} 条</span></div>`
-    );
-  }
+  if (truncNote) blocks.push(truncNote);
 
   return blocks.join('');
 }

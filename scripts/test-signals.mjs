@@ -529,12 +529,60 @@ console.log('\n【4】汇总接口 + 真实数据回归');
   const sum = sig.counts.explicit + sig.counts.occurred + sig.counts.hint + sig.counts.none;
   check('四类计数之和 = 扫描条数（不静默丢）', sum === sig.counts.scanned, `${sum} vs ${sig.counts.scanned}`);
   check('触顶状态是显式的', typeof sig.truncated === 'boolean', `实际 ${typeof sig.truncated}`);
+  check(
+    'counts.rejected 是未截断的真实总数',
+    sig.counts.rejected >= sig.rejected.length,
+    `counts ${sig.counts.rejected} vs 保留 ${sig.rejected.length}`
+  );
+  // 上限的**方向**：`slice(0, N)` 在倒序列表上保留的是最近的那批。
+  // 钉住方向，防止将来被改成保留最早的 —— 那会把窗内最新、最该被复核的排查
+  // 材料丢掉，留下最旧的，正好反了。
+  if (sig.rejected.length >= 2) {
+    const head = sig.rejected[0].createdAt;
+    const tail = sig.rejected[sig.rejected.length - 1].createdAt;
+    check(
+      '排除项按时间倒序（触顶时丢的是最旧的）',
+      Date.parse(head) > Date.parse(tail),
+      `首 ${head} / 末 ${tail}`
+    );
+  }
 
   // 真实数据里的两条重置（09-12 的 03:20 与 08:09）都要被认出来。
   // 它们此前一条被判 none、一条被截断，本轮修复的核心回归点。
   check('真实数据里的两条重置都被认出', sig.occurred.length === 2, `实际 ${sig.occurred.length}`);
 
   console.log(`    真实数据结论：level=${sig.level}，明确信号 ${sig.signals.length} 条，已发生 ${sig.occurred.length} 条，线索 ${sig.hints.length} 条，排除 ${sig.rejected.length} 条`);
+}
+
+/* ---------------------- 留档上限（MAX_LISTED）的行为 ---------------------- */
+// 上限是纯体积保护，但**数值与方向**都必须钉住 —— 它决定「触顶时丢掉什么」。
+// 方向反了就会把窗内最新、最该被复核的排查材料丢掉，留下最旧的。
+{
+  const now = Date.parse('2026-09-20T10:00:00.000Z');
+  const make = (n) =>
+    Array.from({ length: n }, (_, i) => ({
+      id: `bulk-${i}`,
+      text: 'just a random thought',
+      created_at: new Date(now - i * 3_600_000).toISOString(),
+    }));
+
+  const atCap = detectSignals(make(200), { now });
+  check(
+    '恰好 200 条：不触顶',
+    atCap.truncated === false && atCap.rejected.length === 200,
+    `truncated=${atCap.truncated}，保留 ${atCap.rejected.length} 条`
+  );
+
+  const overCap = detectSignals(make(201), { now });
+  check('201 条：只保留 200 条', overCap.rejected.length === 200, `实际 ${overCap.rejected.length}`);
+  check('201 条：counts.rejected 仍报真实总数 201', overCap.counts.rejected === 201, `实际 ${overCap.counts.rejected}`);
+  check('201 条：触顶为 true', overCap.truncated === true, `实际 ${overCap.truncated}`);
+  // 关键方向判据：丢掉的必须是**最旧的** bulk-200，保留首条 bulk-0（最新）。
+  check(
+    '201 条：丢的是最旧的 1 条（首尾 id 钉死方向）',
+    overCap.rejected[0].id === 'bulk-0' && overCap.rejected[199].id === 'bulk-199',
+    `首 ${overCap.rejected[0].id} / 末 ${overCap.rejected[199].id}`
+  );
 }
 
 {

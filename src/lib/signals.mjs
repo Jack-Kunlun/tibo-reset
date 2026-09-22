@@ -40,8 +40,21 @@ const HOUR = 3_600_000;
  * 核心结论（explicit / occurred）**不设上限** —— 它们天然很少，
  * 而且任何一个都不该被丢掉。这个数字只用于「线索」和「被排除项」，
  * 触顶时会置 `truncated: true`，不静默。
+ *
+ * 方向：两个列表都是按发布时间**倒序**走到这里的，所以 `slice(0, N)`
+ * 保留的是**最近的** N 条、丢掉最旧的。对 rejected 这样做是安全的 ——
+ * 真正的重置信号走 explicit / occurred，而那两类全量保留。
+ *
+ * ⚠ 这不是「累积日志 + 淘汰最旧」。每轮 detectSignals 都在时间窗内**全量重算**，
+ * 一条推文离开列表的原因是**滑出时间窗**，不是被淘汰。所以这个上限的真实约束是
+ * 「窗内条数的峰值」，与历史总量无关 —— 提高它不会让文件随时间无限增长。
+ *
+ * 取 200（原 60）：2026-09-22 实测窗内被拒 62 条 / 60 天，要涨到 3 倍以上才会触顶。
+ * 原值 60 是为「rejected 随小程序快照下发」定的，而同一天稍后的提交把 rejected
+ * 从快照里整个摘掉了（见 scripts/build.mjs）—— 于是这个数字现在只保护
+ * data/signal.json 这一个仓库文件，页面与小程序都不受它影响。
  */
-const MAX_LISTED = 60;
+const MAX_LISTED = 200;
 
 /** 取「某天的某个钟点」在指定时区的 UTC 时刻。dayNum 是纯日历日序号，不受夏令时影响。 */
 function at(dayNum, hh, mm, zone) {
@@ -1139,10 +1152,15 @@ export function detectSignals(tweets, opts = {}) {
     zones: dualZone(new Date(now).toISOString(), userZone, sourceZone, '北京时间', 'Tibo 当地时间'),
     latest: analyzed[0] ?? null,
     // ⚠ 这里**不做静默截断**。旧版对每类各取 `.slice(0, 5)`，而列表是按时间倒序的，
-    // 于是被丢掉的恰好是最早的那几条 —— 也就是最靠近「上一次重置」、本轮最相关的
-    // 那些。2026-09-12 03:20「A reset and a quick update…」就是这样消失的。
-    // 现在：核心结论（explicit / occurred）全量保留；hints / rejected 只作上限保护，
-    // 一旦触顶会在 counts 与 truncated 里显式标出，绝不静默丢。
+    // 于是被丢掉的是最早的那几条。现在：核心结论（explicit / occurred）全量保留；
+    // hints / rejected 只作上限保护，一旦触顶会在 counts 与 truncated 里显式标出。
+    //
+    // 顺带纠正一处旧注释的推论。它举 2026-09-12 03:20「A reset and a quick update…」
+    // 为例，说「被丢掉的恰好是最靠近上一次重置、本轮最相关的那些」，据此把
+    // 「rejected 丢掉最早的」当成危险源。实测那条推文是 **occurred 级**（它声明的是
+    // 「已经重置了」），从不进 rejected —— 本轮复核：它在 occurred 里，不在 rejected 里。
+    // 所以对 rejected 而言「留最新、丢最旧」是安全的：带重置结论的推文走
+    // explicit / occurred，而那两类不设上限。
     signals: explicit,
     occurred,
     hints: hints.slice(0, MAX_LISTED),
@@ -1159,6 +1177,11 @@ export function detectSignals(tweets, opts = {}) {
       occurred: occurred.length,
       hint: hints.length,
       none: analyzed.length - explicit.length - occurred.length - hints.length,
+      // 未截断的真实条数。触顶时 `rejected.length` 是**保留数**，两者不相等 ——
+      // 渲染层要写「保留 X / 共 Y 条」就得有 Y（见 render.mjs 的截断提示）。
+      // 不复用 counts.none 是因为那是个减法结果，语义是「none 级的条数」；
+      // 当前二者相等只因为每条 none 都被排除，不是定义上的等价。
+      rejected: rejected.length,
     },
     truncated: hints.length > MAX_LISTED || rejected.length > MAX_LISTED,
   };
