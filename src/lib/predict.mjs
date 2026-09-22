@@ -540,19 +540,22 @@ export function predictAll(records, opts = {}) {
     now,
   });
 
+  // 面向读者的可操作提示。**当前为空**，且这里不放下面这类内容：
+  //
+  //   「训练样本仅 N 次事件，长尾估计不稳定」「样本外校准偏离较大…节奏可能又在变化」
+  //   「节奏处于明显加速期，任何历史外推都会偏保守」
+  //
+  // 这三条都是**关于模型自身的元叙述**（AGENTS.md「用户可见文案的红线」第 2 条），
+  // 而它们各自要说的数字早已有载体：样本量见回测块的 `n=` 与分段表的 `n=`、
+  // 覆盖率与区分度见回测表、加速见「节奏在加速」整块（12.4 → 3.0 天）。
+  // 红线第 3 条要求留的是**数字**，不是把数字讲成散文 —— 同一段事实讲两遍，
+  // 第二遍还是以「我们这模型不太行」的口吻，读者拿不到新信息，只看到作者的自我怀疑。
+  //
+  // 评估值本身照常算、照常返回（`calibration` / `skill` / `model.nEvents`），
+  // 只是不再翻译成页面文案 —— 与 `signals.occurred`「检测保留在数据层、
+  // 不参与呈现」同一个处理手法。
   const warnings = [];
-  if (cal.cov50 !== null && Math.abs(cal.cov50 - 0.5) > 0.15) {
-    warnings.push(
-      `样本外校准偏离较大（50% 分位实际覆盖 ${(cal.cov50 * 100).toFixed(0)}%），说明节奏可能又在变化`
-    );
-  }
-  if (model.nEvents < 60) {
-    warnings.push(`训练样本仅 ${model.nEvents} 次事件，长尾估计不稳定`);
-  }
   const ph = phases(records);
-  if (ph.length >= 2 && ph[ph.length - 1].mean < ph[0].mean * 0.6) {
-    warnings.push('节奏处于明显加速期，任何历史外推都会偏保守（高估等待时间）');
-  }
 
   return {
     asOf: new Date(now).toISOString(),
