@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>等 TIBO 按按钮 · 额度重置观测台</title>
 <meta name="description" content="Codex 额度重置的观测台：距上次重置多久、还要等多久、以及 Tibo 有没有提前预告。" />
+<!-- 图标走独立文件、不用 data URI 内联：浏览器抓 favicon 的时机早于页面渲染，
+     且 Safari 对 data: 图标的支持长期不稳定。两个 png 由 scripts/build.mjs 拷进 dist/。 -->
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+<meta name="theme-color" content="#FAF8F4" />
 <!--__OG_META__-->
 <style>
   :root{
@@ -33,6 +38,12 @@
     padding:26px 0 22px;border-bottom:1px solid var(--line);
   }
   .brand{display:flex;align-items:baseline;gap:12px}
+  /* 品牌标。源图是**不透明黑底**的方形图，这里只加圆角裁切与极轻投影，不做抠底 ——
+     图形本体是白色描边，抠掉黑底等于把线一起抹掉。圆角把「黑方块」变成「App 图标」。 */
+  .brand-logo{
+    width:32px;height:32px;flex:0 0 auto;display:block;align-self:center;
+    border-radius:9px;box-shadow:0 1px 3px rgba(31,30,27,.18);
+  }
   .brand h1{font-size:19px;margin:0;font-weight:650;letter-spacing:.02em}
   .brand .sub{font-size:12px;color:var(--mist);letter-spacing:.14em;text-transform:uppercase;font-family:var(--mono)}
   .pulse{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink2);
@@ -246,6 +257,7 @@
 
   <header class="top">
     <div class="brand">
+      <img class="brand-logo" src="<!--__LOGO_URI__-->" alt="" width="32" height="32" />
       <h1>等 TIBO 按按钮</h1>
       <span class="sub">Reset Observatory</span>
     </div>

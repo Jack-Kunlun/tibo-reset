@@ -16,7 +16,7 @@
  *   单独调试：node scripts/og-image.mjs   →  写 dist/og-image.png
  */
 
-import { readdirSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -92,6 +92,29 @@ export function detectCjkFont(dirs = FONT_DIRS) {
   return null;
 }
 
+/* ---------------------------- 品牌标 ---------------------------- */
+
+/**
+ * 卡片左上角的品牌标，以 data URI 嵌入 SVG。
+ *
+ * 源图是**不透明黑底**的方形图，这里不抠底 —— 图形本体是白色描边，
+ * 抠掉黑底会把描边一起抹掉。改成给一个圆角剪裁（clipPath），
+ * 于是「黑方块」在宣纸白卡片上读起来是「App 图标」。
+ *
+ * 同步读：buildOgSvg 是同步函数，不能在里面 await。文件在版本控制里，
+ * 读不到说明仓库不完整 —— 直接抛，不静默出一张没有品牌标的卡片。
+ */
+const LOGO_SRC = 'src/assets/logo-168.png';
+let _logoHref = null;
+
+function logoHref() {
+  if (_logoHref === null) {
+    const buf = readFileSync(resolve(ROOT, LOGO_SRC));
+    _logoHref = `data:image/png;base64,${buf.toString('base64')}`;
+  }
+  return _logoHref;
+}
+
 /* ------------------------------ 数字 ------------------------------ */
 
 const esc = (s) =>
@@ -128,6 +151,11 @@ const M = 100; // 左右留白：核心内容全部落在中心 1000×500 安全
 const CONTENT_W = OG_W - 2 * M;
 const CHART_H = 152; // 图表在成图里的最终高度
 
+// 品牌标几何：贴在标题左侧，标题与副标题整体右移让位。
+// y 取在「标题 cap top（约 100.6）+ 副标题底（约 180）」这段文字的视觉中线上。
+const LOGO = { x: M, y: 112, size: 56, radius: 14, gap: 20 };
+const TEXT_X = M + LOGO.size + LOGO.gap;
+
 // 所有纵向锚点收在一处，方便整体调版，也让「核心内容在安全区内」可被断言
 const LY = {
   pill: 72,
@@ -150,6 +178,8 @@ export const OG_LAYOUT = {
   safe: { x0: M, x1: OG_W - M, y0: (OG_H - 500) / 2, y1: (OG_H + 500) / 2 },
   margin: M,
   contentW: CONTENT_W,
+  logo: { x: LOGO.x, y: LOGO.y, size: LOGO.size, radius: LOGO.radius },
+  textX: TEXT_X,
   statLabelY: LY.statLabel,
   statValueY: LY.statValue,
   statValueSize: 58,
@@ -223,14 +253,19 @@ export function buildOgSvg({ model, prediction, siteUrl }) {
 <stop offset="100%" stop-color="${PALETTE.bamboo}" stop-opacity="0"/>
 </radialGradient>
 ${defs}
+<clipPath id="logoClip">
+<rect x="${LOGO.x}" y="${LOGO.y}" width="${LOGO.size}" height="${LOGO.size}" rx="${LOGO.radius}"/>
+</clipPath>
 </defs>
 <rect width="${OG_W}" height="${OG_H}" fill="${PALETTE.paper}"/>
 <rect width="${OG_W}" height="${OG_H}" fill="url(#ogGlowL)"/>
 <rect width="${OG_W}" height="${OG_H}" fill="url(#ogGlowR)"/>
 <rect x="0" y="0" width="${OG_W}" height="3" fill="${PALETTE.lan}" fill-opacity="0.45"/>
 
-${txt(M, LY.title, '等 TIBO 按按钮', { size: 52, weight: 700 })}
-${txt(M, LY.subtitle, '额度重置观测台 · CODEX RESET WATCH', { size: 18, fill: PALETTE.mist })}
+${txt(TEXT_X, LY.title, '等 TIBO 按按钮', { size: 52, weight: 700 })}
+${txt(TEXT_X, LY.subtitle, '额度重置观测台 · CODEX RESET WATCH', { size: 18, fill: PALETTE.mist })}
+<image x="${LOGO.x}" y="${LOGO.y}" width="${LOGO.size}" height="${LOGO.size}"
+ clip-path="url(#logoClip)" href="${logoHref()}"/>
 ${pill.html}
 
 <line x1="${M}" y1="${LY.divider}" x2="${OG_W - M}" y2="${LY.divider}" stroke="${PALETTE.line}" stroke-width="1"/>
