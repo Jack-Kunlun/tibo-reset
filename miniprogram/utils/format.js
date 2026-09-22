@@ -46,6 +46,15 @@ export function fmtClock(ts) {
   return `${p.hour}:${p.minute}`;
 }
 
+/**
+ * 16:09:37 —— 页首「观测中」后面那个**当前北京时间**，精确到秒。
+ * 与 fmtClock 分开：别处要的是「某件事发生在几点几分」，秒只会添乱。
+ */
+export function fmtClockSec(ts) {
+  const p = beijingParts(ts);
+  return `${p.hour}:${p.minute}:${p.second}`;
+}
+
 /** 2026.09.12（周六）16:09 */
 export function fmtDateTimeWeek(ts) {
   const p = beijingParts(ts);

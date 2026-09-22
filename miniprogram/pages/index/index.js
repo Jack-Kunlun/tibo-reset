@@ -12,7 +12,7 @@ import { loadState } from '../../utils/api.js';
 import { buildGauge, buildSignal, buildMetrics, buildForecast } from '../../utils/view.js';
 import { survivalScene, stripScene } from '../../utils/scene.js';
 import { drawScene, setupCanvas } from '../../utils/draw.js';
-import { countdown, countdownGroups, elapsed, reelGroups, verdict as makeVerdict, fmtDateTime, fmtClock } from '../../utils/format.js';
+import { countdown, countdownGroups, elapsed, reelGroups, verdict as makeVerdict, fmtDateTime, fmtClock, fmtClockSec } from '../../utils/format.js';
 import {
   ACTION_LABEL,
   DONE_LABEL,
@@ -118,7 +118,9 @@ Page({
         forecast: buildForecast(state.prediction),
         survivalN: chart ? chart.gapDays.length : 0,
         genText: fmtDateTime(genTs),
-        updText: degraded ? `快照 · ${fmtClock(genTs)}` : `观测中 · ${fmtClock(genTs)}`,
+        // 「观测中」后面是**当前北京时间**，由 tick 每秒推进（见 tick）。
+        // 降级态是例外：那时要传达的正是「这是什么时候的快照」，显示数据时刻才有信息量。
+        updText: degraded ? `快照 · ${fmtClock(genTs)}` : `观测中 · ${fmtClockSec(Date.now())}`,
         account: state.account || 'thsottiaux',
         degraded: !!degraded,
         notice: degraded ? reason || '当前展示的不是实时数据' : '',
@@ -169,6 +171,16 @@ Page({
 
     const cd = this.tickCountdown(now);
     if (cd) patch['signal.cd'] = cd;
+
+    // 「观测中」后面是当前北京时间，跟着时钟走。降级态不参与 ——
+    // 那时显示的是快照时刻，是个固定值。
+    if (!this.data.degraded) {
+      const t = fmtClockSec(now);
+      if (t !== this._upd) {
+        this._upd = t;
+        patch.updText = '观测中 · ' + t;
+      }
+    }
 
     if (Object.keys(patch).length) this.setData(patch);
   },

@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 import { buildChartData } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
 import { detectSignals } from '../src/lib/signals.mjs';
-import { countdown, countdownGroups, elapsed, reelGroups, fmtDateTime, fmtClock, verdict as makeVerdict } from '../miniprogram/utils/format.js';
+import { countdown, countdownGroups, elapsed, reelGroups, fmtDateTime, fmtClockSec, verdict as makeVerdict } from '../miniprogram/utils/format.js';
 import { buildGauge, buildSignal, buildMetrics, buildForecast } from '../miniprogram/utils/view.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -252,7 +252,7 @@ ${normalize}
 
   <div class="top">
     <div class="brand"><span class="h1">等 TIBO 按按钮</span><span class="sub">RESET OBSERVATORY</span></div>
-    <div class="pulse"><span class="dot"></span><span>观测中 · ${esc(fmtClock(now))}</span></div>
+    <div class="pulse"><span class="dot"></span><span>观测中 · <span id="upd">${esc(fmtClockSec(now))}</span></span></div>
   </div>
 
   ${signalHtml}
@@ -331,6 +331,19 @@ ${normalize}
 
   paint('#survival', survivalScene, 208);
   paint('#strip', stripScene, 230);
+
+  /* 右上角「观测中」跟真实时钟走。静态时间看不出它在不在动，
+     而这一处恰恰是「必须会动」的地方 —— 预览页也得能验收这一点。 */
+  const upd = document.getElementById('upd');
+  if (upd && typeof Intl !== 'undefined' && Intl.DateTimeFormat) {
+    const bj = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Shanghai', hourCycle: 'h23',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+    });
+    const tickClock = () => { upd.textContent = bj.format(Date.now()); };
+    tickClock();
+    setInterval(tickClock, 1000);
+  }
 </script>
 </body>
 </html>

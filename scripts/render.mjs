@@ -26,6 +26,14 @@ const fmtTime = (iso) => {
   const p = partsIn(iso, CJK);
   return `${p.hour}:${p.minute}`;
 };
+/**
+ * 带秒的钟点（HH:MM:SS）。只给页首「观测中」用 —— 那一处显示的是**当前北京时间**，
+ * 页面脚本每秒推进它，静态兜底值也得是同样的位数，否则 JS 一接管就会换宽度。
+ */
+const fmtTimeSec = (iso) => {
+  const p = partsIn(iso, CJK);
+  return `${p.hour}:${p.minute}:${p.second}`;
+};
 const fmtDateTime = (iso) => fmtDateTimeIn(iso, CJK);
 
 const esc = (s) =>
@@ -682,7 +690,12 @@ export function renderAll(m, prediction, signals, opts = {}) {
     SURVIVAL_N: m.gapDays.length,
     STRIP: renderStrip(m),
     TIMELINE: renderTimeline(m),
-    UPD: fmtTime(m.generatedAt),
+    // 右上角「观测中」后面跟的是**当前北京时间**，页面脚本每秒推进它。
+    // 静态兜底值取**构建时刻**，不取数据采集时刻（m.generatedAt）——
+    // 「观测中」是现在进行时，读者会把后面那个数字当成「现在几点」，
+    // 看到两小时前的时间就以为页面停更了（这正是它上一版的问题）。
+    // 「数据多新」由页脚的「最近一次采集 …」单独承担，两处不再重复同一个值。
+    UPD: fmtTimeSec(new Date(m.now).toISOString()),
     GEN: fmtDateTime(m.generatedAt),
     LAST_AT: m.lastAt,
     LAST_LABEL: fmtDateTime(m.lastAt),

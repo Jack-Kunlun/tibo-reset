@@ -93,6 +93,9 @@ export function partsIn(isoStr, timeZone) {
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
+    // 秒字段是给页首「观测中 · HH:MM:SS」用的 —— 那个钟点要跟着真实时钟走。
+    // 其余调用方按键取值，多这一个字段对它们无影响。
+    second: '2-digit',
     hour12: false,
     weekday: 'short',
   });
