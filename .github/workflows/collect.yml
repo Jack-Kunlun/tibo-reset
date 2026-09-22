@@ -30,6 +30,15 @@ on:
       - 'miniprogram/data/**'
       - 'miniprogram/utils/scene.js'
 
+env:
+  # 本机采集周期（分钟）—— **单一真值来源**。
+  #
+  # CI 的兜底阈值由它推导出来（见下面「采集」step 的 $(( ... + 60 ))），
+  # 于是不存在「两个数字要记得一起改」这种问题 —— 此前正是两个各自看着合理的数字
+  # （周期 480 / 阈值 120）合起来矛盾，让 CI 有 75% 的运行在必然失败。
+  # 改本机周期时只改这一处。
+  LOCAL_COLLECT_INTERVAL_MINUTES: '480'
+
 permissions:
   contents: write             # 提交采集数据
   pages: write                # 发布 Pages
@@ -91,10 +100,27 @@ jobs:
         id: collect
         # push 触发 = 数据刚由本机采好推上来了，再采一次纯属多余；何况 runner 采必被
         # Cloudflare 挑战，只会把 errors 写进 stats.json，让本机刚清干净的异常横幅又冒出来。
+        #
         # --max-age：数据够新鲜就短路，连请求都不发（见 src/lib/collect.mjs 的说明）。
+        #
+        # ⚠ 阈值必须 **≥ 本机采集周期**，否则短路名存实亡 —— 判据是「数据年龄 < 阈值」，
+        #   而数据年龄在本机刚采完时是 0、到下一轮本机采集前涨到满一个周期。阈值只要小于
+        #   周期，就会有一段窗口必然超过它，于是 CI 每隔 30 分钟真去采一次、必然 403、
+        #   必然把错误写进 stats.json、必然产生一条提交。
+        #
+        #   所以这里**不写字面量**，而是由顶层 env 的 LOCAL_COLLECT_INTERVAL_MINUTES
+        #   （= 480 分钟，WorkBuddy 自动化每 8 小时一次）加一轮余量算出来 → 540。
+        #   这样「本机周期」只有一个真值来源，改它一处就够。
+        #
+        #   此前这里是硬编码的 120：480 分钟里有 360 分钟超阈值，**75% 的运行在必然失败**
+        #   （一个周期 15 轮里 12 轮），页面 75% 的时间挂着「数据采集异常」横幅 ——
+        #   而成因是设计已知的，那面横幅于是退化成噪音，真出问题时读者已经习惯它了。
+        #
+        #   本机正常跑时（年龄 ≤ 480 < 540）CI 永远短路：零噪音、零提交。
+        #   只有本机真漏掉一轮以上时才尝试 —— 那时失败才是**真该告警**的。
         if: github.event_name != 'push'
         continue-on-error: true
-        run: node scripts/collect.mjs --max-age=120
+        run: node scripts/collect.mjs --max-age=$(( LOCAL_COLLECT_INTERVAL_MINUTES + 60 ))
 
       - name: 采集失败时显式告警
         if: steps.collect.outcome == 'failure'
@@ -133,12 +159,23 @@ jobs:
           # —— 哪怕数据一个字都没动，也照样产生一次提交。这正是此前 48 条提交/天的另一半来源
           # （采集那半已由 --max-age 短路解决）。
           # 它由本机在采集后构建并提交（本机是主链路）；CI 这边只负责发布页面。
+          #
+          # ⚠ 提交判据是 scripts/data-changed.mjs，**不是** `git diff --staged --quiet`。
+          #   后者是字节级判据，而 data/ 下有一批字段每轮必然不同、却与「数据有没有变」
+          #   无关（stats.json 的 generated_at 与 stats.days_since_last、signal.json 的
+          #   generatedAt 与时间窗边界）。字节级判据把它们当成变化，于是刷新一轮就提交
+          #   一条 —— 而数据一个字都没动。翻统计：stats.json 的 20 次提交里 12 次是同一句
+          #   「实时采集失败：HTTP 403」，看起来像采集一直在坏。
+          #
+          #   脚本退出码：0 = 有实质变化（提交）；1 = 只有时间戳在动（跳过）。
+          #   脚本自己出错时返回 0 —— 漏提交等于数据丢档，宁可多提交一次。
+          #   git add 的范围必须与脚本里的 DEFAULT_PATHS 一致。
           git add data miniprogram/utils/scene.js
-          if git diff --staged --quiet; then
-            echo "无变化，跳过提交"
-          else
+          if node scripts/data-changed.mjs; then
             git commit -m "chore(data): 自动更新采集数据"
             git push
+          else
+            echo "只有时间戳字段在动，数据没有实质变化 → 跳过提交"
           fi
 
       - name: 上传页面产物

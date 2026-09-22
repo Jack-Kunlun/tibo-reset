@@ -601,6 +601,16 @@ export async function runCollection(opts = {}) {
   // 它那次注定失败，会把 stats.json 的 errors 写成非空，于是本机刚清掉的
   // 「数据采集异常」横幅又被贴回页面上 —— 明明数据是新鲜的，却告警说采不到。
   // 有了短路，CI 只在数据确实陈旧时才尝试，那种失败才是真该告警的情况。
+  //
+  // ⚠ 阈值必须 **≥ 主路径（本机）的刷新周期**，否则短路名存实亡。判据是
+  //   「数据年龄 < skipIfFresherThanMs」，而数据年龄在本机刚采完时是 0、到下一轮
+  //   本机采集前涨满一个周期（现 480 分钟）。阈值取 120 时，一个周期里有 360 分钟
+  //   超阈值 —— CI 每 30 分钟真去采一次、必然 403、必然写 errors、必然产生提交，
+  //   页面 75% 的时间挂着横幅，而成因是设计已知的。那面横幅于是退化成噪音：
+  //   真出问题时读者已经习惯它了，这比不告警更糟。
+  //   现取 540 = 480 + 60（一轮余量）。阈值**不是手写的**：collect.yml 顶层 env 的
+  //   LOCAL_COLLECT_INTERVAL_MINUTES（本机周期）在「采集」step 里加余量算出来，
+  //   改周期只需改那一处。
   let live = await readJson(resolve(dataDir, 'tweets.json'), { tweets: [] });
   const prevStats = await readJson(resolve(dataDir, 'stats.json'), {});
   const lastLiveAt = live.updated_at ? new Date(live.updated_at).getTime() : 0;

@@ -94,6 +94,23 @@ miniprogram/         微信小程序
 - 降级的另一半在页面上：`scripts/render.mjs` 的 `renderCollectWarning` 读
   `stats.json.errors`，在页面顶部显示「数据采集异常」。少了它，降级就变成静默陈旧。
 - 这两条都有回归断言，见 `scripts/test-collect-warning.mjs`。
+- ⛔ **降级阈值必须 ≥ 主路径的刷新周期。** `collect.yml` 的 `--max-age` 比的是「数据
+  年龄」，而数据年龄从本机刚采完的 0，涨到下一轮本机采集前的**满一个周期**（现 480
+  分钟）。阈值取 120 时，一个周期里有 360 分钟超阈值 → CI 每 30 分钟真去采一次、
+  必然 403、必然写 `errors`、必然产生一条提交，**页面 75% 的时间挂着「数据采集异常」**。
+  那面横幅于是从告警退化成了噪音 —— 真出问题时读者已经习惯它了，这比不告警更糟。
+  现取 540 = 480 + 60（一轮余量）。阈值**不是手写的**：`collect.yml` 顶层 env 的
+  `LOCAL_COLLECT_INTERVAL_MINUTES`（本机周期）在「采集」step 里加余量算出来 ——
+  改周期只改那一处，阈值自动跟着变，不存在「两个数字要记得一起改」。
+  回归断言见 `scripts/test-collect-warning.mjs`（含「`--max-age` 不许再出现字面量」），
+  推导与实测见 `docs/data-source.md` §5。
+- ⛔ **「有没有变化」不许用字节级判据。** `git diff --staged --quiet` 会把
+  `stats.json` 的 `generated_at` / `stats.days_since_last`、`signal.json` 的
+  `generatedAt` 等**每轮必变、却与数据无关**的字段当成变化，于是刷新一轮就提交一条
+  —— 而数据一个字都没动。判据是 `scripts/data-changed.mjs`（退出码 0 = 有实质变化、
+  1 = 只有时间戳在动）。⚠ 但 `errors` 的**首次**变化必须提交：否则「线上挂着横幅」
+  在仓库里没有痕迹，下一轮从仓库检出就成了「数据陈旧但页面一切正常」——页面会说谎。
+  回归断言见 `scripts/test-data-changed.mjs`。
 
 ## 数据源：主链路是本机登录态浏览器
 
@@ -153,8 +170,10 @@ HTTP 200 / 213KB 完整页面 / 4 次重试全中；runner（AWS）403 挑战页
   `foundVia: 'timeline'` 的行是低可信历史数据，`'timeline-browser'` 才可归因。
 - headless 必须伪装 UA（否则 x.com 稳定 403），profile 目录必须在 `$HOME` 下
   （独立目录 + 绝不进仓库），启动要带 `--no-sandbox`。理由见 `docs/data-source.md` §4.2。
-- CI 兜底必须带 `--max-age`。否则它那次注定失败的采集会把 `errors` 写进 `stats.json`，
-  让页面上刚被本机清干净的「数据采集异常」横幅又贴回来 —— 数据明明是新鲜的。
+- CI 兜底必须带 `--max-age`，且阈值**必须 ≥ 本机周期**（由 `collect.yml` 顶层的
+  `LOCAL_COLLECT_INTERVAL_MINUTES` 推导出来，见上文「发布链的降级规则」那条红线）。
+  否则它那次注定失败的采集会把 `errors` 写进 `stats.json`，让页面上刚被本机清干净的
+  「数据采集异常」横幅又贴回来 —— 数据明明是新鲜的。
 - 短路时**不写任何文件**。写了 `generated_at`（采集运行时刻）就会变，CI 会为它单独提交，
   于是每 30 分钟污染一条提交历史，而数据一个字都没动。
 - CI 的提交范围**不含** `miniprogram/data/snapshot.js`。它是构建产物，内嵌了构建时刻

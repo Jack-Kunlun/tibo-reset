@@ -156,6 +156,48 @@ check(
   !!buildStep && /SITE_URL:\s*\$\{\{\s*vars\.SITE_URL\s*\}\}/.test(buildStep)
 );
 
+/* ============ 6. 兜底阈值与本机周期的耦合（不是「记得改两处」） ============ */
+
+section('兜底阈值必须 ≥ 本机周期');
+
+// 这一节守的是一类**配置矛盾**：两个数字各自看着都合理，合起来却让 CI 有 75% 的运行
+// 在必然失败（2026-09-22 之前：周期 480 / 阈值硬编码 120）。修法不是「记得改两处」，
+// 而是把阈值从周期**推导**出来 —— 于是这里断言的正是那条推导关系本身。
+
+const intervalRaw = yml.match(/^\s*LOCAL_COLLECT_INTERVAL_MINUTES:\s*'?(\d+)'?\s*$/m);
+const interval = intervalRaw ? Number(intervalRaw[1]) : null;
+
+check(
+  'workflow 里声明了本机采集周期（这是阈值的单一真值来源）',
+  Number.isFinite(interval) && interval > 0,
+  `实际 ${intervalRaw?.[0]?.trim() ?? '(未找到)'}`
+);
+
+// 取到行尾而不是取到第一个空格 —— 推导式 `$(( X + 60 ))` 在 `$((` 后面就有空格，
+// 用 `[^\s)]+` 会只抓到 `$((`，然后「是推导式」那条断言会因为抓错东西而假绿。
+const maxAgeMentions = [...yml.matchAll(/--max-age=([^\n]+)/g)].map((m) => m[1].trim());
+
+check(
+  '--max-age 在整个 workflow 里只出现一次',
+  maxAgeMentions.length === 1,
+  `实际 ${JSON.stringify(maxAgeMentions)} —— 多出来的那处最容易与周期脱钩`
+);
+
+check(
+  '--max-age 是推导式（$(( ... ))）而不是字面量',
+  maxAgeMentions.length === 1 && maxAgeMentions[0].includes('$(('),
+  `实际 --max-age=${maxAgeMentions[0] ?? '(无)'} —— 字面量会与周期脱钩`
+);
+
+const marginMatch = maxAgeMentions[0]?.match(/\+\s*(\d+)\s*\)\)/);
+const margin = marginMatch ? Number(marginMatch[1]) : null;
+
+check(
+  '推导用的余量至少一轮 CI 间隔（30 分钟），否则边界会正好撞上',
+  Number.isFinite(margin) && margin >= 30,
+  `实际余量 ${margin ?? '(未找到)'} 分钟`
+);
+
 /* ======================== 结果 ======================== */
 
 console.log(`\n${'─'.repeat(52)}`);
