@@ -27,6 +27,12 @@ pnpm-lock.yaml
 data/*.tmp-*
 *.log
 
+# ⚠ F9 订阅名单含 openid，是用户个人信息，**绝不能进镜像**。
+#   它与其余 data/ 同目录，而 Dockerfile 有 `COPY data ./data`，
+#   不显式排除就会被打进层里 —— 且镜像层是叠加的，事后删文件也删不掉那份残留，
+#   一旦 push 到registry就等于把 openid 列表公开了。
+data/subscriptions.json
+
 # 系统 / 编辑器
 .DS_Store
 *.swp

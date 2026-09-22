@@ -23,8 +23,15 @@ RUN npm ci
 
 # ⚠ 必须在 build 之前装：没有 CJK 字体时 resvg 不报错，只是把每个汉字画成空方框。
 #   og-image.mjs 里做了前置探测（找不到字体就拒绝出图），但不该靠降级活着。
+#
+# ⚠ fontconfig 必须显式列出，不能靠 fonts-noto-cjk 带进来 ——
+#   它只是 fonts-noto-cjk 的 Recommends，而这里用了 --no-install-recommends，会被跳过。
+#   缺了它 resvg 在 Linux 上枚举不到任何系统字体（字体文件明明在 /usr/share/fonts），
+#   结果是**整张卡片一个字都不渲染**：og-image.mjs 的探测只查文件是否存在，
+#   查不到「resvg 其实一个字体都没加载」这件事，于是它照样放行、静默出一张纯线条空图。
+#   macOS 与 GitHub Actions 的 ubuntu 镜像都自带 fontconfig，所以只有本镜像会踩到。
 RUN apt-get update \
- && apt-get install -y --no-install-recommends fonts-noto-cjk \
+ && apt-get install -y --no-install-recommends fonts-noto-cjk fontconfig \
  && rm -rf /var/lib/apt/lists/*
 
 COPY src ./src
