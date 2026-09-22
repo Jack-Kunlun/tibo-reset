@@ -31,14 +31,21 @@
 ## 二、总体架构
 
 ```
-        ┌──────────────────────────── 境外 ────────────────────────────┐
+        ┌──────────────────── 采集与构建 ───────────────────────────────┐
         │                                                              │
-   x.com/thsottiaux ──► GitHub Actions（每 30 分钟）                    │
-   （未登录 HTML，        ├─ node scripts/collect.mjs   采集 + 分类 + 识别信号
-     内嵌 RSC 载荷）      ├─ node scripts/build.mjs     构建期预渲染
-                         └─ node scripts/sync.mjs      推送数据到境内
+   x.com/thsottiaux ──► 本机（住宅出口）：WorkBuddy 定时任务              │
+   （登录态 HTML，        └─ node scripts/collect.mjs   采集 + 分类 + 识别信号
+     CDP 驱动 Chrome，              build.mjs           构建网页与小程序快照
+     收 / 与 /with_replies）        git push data/      推上仓库（有实质变化才提交）
         │                            │
-        │                            ├──────────────► git commit data/ + dist/
+        │                            ▼
+        │                    GitHub Actions（push 触发；**不采集** ——
+        │                    runner 是机房 IP，必被 Cloudflare 403）
+        │                      ├─ node scripts/build.mjs        构建期预渲染
+        │                      ├─ node scripts/check-consistency.mjs  A3 一致性
+        │                      └─ node scripts/push-ingest.mjs  推送数据到境内
+        │                            │
+        │                            ├──────────────► git commit data/（有实质变化才提交）
         │                            │                        │
         │                            │                        ▼
         │                            │                 GitHub Pages
@@ -550,7 +557,7 @@ cp deploy/Caddyfile /etc/caddy/Caddyfile && systemctl reload caddy
 | X 页面结构变更导致采集失效 | 不可预期 | 最大的单点。X 改版就要改 `parseTweets()`；已设计的降级是保留旧数据 + 错误可见 |
 | 证书续期 | 自动 | Caddy 负责 |
 | 服务器安全更新 | 季度 | 系统层面 |
-| Actions schedule 延迟 | 常态 | 高峰期可能延迟数分钟；见 9.3 |
+| 本机（跑采集那台机器）关机 / 休眠 | 不可预期 | **采集的单一入口**。停掉就停更，CI 帮不上忙（机房 IP 采不到）；见 9.3 |
 
 ---
 
@@ -564,7 +571,7 @@ cp deploy/Caddyfile /etc/caddy/Caddyfile && systemctl reload caddy
 **影响**：不是「数据错误」而是「数据停更」—— 页面继续显示最后一次成功的数据。
 
 **缓解**：现有降级语义已正确处理（保留旧数据、错误进 `stats.json`、经 `/api/health` 暴露）。
-本阶段不发外部告警（见 3.8），发现路径是 Actions 失败邮件 + 页面上的数据更新时间。
+本阶段不发外部告警（见 3.8），发现路径是页面上的数据更新时间与「数据未更新」提示。
 **「停更」不会自己恢复**，这是它的真实风险 —— 所以数据更新时间必须显著展示，
 让停滞在页面上一眼可见，而不是藏在角落。
 
@@ -573,13 +580,20 @@ cp deploy/Caddyfile /etc/caddy/Caddyfile && systemctl reload caddy
 **已由架构缓解**：境内镜像站作为分享入口（3.5）。GitHub Pages 不可达时，
 受影响的是「作品集入口」而不是「引流入口」。
 
-### 9.3 Actions 定时任务不准时
+### 9.3 本机是采集的单一入口
 
-GitHub 的 `schedule` 事件在高峰期会延迟，且**仓库连续 60 天无提交时会被自动停用**。
+**风险**：采集只有本机这一条路径。那台机器关机、休眠，或自动化任务停掉，数据就停更 ——
+而 CI 帮不上忙，它采不到（机房 IP 必被 Cloudflare 403）。
 
 **缓解**：
-- 延迟：不影响正确性。页面明确标注「数据更新于 X」，延迟可见。
-- 60 天停用：本项目每轮采集都会产生提交，天然规避。
+- 页面自己会说：超过两个采集周期没有**成功**更新就显示「数据未更新」，停滞一眼可见
+  （判据是「当前时间 − `tweets.json` 的 `updated_at`」，见 `data-source.md` §5）。
+  这是**有意的**取向 —— 宁可显示陈旧，也不假装新鲜。
+- 但**它不会自己恢复**：页面只能报警，补数据仍需人工把那台机器唤醒。这是该机器在本架构里的
+  真实权重，写在这里以免被忘记 —— 别让「只是个定时任务」的印象掩盖了它是采集的唯一入口。
+- 早期还有一条 CI 每 30 分钟的定时器充当「兜底采集」，2026-09-22 移除（`decisions.md` D-023）：
+  它的净产出只有「重新部署一次 Pages」，因为 CI 根本采不到数据；它唯一的价值（发现本机停摆）
+  已由页面判据接手，而且更及时 —— 页面一被打开就在算，不依赖任何进程在跑。
 
 ### 9.4 品类寿命（PRD R1）
 

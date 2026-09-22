@@ -12,11 +12,11 @@
  *   node scripts/collect.mjs --radar     # 额外跑回复雷达（默认关，见下方说明）
  *   node scripts/collect.mjs --bootstrap # 额外执行历史回填（冷启动）
  *   node scripts/collect.mjs --offline   # 跳过网络，只重算统计（自检用）
- *   node scripts/collect.mjs --max-age=540
- *                                        # 数据比 540 分钟还新就不采（CI 兜底用，见
- *                                        # src/lib/collect.mjs 里「新鲜度短路」的说明）。
- *                                        # ⚠ 这个数必须 ≥ 本机采集周期（现 480 分钟），
- *                                        # 否则短路形同虚设，详见该段注释
+ *   node scripts/collect.mjs --max-age=180
+ *                                        # 数据比 180 分钟还新就不采，连请求都不发。
+ *                                        # ⚠ 现在没有自动调用方（CI 兜底采集 2026-09-22
+ *                                        # 已移除，见 docs/decisions.md D-023），留给手动
+ *                                        # 重跑用；若将来重新用于自动化，阈值必须 ≥ 采集周期
  *   node scripts/collect.mjs --radar-accounts=udiWertheimer,someone
  *                                        # 覆盖回复雷达的监控对象池
  *   node scripts/collect.mjs --no-browser

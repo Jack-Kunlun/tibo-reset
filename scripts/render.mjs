@@ -691,6 +691,70 @@ export function renderCollectWarning(info) {
     .join('\n');
 }
 
+/* --------------------------- 数据陈旧提示 --------------------------- */
+
+/**
+ * 本机采集周期（分钟）—— 仓库里的**唯一真值来源**。
+ *
+ * 实测依据：`~/.workbuddy/logs/automation.log` 里六组 `lastRunAt → nextRunAt`
+ * 间隔全部精确等于 **2.00 小时**。WorkBuddy 自动化配置里声明的 rrule 是 8 小时，
+ * 与实测不符；以实测为准，差异记在 docs/decisions.md 的 D-023。
+ *
+ * ⚠ 调整本机采集频率时**只改这一处**：陈旧阈值由它推导，不是另一个手写数字。
+ */
+export const LOCAL_COLLECT_INTERVAL_MINUTES = 120;
+
+/**
+ * 数据超过多久没**成功**更新，就在页面上说出来。
+ *
+ * 取两倍周期而不是「一倍加余量」：本机采集有调度抖动、机器休眠后补跑等情况，
+ * 一倍余量会把「只是晚了一轮」也报成陈旧；两倍意味着**连续漏掉一整轮**才提示。
+ *
+ * 这个判据接手的是**原先 CI 每 30 分钟那轮心跳的职责**：以前「本机还在不在跑」
+ * 由 CI 定时体检（它采不到，但至少能发现数据陈旧并挂横幅），现在 CI 不再采集，
+ * 改由页面拿当前时间与数据时刻相减 —— 于是「发现」不再依赖任何人有空跑一次 CI。
+ */
+export const STALE_AFTER_MINUTES = LOCAL_COLLECT_INTERVAL_MINUTES * 2;
+
+/**
+ * 「数据未更新」提示条。
+ *
+ * 时间锚点取 `tweets.json` 的 `updated_at`（只在采集**成功**时推进），
+ * 与 `renderCollectWarning` 同一个判据 —— 不要换成 `stats.json` 的 `generated_at`：
+ * 那个采集失败时照样推进，拿它当「数据多新」会撒谎（AGENTS.md 文案红线 4）。
+ *
+ * 两种情况下不输出，页面保持干净：
+ *   - 没有合法的 `lastLiveAt`（首次部署、数据被手改坏）
+ *   - `errors` 非空 —— 那时「数据采集异常」横幅已经在说了，而且说得更具体
+ *     （带着失败原因）。同一件事不铺两条相似的提示。
+ *
+ * 为什么容器**始终输出**（未超阈值时带 `hidden`）而不是等客户端超时再创建：
+ * 模板顶部的约定是「脚本被禁用时页面依然完整」。构建那一刻就已经陈旧的话，
+ * 服务端直接不给 `hidden`，静态 HTML 里也看得见。
+ * 客户端只负责两件事：超阈值时去掉 `hidden`、把「距今多久」填上。
+ */
+export function renderFreshness(info, nowMs) {
+  const errors = (Array.isArray(info?.errors) ? info.errors : []).filter(Boolean);
+  if (errors.length) return '';
+
+  const at = isoOrNull(info?.lastLiveAt);
+  if (!at) return '';
+
+  const label = fmtDateTime(at);
+  const ageMs = Number(nowMs) - Date.parse(at);
+  const staleNow = Number.isFinite(ageMs) && ageMs > STALE_AFTER_MINUTES * 60_000;
+
+  return [
+    `<div class="cwarn" id="cstale" role="status" data-at="${attr(at)}" data-stale-after="${STALE_AFTER_MINUTES}"${staleNow ? '' : ' hidden'}>`,
+    '  <div class="cwarn-h">',
+    '    <span class="cwarn-dot"></span>',
+    '    <b>数据未更新</b>',
+    '  </div>',
+    `  <p class="cwarn-b">最近一次成功采集是 ${esc(label)} 北京<span id="cstale-age"></span>。页面数字可能已滞后。</p>`,
+    '</div>',
+  ].join('\n');
+}
+
 /* ------------------------------ 汇总 ------------------------------ */
 
 export function renderAll(m, prediction, signals, opts = {}) {
@@ -700,6 +764,9 @@ export function renderAll(m, prediction, signals, opts = {}) {
     OG_META: renderOgMeta(opts.og),
     DIGEST: renderDigest(m, prediction),
     COLLECT_WARNING: renderCollectWarning(opts.collect),
+    // 「数据未更新」条。与上面那条**互斥**：errors 非空时 renderFreshness 直接返回空串。
+    // 它接手的是原先 CI 定时那轮心跳的职责（见 STALE_AFTER_MINUTES 的注释）。
+    FRESHNESS: renderFreshness(opts.collect, m.now),
     SIGNAL: renderSignal(signals),
     COUNTER: renderCounter(m),
     SINCE: renderSince(m),

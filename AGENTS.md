@@ -82,28 +82,38 @@ miniprogram/         微信小程序
    - **降级态（`degraded`）是例外**：那里要传达的正是「这是什么时候的快照」，
      所以仍给数据时刻，文案两端统一为 `快照 · HH:MM`。
 
-## 发布链的降级规则
+## 数据新鲜度：必须自己现形，且不许撒谎
 
-**采集失败不得阻断发布，但也不得静默。** 数据本来就存在 `data/` 里，构建与发布并不
-依赖本轮网络是否成功。所以 `collect.yml` 里「采集」与「构建页面」是**两个 step**，
-采集标 `continue-on-error`，失败时给 `::warning` + step summary。
+**数据不新鲜这件事必须由页面讲出来。** 本项目不保证数据新鲜 —— 采集跑在本机，
+机器睡了就没人采 —— 而页面照样上线。只要「不新鲜」没被显示出来，用户看到的就是一个
+一切正常、实则数据停滞的页面，这正是本架构最想避免的情况。
 
-- ⛔ **禁止**把 `collect.mjs` 与 `build.mjs` 塞进同一个 `run:` 块 —— 两者共用 `bash -e`
-  语义，采集一失败，构建那一行根本不执行，一次网络抖动就赔掉整条发布链
-  （2026-09-21 的 403 事故：采集挂了 → build 没跑 → deploy 不执行 → 线上停在旧产物）。
-- 降级的另一半在页面上：`scripts/render.mjs` 的 `renderCollectWarning` 读
-  `stats.json.errors`，在页面顶部显示「数据采集异常」。少了它，降级就变成静默陈旧。
-- 这两条都有回归断言，见 `scripts/test-collect-warning.mjs`。
-- ⛔ **降级阈值必须 ≥ 主路径的刷新周期。** `collect.yml` 的 `--max-age` 比的是「数据
-  年龄」，而数据年龄从本机刚采完的 0，涨到下一轮本机采集前的**满一个周期**（现 480
-  分钟）。阈值取 120 时，一个周期里有 360 分钟超阈值 → CI 每 30 分钟真去采一次、
-  必然 403、必然写 `errors`、必然产生一条提交，**页面 75% 的时间挂着「数据采集异常」**。
-  那面横幅于是从告警退化成了噪音 —— 真出问题时读者已经习惯它了，这比不告警更糟。
-  现取 540 = 480 + 60（一轮余量）。阈值**不是手写的**：`collect.yml` 顶层 env 的
-  `LOCAL_COLLECT_INTERVAL_MINUTES`（本机周期）在「采集」step 里加余量算出来 ——
-  改周期只改那一处，阈值自动跟着变，不存在「两个数字要记得一起改」。
-  回归断言见 `scripts/test-collect-warning.mjs`（含「`--max-age` 不许再出现字面量」），
-  推导与实测见 `docs/data-source.md` §5。
+两道提示，**互斥**（同一件事不铺两条）：
+
+| 提示 | 判据 | 渲染函数 |
+|---|---|---|
+| 数据采集异常 | `stats.json` 的 `errors` 非空 —— 采集**真的失败了** | `renderCollectWarning` |
+| 数据未更新 | 超过 `STALE_AFTER_MINUTES` 没有**成功**更新 —— 采集**根本没发生** | `renderFreshness` |
+
+- 两道都有回归断言，见 `scripts/test-collect-warning.mjs`。
+- ⛔ **时间锚点必须是 `tweets.json` 的 `updated_at`**（只在采集**成功**时推进）。
+  不许用 `stats.json` 的 `generated_at` —— 后者采集失败时照样推进，拿它当「数据多新」
+  就是在页面上说一句当时并不成立的话（见上文「用户可见文案的红线」第 4 条）。
+- ⛔ **陈旧阈值必须由本机周期推导，不许手写第二个数字。** 源在 `scripts/render.mjs`
+  的 `LOCAL_COLLECT_INTERVAL_MINUTES`（仓库里唯一的真值来源，取**实测值**）；
+  阈值是两个周期 —— 连续漏掉一整轮才提示，抗调度抖动与休眠补跑。改频率只改那一处。
+  回归断言含「阈值在源码里是**引用**周期算出来的」，防它退化成两个各自写死的数字。
+- 🔑 **「发现本机没在跑」由页面承担，不依赖任何人去跑一次 CI。** 它原先靠 CI 每 30
+  分钟一轮的定时体检，那个定时器 2026-09-22 已移除（D-023）。页面的判据是
+  「当前时间 − 数据时刻」，页面一被打开就在算 —— 所以删掉定时器之后**发现能力反而更及时**。
+- 容器**始终输出**（未超阈值时带 `hidden`），不是等客户端超时再创建：模板顶部的约定是
+  「脚本被禁用时页面依然完整」。构建那一刻就已陈旧的话，服务端连 `hidden` 都不给。
+- 页面上**不写采集频率**。它是内部信息，而且实测频率与配置声明并不一致（D-023）；
+  读者要知道的是「数据多新」，那个由时刻回答。
+- 采集失败**不得阻断发布**（数据本来就在 `data/` 里存着一份），所以历史上「采集」与
+  「构建页面」是**两个 step**、采集标 `continue-on-error`。CI 现在不采集（D-023），
+  这个具体的坑随之消失，但**同一类错的形状没变**：任何不该有能力掐断发布的步骤都要
+  独立成 step 并标 `continue-on-error` —— 现在「安装中文字体」那步就是这么做的。
 - ⛔ **「有没有变化」不许用字节级判据。** `git diff --staged --quiet` 会把
   `stats.json` 的 `generated_at` / `stats.days_since_last`、`signal.json` 的
   `generatedAt` 等**每轮必变、却与数据无关**的字段当成变化，于是刷新一轮就提交一条
@@ -124,7 +134,8 @@ HTTP 200 / 213KB 完整页面 / 4 次重试全中；runner（AWS）403 挑战页
 已被证伪的绕行路径（换域名、官方嵌入接口、第三方镜像、免费代理、AppleScript）
 见 `docs/data-source.md`，**别再重复试一遍**。
 
-- 本机是**主链路**，CI 只是兜底。动采集相关代码时，别假设 runner 采得到。
+- 采集**只有本机这一条路径**（CI 已经不采集了，见 D-023）。动采集相关代码时，别假设
+  runner 采得到 —— 它必被 Cloudflare 挑战。
 - 浏览器路径失败时**降级到免登录首屏**，但降级必须外显：`tweets.json` 里写
   `source: 'html'` + `degraded`，CLI 打「⚠ 降级，只有最近 7 条」。静默降级等于回到
   漏掉 09-12 那次重置的状态。
@@ -170,12 +181,10 @@ HTTP 200 / 213KB 完整页面 / 4 次重试全中；runner（AWS）403 挑战页
   `foundVia: 'timeline'` 的行是低可信历史数据，`'timeline-browser'` 才可归因。
 - headless 必须伪装 UA（否则 x.com 稳定 403），profile 目录必须在 `$HOME` 下
   （独立目录 + 绝不进仓库），启动要带 `--no-sandbox`。理由见 `docs/data-source.md` §4.2。
-- CI 兜底必须带 `--max-age`，且阈值**必须 ≥ 本机周期**（由 `collect.yml` 顶层的
-  `LOCAL_COLLECT_INTERVAL_MINUTES` 推导出来，见上文「发布链的降级规则」那条红线）。
-  否则它那次注定失败的采集会把 `errors` 写进 `stats.json`，让页面上刚被本机清干净的
-  「数据采集异常」横幅又贴回来 —— 数据明明是新鲜的。
-- 短路时**不写任何文件**。写了 `generated_at`（采集运行时刻）就会变，CI 会为它单独提交，
-  于是每 30 分钟污染一条提交历史，而数据一个字都没动。
+- `--max-age=<分钟>`（数据比这个时限新时**连请求都不发**）保留在采集入口里，但**现在没有
+  调用方**：CI 那套兜底采集 2026-09-22 已移除（D-023）。本机手动重跑时可拿它避免白跑一轮。
+- 短路时**不写任何文件**。写了 `generated_at`（采集运行时刻）就会变，而那个字段与
+  「数据有没有变」无关 —— 提交判据是 `scripts/data-changed.mjs`，见上文。
 - CI 的提交范围**不含** `miniprogram/data/snapshot.js`。它是构建产物，内嵌了构建时刻
   （`generatedAt` / `now` 及其派生的全部预测值），每次构建都不同；提交它等于换个来源
   继续污染历史。它由本机构建后提交。
@@ -386,7 +395,7 @@ node scripts/test-miniprogram.mjs   # 小程序图元在目标尺寸下不越界
 node scripts/test-og.mjs            # OG 卡：缺字体守卫 / 尺寸 / 安全区 / meta 三态
 node scripts/test-ingest.mjs        # POST /api/ingest 的鉴权与落盘
 node scripts/test-subscribe.mjs     # F9 订阅链路（token 缓存 / 永久失败码 / 水位线）
-node scripts/test-collect-warning.mjs  # 采集异常外显 + 发布链不得被采集失败阻断
+node scripts/test-collect-warning.mjs  # 数据不新鲜的外显（两道互斥的提示）+ CI 不再采集
 node scripts/check-consistency.mjs  # A3：页面数字 ↔ API
 node scripts/check-layout.mjs       # A7：窄屏横向溢出（需要 Chrome）
 node scripts/diagnose.mjs           # 复现全部回测与校准数字

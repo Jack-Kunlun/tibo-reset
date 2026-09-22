@@ -280,6 +280,10 @@
   .ph .pm{font-family:var(--mono);font-size:16px;color:var(--ink);text-align:right}
   .ph .pm small{font-size:.62em;color:var(--mist);margin-left:2px}
   .ph .pn{grid-column:2 / 4;font-size:11px;color:var(--mist)}
+  /* 预测区末尾的告警条：样式留用，当前**无产出方**。
+     原先这里放的是模型自评（样本量少 → 估计不稳、校准偏离、外推偏保守），
+     已按 AGENTS.md 文案红线第 2 条移除，改由表格里的数字承担披露（第 3 条）。
+     别看到样式还在就以为它有内容。 */
   .fc-warn{list-style:none;margin:16px 0 0;padding:0}
   .fc-warn li{font-size:12.5px;color:#8A6A28;background:rgba(179,86,60,.05);
     border:1px solid rgba(179,86,60,.22);border-radius:10px;padding:11px 15px;margin-bottom:9px}
@@ -356,6 +360,9 @@
   <!-- ============ 采集异常（有异常时才出现） ============ -->
   <!--__COLLECT_WARNING__-->
 
+  <!-- ============ 数据陈旧（超过两个采集周期没成功更新时才出现） ============ -->
+  <!--__FRESHNESS__-->
+
   <!-- ============ 信号（有预告时才醒目） ============ -->
   <!--__SIGNAL__-->
 
@@ -423,7 +430,9 @@
   </section>
 
   <footer>
-    <div>数据：公开推文记录，每 30 分钟自动采集 · 最近一次采集 <span id="gen"><!--__GEN__--></span> 北京</div>
+    <!-- 刻意不写采集频率：读者要知道的是「数据多新」，那个由后面的时刻回答。
+         频率是内部信息，写在这里只会变成一个需要跟着改、还可能说错的数字。 -->
+    <div>数据：公开推文记录，自动采集 · 最近一次采集 <span id="gen"><!--__GEN__--></span> 北京</div>
     <div>由 <a href="#">山风岚自起</a> 建造</div>
   </footer>
 </div>
@@ -484,6 +493,24 @@
     }
   }
 
+  // ④ 数据陈旧：数据超过两个采集周期没有**成功**更新时，把这件事说出来。
+  //    容器由服务端渲染（承载 data-at / data-stale-after），未超阈值时带 hidden，
+  //    构建那一刻就已陈旧的话服务端连 hidden 都不给 —— 脚本被禁用也看得见。
+  //    这里只负责两件事：后来才超阈值时去掉 hidden、把「距今多久」填上。
+  //    ⚠ 它与「数据采集异常」横幅**互斥**：errors 非空时服务端根本不输出这个容器，
+  //    所以找不到元素就什么都不做，而不是自己再造一条相似提示。
+  var cstale = document.getElementById('cstale');
+  var cstaleAge = document.getElementById('cstale-age');
+  var freshAt = cstale && cstale.dataset.at ? Date.parse(cstale.dataset.at) : NaN;
+  var staleAfterMs = cstale ? Number(cstale.dataset.staleAfter) * 60000 : NaN;
+  var freshOk = isFinite(freshAt) && isFinite(staleAfterMs) && staleAfterMs > 0;
+
+  // 距今多久。数据已经陈旧到这个程度，小时比分钟更有信息量；过了一天就换成天。
+  function fmtAge(ms) {
+    var h = ms / 3600000;
+    return h < 24 ? h.toFixed(1) + ' 小时' : (h / 24).toFixed(1) + ' 天';
+  }
+
   function setGroup(grp, str) {
     var box = grp.querySelector('.reels');
     if (!box) return;
@@ -529,6 +556,15 @@
 
     // ③ 当前北京时间。与两块倒数共用同一次 tick，不额外开定时器。
     if (bjClock) upd.textContent = bjClock.format(now);
+
+    // ④ 数据陈旧。年龄是分钟级变化，但仍然挂在同一次 tick 上，不另开定时器。
+    if (freshOk) {
+      var age = now - freshAt;
+      if (age > staleAfterMs) {
+        if (cstale.hidden) cstale.hidden = false;
+        if (cstaleAge) cstaleAge.textContent = '，距今 ' + fmtAge(age);
+      }
+    }
 
     if (heroOk) {
       var ms = now - last;

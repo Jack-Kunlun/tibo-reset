@@ -142,11 +142,14 @@ PORT=9000 COLLECT_INTERVAL_MIN=15 ADMIN_TOKEN=secret node server/index.mjs
 
 | 方案 | 做法 | 成本 |
 |---|---|---|
-| **A. GitHub Actions + 静态托管**（推荐） | 用 `.github/workflows/collect.yml`（runner 在境外）每 30 分钟采集 → 重建页面 → 提交。页面挂 GitHub Pages 或任意静态托管 | 免费、免备案 |
+| **A. GitHub Actions + 静态托管**（推荐） | 用 `.github/workflows/collect.yml` 重建页面并发布到 GitHub Pages 或任意静态托管。**它不采集** —— 采集由本机定时任务完成（见下），采完推上来即触发构建 | 免费、免备案 |
 | **B. 境外单机** | `docker build` 后跑 `server/index.mjs`，内置调度器负责采集，顺带提供 API | 一台最小境外 VPS |
 
-如果坚持把服务放在境内：把 `COLLECT_INTERVAL_MIN=0` 关掉内置调度，由方案 A 负责采集，
-本服务只读数据、算预测、出 API。
+如果坚持把服务放在境内：把 `COLLECT_INTERVAL_MIN=0` 关掉内置调度，
+采集交给本机定时任务，本服务只读数据、算预测、出 API。
+
+⚠ **为什么 CI 不能采集**：x.com 的 Cloudflare 拦的是**机房 IP 段**，runner 必然 403
+（同一时刻本机住宅出口是 200）。所以采集放在本机跑，CI 只负责构建与分发。详见 `docs/data-source.md`。
 
 > 采集失败不会污染数据：服务会保留上一份数据、把错误写进 `stats.json` 的 `errors`
 > 并通过 `/api/state`、`/api/health` 暴露出来。实测过一次超时失败，历史记录完好无损。

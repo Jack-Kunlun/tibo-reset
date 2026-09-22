@@ -1,17 +1,23 @@
 name: collect
 
-# 定时采集 → 重建页面 → 分发到两个方向。
+# 构建网页 + 分发到两个方向。**CI 不采集数据。**
 #
-# 采集有两处发起方，分工明确：
-#   1) **本机（主链路）**：走住宅出口，能过 Cloudflare。采完把 data/ 推上来。
-#   2) **CI（兜底）**：runner 是云机房 IP，会被 Cloudflare 挑战（403），
-#      所以它只在「数据确实陈旧」时才尝试 —— 判据是 --max-age，
-#      避免它把注定失败的采集结果写进 stats.json、让页面白挂一条异常横幅。
+# 采集只有一处发起方：**本机**（WorkBuddy 自动化「Tibo Reset 采集（本机出口）」，
+# 见 docs/data-source.md §5）。它走住宅出口，能过 Cloudflare —— x.com 的 Cloudflare
+# 拦的是**机房 IP 段**，不是境外 IP。实测同一时刻：本机出口 200（213KB 完整页面，
+# 4/4 稳定），runner 403 Cloudflare 挑战（x.com / twitter.com / mobile.twitter.com
+# 三个域名一致）。
 #
-# 为什么不能只靠 CI 采：x.com 的 Cloudflare 拦的是**机房 IP 段**，不是境外 IP。
-#   实测同一时刻：本机出口 200（213KB 完整页面，4/4 稳定），
-#   runner 403 Cloudflare 挑战（x.com / twitter.com / mobile.twitter.com 三个域名一致）。
-#   详见 docs/data-source.md。
+# 于是本工作流由两类事件触发，都不采数据：
+#   1) push：本机采完把 data/ 推上来 —— 正常路径，构建 + 发布 + 推境内
+#   2) workflow_dispatch：手动重跑（Pages 部署失败、改了页面想重发等）
+#
+# 曾有一条 `*/30` 的 schedule 充当「兜底采集」，2026-09-22 移除（decisions.md D-023）。
+# 它的净产出是「每 30 分钟重新部署一次 Pages + 一次被服务端按 stale 忽略的 POST」，
+# 数据与提交历史一个字都不动；而它唯一不可替代的职责 —— 发现「本机没在跑」——
+# 改由页面自己承担：页面拿当前时间与 data/tweets.json 的 updated_at 相减，
+# 超过两个采集周期就显示「数据未更新」（scripts/render.mjs 的 renderFreshness）。
+# ⚠ 那个判据不依赖 CI 跑多勤，所以删掉定时器之后发现能力反而更及时（页面一被打开就在算）。
 #
 # 产物有两个去处（见 docs/tech-selection.md 3.6）：
 #   1. 提交 data/ → 仓库留档；页面产物由 artifact 交给 Pages
@@ -19,38 +25,27 @@ name: collect
 # 两路共用同一份数据与同一套模型代码，所以「页面数字 = API 数字」是架构保证，
 # 不是靠人工比对（验收 A3）。
 on:
-  schedule:
-    - cron: '*/30 * * * *'   # 每 30 分钟（兜底尝试 + 重建页面让倒计时保持新鲜）
   workflow_dispatch:          # 支持手动触发
   push:
-    # 本机采完数据推上来时触发：直接建页面、发 Pages，不必再采一次。
+    # 本机采完数据推上来时触发：直接建页面、发 Pages。
     # CI 自己用 GITHUB_TOKEN 推的提交不会触发新的运行，所以不存在循环。
     paths:
       - 'data/**'
       - 'miniprogram/data/**'
       - 'miniprogram/utils/scene.js'
 
-env:
-  # 本机采集周期（分钟）—— **单一真值来源**。
-  #
-  # CI 的兜底阈值由它推导出来（见下面「采集」step 的 $(( ... + 60 ))），
-  # 于是不存在「两个数字要记得一起改」这种问题 —— 此前正是两个各自看着合理的数字
-  # （周期 480 / 阈值 120）合起来矛盾，让 CI 有 75% 的运行在必然失败。
-  # 改本机周期时只改这一处。
-  LOCAL_COLLECT_INTERVAL_MINUTES: '480'
-
 permissions:
   contents: write             # 提交采集数据
   pages: write                # 发布 Pages
   id-token: write             # deploy-pages 需要
 
-# 不让两轮采集并行：后一轮的产物会覆盖前一轮，且会抢同一个 git 引用
+# 不让两轮并行：后一轮的产物会覆盖前一轮，且会抢同一个 git 引用
 concurrency:
   group: collect
   cancel-in-progress: false
 
 jobs:
-  # ---------------------------- 采集、构建、留档 ----------------------------
+  # ---------------------------- 构建、留档 ----------------------------
   refresh:
     runs-on: ubuntu-latest
     steps:
@@ -71,7 +66,7 @@ jobs:
       #   静默产出一张坏掉的分享卡片。scripts/og-image.mjs 里做了前置探测
       #   （找不到字体就不出图），但正确做法是把字体装上，而不是让它降级。
       #
-      # continue-on-error：字体只影响分享卡片这张图，不该有能力搞挂整条采集链路。
+      # continue-on-error：字体只影响分享卡片这张图，不该有能力搞挂整条发布链。
       # apt 源抽风时让它跳过，构建会自动降级（不出 og:image），页面照常发布。
       - name: 安装中文字体
         continue-on-error: true
@@ -84,56 +79,6 @@ jobs:
       # 放到构建之后的话副本刚被覆盖，那条检查恒真、等于没有。
       - name: 校验
         run: npm run test
-
-      # ⚠ 采集与构建必须是**两个 step**，不能合进一个 run 块。
-      #   合在一起时它们共用同一份 bash -e 语义：采集一失败，构建那一行根本不执行，
-      #   于是「一次网络抖动」赔掉的是整条发布链。2026-09-21 的 403 事故就是这样：
-      #   采集挂了 → build 没跑 → deploy（needs: refresh）不执行 → 线上停在旧产物。
-      #
-      #   数据本来就在 data/ 里存着一份（上一轮成功采集的结果），构建与发布并不依赖
-      #   本轮网络是否成功。所以采集失败应当**降级**而非**阻断**。
-      #
-      #   关键约束：降级不能降成静默。失败必须从两个地方露出来 ——
-      #   下面的告警注解（CI 侧）+ 页面上的「数据采集异常」提示
-      #   （scripts/render.mjs 的 renderCollectWarning，由 build 读 stats.json.errors 渲染）。
-      - name: 采集
-        id: collect
-        # push 触发 = 数据刚由本机采好推上来了，再采一次纯属多余；何况 runner 采必被
-        # Cloudflare 挑战，只会把 errors 写进 stats.json，让本机刚清干净的异常横幅又冒出来。
-        #
-        # --max-age：数据够新鲜就短路，连请求都不发（见 src/lib/collect.mjs 的说明）。
-        #
-        # ⚠ 阈值必须 **≥ 本机采集周期**，否则短路名存实亡 —— 判据是「数据年龄 < 阈值」，
-        #   而数据年龄在本机刚采完时是 0、到下一轮本机采集前涨到满一个周期。阈值只要小于
-        #   周期，就会有一段窗口必然超过它，于是 CI 每隔 30 分钟真去采一次、必然 403、
-        #   必然把错误写进 stats.json、必然产生一条提交。
-        #
-        #   所以这里**不写字面量**，而是由顶层 env 的 LOCAL_COLLECT_INTERVAL_MINUTES
-        #   （= 480 分钟，WorkBuddy 自动化每 8 小时一次）加一轮余量算出来 → 540。
-        #   这样「本机周期」只有一个真值来源，改它一处就够。
-        #
-        #   此前这里是硬编码的 120：480 分钟里有 360 分钟超阈值，**75% 的运行在必然失败**
-        #   （一个周期 15 轮里 12 轮），页面 75% 的时间挂着「数据采集异常」横幅 ——
-        #   而成因是设计已知的，那面横幅于是退化成噪音，真出问题时读者已经习惯它了。
-        #
-        #   本机正常跑时（年龄 ≤ 480 < 540）CI 永远短路：零噪音、零提交。
-        #   只有本机真漏掉一轮以上时才尝试 —— 那时失败才是**真该告警**的。
-        if: github.event_name != 'push'
-        continue-on-error: true
-        run: node scripts/collect.mjs --max-age=$(( LOCAL_COLLECT_INTERVAL_MINUTES + 60 ))
-
-      - name: 采集失败时显式告警
-        if: steps.collect.outcome == 'failure'
-        run: |
-          echo "::warning title=本轮采集失败::已改用仓库中现有数据继续构建与发布，页面会显示「数据采集异常」提示。详情见上方「采集」步骤日志。"
-          {
-            echo "### ⚠ 本轮采集失败，已用现有数据继续发布"
-            echo ""
-            echo "发布链未被阻断：构建与发布用的是仓库里上一轮成功采集的数据。"
-            echo "该状态会在页面上显示为「数据采集异常」，不会静默。"
-            echo ""
-            echo "失败详情见本次运行中「采集」步骤的日志。"
-          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: 构建页面
         env:
@@ -151,14 +96,20 @@ jobs:
       # 早先这里写的是 `git add data dist`，而 dist 被 .gitignore 排除，
       # 那一行会让整个步骤直接失败 —— 已修正。
       - name: 提交采集数据
+        # 身份用**环境变量**传，不写 `git config`。
+        # 那段 shell 曾被人在本机原样执行（排查问题用），后果是本仓库的 local 身份被改成
+        # github-actions[bot]、提交作者写错 —— 2026-09-22 真实发生过一次。环境变量只作用于
+        # 本 step 的 git 进程，谁在哪跑都改不到仓库配置，这个坑于是物理消失。
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           # 刻意不含 miniprogram/data：它是构建产物，且内嵌了构建时刻
           # （generatedAt / now，以及由 now 派生的全部预测值），于是**每次构建都不同**
-          # —— 哪怕数据一个字都没动，也照样产生一次提交。这正是此前 48 条提交/天的另一半来源
-          # （采集那半已由 --max-age 短路解决）。
-          # 它由本机在采集后构建并提交（本机是主链路）；CI 这边只负责发布页面。
+          # —— 哪怕数据一个字都没动，也照样产生一次提交。它由本机在采集后构建并提交
+          # （本机是主链路）；CI 这边只负责发布页面。
           #
           # ⚠ 提交判据是 scripts/data-changed.mjs，**不是** `git diff --staged --quiet`。
           #   后者是字节级判据，而 data/ 下有一批字段每轮必然不同、却与「数据有没有变」

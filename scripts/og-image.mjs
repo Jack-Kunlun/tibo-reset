@@ -277,7 +277,7 @@ ${statCol(M + 668, '历史记录', n.count, '次', `${n.firstDate} 起`)}
 ${body}
 </g>
 
-${txt(M, LY.footer, `数据每 30 分钟自动采集 · 最近一次采集 ${n.updated} 北京时间`, {
+${txt(M, LY.footer, `最近一次采集 ${n.updated} 北京时间`, {
     size: 16,
     fill: PALETTE.mist,
   })}
@@ -319,7 +319,7 @@ export async function buildOgImage({ model, prediction, siteUrl, fontDirs }) {
     description:
       `距上次重置 ${numbers.elapsed} 天，中位剩余等待 ${numbers.remaining} 天` +
       `（80% 区间 ${numbers.lo}–${numbers.hi} 天）。` +
-      `基于 ${numbers.count} 次历史重置记录，每 30 分钟自动采集。`,
+      `基于 ${numbers.count} 次历史重置记录自动生成。`,
   };
 }
 
