@@ -62,13 +62,14 @@ function headlineOf(top, w) {
  * 而真正的重置根本不出现。现在预告优先，线索只在没有预告时兜底。
  */
 export function buildSignal(sig) {
-  if (!sig) return { show: false, checked: 0, lookback: 60, windowFrom: '' };
+  if (!sig) return { show: false, checked: 0, lookback: 60, windowFrom: '', hypothesis: null };
+  const hy = hypothesisView(sig.hypothesis);
 
   const explicit = (sig.signals || []).find((s) => s.window) || null;
-  if (explicit) return signalView(explicit, 'explicit');
+  if (explicit) return { ...signalView(explicit, 'explicit'), hypothesis: hy };
 
   const hint = (sig.hints || []).find((s) => s.window) || null;
-  if (hint) return signalView(hint, 'hint');
+  if (hint) return { ...signalView(hint, 'hint'), hypothesis: hy };
 
   return {
     show: false,
@@ -76,6 +77,33 @@ export function buildSignal(sig) {
     lookback: sig.lookbackDays,
     windowFrom: sig.windowFrom || '',
     hintCount: (sig.hints || []).length,
+    hypothesis: hy,
+  };
+}
+
+/**
+ * 综合假设的**摘要**视图（小程序端不下发完整证据链）。
+ *
+ * 老大问的是「他不是都有 3am on a tuesday 这样的回复了吗，为什么没有明确时间」。
+ * 这件事必须能在端上说清：那些钟点系统**一条都没漏**，只是单条看没有额度语境、
+ * 不足以决定窗口。把原因写明，用户才能区分「系统没看见」与「看见了但没采信」——
+ * 前者是缺陷，后者是判断，两者的可信度完全不同。
+ *
+ * 不下发完整证据链的原因同 `rejected`（见 build.mjs）：快照跟着小程序包走，
+ * 而手机上这个列表没有折叠交互，铺开会把正文推走。
+ */
+function hypothesisView(h) {
+  if (!h || !(h.evidence || []).length) return null;
+  const c = h.counts || {};
+  const unadopted = (h.clockHints || []).filter((x) => !x.adopted);
+  return {
+    day: h.day || '',
+    summary: `综合 ${h.evidence.length} 条推文指向这一天（${c.hard || 0} 承诺${
+      c.soft ? ` + ${c.soft} 同日提及` : ''
+    }）`,
+    clockNote: unadopted.length
+      ? `另见 ${unadopted.map((x) => x.word).join(' / ')} 钟点线索，语境与额度无关，未纳入窗口`
+      : '',
   };
 }
 

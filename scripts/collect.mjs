@@ -152,6 +152,19 @@ if (!result.skippedFresh) {
         `  （共 ${sig.counts.scanned} 条，时间窗自 ${String(sig.windowFrom).slice(0, 10)}）`
     );
   }
+  // 综合假设要单独打一行。它回答的是「凭什么说这个时间」——
+  // 单看「预告 1 条」看不出那天被几条推文从不同角度指到过，
+  // 也看不出哪些钟点线索**被看到但没采信**（两者是完全不同的结论）。
+  const hy = sig?.hypothesis;
+  if (hy?.evidence?.length) {
+    const unadopted = (hy.clockHints ?? []).filter((c) => !c.adopted);
+    console.log(
+      `  综合假设  ${hy.day} · 精度 ${hy.precision} · ${hy.counts.hard} 条承诺 + ${hy.counts.soft} 条同日提及` +
+        (unadopted.length
+          ? `\n            钟点线索 ${unadopted.map((c) => c.word).join(' / ')} 未采用（语境与额度无关，仅作旁证）`
+          : '')
+    );
+  }
 }
 
 if (result.skippedFresh) {

@@ -211,7 +211,67 @@ export function renderSignal(sig) {
     );
   }
 
+  // ③ 综合证据链。放在最后，且默认收起。
+  const chain = renderHypothesis(sig.hypothesis);
+  if (chain) blocks.push(chain);
+
   return blocks.join('');
+}
+
+/**
+ * 综合假设的证据链。
+ *
+ * ── 为什么是 `<details>` 而不是直接铺开 ──────────────────────────────
+ * 这个页面已经吃过一次堆砌的亏：把「已发生」的两条重置各铺一块卡片挂在页首，
+ * 结果把倒计时挤出了第一屏（见 D-014）。证据链是**复核材料**，不是结论本身，
+ * 所以默认收起；summary 一行给出够用的结论性信息 —— 几条承诺、有没有
+ * 没被采用的钟点线索。想看细节的人点开。
+ *
+ * ── 为什么要说「未采用的钟点线索」 ──────────────────────────────────
+ * 老大的原话是「他不是都有 3am on a tuesday 这样的回复了吗，为什么没有明确时间」。
+ * 那些钟点**系统一条都没漏掉**，只是单条看没有额度语境、不足以决定窗口。
+ * 把这件事写明，用户才能区分「系统没看见」和「看见了但没采信」——
+ * 前者是缺陷，后者是判断。两者的可信度完全不同。
+ */
+function renderHypothesis(h) {
+  if (!h || !(h.evidence ?? []).length) return '';
+  const c = h.counts ?? { hard: 0, soft: 0 };
+  const unadopted = (h.clockHints ?? []).filter((x) => !x.adopted);
+
+  const summary =
+    `综合 <b>${h.evidence.length}</b> 条推文指向 <b>${esc(h.day ?? '')}</b>` +
+    `（<b>${c.hard ?? 0}</b> 条承诺${c.soft ? ` + ${c.soft} 条同日提及` : ''}）`;
+
+  const clockNote = unadopted.length
+    ? `<span class="chain-hint">另见 ${unadopted.map((x) => esc(x.word)).join(' / ')} 钟点线索，语境与额度无关，未纳入窗口</span>`
+    : '';
+
+  const rows = h.evidence
+    .map((e) => {
+      const when = String(e.createdAt ?? '').slice(0, 16).replace('T', ' ');
+      const tag = e.weight === 'hard' ? '承诺' : '提及';
+      const word = e.timeWord ? `<span class="chain-word">${esc(e.timeWord)}</span>` : '';
+      return `<li class="chain-item" data-weight="${esc(e.weight ?? 'soft')}">
+        <div class="chain-head">
+          <span class="chain-when">${esc(when)}</span>
+          <span class="chain-tag" data-weight="${esc(e.weight ?? 'soft')}">${tag}</span>
+          <span class="chain-via">${esc(e.via ?? '')}</span>
+          ${word}
+        </div>
+        <blockquote class="chain-quote">${esc(String(e.text ?? '').slice(0, 160))}</blockquote>
+        ${e.url ? `<a class="chain-link" href="${esc(e.url)}" target="_blank" rel="noopener">原推 ↗</a>` : ''}
+      </li>`;
+    })
+    .join('');
+
+  return `
+  <details class="sig-chain">
+    <summary>
+      <span class="chain-sum">${summary}</span>
+      ${clockNote}
+    </summary>
+    <ul class="chain-list">${rows}</ul>
+  </details>`;
 }
 
 /** 构造单个信号块。 */

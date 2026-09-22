@@ -69,6 +69,14 @@
       <text wx:if="{{signal.reason}}">判定依据：{{signal.reason}}</text>
       <text wx:if="{{signal.url}}" class="link" bindtap="onCopySource">复制原推链接</text>
     </view>
+
+    <!-- 综合证据摘要：同一天有多条推文指到时要显式说出来。
+         它的价值不在「多列几条」，而在**区分两种沉默** ——
+         「系统没看见那天有钟点线索」是缺陷，「看见了但判它语境无关」是判断。 -->
+    <view wx:if="{{signal.hypothesis}}" class="chain">
+      <text class="chain-sum">{{signal.hypothesis.summary}}</text>
+      <text wx:if="{{signal.hypothesis.clockNote}}" class="chain-note">{{signal.hypothesis.clockNote}}</text>
+    </view>
   </view>
 
   <view wx:else class="sig-idle">

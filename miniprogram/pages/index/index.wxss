@@ -435,6 +435,31 @@
   margin-top: 6rpx;
 }
 
+/* 综合证据摘要：虚线框 + 灰底，视觉上明确「这是复核材料，不是结论」。
+   和网页端的样子保持一致，两端看同一份数据应当有同一套语义。 */
+.chain {
+  margin-top: 22rpx;
+  padding: 16rpx 20rpx;
+  border: 1rpx dashed rgba(140, 136, 128, 0.42);
+  border-radius: 14rpx;
+  background: #F2EFE8;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.chain-sum {
+  font-size: 22rpx;
+  color: #4A4842;
+  line-height: 1.6;
+}
+
+.chain-note {
+  font-size: 21rpx;
+  color: #8C8880;
+  line-height: 1.6;
+}
+
 .sig-idle {
   margin-top: 28rpx;
   display: flex;

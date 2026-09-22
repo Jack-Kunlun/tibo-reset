@@ -322,7 +322,7 @@ npm run build              # 构建 dist/index.html + dist/og-image.png + 两个
 npm run refresh            # 采集 + 构建
 npm start                  # 启动后端（含定时采集）
 npm run diagnose           # 模型诊断与回测
-npm test                   # 416 项纯函数回归（含识别词表、增量停止、回复配对、代理探测）
+npm test                   # 440 项纯函数回归（识别词表、钟点解析、跨推文聚合、增量停止、回复配对、代理探测）
 ```
 
 > 采集默认收**两条流**：`/`（原创）与 `/with_replies`（原创 + 回复）——

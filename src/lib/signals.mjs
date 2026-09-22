@@ -87,9 +87,21 @@ function localParts(ts, zone) {
   };
 }
 
-/** 某天的整日窗口 [00:00, 23:59] */
+/**
+ * 某天的整日窗口 [00:00, 23:59]。
+ *
+ * 带 `dayNum` 出去是给「钟点合并」用的：`3am on a Tuesday` 里星期与钟点
+ * 是**同一个时间表达的两半**，必须先知道锁定的是哪一天，才能把 3am 钉上去。
+ * 把日期留在窗口对象里，比事后再去反解 ISO 字符串可靠。
+ */
 function fullDay(dayNum, zone) {
-  return { from: at(dayNum, 0, 0, zone), to: at(dayNum, 23, 59, zone), precision: 'day' };
+  return { from: at(dayNum, 0, 0, zone), to: at(dayNum, 23, 59, zone), precision: 'day', dayNum };
+}
+
+/** 某天某钟点的那一小时 [hh:00, hh:59]。精度与「in 2 hours」同档，都是能指到点上的表达。 */
+function atClock(dayNum, hh, mm, zone) {
+  const from = at(dayNum, hh, mm, zone);
+  return { from, to: from + 59 * 60_000, precision: 'instant', dayNum };
 }
 
 /* ------------------------------- 词表 ------------------------------- */
@@ -209,6 +221,7 @@ const WEEKDAY_MAP = {
  * 所以选取顺序是：**具体程度优先 → 原文位置靠前优先 → 时间靠前优先**。
  */
 const SPEC = {
+  clockInDay: 96, // 3am on a Tuesday —— 「某天某钟点」，最具体
   absoluteDate: 100, // 2026-10-03 / Oct 3 —— 无歧义
   weekdayModified: 92, // next Tuesday / this Tuesday —— 有修饰词，指向确定的那一天
   relativeHours: 88, // in 2 hours —— 精确到小时
@@ -271,7 +284,7 @@ function parseTimes(text, refTs, zone) {
       let y = lp.y;
       // 已过去的日期按「下一次」理解
       if (dayNumOf(y, mo, dd) < lp.dayNum) y += 1;
-      push(fullDay(dayNumOf(y, mo, dd), zone), md[0].trim());
+      push(fullDay(dayNumOf(y, mo, dd), zone), md[0].trim(), null, SPEC.absoluteDate);
     }
   }
 
@@ -298,7 +311,13 @@ function parseTimes(text, refTs, zone) {
         wd[0].trim(),
         altDay !== null && Math.abs(altDay - primary) > 0
           ? `另一种解读：${ymdLabel(altDay)}（把 “next ${wd[2]}” 理解为最近的${weekdayCNof(altDay)}）`
-          : null
+          : null,
+        // ⚠ 这里必须显式传 spec。漏传会落到 push 的默认值 SPEC.weekend(28)，
+        //   即把「一个确定的日期」当成「最含糊的表达」—— 后果不只是排序错：
+        //   future 过滤对 spec ≤ VAGUE_SPEC 的表达要求「窗口过半还没过」，
+        //   于是**当天下午说「reset on Tuesday」会因为当天窗口已过半而被整条丢掉**。
+        //   他大量时间线索就是这么给的（裸星期 + 钟点），漏传等于持续静默漏数据。
+        mode ? SPEC.weekdayModified : SPEC.weekdayBare
       );
     }
   }
@@ -312,6 +331,7 @@ function parseTimes(text, refTs, zone) {
         from: zonedToTs(y, m, d, 18, 0, zone),
         to: zonedToTs(y, m, d, 23, 59, zone),
         precision: 'evening',
+        dayNum: lp.dayNum,
       },
       'tonight',
       null,
@@ -327,7 +347,7 @@ function parseTimes(text, refTs, zone) {
       : kind === 'later today' ? refTs
       : zonedToTs(y, m, d, 0, 0, zone);
     push(
-      { from, to: zonedToTs(y, m, d, 23, 59, zone), precision: 'day' },
+      { from, to: zonedToTs(y, m, d, 23, 59, zone), precision: 'day', dayNum: lp.dayNum },
       kind ?? 'today',
       null,
       SPEC.today
@@ -423,6 +443,54 @@ function parseTimes(text, refTs, zone) {
     );
   }
 
+  /* 7) 钟点：3am / 11pm / 3:30pm / midnight / noon
+   *
+   * 这一档此前**完全缺失** —— 解析器最深只能走到「星期 → 全天」，所以
+   * 「11pm on a Tuesday」「3am on a tuesday」里的钟点被整段忽略，精度永远停在 `day`。
+   * 他恰恰习惯用「星期 + 钟点」这种写法埋时间（见 docs/data-source.md 的实测清单）。
+   *
+   * 两个要点：
+   *   ① 钟点与同句的日期是**同一个表达的两半**（"3am on a Tuesday"），必须合并，
+   *      且以钟点为准。否则会同时产出「周二全天」和「某一个 3am」两个窗口，
+   *      而且按 spec 排序会让那个**没有日期约束**的 3am 抢先 —— 那是错的。
+   *   ② 句中没有日期时，钟点才以「最近的未来那一刻」自行定日 ——
+   *      对应他单独说「we'll reset at 3am」这种情形。
+   */
+  const clocks = [];
+  const clockRe = /\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/g;
+  let cm;
+  while ((cm = clockRe.exec(t)) !== null) {
+    let hh = Number(cm[1]);
+    const mm = Number(cm[2] ?? 0);
+    if (hh < 1 || hh > 12 || mm > 59) continue;
+    if (cm[3] === 'pm' && hh !== 12) hh += 12;
+    if (cm[3] === 'am' && hh === 12) hh = 0;
+    clocks.push({ hh, mm, word: cm[0].replace(/\s+/g, ' ').trim() });
+  }
+  // midnight / noon 是钟点的命名形式。只在没有数字钟点时兜底，
+  // 免得 "midnight" 与 "12am" 同时出现时产出两个一模一样的窗口。
+  if (!clocks.length) {
+    if (/\bmidnight\b/.test(t)) clocks.push({ hh: 0, mm: 0, word: 'midnight' });
+    else if (/\bnoon\b/.test(t)) clocks.push({ hh: 12, mm: 0, word: 'noon' });
+  }
+
+  if (clocks.length) {
+    // 挑句中最具体的**日期型**窗口作为锚点。week / weekend 这类是范围而不是某一天，
+    // 没有 dayNum，本来就不该当锚点（把 3am 钉到「下周」上是没有意义的）。
+    const dated = out
+      .filter((w) => Number.isFinite(w.dayNum))
+      .sort((a, b) => b.spec - a.spec)[0];
+    for (const c of clocks) {
+      if (dated) {
+        push(atClock(dated.dayNum, c.hh, c.mm, zone), c.word, null, SPEC.clockInDay);
+      } else {
+        let dn = lp.dayNum;
+        if (at(dn, c.hh, c.mm, zone) < refTs) dn += 1;
+        push(atClock(dn, c.hh, c.mm, zone), c.word, null, SPEC.clockInDay);
+      }
+    }
+  }
+
   const seen = new Set();
   return out.filter((w) => {
     const key = `${w.word}|${w.from}`;
@@ -496,7 +564,9 @@ export function analyzeTweet(tweet, opts = {}) {
   const hasFuture = RE_FUTURE.test(text);
   const isPast = RE_PAST.test(text);
   const isLaunch = RE_LAUNCH.test(text);
-  const occurred = hasOccurredReset(text);
+  // 「已发生」的**形态**判据（纯文本，只看句子长得像不像）。真正的结论在
+  // 时间解析之后 —— 还要看句中有没有具体的未来时间，见下文 `occurred`。
+  const occurredShape = hasOccurredReset(text);
 
   const ownIntent = (hasReset ? 3 : 0) + (hasScope ? 2 : 0) + (hasGenerous ? 1 : 0);
   const hasAnnounce = RE_ANNOUNCE.test(text);
@@ -511,7 +581,7 @@ export function analyzeTweet(tweet, opts = {}) {
   if (hasAnnounce) reasons.push('命中「A/the reset」名词化陈述');
   // 发布语境只对「预告」构成干扰（「下周发新模型」里的 will/next 会被误读成重置预告），
   // 对「已发生」没有影响 —— 一条已确认的重置不会因为同句提到 model 就不算数。
-  if (isLaunch && !occurred) reasons.push('含发布/宣传语境（下调置信度）');
+  if (isLaunch && !occurredShape) reasons.push('含发布/宣传语境（下调置信度）');
 
   /* ── 上下文（他回复的那条推文）─────────────────────────────────────────
    *
@@ -571,6 +641,23 @@ export function analyzeTweet(tweet, opts = {}) {
     (a, b) => b.spec - a.spec || a.idx - b.idx || a.from - b.from
   );
 
+  /* 「A reset」这类名词化陈述只有在**看不出是未来**时才算「已发生」。
+   *
+   * 反例（写这一版时的实测教训）：
+   *   「I promised a reset for Tuesday」  → 形态上完全符合名词化陈述，
+   *                                        但它是**承诺**，句中给了具体的未来日
+   *   「Reset all propagated」            → 没有未来时间 → 确属已发生
+   *
+   * 不加这道闸门，任何写「a reset」的承诺都会被判成「刚重置过」——
+   * 而「a reset」恰恰是他最常用的句式之一（实测语料里 09-12 与 09-22 各一条）。
+   * 早先这一版之所以没暴露，是因为真实那句话里恰好有 "See you soon"，
+   * 命中了 RE_FUTURE 才侥幸走了预告分支 —— 靠巧合成立，不是判据成立。
+   *
+   * 判据用「具体程度 > VAGUE_SPEC」而不是「有没有时间词」：含糊的 this week
+   * 不足以推翻一条明确的已完成陈述，只有具体到日/时的未来表达才可以。
+   */
+  const occurred = occurredShape && !future.some((w) => w.spec > VAGUE_SPEC);
+
   const createdZones = dualZone(
     new Date(refTs).toISOString(),
     userZone,
@@ -623,6 +710,7 @@ export function analyzeTweet(tweet, opts = {}) {
 
   // 未来预告必须有额度意图。只有时间词没有意图 → 只作线索（避免把「发布延期」当重置信号）
   if (intent < 2) {
+    const cand = timeOpts[0] ?? null;
     return {
       ...base,
       level: timeOpts.length ? 'hint' : 'none',
@@ -631,6 +719,26 @@ export function analyzeTweet(tweet, opts = {}) {
         : '无额度相关词',
       intent,
       window: null,
+      // 时间线索**不丢弃**，只是不当作信号呈现。
+      //
+      // 这一条是「综合分析」的原料：单看「3am on a tuesday」确实不是承诺
+      // （他在说别人的活动），但如果同一天有好几条推文各自指向同一个日期，
+      // 那些指向本身就是证据。旧实现到这里直接 `window: null`，等于把
+      // 「系统看到了什么时间」这件事抹掉 —— 事后既无法复核，也无法聚合。
+      candidateWindow: cand
+        ? {
+            word: cand.word,
+            precision: cand.precision,
+            from: new Date(cand.from).toISOString(),
+            to: new Date(cand.to).toISOString(),
+            dayNum: Number.isFinite(cand.dayNum) ? cand.dayNum : null,
+            spec: cand.spec,
+            // 歧义提示要跟着线索走。裸星期（"a Tuesday"）天然有两种解读，
+            // 周三说「11pm on a Tuesday」既可能指刚过去的周二、也可能指下一个。
+            // 把线索拿去聚合时，这个 note 决定了它该被当**确定证据**还是**待考证据**。
+            note: cand.note ?? null,
+          }
+        : null,
     };
   }
 
@@ -641,6 +749,7 @@ export function analyzeTweet(tweet, opts = {}) {
       rejected: '有额度意图但没给出时间，只能作线索',
       intent,
       window: null,
+      candidateWindow: null,
     };
   }
 
@@ -659,9 +768,12 @@ export function analyzeTweet(tweet, opts = {}) {
     timeWord: w.word,
     timeNote: w.note,
     precision: w.precision,
+    candidateWindow: null,
     window: {
       from: new Date(w.from).toISOString(),
       to: new Date(w.to).toISOString(),
+      // 锚定的当地日历日。跨推文聚合靠它对齐 —— 比反解 ISO 字符串可靠。
+      dayNum: Number.isFinite(w.dayNum) ? w.dayNum : null,
       ...win,
     },
     confidence:
@@ -669,6 +781,123 @@ export function analyzeTweet(tweet, opts = {}) {
       (isLaunch ? 0.15 : 0) -
       // 借上下文推断的，依据链多一环，置信度相应扣一点
       (viaContext ? 0.08 : 0),
+  };
+}
+
+/* --------------------------- 跨推文证据聚合 --------------------------- */
+
+/**
+ * 精度的具体程度排序。用于「同一天的多条承诺里，取最精确的那条定窗口」。
+ * 它是 SPEC 的时间维度版本 —— SPEC 排的是**表达**的具体程度，
+ * 这里排的是**已解析出的精度**，用途不同，所以单独一份。
+ */
+const PRECISION_RANK = { instant: 5, evening: 4, day: 3, 'week-part': 2, week: 1 };
+
+/**
+ * 把「同一天」的所有时间线索聚成一条假设 —— 这就是「综合分析」。
+ *
+ * ── 为什么要有这一层 ────────────────────────────────────────────────
+ * 老大反问：「他不是都有 3am on a tuesday 这样的回复了吗，为什么没有明确时间？」
+ * 查下来是三件事同时成立：
+ *   ① 那些钟点**确实都被解析出来了**（"3am on a tuesday" → 当地 09-22 周二），
+ *      但单条看没有额度语境，`window` 被置空、线索随之消失；
+ *   ② 解析器此前**没有钟点维度**，即使有额度语境也只能给到「全天」；
+ *   ③ 系统**从来不看推文之间**的关系 —— 逐条判完就结束。
+ *
+ * 这一层补的是 ③：把指向同一日历日的推文收在一处，并**分明证据强度**。
+ * 单条看「他在说别人的活动」的推文，和「他承诺了这一天」的推文并置时，
+ * 前者的价值才显出来 —— 它证明这个日子在他嘴里反复出现。
+ *
+ * ── 但强度必须分明，不能一锅端 ──────────────────────────────────────
+ *   hard（有额度承诺）→ 决定窗口。这是「他确实答应了」。
+ *   soft（只有时间、无额度语境）→ **只作旁证，不改窗口**。
+ * 把 soft 也算进窗口就等于：他随口提到某个周二，页面就报一个重置时间。
+ * 那正是这个产品最不能出的错 —— 假信号比漏检更伤可信度。
+ *
+ * @param {Array} analyzed analyzeTweet 的产出（已按时间倒序）
+ * @returns {object|null} 没有明确承诺时返回 null
+ */
+export function buildHypothesis(analyzed, opts = {}) {
+  const list = analyzed ?? [];
+  const hard = list.filter((a) => a.level === 'explicit' && a.window);
+  if (!hard.length) return null;
+
+  // 锚定日：取同日硬证据中**最精确**的那条的窗口。
+  // 「一条说周二、另一条说周二 3am」时应当收敛到 3am —— 这是聚合真正带来精度的地方，
+  // 只取「最近一条」会丢掉更精确的那个。
+  const anchored = hard.filter((a) => Number.isFinite(a.window?.dayNum));
+  if (!anchored.length) return null;
+  const dayNum = anchored[0].window.dayNum;
+  const sameDay = (w) => w && Number.isFinite(w.dayNum) && w.dayNum === dayNum;
+
+  const leads = anchored.filter((a) => sameDay(a.window));
+  const lead = [...leads].sort(
+    (a, b) =>
+      (PRECISION_RANK[b.precision] ?? 0) - (PRECISION_RANK[a.precision] ?? 0) ||
+      new Date(b.createdAt) - new Date(a.createdAt)
+  )[0];
+
+  // 证据链：所有指向这一天的推文（含只有时间、没有额度语境的那些）
+  const evidence = list
+    .map((a) => ({ a, w: a.window ?? a.candidateWindow ?? null }))
+    .filter(({ a, w }) => a.level !== 'occurred' && sameDay(w))
+    .map(({ a, w }) => ({
+      id: a.id,
+      createdAt: a.createdAt,
+      text: a.text,
+      url: a.url,
+      // 是回复还是原创 —— 他大量时间线索埋在回复里，这个区别对复核很重要
+      via: a.inReplyTo ? `回复 @${a.inReplyTo.account ?? '?'}` : '原创',
+      weight: a.level === 'explicit' ? 'hard' : 'soft',
+      contributes: a.level === 'explicit' ? '承诺了这一天' : '提到这一天（无额度语境）',
+      // explicit 的 word / precision 挂在顶层（window 是 describeWindow 的产物，
+      // 不含原始词）；hint 的则只在 candidateWindow 里。两处都要够得着。
+      timeWord: a.timeWord ?? w.word ?? null,
+      precision: a.precision ?? w.precision ?? null,
+      // 表达本身存在第二种解读时（裸星期），这条线索只能算「待考」。
+      // 不标出来的后果是：周三那句「11pm on a Tuesday」会被当成
+      // 「他确认了下周二 23:00」使用 —— 而它完全可能是在回味刚过去的周二。
+      ambiguous: !!w.note,
+      note: w.note ?? null,
+      // 指向这一天的哪个时段——有钟点就是钟点，没有就是整天
+      from: w.from,
+      to: w.to,
+    }))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  // 钟点线索单独交代采用情况。
+  // 「看到了但没采用」与「根本没看到」在页面上必须能区分，
+  // 否则用户没法判断是该信结论、还是该怀疑检测漏了。
+  const clockHints = evidence
+    .filter((e) => e.precision === 'instant')
+    .map((e) => ({
+      word: e.timeWord,
+      from: e.from,
+      to: e.to,
+      adopted: e.weight === 'hard',
+      why: e.weight === 'hard' ? '本条含额度承诺' : '本条无额度语境（他人活动/作息等），仅作旁证',
+      ambiguous: e.ambiguous,
+      id: e.id,
+      via: e.via,
+    }));
+
+  return {
+    dayNum,
+    day: ymdLabel(dayNum),
+    precision: lead.precision,
+    // 窗口永远是**硬证据**的产物，soft 线索不参与
+    window: { ...lead.window, precision: lead.precision },
+    counts: {
+      hard: evidence.filter((e) => e.weight === 'hard').length,
+      soft: evidence.filter((e) => e.weight === 'soft').length,
+      // 只到天、但当天有钟点线索的情况很常见（他就是这么写的）。
+      // 这个计数让页面能说「有 2 条同日钟点线索未被采用」，
+      // 而不是让用户以为系统没看见。
+      clockHints: clockHints.length,
+      clockAdopted: clockHints.filter((c) => c.adopted).length,
+    },
+    evidence,
+    clockHints,
   };
 }
 
@@ -754,6 +983,10 @@ export function detectSignals(tweets, opts = {}) {
     occurred,
     hints: hints.slice(0, MAX_LISTED),
     rejected: rejected.slice(0, MAX_LISTED),
+    // 综合假设：把指向同一天的推文收成一条证据链，分明 hard / soft。
+    // 这是「不只是抓到一条 reset 就结束」的落点 —— 单条结论之外，
+    // 还要说清「有哪些推文共同指向这个时间、哪些没被采用、为什么」。
+    hypothesis: buildHypothesis(analyzed),
     counts: {
       scanned: list.length,
       explicit: explicit.length,

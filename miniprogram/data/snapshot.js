@@ -2,11 +2,11 @@
 // 离线首屏数据快照：采集脚本 → 构建 → 小程序内置。
 export default {
   "schema": 1,
-  "generatedAt": "2026-09-22T04:43:56.285Z",
-  "dataUpdatedAt": "2026-09-22T04:40:32.188Z",
+  "generatedAt": "2026-09-22T05:02:57.854Z",
+  "dataUpdatedAt": "2026-09-22T04:59:40.201Z",
   "account": "thsottiaux",
   "chart": {
-    "now": 1790052236285,
+    "now": 1790053377854,
     "count": 53,
     "gapDays": [
       49.678206018518516,
@@ -120,7 +120,7 @@ export default {
     "median": 3.135060769675926,
     "longest": 67.74240740740741,
     "shortest": 0.4963194444444444,
-    "sinceDays": 9.857399131944444,
+    "sinceDays": 9.870611736111112,
     "pct": 0.8269230769230769,
     "firstAt": "2025-09-17T04:02:52.000Z",
     "lastAt": "2026-09-12T08:09:17.000Z",
@@ -554,8 +554,8 @@ export default {
     ]
   },
   "prediction": {
-    "asOf": "2026-09-22T04:43:56.285Z",
-    "sinceDays": 9.857399131944444,
+    "asOf": "2026-09-22T05:02:57.854Z",
+    "sinceDays": 9.870611736111112,
     "last": {
       "at": "2026-09-12T08:09:17.000Z",
       "text": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG"
@@ -566,134 +566,134 @@ export default {
         "halfLifeDays": 45,
         "prior": 3
       },
-      "baseRate": 0.254589393126103,
+      "baseRate": 0.2545012680060257,
       "nIntervals": 20,
       "nEvents": 19,
       "buckets": [
         {
           "from": 0,
           "to": 1,
-          "exposure": 12.191601519334059,
+          "exposure": 12.18932406636317,
           "events": 0,
-          "rate": 0.05027568544411042
+          "rate": 0.05026581832623216
         },
         {
           "from": 1,
           "to": 2,
-          "exposure": 10.227599064553377,
-          "events": 2.9229027643800873,
-          "rate": 0.2787105147175002
+          "exposure": 10.225721279424281,
+          "events": 2.922307963575853,
+          "rate": 0.2786851234592458
         },
         {
           "from": 2,
           "to": 3,
-          "exposure": 6.52713031226497,
-          "events": 3.942471077760384,
-          "rate": 0.4939828786722911
+          "exposure": 6.526005559982786,
+          "events": 3.9416687982606007,
+          "rate": 0.49392923116110177
         },
         {
           "from": 3,
           "to": 5,
-          "exposure": 6.674675560817681,
-          "events": 3.2075496184174934,
-          "rate": 0.4104858889407715
+          "exposure": 6.673724280187688,
+          "events": 3.2068968929433845,
+          "rate": 0.41043145142073745
         },
         {
           "from": 5,
           "to": 8,
-          "exposure": 6.207578608387968,
-          "events": 0.5050821449121176,
-          "rate": 0.13780499502165774
+          "exposure": 6.206925877014498,
+          "events": 0.5049793624078006,
+          "rate": 0.13777488635948537
         },
         {
           "from": 8,
           "to": 14,
-          "exposure": 2.1308328110600785,
-          "events": 0.613595913863977,
-          "rate": 0.26844844569349935
+          "exposure": 2.1439897723999564,
+          "events": 0.6134710491755281,
+          "rate": 0.2676861568780239
         },
         {
           "from": 14,
           "to": 30,
           "exposure": 0,
           "events": 0,
-          "rate": 0.254589393126103
+          "rate": 0.2545012680060257
         },
         {
           "from": 30,
           "to": null,
           "exposure": 0,
           "events": 0,
-          "rate": 0.254589393126103
+          "rate": 0.2545012680060257
         }
       ]
     },
     "prediction": {
-      "sinceDays": 9.857399131944444,
+      "sinceDays": 9.870611736111112,
       "horizons": [
         {
           "h": 1,
           "label": "24 小时内",
-          "p": 0.23543516159616018
+          "p": 0.23485212017639556
         },
         {
           "h": 3,
           "label": "3 天内",
-          "p": 0.5530664428236574
+          "p": 0.5520431958993844
         },
         {
           "h": 7,
           "label": "7 天内",
-          "p": 0.8411092269977903
+          "p": 0.8405387609117503
         },
         {
           "h": 14,
           "label": "14 天内",
-          "p": 0.973261853543283
+          "p": 0.973149297042381
         },
         {
           "h": 30,
           "label": "30 天内",
-          "p": 0.9995449459327623
+          "p": 0.9995423855614172
         }
       ],
-      "expectedRemaining": 2.9879093390750695,
-      "median": 2.5820495207908385,
-      "q25": 0.2678701856096831,
-      "q75": 4.4159290258627255,
-      "q90": 8.015021354977552,
-      "dailyRate": 0.26844844569349935,
-      "q50": 1.7782723302773555
+      "expectedRemaining": 2.995905949148283,
+      "median": 2.589402413049661,
+      "q25": 0.2709219116252518,
+      "q75": 4.4293945189478965,
+      "q90": 8.029733091141022,
+      "dailyRate": 0.2676861568780239,
+      "q50": 1.785625222536178
     },
     "rawPrediction": {
-      "q50": 2.5820495207908385,
-      "q90": 8.818798545491035,
-      "expectedRemaining": 3.7916865295885525,
+      "q50": 2.589402413049661,
+      "q90": 8.833510281654505,
+      "expectedRemaining": 3.799683139661766,
       "horizons": [
         {
           "h": 1,
           "label": "24 小时内",
-          "p": 0.23543516159616018
+          "p": 0.23485212017639556
         },
         {
           "h": 3,
           "label": "3 天内",
-          "p": 0.5530664428236574
+          "p": 0.5520431958993844
         },
         {
           "h": 7,
           "label": "7 天内",
-          "p": 0.8411092269977903
+          "p": 0.8405387609117503
         },
         {
           "h": 14,
           "label": "14 天内",
-          "p": 0.973261853543283
+          "p": 0.973149297042381
         },
         {
           "h": 30,
           "label": "30 天内",
-          "p": 0.9995449459327623
+          "p": 0.9995423855614172
         }
       ]
     },
@@ -716,14 +716,14 @@ export default {
       "target": 7,
       "iterations": 400,
       "p": {
-        "lo": 0.5572491139673247,
-        "mid": 0.6934559594366089,
-        "hi": 0.8251561202963402
+        "lo": 0.5505536207190477,
+        "mid": 0.7075049209562668,
+        "hi": 0.823187212399381
       },
       "medianDays": {
-        "lo": 2.4722668977679705,
-        "mid": 4.401328403797271,
-        "hi": 6.16594744969141
+        "lo": 2.3895091980562038,
+        "mid": 4.251611695644536,
+        "hi": 6.099500004116118
       }
     },
     "phases": [
@@ -759,11 +759,11 @@ export default {
   },
   "signals": {
     "level": "explicit",
-    "generatedAt": "2026-09-22T04:43:56.285Z",
+    "generatedAt": "2026-09-22T05:02:57.854Z",
     "checkedTweets": 69,
     "lookbackDays": 60,
-    "windowFrom": "2026-07-24T04:43:56.285Z",
-    "windowTo": "2026-09-22T04:43:56.285Z",
+    "windowFrom": "2026-07-24T05:02:57.854Z",
+    "windowTo": "2026-09-22T05:02:57.854Z",
     "sourceZone": "America/Los_Angeles",
     "sourceZoneLabel": "太平洋时间",
     "userZone": "Asia/Shanghai",
@@ -773,8 +773,8 @@ export default {
         "zone": "Asia/Shanghai",
         "date": "2026.09.22",
         "weekday": "周二",
-        "time": "12:43",
-        "text": "2026.09.22（周二）12:43",
+        "time": "13:02",
+        "text": "2026.09.22（周二）13:02",
         "offset": "UTC+8"
       },
       "b": {
@@ -782,8 +782,8 @@ export default {
         "zone": "America/Los_Angeles",
         "date": "2026.09.21",
         "weekday": "周一",
-        "time": "21:43",
-        "text": "2026.09.21（周一）21:43",
+        "time": "22:02",
+        "text": "2026.09.21（周一）22:02",
         "offset": "UTC-7"
       },
       "diffHours": 15,
@@ -829,9 +829,11 @@ export default {
       "timeWord": "tuesday",
       "timeNote": null,
       "precision": "day",
+      "candidateWindow": null,
       "window": {
         "from": "2026-09-22T07:00:00.000Z",
         "to": "2026-09-23T06:59:00.000Z",
+        "dayNum": 20718,
         "fromTs": 1790060400000,
         "toTs": 1790146740000,
         "userFrom": {
@@ -911,9 +913,11 @@ export default {
         "timeWord": "tuesday",
         "timeNote": null,
         "precision": "day",
+        "candidateWindow": null,
         "window": {
           "from": "2026-09-22T07:00:00.000Z",
           "to": "2026-09-23T06:59:00.000Z",
+          "dayNum": 20718,
           "fromTs": 1790060400000,
           "toTs": 1790146740000,
           "userFrom": {
@@ -995,9 +999,11 @@ export default {
         "timeWord": "coming in tuesday",
         "timeNote": null,
         "precision": "day",
+        "candidateWindow": null,
         "window": {
           "from": "2026-09-22T07:00:00.000Z",
           "to": "2026-09-23T06:59:00.000Z",
+          "dayNum": 20718,
           "fromTs": 1790060400000,
           "toTs": 1790146740000,
           "userFrom": {
@@ -1157,9 +1163,18 @@ export default {
           "diffText": "北京时间比 Tibo 当地时间快 15 小时"
         },
         "level": "hint",
-        "rejected": "含时间表达「tuesday」但没有额度相关词，不作为重置信号",
+        "rejected": "含时间表达「3am」但没有额度相关词，不作为重置信号",
         "intent": 0,
-        "window": null
+        "window": null,
+        "candidateWindow": {
+          "word": "3am",
+          "precision": "instant",
+          "from": "2026-09-22T10:00:00.000Z",
+          "to": "2026-09-22T10:59:00.000Z",
+          "dayNum": 20718,
+          "spec": 96,
+          "note": null
+        }
       },
       {
         "id": "2101158161994699036",
@@ -1202,7 +1217,8 @@ export default {
         "level": "hint",
         "rejected": "有额度意图但没给出时间，只能作线索",
         "intent": 2,
-        "window": null
+        "window": null,
+        "candidateWindow": null
       },
       {
         "id": "2101157729037586694",
@@ -1240,7 +1256,16 @@ export default {
         "level": "hint",
         "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
         "intent": 0,
-        "window": null
+        "window": null,
+        "candidateWindow": {
+          "word": "today",
+          "precision": "day",
+          "from": "2026-09-18T07:00:00.000Z",
+          "to": "2026-09-19T06:59:00.000Z",
+          "dayNum": 20714,
+          "spec": 72,
+          "note": null
+        }
       },
       {
         "id": "2101126440469344384",
@@ -1281,7 +1306,16 @@ export default {
         "level": "hint",
         "rejected": "含时间表达「maybe 3」但没有额度相关词，不作为重置信号",
         "intent": 0,
-        "window": null
+        "window": null,
+        "candidateWindow": {
+          "word": "maybe 3",
+          "precision": "day",
+          "from": "2027-05-03T07:00:00.000Z",
+          "to": "2027-05-04T06:59:00.000Z",
+          "dayNum": 20941,
+          "spec": 100,
+          "note": null
+        }
       },
       {
         "id": "2100121084817502216",
@@ -1314,9 +1348,18 @@ export default {
           "diffText": "北京时间比 Tibo 当地时间快 15 小时"
         },
         "level": "hint",
-        "rejected": "含时间表达「tuesday」但没有额度相关词，不作为重置信号",
+        "rejected": "含时间表达「11pm」但没有额度相关词，不作为重置信号",
         "intent": 0,
-        "window": null
+        "window": null,
+        "candidateWindow": {
+          "word": "11pm",
+          "precision": "instant",
+          "from": "2026-09-23T06:00:00.000Z",
+          "to": "2026-09-23T06:59:00.000Z",
+          "dayNum": 20718,
+          "spec": 96,
+          "note": null
+        }
       },
       {
         "id": "2099922755655479624",
@@ -1351,7 +1394,16 @@ export default {
         "level": "hint",
         "rejected": "含时间表达「tuesday」但没有额度相关词，不作为重置信号",
         "intent": 0,
-        "window": null
+        "window": null,
+        "candidateWindow": {
+          "word": "tuesday",
+          "precision": "day",
+          "from": "2026-09-15T07:00:00.000Z",
+          "to": "2026-09-16T06:59:00.000Z",
+          "dayNum": 20711,
+          "spec": 86,
+          "note": null
+        }
       },
       {
         "id": "2099886370319978506",
@@ -1392,7 +1444,16 @@ export default {
         "level": "hint",
         "rejected": "含时间表达「weekend」但没有额度相关词，不作为重置信号",
         "intent": 0,
-        "window": null
+        "window": null,
+        "candidateWindow": {
+          "word": "weekend",
+          "precision": "week-part",
+          "from": "2026-09-19T07:00:00.000Z",
+          "to": "2026-09-21T06:59:00.000Z",
+          "dayNum": null,
+          "spec": 28,
+          "note": null
+        }
       },
       {
         "id": "2099744972195131850",
@@ -1429,7 +1490,16 @@ export default {
         "level": "hint",
         "rejected": "含时间表达「this week」但没有额度相关词，不作为重置信号",
         "intent": 0,
-        "window": null
+        "window": null,
+        "candidateWindow": {
+          "word": "this week",
+          "precision": "week",
+          "from": "2026-09-15T06:19:47.000Z",
+          "to": "2026-09-21T06:59:00.000Z",
+          "dayNum": null,
+          "spec": 40,
+          "note": null
+        }
       },
       {
         "id": "2098639827084480864",
@@ -1467,10 +1537,155 @@ export default {
         "level": "hint",
         "rejected": "含时间表达「next week」但没有额度相关词，不作为重置信号",
         "intent": 0,
-        "window": null
+        "window": null,
+        "candidateWindow": {
+          "word": "next week",
+          "precision": "week",
+          "from": "2026-09-14T07:00:00.000Z",
+          "to": "2026-09-21T06:59:00.000Z",
+          "dayNum": null,
+          "spec": 40,
+          "note": null
+        }
       }
     ],
     "rejected": [],
+    "hypothesis": {
+      "dayNum": 20718,
+      "day": "2026.09.22（周二）",
+      "precision": "day",
+      "window": {
+        "from": "2026-09-22T07:00:00.000Z",
+        "to": "2026-09-23T06:59:00.000Z",
+        "dayNum": 20718,
+        "fromTs": 1790060400000,
+        "toTs": 1790146740000,
+        "userFrom": {
+          "y": "2026",
+          "m": "09",
+          "d": "22",
+          "hh": "15",
+          "mm": "00",
+          "weekdayCN": "周二"
+        },
+        "sourceZone": "2026.09.22（周二）00:00 – 23:59",
+        "userZone": "2026.09.22（周二）15:00 → 2026.09.23（周三）14:59",
+        "crossesUserDay": true,
+        "zones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.09.22",
+            "weekday": "周二",
+            "time": "15:00",
+            "text": "2026.09.22（周二）15:00",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "Tibo 当地时间",
+            "zone": "America/Los_Angeles",
+            "date": "2026.09.22",
+            "weekday": "周二",
+            "time": "00:00",
+            "text": "2026.09.22（周二）00:00",
+            "offset": "UTC-7"
+          },
+          "diffHours": 15,
+          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+        },
+        "precision": "day"
+      },
+      "counts": {
+        "hard": 2,
+        "soft": 2,
+        "clockHints": 2,
+        "clockAdopted": 0
+      },
+      "evidence": [
+        {
+          "id": "2102254445082116335",
+          "createdAt": "2026-09-22T04:31:32.000Z",
+          "text": "Ladies and gentlemen... start... your... ENGINES. We are almost Tuesday and I promised a reset for Tuesday. Among some other things. See you soon.",
+          "url": "https://x.com/thsottiaux/status/2102254445082116335",
+          "via": "原创",
+          "weight": "hard",
+          "contributes": "承诺了这一天",
+          "timeWord": "tuesday",
+          "precision": "day",
+          "ambiguous": false,
+          "note": null,
+          "from": "2026-09-22T07:00:00.000Z",
+          "to": "2026-09-23T06:59:00.000Z"
+        },
+        {
+          "id": "2101920928070562029",
+          "createdAt": "2026-09-21T06:26:15.000Z",
+          "text": "3am on a tuesday",
+          "url": "https://x.com/thsottiaux/status/2101920928070562029",
+          "via": "回复 @My_Ai_Bi",
+          "weight": "soft",
+          "contributes": "提到这一天（无额度语境）",
+          "timeWord": "3am",
+          "precision": "instant",
+          "ambiguous": false,
+          "note": null,
+          "from": "2026-09-22T10:00:00.000Z",
+          "to": "2026-09-22T10:59:00.000Z"
+        },
+        {
+          "id": "2101352781219258527",
+          "createdAt": "2026-09-19T16:48:38.000Z",
+          "text": "OK fine. But it’s also still coming in Tuesday",
+          "url": "https://x.com/thsottiaux/status/2101352781219258527",
+          "via": "回复 @udiWertheimer",
+          "weight": "hard",
+          "contributes": "承诺了这一天",
+          "timeWord": "coming in tuesday",
+          "precision": "day",
+          "ambiguous": false,
+          "note": null,
+          "from": "2026-09-22T07:00:00.000Z",
+          "to": "2026-09-23T06:59:00.000Z"
+        },
+        {
+          "id": "2100121084817502216",
+          "createdAt": "2026-09-16T07:14:19.000Z",
+          "text": "11pm on a Tuesday, big startup energy",
+          "url": "https://x.com/thsottiaux/status/2100121084817502216",
+          "via": "原创",
+          "weight": "soft",
+          "contributes": "提到这一天（无额度语境）",
+          "timeWord": "11pm",
+          "precision": "instant",
+          "ambiguous": false,
+          "note": null,
+          "from": "2026-09-23T06:00:00.000Z",
+          "to": "2026-09-23T06:59:00.000Z"
+        }
+      ],
+      "clockHints": [
+        {
+          "word": "3am",
+          "from": "2026-09-22T10:00:00.000Z",
+          "to": "2026-09-22T10:59:00.000Z",
+          "adopted": false,
+          "why": "本条无额度语境（他人活动/作息等），仅作旁证",
+          "ambiguous": false,
+          "id": "2101920928070562029",
+          "via": "回复 @My_Ai_Bi"
+        },
+        {
+          "word": "11pm",
+          "from": "2026-09-23T06:00:00.000Z",
+          "to": "2026-09-23T06:59:00.000Z",
+          "adopted": false,
+          "why": "本条无额度语境（他人活动/作息等），仅作旁证",
+          "ambiguous": false,
+          "id": "2100121084817502216",
+          "via": "原创"
+        }
+      ]
+    },
     "counts": {
       "scanned": 69,
       "explicit": 2,
@@ -1485,7 +1700,7 @@ export default {
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-09-12T08:09:17.000Z",
     "last_text": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG",
-    "days_since_last": 9.855036319444444,
+    "days_since_last": 9.868323564814816,
     "avg_interval_days": 6.926367743945869,
     "median_interval_days": 3.216273148148148,
     "sd_interval_days": 11.40364106280428,

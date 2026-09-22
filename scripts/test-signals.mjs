@@ -347,6 +347,73 @@ console.log('\n【3】歧义处理：英文相对时间词');
   check('ISO 日期解析 = 10/05', r.window?.from === '2026-10-05T07:00:00.000Z', `实际 ${r.window?.from}`);
 }
 
+/* ==================== 3b. 钟点：与同句的日期是一个整体 ==================== */
+
+console.log('\n【3b】钟点解析：3am / 11pm / midnight');
+
+{
+  // 本轮的起因。老大的原话：「他不是都有 3am on a tuesday 这样的回复了吗，
+  // 为什么没有明确时间？」此前解析器**没有钟点维度** —— 最深只走到
+  // 「星期 → 全天」，句子里那个 3am 被整段忽略，精度永远停在 `day`。
+  const T = '2026-09-17T17:57:59.000Z'; // 周四，当地 10:57
+  const r = run("we'll reset everyone's usage limits at 3am on Tuesday", T);
+  check('钟点识别为 instant 精度（不再退化成全天）', r.precision === 'instant', `实际 ${r.precision}`);
+  check(
+    '钟点钉在**同句的**那一天上 = 9/22 当地 03:00',
+    r.window?.from === '2026-09-22T10:00:00.000Z',
+    `实际 ${r.window?.from}`
+  );
+  check('时间词 = 3am', r.timeWord === '3am', `实际 ${r.timeWord}`);
+}
+
+{
+  const r = run("we'll reset everyone's usage limits at 11pm on Tuesday", '2026-09-17T17:57:59.000Z');
+  check(
+    '11pm 同样钉在那一天 = 9/22 当地 23:00',
+    r.window?.from === '2026-09-23T06:00:00.000Z',
+    `实际 ${r.window?.from}`
+  );
+}
+
+{
+  // 句中**没有**日期时，钟点才自行取「最近的未来那一刻」。
+  // 发推时当地是 09-17 10:57，当天 3am 已过 → 落在 09-18 03:00。
+  const r = run("we'll reset everyone's usage limits at 3am", '2026-09-17T17:57:59.000Z');
+  check(
+    '无日期时钟点取最近的未来那一刻 = 9/18 当地 03:00',
+    r.window?.from === '2026-09-18T10:00:00.000Z',
+    `实际 ${r.window?.from}`
+  );
+}
+
+{
+  const r = run("we'll reset everyone's usage limits at midnight", '2026-09-17T17:57:59.000Z');
+  check(
+    'midnight = 最近的未来零点（当地 9/18）',
+    r.window?.from === '2026-09-18T07:00:00.000Z',
+    `实际 ${r.window?.from}`
+  );
+}
+
+{
+  // ⚠ 本轮的核心回归，两个方向必须同时成立：
+  //   ① 钟点**不能**把没有额度语境的推文送上信号位 —— 09-21 那句
+  //      「3am on a tuesday」说的是别人的活动（GPT-6 社区之夜），不是承诺；
+  //   ② 但那条时间线索**必须保留**（candidateWindow）。旧实现到这里直接
+  //      `window: null`，等于把「系统看到了什么时间」抹掉 —— 事后既无法
+  //      复核、也无法参与聚合。老大问的正是「为什么没有明确时间」，
+  //      如果连线索都不留，就答不出「看见了但没采信」与「根本没看见」的区别。
+  const r = run('3am on a tuesday', '2026-09-21T06:26:00.000Z');
+  check('无额度语境的钟点 → 不是明确信号', r.level !== 'explicit', `实际 ${r.level}`);
+  check('但时间线索被保留（不静默丢弃）', !!r.candidateWindow, JSON.stringify(r.candidateWindow));
+  check(
+    '保留的线索带精度与目标日 = 9/22 当地',
+    r.candidateWindow?.precision === 'instant' &&
+      r.candidateWindow?.dayNum === Date.UTC(2026, 8, 22) / 86_400_000,
+    JSON.stringify({ precision: r.candidateWindow?.precision, dayNum: r.candidateWindow?.dayNum })
+  );
+}
+
 /* ============================ 4. 汇总与真实数据 ============================ */
 
 console.log('\n【4】汇总接口 + 真实数据回归');
@@ -429,6 +496,101 @@ console.log('\n【4】汇总接口 + 真实数据回归');
   check('多推文时取最新的一条作主结论', sig.latest?.id === '9', `实际 ${sig.latest?.id}`);
   check('汇总等级 = explicit', sig.level === 'explicit', `实际 ${sig.level}`);
   check('明确信号只有 1 条', sig.signals.length === 1, `实际 ${sig.signals.length}`);
+}
+
+/* ==================== 5. 跨推文聚合（综合分析） ==================== */
+
+console.log('\n【5】跨推文聚合：同一天的多条线索要收在一起');
+
+const DAY_922 = Date.UTC(2026, 8, 22) / 86_400_000;
+
+{
+  const now = new Date('2026-09-22T04:40:00.000Z').getTime();
+  const tweets = [
+    // 硬证据：他承诺了周二（09-22 当地 21:31 发）
+    { id: 'h1', text: 'I promised a reset for Tuesday', created_at: '2026-09-22T04:31:00.000Z' },
+    // 软证据：同一天的钟点线索，但语境是别人的活动
+    { id: 's1', text: '3am on a tuesday', created_at: '2026-09-21T06:26:00.000Z' },
+    // 软证据：同一天的钟点，语境是他的作息
+    { id: 's2', text: '11pm on a Tuesday, big startup energy', created_at: '2026-09-16T07:14:00.000Z' },
+    // 干扰项：另一天的钟点线索，绝不能混进来
+    { id: 'x1', text: 'see you Thursday at 9am', created_at: '2026-09-17T06:00:00.000Z' },
+  ];
+  const h = detectSignals(tweets, { now }).hypothesis;
+
+  check('产出综合假设', !!h, JSON.stringify(h?.counts));
+  check('锚定在同一天（9/22 当地）', h?.dayNum === DAY_922, `实际 ${h?.day}`);
+  check('分明硬软：1 条承诺 + 2 条同日提及', h?.counts.hard === 1 && h?.counts.soft === 2, JSON.stringify(h?.counts));
+  check(
+    '别日的线索不混入证据链',
+    !h?.evidence.some((e) => e.id === 'x1'),
+    h?.evidence.map((e) => e.id).join(',')
+  );
+  check(
+    '钟点线索被列出，且标明**未采用**',
+    h?.clockHints.length === 2 && h.clockHints.every((c) => c.adopted === false),
+    JSON.stringify(h?.clockHints?.map((c) => `${c.word}:${c.adopted}`))
+  );
+  // 这是「宁可不精确，也不造假」的落点：软线索有更细的钟点，
+  // 但它们的语境与额度无关，**不能**拿来提升窗口精度。
+  check('软证据不提升窗口精度（仍是全天）', h?.precision === 'day', `实际 ${h?.precision}`);
+  check(
+    '窗口始终是硬证据的产物',
+    h?.window?.from === '2026-09-22T07:00:00.000Z',
+    `实际 ${h?.window?.from}`
+  );
+}
+
+{
+  // 聚合真正带来精度的地方：同一天有两条承诺，一条到「天」、一条到「钟点」，
+  // 应当收敛到更精确的那条。只取「最近一条」会丢掉这个精度。
+  const now = new Date('2026-09-22T04:40:00.000Z').getTime();
+  const h = detectSignals(
+    [
+      { id: 'h1', text: "we'll reset the limits Tuesday", created_at: '2026-09-20T04:00:00.000Z' },
+      { id: 'h2', text: "we'll reset the limits at 3am on Tuesday", created_at: '2026-09-21T04:00:00.000Z' },
+    ],
+    { now }
+  ).hypothesis;
+
+  check('同日两条承诺 → 取更精确的那条定窗口', h?.precision === 'instant', `实际 ${h?.precision}`);
+  check(
+    '窗口收敛到 9/22 当地 03:00',
+    h?.window?.from === '2026-09-22T10:00:00.000Z',
+    `实际 ${h?.window?.from}`
+  );
+}
+
+{
+  // 反向闸门：只有软线索时**不能**产出假设。
+  // 把「他随口提到某个周二」升格成一个重置时间，正是这个产品最不能出的错。
+  const now = new Date('2026-09-22T04:40:00.000Z').getTime();
+  const sig = detectSignals(
+    [{ id: 's1', text: '3am on a tuesday', created_at: '2026-09-21T06:26:00.000Z' }],
+    { now }
+  );
+  check('只有软线索、没有承诺 → 不产出假设', sig.hypothesis === null, JSON.stringify(sig.hypothesis?.counts));
+}
+
+{
+  // 真实数据的回归：这一轮的真实语料里，09-22 这个周二被
+  // 2 条承诺 + 2 条同日提及共同指到，另有 3am / 11pm 两个钟点线索未被采用。
+  const tweets = JSON.parse(await readFile(resolve(ROOT, 'data/tweets.json'), 'utf8')).tweets;
+  const h = detectSignals(tweets, { now: new Date('2026-09-22T04:40:00.000Z').getTime() }).hypothesis;
+
+  check('真实数据产出假设', !!h, JSON.stringify(h?.counts));
+  check('真实数据：硬证据 2 条', h?.counts.hard === 2, JSON.stringify(h?.counts));
+  check('真实数据：同日软证据 2 条', h?.counts.soft === 2, JSON.stringify(h?.counts));
+  check(
+    '真实数据：两个钟点线索都在，且都未采用',
+    h?.clockHints.length === 2 && h.clockHints.every((c) => !c.adopted),
+    JSON.stringify(h?.clockHints?.map((c) => `${c.word}:${c.adopted}`))
+  );
+  check(
+    '真实数据：3am 与 11pm 都被解析出来了（旧实现里它们整段消失）',
+    ['3am', '11pm'].every((w) => h.clockHints.some((c) => c.word === w)),
+    h?.clockHints?.map((c) => c.word).join(',')
+  );
 }
 
 /* ================================ 结果 ================================ */
