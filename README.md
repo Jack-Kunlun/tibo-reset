@@ -316,13 +316,17 @@ docs/miniprogram.md       小程序上手与截图终检
 ```bash
 npm ci                     # 装唯一的构建期依赖（@resvg/resvg-js）
 npm run collect            # 采集（首次加 --bootstrap 做历史回填）
-npm run build              # 构建 dist/index.html + dist/og-image.png
+npm run build              # 构建 dist/index.html + dist/og-image.png + 两个图标
 npm run refresh            # 采集 + 构建
 npm start                  # 启动后端（含定时采集）
 npm run diagnose           # 模型诊断与回测
 ```
 
 `file://` 直接打开 `dist/index.html` 也能看，不需要起服务。
+
+页面本身仍是**一个自包含的 HTML**（品牌标已内联成 data URI）。另出两个图标文件
+`favicon.png` / `apple-touch-icon.png` —— 图标必须独立存在，因为浏览器是**自己发请求**
+去取 favicon 的，内联不可靠（Safari 尤其）。少了它们页面照常显示，只是标签页没有图标。
 
 构建与验收：
 
