@@ -6,12 +6,15 @@
  * 避免「脚本能跑、服务跑不了」这类双实现漂移。
  *
  * 用法:
- *   node scripts/collect.mjs             # 增量采集
+ *   node scripts/collect.mjs             # 增量采集（含回复雷达）
+ *   node scripts/collect.mjs --no-radar  # 跳过回复雷达
  *   node scripts/collect.mjs --bootstrap # 额外执行历史回填（冷启动）
  *   node scripts/collect.mjs --offline   # 跳过网络，只重算统计（自检用）
  *   node scripts/collect.mjs --max-age=120
  *                                        # 数据比 120 分钟还新就不采（CI 兜底用，见
  *                                        # src/lib/collect.mjs 里「新鲜度短路」的说明）
+ *   node scripts/collect.mjs --radar-accounts=udiWertheimer,someone
+ *                                        # 覆盖回复雷达的监控对象池
  */
 
 import { resolve, dirname } from 'node:path';
@@ -21,13 +24,26 @@ import { runCollection } from '../src/lib/collect.mjs';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
 
-const maxAgeArg = argv.find((a) => a.startsWith('--max-age='));
-const maxAgeMinutes = maxAgeArg ? Number(maxAgeArg.split('=')[1]) : 0;
+const argVal = (name) => {
+  const hit = argv.find((a) => a.startsWith(`--${name}=`));
+  return hit ? hit.slice(name.length + 3) : null;
+};
+
+const maxAgeMinutes = Number(argVal('max-age') ?? 0);
+const radarAccountsArg = argVal('radar-accounts');
+const radarLimit = Number(argVal('radar-limit') ?? 0);
 
 const result = await runCollection({
   dataDir: resolve(ROOT, 'data'),
   bootstrap: argv.includes('--bootstrap'),
   skipLive: argv.includes('--offline'),
+  // 雷达默认开：发现「他在回复里做的预告」正是这套采集存在的理由之一。
+  // 要临时关掉用 --no-radar。
+  radar: !argv.includes('--no-radar'),
+  radarAccounts: radarAccountsArg
+    ? radarAccountsArg.split(',').map((s) => s.trim()).filter(Boolean)
+    : undefined,
+  radarLimit: Number.isFinite(radarLimit) && radarLimit > 0 ? radarLimit : undefined,
   skipIfFresherThanMs: Number.isFinite(maxAgeMinutes) ? maxAgeMinutes * 60_000 : 0,
 });
 
@@ -53,4 +69,22 @@ if (result.skippedFresh) {
   process.exitCode = 1;
 } else {
   console.log('\n✓ 已写入 data/');
+}
+
+// 雷达的执行情况要看得见：它是一条抽样通道（详情页只渲染部分回复），
+// 「这轮扫了什么、命中几条」直接决定该怎么调对象池。
+if (result.radar) {
+  const r = result.radar.lastRun;
+  console.log('\n--- 回复雷达 ---');
+  console.log('  监控对象池: ' + result.radar.pool.join(', '));
+  console.log(`  扫了 ${r.scanned.length} 条候选推文的详情页，命中 ${r.hits} 条回复`);
+  for (const sc of r.scanned) {
+    const d = sc.error
+      ? '失败：' + sc.error
+      : `详情页 ${sc.repliesOnPage} 条回复，命中 ${sc.hits}`;
+    console.log(`    · @${sc.monitor}/status/${sc.tweetId} → ${d}`);
+  }
+  for (const e of r.errors) console.warn('    ⚠ ' + e);
+  const targets = Object.keys(result.radar.targets ?? {});
+  if (targets.length) console.log('  历次命中过的被回复者: ' + targets.join(', '));
 }

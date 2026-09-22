@@ -169,6 +169,125 @@ console.log('\n【2.5】KI-001 回归：时间表达的选取顺序');
   check('且窗口落在 9/19', r.window?.from === '2026-09-19T07:00:00.000Z', `实际 ${r.window?.from}`);
 }
 
+/* ========== 2.7 上下文识别：额度语境常在「被回复的那条推文」里 ========== */
+
+console.log('\n【2.7】上下文识别：他回复别人时，自己这条常常一个额度词都没有');
+
+{
+  // 真实场景（2026-09-21）。这条回复单独看是
+  //   「OK fine. But it's also still coming in Tuesday」
+  // —— 12 个词里没有任何 reset / limits / credits，任何词表都读不出「这是在说重置」。
+  // 额度语境在被回复的那条推文里（有人在催 "you owe us a banked reset"）。
+  // 修复前这条会以「没有额度相关词」被丢弃，于是官方亲口承诺的重置不会出现在页面上。
+  const AT = '2026-09-21T04:41:00.000Z';
+  const ctx = {
+    account: 'udiWertheimer',
+    id: 'ctx1',
+    text:
+      "ok tibo you guys didn't ship anything interesting this week\n\n" +
+      "you owe us a banked reset\n\nsorry i don't make the rules",
+    created_at: '2026-09-19T20:00:00.000Z',
+  };
+  const reply = (extra = {}) => ({
+    id: 'r1',
+    text: "OK fine. But it's also still coming in Tuesday",
+    created_at: AT,
+    account: 'thsottiaux',
+    inReplyTo: ctx,
+    ...extra,
+  });
+
+  const withCtx = analyzeTweet(reply(), { sourceZone: SOURCE_ZONE, userZone: USER_ZONE });
+  check('带上下文 → 判为明确信号', withCtx.level === 'explicit', `实际 ${withCtx.level}`);
+  check('标记为「借上下文」，与他自己说 reset 区分开', withCtx.viaContext === true, `实际 ${withCtx.viaContext}`);
+  check(
+    '时间取本条（coming in Tuesday → 北京时间 9/22）',
+    withCtx.window?.from === '2026-09-22T07:00:00.000Z',
+    `实际 ${withCtx.window?.from}`
+  );
+  check('给得出可追溯的理由', withCtx.reasons.some((s) => s.includes('借自上下文')), `实际 ${withCtx.reasons.join(' | ')}`);
+
+  const noCtx = analyzeTweet(reply({ inReplyTo: null }), { sourceZone: SOURCE_ZONE, userZone: USER_ZONE });
+  check(
+    '不带上下文 → 不升级（这正是它此前被整条漏掉的原因）',
+    noCtx.level !== 'explicit',
+    `实际 ${noCtx.level}；${noCtx.rejected}`
+  );
+}
+
+{
+  // 反例一：被回复的推文与额度无关 → 哪怕他说了延续语气也不能借
+  const r = analyzeTweet(
+    {
+      id: 'r2',
+      text: 'it is still coming tomorrow',
+      created_at: '2026-09-21T04:41:00.000Z',
+      account: 'thsottiaux',
+      inReplyTo: { account: 'someone', text: 'when will the new mascot drop?', id: 'c2' },
+    },
+    { sourceZone: SOURCE_ZONE, userZone: USER_ZONE }
+  );
+  check('上下文无额度语境 → 不借意图', r.level !== 'explicit', `实际 ${r.level}；intent=${r.intent}`);
+}
+
+{
+  // 反例二：上下文有额度语境，但他这句没有延续语气（只是在答应去看一眼）
+  const r = analyzeTweet(
+    {
+      id: 'r3',
+      text: 'will look into it tomorrow',
+      created_at: '2026-09-21T04:41:00.000Z',
+      account: 'thsottiaux',
+      inReplyTo: { account: 'someone', text: 'you owe us a banked reset', id: 'c3' },
+    },
+    { sourceZone: SOURCE_ZONE, userZone: USER_ZONE }
+  );
+  check(
+    '无延续语气 → 不借意图（will 后面不是「到来」类动词）',
+    r.level !== 'explicit',
+    `实际 ${r.level}；intent=${r.intent}`
+  );
+}
+
+{
+  // 反例三：上下文里出现 reset，但那是「权重重置让训练更快」这类无关用法。
+  // 这一条是收紧上下文档位的直接依据 —— 只看有没有 reset 词，它就会误报。
+  const r = analyzeTweet(
+    {
+      id: 'r4',
+      text: 'still coming this week',
+      created_at: '2026-09-21T04:41:00.000Z',
+      account: 'thsottiaux',
+      inReplyTo: { account: 'someone', text: 'the model weights reset made training faster', id: 'c4' },
+    },
+    { sourceZone: SOURCE_ZONE, userZone: USER_ZONE }
+  );
+  check(
+    '上下文里的 reset 与额度无关 → 不借意图',
+    r.level !== 'explicit',
+    `实际 ${r.level}；intent=${r.intent}`
+  );
+}
+
+{
+  // 上下文里的时间词**不参与**解析：this week 是提问者的坐标，不是他的承诺时点。
+  const r = analyzeTweet(
+    {
+      id: 'r5',
+      text: "OK, it's coming in Tuesday",
+      created_at: '2026-09-21T04:41:00.000Z',
+      account: 'thsottiaux',
+      inReplyTo: {
+        account: 'someone',
+        text: 'you owe us a banked reset this week, come on',
+        id: 'c5',
+      },
+    },
+    { sourceZone: SOURCE_ZONE, userZone: USER_ZONE }
+  );
+  check('时间只从本条取，不借上下文的时间词', (r.timeWord ?? '').toLowerCase().includes('tuesday'), `实际 ${r.timeWord}`);
+}
+
 /* ==================== 3. 相对时间词的歧义必须标注 ==================== */
 
 console.log('\n【3】歧义处理：英文相对时间词');

@@ -88,6 +88,16 @@ const RE_PAST = /\breset\s+(?:all\s+)?(?:propagated|complete[ds]?|done|rolled|fi
 // 与额度无关的发布/宣传语境
 const RE_LAUNCH = /\b(launch(?:ing|ed)?|keynote|ship(?:ping|ped)?|releas(?:e|ing|ed)|announc(?:e|ing|ed|ement)|blog|demo|podcast|feature|model|styleguide|api|mcp|codex app|chatgpt app|super ?app)\b/i;
 
+/**
+ * 「延续／确认」语气 —— 他回应额度话题时说「它还是会来」。
+ *
+ * 这是**借用上下文**的唯一闸门，必须严格：没有它，只要被回复的推文里出现过
+ * reset，他任何一句带时间的回复都会被判成预告（「will look into it tomorrow」
+ * 里的 will 就是个反例，所以这里要求 will 后面必须跟「到来」类动词）。
+ */
+const RE_CONTINUE =
+  /\b(?:still\s+(?:coming|on\s+track|happening|landing|arriving)|(?:it'?s|it\s+is|its)\s+(?:still\s+)?coming|coming\s+(?:in|on|this|next|later|tomorrow|soon)|will\s+(?:still\s+)?(?:come|land|happen|arrive|be\s+reset|reset)|on\s+track|right\s+around\s+the\s+corner|very\s+soon)\b/i;
+
 /* --------------------------- 时间表达解析 --------------------------- */
 
 const MONTHS = {
@@ -180,8 +190,12 @@ function parseTimes(text, refTs, zone) {
     }
   }
 
-  // 3) 星期：next Tuesday / this Tuesday / Tuesday / coming Tuesday
-  const wd = t.match(new RegExp(`\\b(?:(next|this|coming|upcoming)\\s+)?(${WEEKDAY_RE})\\b`));
+  // 3) 星期：next Tuesday / this Tuesday / Tuesday / coming Tuesday / coming in Tuesday
+  //    最后一个形式（"coming in Tuesday"）是实测里真实出现过的口语写法，
+  //    中间多了个 in —— 修饰词与星期之间要允许它，否则会退化成「裸 Tuesday」解读。
+  const wd = t.match(
+    new RegExp(`\\b(?:(next|this|coming|upcoming)\\s+(?:in\\s+)?)?(${WEEKDAY_RE})\\b`)
+  );
   if (wd) {
     const target = WEEKDAY_MAP[wd[2]];
     if (target) {
@@ -398,13 +412,53 @@ export function analyzeTweet(tweet, opts = {}) {
   const isPast = RE_PAST.test(text);
   const isLaunch = RE_LAUNCH.test(text);
 
-  const intent = (hasReset ? 3 : 0) + (hasScope ? 2 : 0) + (hasGenerous ? 1 : 0);
+  const ownIntent = (hasReset ? 3 : 0) + (hasScope ? 2 : 0) + (hasGenerous ? 1 : 0);
   if (hasReset) reasons.push('命中重置词 reset');
   if (hasScope) reasons.push('命中额度词 limits/usage/credits');
   if (hasGenerous) reasons.push('命中「新额度」类词 fresh/new/top up');
   if (hasFuture) reasons.push('含未来语气');
   if (isPast) reasons.push('判定为已完成的过去事件（扣分）');
   if (isLaunch) reasons.push('含发布/宣传语境（扣分）');
+
+  /* ── 上下文（他回复的那条推文）─────────────────────────────────────────
+   *
+   * 他在回复里做预告时，经常一个额度词都不带：
+   *   「OK fine. But it's also still coming in Tuesday」
+   * 单独看这条，任何词表都读不出「这是在说重置」—— 额度语境在被回复的那条
+   * 推文里（有人在催 "you owe us a banked reset"）。
+   *
+   * 所以：本条无额度词、但上下文有额度语境、**且本条带「延续/确认」语气**时，
+   * 借上下文的意图来判。三道闸门缺一不可 —— 尤其是延续语气那道，
+   * 没有它，只要被回复的推文里出现过 reset，他任何一句带时间的回复都会被误判。
+   *
+   * 注意：时间表达**只从本条取**，不碰上下文。上下文里的 "this week" 是
+   * 提问者自己的时间坐标，不是他的承诺时点。
+   */
+  const ctx = tweet.inReplyTo ?? null;
+  const ctxText = String(ctx?.text ?? '').replace(/\s+/g, ' ').trim();
+  // 上下文必须是**额度**重置语境，而不是随便一个 reset 词。
+  //   「you owe us a banked reset」                    → reset + 额度词 ✅ 借
+  //   「the model weights reset made training faster」 → 只有 reset，与额度无关 ✗ 不借
+  // 光看有没有 reset 是不够的 —— 上面第二条也会让它成立，然后他任何一句带时间的
+  // 回复都会被误判成预告。所以要求 reset 必须与额度词同时出现。
+  const ctxIntent =
+    ctxText && RE_RESET.test(ctxText) && RE_SCOPE.test(ctxText)
+      ? 3 + (RE_GENEROUS.test(ctxText) ? 1 : 0)
+      : 0;
+  const hasContinue = RE_CONTINUE.test(text);
+  const viaContext = ownIntent < 2 && ctxIntent >= 2 && hasContinue;
+  const intent = viaContext ? Math.max(ownIntent, 3) : ownIntent;
+
+  if (ctxText) {
+    reasons.push(`上下文：回复 @${ctx?.account ?? '?'}「${ctxText.slice(0, 36)}…」`);
+    if (viaContext) {
+      reasons.push('本条不含额度词，额度语境借自上下文 + 延续语气 → 判为预告');
+    } else if (hasContinue && ownIntent < 2) {
+      reasons.push('含延续语气，但被回复的推文无额度语境，不借意图');
+    } else if (ctxIntent >= 2) {
+      reasons.push('被回复的推文含额度语境（本条无延续语气，不借意图）');
+    }
+  }
 
   const times = parseTimes(text, refTs, sourceZone);
   // 只保留指向未来的窗口。「未来」的判定分两档：
@@ -439,6 +493,13 @@ export function analyzeTweet(tweet, opts = {}) {
     createdAt: new Date(refTs).toISOString(),
     url: tweet.id ? `https://x.com/${tweet.account ?? opts.account ?? 'thsottiaux'}/status/${tweet.id}` : null,
     reasons,
+    // 是否靠上下文推断出来的。页面对这两类可以显示不同徽标 ——
+    // 直接命中是「他自己说 reset」，上下文推断是「他在回应额度话题并承诺时间」，
+    // 后者的可信度同样高，但依据不同，不该混为一谈。
+    viaContext,
+    inReplyTo: ctxText
+      ? { account: ctx?.account ?? null, id: ctx?.id ?? null, text: ctxText }
+      : null,
     // 发布时刻的双时区表述在这里算好跟着数据走。
     // 原因：小程序端要算这个得依赖 Intl，而部分安卓机型上 Intl 不可用/不完整。
     // 时区换算属于「算法」而不是「渲染」，放在这一层算一次，两端共用同一份结果。
@@ -500,7 +561,11 @@ export function analyzeTweet(tweet, opts = {}) {
       to: new Date(w.to).toISOString(),
       ...win,
     },
-    confidence: Math.max(0.2, Math.min(0.95, 0.35 + intent * 0.08 + (hasReset ? 0.1 : 0)) - (isLaunch ? 0.15 : 0)),
+    confidence:
+      Math.max(0.2, Math.min(0.95, 0.35 + intent * 0.08 + (hasReset ? 0.1 : 0))) -
+      (isLaunch ? 0.15 : 0) -
+      // 借上下文推断的，依据链多一环，置信度相应扣一点
+      (viaContext ? 0.08 : 0),
   };
 }
 

@@ -15,7 +15,12 @@
  * 校验的是「按对象就近配对」这个契约，不是某一份具体样本。
  */
 
-import { parseTweets } from '../src/lib/collect.mjs';
+import {
+  parseTweets,
+  parseTweetDetail,
+  pickRadarCandidates,
+  rankRadarCandidates,
+} from '../src/lib/collect.mjs';
 
 let pass = 0;
 const failures = [];
@@ -170,6 +175,110 @@ check(
   esc[0]?.text === 'line1\nline2 "quoted"',
   `实际 ${JSON.stringify(esc[0]?.text)}`
 );
+
+/* ========== 详情页解析：回复雷达赖以工作的那一层 ========== */
+
+section('详情页解析：主推文 + 回复，每条都要配上正确的作者');
+
+// 详情页的 payload 里，一条推文的作者 screen_name 出现在它的 full_text **之前**
+// （实测距离 1.9k–3.7k 字符）。配对靠这个物理顺序，不是按索引硬配。
+const detail = (items) =>
+  wrap(
+    ...items.map(
+      (it, i) =>
+        `"client:${b64(`User:${it.userId}`)}:core":$R[${10 + i}]={__typename:"UserCore",screen_name:"${it.account}"},` +
+        `"client:${b64(`Tweet:${it.id}`)}:details":$R[${20 + i}]={__typename:"TBirdData",full_text:"${it.text}",created_at_ms:${it.at}}`
+    )
+  );
+
+const FOCAL_ID = '2102194594142208076';
+const DETAIL_ITEMS = [
+  { id: FOCAL_ID, account: 'udiWertheimer', userId: '1', text: 'this is such an incredible mascot', at: 1790000000000 },
+  // 主推文在页面上会出现两次（真实现象），必须按 id 去重
+  { id: FOCAL_ID, account: 'udiWertheimer', userId: '1', text: 'this is such an incredible mascot', at: 1790000000000 },
+  { id: '2102203239072505893', account: 'shinohai2017', userId: '2', text: '@udiWertheimer Well with claude', at: 1790000100000 },
+  { id: '2102204348973416938', account: 'SenseWasHere', userId: '3', text: '@udiWertheimer https://t.co/CCooc4YGDP', at: 1790000200000 },
+];
+
+{
+  const d = parseTweetDetail(detail(DETAIL_ITEMS), FOCAL_ID);
+  check('主推文按 id 命中', d.focal?.id === FOCAL_ID, `实际 ${d.focal?.id}`);
+  check('主推文重复出现被去重', !d.replies.some((x) => x.id === FOCAL_ID), '');
+  check('回复条数正确', d.replies.length === 2, `实际 ${d.replies.length}`);
+  check(
+    '回复作者就近配对正确',
+    d.replies.map((r) => r.account).join(',') === 'shinohai2017,SenseWasHere',
+    `实际 ${d.replies.map((r) => r.account).join(',')}`
+  );
+}
+
+{
+  // 雷达的核心契约：能在回复列表里认出目标账号的回复。
+  // 认不出「他回过话」，整套雷达就没有意义。
+  const html = detail([
+    ...DETAIL_ITEMS,
+    {
+      id: '2102999999999999999',
+      account: 'thsottiaux',
+      userId: '4',
+      text: "OK fine. But it's also still coming in Tuesday",
+      at: 1790100000000,
+    },
+  ]);
+  const d = parseTweetDetail(html, FOCAL_ID);
+  const mine = d.replies.filter((r) => r.account === 'thsottiaux');
+  check('能从回复列表里认出目标账号的回复', mine.length === 1, `实际 ${mine.length}`);
+  check(
+    '认出那条的正文正确',
+    mine[0]?.text === "OK fine. But it's also still coming in Tuesday",
+    `实际 ${mine[0]?.text}`
+  );
+  check('该回复带着自己的 id（可拼出原始链接）', mine[0]?.id === '2102999999999999999', `实际 ${mine[0]?.id}`);
+}
+
+{
+  // focalId 对不上时不能崩，退化为「第一条当主推文」
+  const d = parseTweetDetail(detail(DETAIL_ITEMS), 'no-such-id');
+  check('focalId 不存在时退化而不抛错', d.focal?.id === FOCAL_ID, `实际 ${d.focal?.id}`);
+  check('空页面不抛错', parseTweetDetail('<html></html>').focal === null, '');
+}
+
+section('雷达候选筛选：只把可能引来回复的推文送进详情页');
+
+{
+  const list = [
+    { id: '1', text: 'you owe us a banked reset' },
+    { id: '2', text: 'this is such an incredible mascot' },
+    { id: '3', text: '@thsottiaux any ETA?' },
+    { id: '4', text: 'codex picked up my refactor' },
+    { id: null, text: 'reset everything right now' },
+  ];
+  const c = pickRadarCandidates(list);
+  check('命中额度词与提及类推文', c.length === 3, `实际 ${c.length}（${c.map((x) => x.id).join(',')}）`);
+  check('无 id 的被排除（抓不了详情页）', c.every((x) => x.id), '');
+  check('完全无关的推文被排除', !c.some((x) => x.id === '2'), '');
+  check('空输入不抛错', pickRadarCandidates(null).length === 0, '');
+}
+
+{
+  // 雷达实际用的是**排序**不是过滤。
+  // 依据：2026-09-21 那次，Tibo 回复的原推文是「你们这周没发布什么有意思的东西」——
+  // 额度词出现在同一串推文的下一段里纯属运气。若只写那一句，过滤式闸门会整条丢掉，
+  // 而回复里的承诺也就跟着丢了。所以未命中的推文必须留在候选里（只是往后排）。
+  const ranked = rankRadarCandidates([
+    { id: 'old-plain', text: 'good morning', created_at: '2026-09-18T00:00:00.000Z' },
+    { id: 'new-plain', text: 'good evening', created_at: '2026-09-21T00:00:00.000Z' },
+    { id: 'quota', text: 'you owe us a banked reset', created_at: '2026-09-17T00:00:00.000Z' },
+  ]);
+  check('命中的排最前（哪怕它更旧）', ranked[0]?.id === 'quota', `实际 ${ranked[0]?.id}`);
+  check('未命中的不被排除，只往后排', ranked.length === 3, `实际 ${ranked.length}`);
+  check(
+    '未命中的按时间从新到旧',
+    ranked[1]?.id === 'new-plain' && ranked[2]?.id === 'old-plain',
+    `实际 ${ranked.map((x) => x.id).join(',')}`
+  );
+  check('无 id 的仍然被排除（抓不了详情页）', rankRadarCandidates([{ id: null, text: 'reset' }]).length === 0, '');
+}
 
 /* ======================== 结果 ======================== */
 
