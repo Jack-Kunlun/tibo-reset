@@ -17,7 +17,7 @@ import { dirname, resolve } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { detectSignals, classifyEvent } from './signals.mjs';
-import { collectTimeline } from './browser.mjs';
+import { collectStreams } from './browser.mjs';
 import { resolveProxy } from './proxy.mjs';
 
 const execFileP = promisify(execFile);
@@ -308,19 +308,35 @@ export async function fetchLiveTweets(account = SOURCE_ACCOUNT) {
 /**
  * 登录态采集：驱动本机已登录的 Chrome，滚动收割时间线。
  *
+ * **两条流都收**，缺一条就漏掉一整类发言：
+ *   · `/`（原创）
+ *   · `/with_replies`（原创 + **回复**）
+ *
+ * 为什么回复流不是可选增强：他的关键承诺大量落在回复里。实测 2026-09-22 ——
+ * with_replies 一次就滚出「OK fine. But it's also still coming in Tuesday」
+ * 这类只存在于回复中的发言，而原创流一个字都没有。此前要靠「回复雷达」
+ * （抓别人推文详情页反着找）才能捞到零星几条，那是**抽样**：雷达的监控对象池
+ * 只有 udiWertheimer 一个账号，而他实际会回复 anah_sahh / hiarun02 / willcb /
+ * kr0der / GergelyOrosz… 等一大票人 —— 池子模式从结构上就覆盖不了。
+ *
+ * 两条流在**同一个 Chrome 会话**里跑完（`collectStreams`），冷启动的钱只付一次。
+ *
  * 失败一律抛错，把「要不要降级」留给调用方决定。这里的失败都是**静默丢数据**
  * 型的（profile 过期退回未登录、页面结构变了、收割到 0 条）—— 吞掉它，
  * 表面上一切正常，实际覆盖范围已经悄悄缩回 7 条。
  *
+ * ⚠ 回复流失败**不抛错**（记在 `replyError` 里）：它是覆盖面的补充，
+ * 挂了不该让整轮采集判失败 —— 原创流那部分数据仍然是好的。
+ *
  * @param {string} account
  * @param {{sinceMs?:number, knownIds?:Iterable<string>|null, maxSteps?:number,
- *          onProgress?:Function}} opts
+ *          onProgress?:Function, withReplies?:boolean}} opts
  *        `knownIds` 里的视为已入库，采集器翻到「连续整屏都是已知」即停 ——
  *        这是增量的实现方式（X 没有按时间范围查询的入口，只能从最新往下翻）。
  *        传 null / 空集合 = 全量回溯到 `sinceMs` 下界。
  */
 export async function fetchLiveTweetsViaBrowser(account = SOURCE_ACCOUNT, opts = {}) {
-  const result = await collectTimeline({
+  const base = {
     handle: account,
     sinceMs: opts.sinceMs ?? 0,
     knownIds: opts.knownIds ?? null,
@@ -329,21 +345,62 @@ export async function fetchLiveTweetsViaBrowser(account = SOURCE_ACCOUNT, opts =
     // 早先这里没传，Chrome 便一路用系统/环境代理 —— 而沙箱注入的那个连不通 x.com。
     proxy: opts.proxy,
     onProgress: opts.onProgress,
-  });
-  if (!result.loggedIn) throw new Error('Chrome profile 未登录 x.com');
-  if (!result.tweets.length) throw new Error('浏览器收割到 0 条推文');
-  return {
-    tweets: result.tweets.map((t) => ({
+  };
+
+  // 两条流一次会话跑完 —— 每条流各起一次 Chrome 会撞上「前一个还没退干净」，
+  // 实测报 CDP 超时（详见 browser.mjs 的 collectStreams）。
+  const paths = opts.withReplies === false ? [''] : ['', '/with_replies'];
+  const { streams, errors } = await collectStreams({ ...base, paths });
+
+  const main = streams[0];
+  if (!main) throw new Error(`浏览器采集失败：${errors[0]?.message ?? '未知原因'}`);
+  if (!main.loggedIn) throw new Error('Chrome profile 未登录 x.com');
+  if (!main.tweets.length) throw new Error('浏览器收割到 0 条推文');
+
+  // 回复流失败**不抛错**（记在 replyError 里）：它是覆盖面的补充，
+  // 挂了不该让整轮采集判失败 —— 原创流那部分数据仍然是好的。
+  const reply = streams[1] ?? null;
+  const replyError = reply ? null : (errors[1]?.message ?? null);
+
+  // 两条流有重叠（with_replies 也含原创）。同一条以**带上下文的那个版本**为准 ——
+  // 上下文是识别算法读「他在回复什么」的唯一依据，丢了就只剩半句话。
+  const byId = new Map();
+  const add = (t, via) => {
+    const prev = byId.get(t.id);
+    if (!prev) byId.set(t.id, { ...t, via });
+    else if (t.inReplyTo && !prev.inReplyTo) byId.set(t.id, { ...prev, ...t, via });
+  };
+  for (const t of main.tweets) add(t, 'timeline-browser');
+  for (const t of reply?.tweets ?? []) add(t, 'with-replies');
+
+  const tweets = [...byId.values()]
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .map(({ via, ...t }) => ({
       ...t,
       kind: classify(t.text),
       account,
-      role: 'post',
-      foundVia: 'timeline-browser',
-      inReplyTo: null,
-    })),
-    mode: result.mode,
-    stoppedBy: result.stoppedBy,
-    steps: result.steps,
+      // 带 inReplyTo 的即「他回复别人的推文」。这个标记不是装饰：
+      // 页面、统计、以及「他的发言有多少来自回复」都要靠它。
+      role: t.inReplyTo ? 'reply' : 'post',
+      foundVia: t.inReplyTo ? 'with-replies' : via,
+    }));
+
+  return {
+    tweets,
+    mode: main.mode,
+    stoppedBy: main.stoppedBy,
+    steps: main.steps,
+    reply: reply
+      ? {
+          mode: reply.mode,
+          stoppedBy: reply.stoppedBy,
+          steps: reply.steps,
+          harvested: reply.tweets.length,
+          withContext: reply.replyCount,
+          authorsMissing: reply.authorsMissing,
+        }
+      : null,
+    replyError,
   };
 }
 
@@ -563,6 +620,10 @@ export async function runCollection(opts = {}) {
   let newCount = 0;
   /** 本轮是否真的完成了全量回溯（用于推进 stats.json 的 last_full_at）。 */
   let didFullScan = false;
+  /** 回复流的采集形态（模式 / 停止原因 / 收下多少条带上下文）。 */
+  let replyInfo = null;
+  /** 回复流失败的原因（不影响整轮成败）。 */
+  let replyError = null;
 
   // 把一批推文并进 live。已存在的**用新版本覆盖**，而不是跳过 ——
   // 只有「只增不改」时，解析器修好了、旧数据里的错值也回不来（2026-09-21 修掉的
@@ -621,6 +682,8 @@ export async function runCollection(opts = {}) {
           sinceMs: floor,
           knownIds: wantFull ? null : knownIds,
           maxSteps: opts.maxSteps,
+          // 回复流默认开；要退回「只收原创」显式传 false。
+          withReplies: opts.withReplies,
           proxy: await resolveProxy(),
           onProgress: opts.onProgress,
         });
@@ -629,6 +692,8 @@ export async function runCollection(opts = {}) {
         collectMode = r.mode;
         stoppedBy = r.stoppedBy;
         didFullScan = r.mode === 'full';
+        replyInfo = r.reply;
+        replyError = r.replyError;
         if (floor > 0) coverageSince = new Date(floor).toISOString();
       } catch (err) {
         browserError = err.message;
@@ -784,6 +849,10 @@ export async function runCollection(opts = {}) {
       stoppedBy,
       newTweets: newCount,
       knownCount: live.tweets.length - newCount,
+      // 回复流留档：它坏掉时（作者解析失效 → 配对全空）页面上看不出来，
+      // 只有这里能看出来。
+      reply: replyInfo,
+      replyError,
     },
     last_full_at: didFullScan ? new Date().toISOString() : (prevStats.last_full_at ?? null),
     errors,
@@ -803,6 +872,12 @@ export async function runCollection(opts = {}) {
     stoppedBy,
     newCount,
     tweetCount: live.tweets.length,
+    /** 库里带 inReplyTo 的条数 —— 「他的发言有多少来自回复」的分母。 */
+    replyTweetCount: live.tweets.filter((t) => t.role === 'reply').length,
+    // 回复流：条数、带上下文的条数、作者解析失败数。
+    // 「他的发言有多少来自回复」是这套采集的关键分母，必须可复核。
+    reply: replyInfo,
+    replyError,
     collectedAt: new Date().toISOString(),
   };
 }

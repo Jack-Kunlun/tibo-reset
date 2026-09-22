@@ -26,7 +26,7 @@ import {
   rankRadarCandidates,
   resetFloorMs,
 } from '../src/lib/collect.mjs';
-import { normalizeTimelineItems, isKnownScreen } from '../src/lib/browser.mjs';
+import { normalizeTimelineItems, isKnownScreen, pairReplyContext } from '../src/lib/browser.mjs';
 
 let pass = 0;
 const failures = [];
@@ -372,6 +372,85 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
   check('空屏 → 不停', isKnownScreen([], known) === false);
   check('空输入不抛错', isKnownScreen(undefined, known) === false);
   check('已知集合为空（=全量）时，任何有 id 的屏都不算已追上', isKnownScreen([it('a')], new Set()) === false);
+}
+
+/* ==================== 回复的上下文配对 ==================== */
+
+/*
+ * 「他在别人帖子下的回复」是这套采集的一等公民 —— 他的关键承诺大量落在回复里。
+ * 而回复单独拿出来读是不完整的：「OK fine. But it's also still coming in Tuesday」
+ * 这半句话里一个额度词都没有，必须连着被回复的内容，才读得出「这是在说重置」。
+ *
+ * 配对关系只存在于 **DOM 顺序**里（`with_replies` 流把 [原推文, 回复] 成对渲染），
+ * 而 X 的虚拟列表滚过去就把条目卸载了 —— 所以配对只能在收割**当时**做，
+ * 事后再看只剩一堆散条目。这里钉住的正是那个「当时」的规则。
+ *
+ * 配错比不配更糟：假上下文会把一条无关推文的内容当成他的回复语境，
+ * 直接污染识别结果。所以宁可漏配，也要挡住时间倒挂与作者未知两类。
+ */
+
+{
+  const H = 'thsottiaux';
+  const mine = (id, time, text) => ({ id, time, text, author: H, url: `https://x.com/${H}/status/${id}` });
+  const other = (author, time, text) => ({ id: '', time, text, author, url: '' });
+
+  // 真实样本（2026-09-19）：Hannah 那条 → 他的回复
+  const s1 = pairReplyContext(
+    [
+      other('anah_sahh', '2026-09-19T14:15:01.000Z', 'met a dude, he still copy-pasting the code from chatgpt'),
+      mine('2101354419829010896', '2026-09-19T16:55:09.000Z', 'did you bail or at least show him codex before?'),
+    ],
+    H
+  );
+  check(
+    '紧邻在前的非他条目被认成「被回复的内容」',
+    s1[1].inReplyTo?.account === 'anah_sahh',
+    JSON.stringify(s1[1].inReplyTo)
+  );
+  check(
+    '配对保留原文（识别算法读的就是它）',
+    String(s1[1].inReplyTo?.text ?? '').startsWith('met a dude'),
+    s1[1].inReplyTo?.text
+  );
+  check('他自己的原创条目不挂上下文（inReplyTo=null）', s1[0].inReplyTo === null, String(s1[0].inReplyTo));
+
+  // 时间倒挂：原推文必然早于回复，晚于回复的一律不认（挡住被推荐的无关条目）
+  const s2 = pairReplyContext(
+    [
+      other('someone', '2026-09-20T00:00:00.000Z', '一条比他回复更晚的推文'),
+      mine('2101354419829010897', '2026-09-19T16:55:09.000Z', 'reply'),
+    ],
+    H
+  );
+  check('原推文晚于回复 → 不配对（宁可漏配，不要假上下文）', s2[1].inReplyTo === null, JSON.stringify(s2[1].inReplyTo));
+
+  // 作者取不到：既不算他的，也不能拿来当上下文
+  const s3 = pairReplyContext(
+    [
+      { id: '', time: '2026-09-19T14:00:00.000Z', text: '作者没解析出来', author: '' },
+      mine('2101354419829010898', '2026-09-19T16:55:09.000Z', 'reply'),
+    ],
+    H
+  );
+  check('作者未知的条目不当作上下文', s3[1].inReplyTo === null, JSON.stringify(s3[1].inReplyTo));
+
+  // 自我回复：连续两条都是他的 → 都指向同一个被回复者（跨过自己往前找）
+  const s4 = pairReplyContext(
+    [
+      other('udiWertheimer', '2026-09-21T01:00:00.000Z', 'original'),
+      mine('2101354419829010899', '2026-09-21T02:00:00.000Z', 'first'),
+      mine('2101354419829010900', '2026-09-21T02:05:00.000Z', 'second'),
+    ],
+    H
+  );
+  check('连续两条他的回复都指向同一个被回复者', s4[1].inReplyTo?.account === 'udiWertheimer' && s4[2].inReplyTo?.account === 'udiWertheimer', JSON.stringify([s4[1].inReplyTo?.account, s4[2].inReplyTo?.account]));
+
+  // 流的开头就是他的（原推文在上面一屏，已被卸载）→ 不配，而不是硬配一个错的
+  const s5 = pairReplyContext([mine('2101354419829010901', '2026-09-21T03:00:00.000Z', 'lonely')], H);
+  check('前面没有非他条目 → 不配对（原推文可能在上一步被卸载）', s5[0].inReplyTo === null, JSON.stringify(s5[0].inReplyTo));
+
+  check('空输入不抛错', pairReplyContext(undefined, H).length === 0);
+  check('undefined 也不抛错', pairReplyContext([null, undefined], H).length === 2, '应原样透传');
 }
 
 /* ==================== 出口代理的发现规则 ==================== */

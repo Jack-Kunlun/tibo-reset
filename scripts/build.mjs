@@ -142,7 +142,12 @@ const snapshot = {
   account: ACCOUNT,
   chart: chartData,
   prediction,
-  signals,
+  // rejected 不随快照下发：它是「未命中但值得留档」的排查材料，服务端 API 里照旧有，
+  // 小程序端一处都不读。但它**很占体积** —— 并上回复流之后被排除的推文从个位数涨到
+  // 50+ 条，实测这一项就占快照的一半（47KB / 92KB）。而快照是要跟着小程序包下发的
+  // （它的存在就是为了「域名没备案时也能出首屏」），不该被排查材料撑大。
+  // 计数照旧保留在 counts 里，「扫了多少、排除多少」仍然说得清。
+  signals: { ...signals, rejected: [] },
   stats: statsFile.stats ?? null,
   collectErrors: statsFile.errors ?? [],
 };

@@ -91,6 +91,9 @@ export function normalizeTimelineItems(items, opts = {}) {
       text,
       created_at: created.toISOString(),
       url: it.url ?? `https://x.com/${opts.handle ?? ''}/status/${id}`,
+      // 被回复的内容由上游的 pairReplyContext 在收割时挂上，这里只负责透传。
+      // 丢了它，识别算法就只能看到他的半句话。
+      ...(it.inReplyTo ? { inReplyTo: it.inReplyTo } : {}),
     });
   }
   return [...seen.values()]
@@ -166,7 +169,17 @@ class CdpSession {
   }
 }
 
-/** 页面里跑：把当前已在 DOM 里的推文收下来。 */
+/**
+ * 页面里跑：按 **DOM 顺序**收下当前所有 `article`，带上作者。
+ *
+ * 为什么收「所有」而不是只收他自己的：`with_replies` 流里，
+ * 「被回复的推文」和「他的回复」是**成对渲染**的 —— 拿掉前者就没了上下文，
+ * 而他的回复本身常常一个额度词都没有（「OK fine. But it's also still coming
+ * in Tuesday」），只有连着被回复的内容才读得出「这是在说重置」。
+ *
+ * 归属仍以 `id` 为准：只有 article 内含 `/<handle>/status/<id>` 链接时才赋值，
+ * 所以 `id` 非空 ⟺ 这条是他的。转发别人的推文拿不到 id，混进来会让增量永不停止。
+ */
 export function harvestExpression(handle) {
   const h = JSON.stringify(String(handle ?? '').toLowerCase());
   return `(function(){var H=${h};var out=[];document.querySelectorAll('article').forEach(function(a){
@@ -179,8 +192,63 @@ export function harvestExpression(handle) {
       var m=href.match(/^\\/([^\\/]+)\\/status\\/(\\d+)/);
       if(m&&m[1].toLowerCase()===H){id=m[2];url='https://x.com'+href;}
     });
-    out.push({id:id,url:url,time:tm?tm.getAttribute('datetime'):'',text:t?t.innerText.replace(/\\s+/g,' '):''});
+    var author='';
+    var un=a.querySelector('[data-testid="User-Name"]');
+    if(un){var m2=(un.innerText||'').match(/@([A-Za-z0-9_]+)/);if(m2)author=m2[1];}
+    out.push({id:id,url:url,time:tm?tm.getAttribute('datetime'):'',text:t?t.innerText.replace(/\\s+/g,' '):'',author:author});
   });return out;})()`;
+}
+
+/**
+ * 给「他的回复」挂上被回复的内容（纯函数，单独抽出来是为了可测）。
+ *
+ * **必须在每步收割时就做，不能等滚完再统一做**：X 的列表是虚拟化的，滚过去
+ * 若干屏之后条目会被卸载，而 DOM 顺序是配对关系的**唯一载体** —— 事后拿到的
+ * 只是一堆散条目，配不出谁回了谁。
+ *
+ * 配对规则：`with_replies` 流里「被回复的推文」紧邻在「他的回复」之前。
+ * 所以往前找最近一条**不属于他**且有内容的条目。
+ *
+ * 两条防呆，都是为了不生出**假的**上下文（假上下文比没有上下文更糟：
+ * 它会把一条无关推文的内容当成他的回复语境，直接污染识别结果）：
+ *   1) 原推文必须早于回复 —— 时间更晚的一律不认；
+ *   2) 作者取不到（`author` 为空）的条目既不算他的、也不拿来当上下文。
+ *
+ * @param {Array<{id?:string,author?:string,text?:string,time?:string}>} items 按 DOM 顺序
+ * @param {string} handle 目标账号
+ */
+export function pairReplyContext(items, handle) {
+  const h = String(handle ?? '').toLowerCase();
+  const out = [];
+  let lastOther = null;
+
+  for (const raw of items ?? []) {
+    const it = { ...raw };
+    const author = String(it.author ?? '').toLowerCase();
+    const isMine = !!it.id; // harvest 只在作者匹配时给 id
+    const isOther = !isMine && !!author && author !== h && !!it.text && !!it.time;
+
+    if (isMine) {
+      // 自我回复（上一条也是他的）时不更新 lastOther，继续往前找真正被回复的那条
+      if (lastOther && String(lastOther.time) < String(it.time)) {
+        it.inReplyTo = {
+          account: lastOther.author,
+          id: lastOther.id ?? null,
+          text: lastOther.text,
+          created_at: lastOther.time,
+          url: lastOther.url ?? null,
+        };
+      } else {
+        it.inReplyTo = null;
+      }
+    } else {
+      it.inReplyTo = null;
+      if (isOther) lastOther = it;
+    }
+    out.push(it);
+  }
+
+  return out;
 }
 
 /* -------------------------------- 浏览器 -------------------------------- */
@@ -268,16 +336,48 @@ async function withBrowser({ port, proxy }) {
  * 若上轮采集在中间丢过条目（虚拟列表抖动）、或他删/改了推文，增量永远补不回来。
  * 所以调用方必须保留**周期性全量回补**（见 collect.mjs 的 fullScanHours）。
  *
- * @param {{handle:string, sinceMs?:number, knownIds?:Iterable<string>|null,
+ * `path` 决定收哪条流：
+ *   · `''`（默认）= `/<handle>`，原创时间线
+ *   · `'/with_replies'` = 原创 + 回复。**他的关键发言大量落在回复里** ——
+ *     实测「OK fine. But it's also still coming in Tuesday」这种承诺只出现在
+ *     回复中，原创流一个字都没有。所以这条路径不是可选增强，是覆盖率的一部分。
+ *
+ * @param {{handle:string, path?:string, sinceMs?:number,
+ *          knownIds?:Iterable<string>|null,
  *          knownScreensToStop?:number, maxSteps?:number, port?:number,
  *          proxy?:string, settleMs?:number, stepRatio?:number,
  *          onProgress?:Function}} opts
  * @returns {Promise<{tweets:Array, loggedIn:boolean, steps:number,
  *          oldest:string|null, mode:'incremental'|'full', stoppedBy:string}>}
  */
+/** 收一条流。等价于 `collectStreams({ paths: [path] }).streams[0]`。 */
 export async function collectTimeline(opts) {
+  const { handle, path = '', ...rest } = opts ?? {};
+  const { streams } = await collectStreams({ ...rest, handle, paths: [path] });
+  return streams[0];
+}
+
+/**
+ * 收**多条流**，共用一个浏览器会话。
+ *
+ * 为什么必须合到一次会话：早先是每条流各调一次 `collectTimeline`，而它会自己
+ * 起一次 Chrome 并在结束时 `close()`。于是第二条流启动时，前一个 Chrome 还没
+ * 退干净，`json/version` 还能应答（于是被当成「已在运行、复用」），但
+ * `Target.createTarget` 发过去就是石沉大海 —— 实测报 `CDP 超时：Target.createTarget`。
+ * 冷启动的钱（首次数十秒）只该付一次。
+ *
+ * @param {{handle:string, paths?:string[], sinceMs?:number,
+ *          knownIds?:Iterable<string>|null, knownScreensToStop?:number,
+ *          maxSteps?:number, port?:number, proxy?:string, settleMs?:number,
+ *          stepRatio?:number, onProgress?:Function}} opts
+ * @returns {Promise<{streams:Array<object|null>, errors:Array<{path:string,message:string}|null>}>}
+ *          `streams` 顺序与 `paths` 一致；某条流失败时该位置为 `null`，
+ *          原因在同下标的 `errors` 里（互不牵连）。
+ */
+export async function collectStreams(opts) {
   const {
     handle,
+    paths = [''],
     sinceMs = 0,
     knownIds = null,
     knownScreensToStop = 2,
@@ -289,6 +389,7 @@ export async function collectTimeline(opts) {
     onProgress = null,
   } = opts ?? {};
   if (!handle) throw new Error('缺少 handle');
+  if (!paths.length) throw new Error('paths 为空');
 
   const known = knownIds instanceof Set ? knownIds : new Set(knownIds ?? []);
   const incremental = known.size > 0;
@@ -301,9 +402,63 @@ export async function collectTimeline(opts) {
   });
 
   const cdp = new CdpSession(ws);
-  const harvested = new Map();
   try {
-    const { targetId } = await cdp.send('Target.createTarget', { url: 'about:blank' });
+    const streams = [];
+    const errors = [];
+    for (const p of paths) {
+      // 每条流独立兜错：一条流挂了不该把另一条的成果一起丢掉
+      // （原创流是主、回复流是补充，两者的重要程度并不相同）。
+      try {
+        streams.push(
+          await harvestStream(cdp, {
+            handle,
+            path: p,
+            sinceMs,
+            known,
+            incremental,
+            knownScreensToStop,
+            maxSteps,
+            settleMs,
+            stepRatio,
+            onProgress,
+          })
+        );
+        errors.push(null);
+      } catch (err) {
+        streams.push(null);
+        errors.push({ path: p, message: err.message });
+      }
+    }
+    return { streams, errors };
+  } finally {
+    try {
+      ws.close();
+    } catch {
+      /* ignore */
+    }
+    await close();
+  }
+}
+
+/** 在一个已连接的 CDP 会话里收完一条流（各流各用一个 tab）。 */
+async function harvestStream(cdp, o) {
+  const {
+    handle,
+    path,
+    sinceMs,
+    known,
+    incremental,
+    knownScreensToStop,
+    maxSteps,
+    settleMs,
+    stepRatio,
+    onProgress,
+  } = o;
+  const prevSession = cdp.sessionId;
+  const harvested = new Map();
+  let targetId = null;
+  try {
+    ({ targetId } = await cdp.send('Target.createTarget', { url: 'about:blank' }));
     const attached = await cdp.send('Target.attachToTarget', { targetId, flatten: true });
     cdp.sessionId = attached.sessionId;
     await cdp.send('Page.enable');
@@ -313,7 +468,7 @@ export async function collectTimeline(opts) {
     cdp.onEvent = (m) => {
       if (m.method === 'Page.loadEventFired') loaded = true;
     };
-    await cdp.send('Page.navigate', { url: `https://x.com/${handle}` });
+    await cdp.send('Page.navigate', { url: `https://x.com/${handle}${path}` });
     for (let i = 0; i < 60 && !loaded; i++) await sleep(250);
     await sleep(3000);
 
@@ -326,16 +481,32 @@ export async function collectTimeline(opts) {
     let stagnant = 0;
     let knownStreak = 0;
     let stoppedBy = 'exhausted';
+    /**
+     * 作者解析失败的条目（按文本去重）。回复流的配对全靠作者，
+     * 静默失效等于「收了一堆没有上下文的半句话」，而这件事不看计数发现不了。
+     * 必须去重：同一条 article 在多屏里重复渲染，逐屏累加会虚高好几倍。
+     */
+    const authorless = new Set();
 
     for (let step = 1; step <= maxSteps; step++) {
-      const batch = await cdp.evalJs(harvestExpression(handle));
+      const raw = await cdp.evalJs(harvestExpression(handle));
+      // ⚠ 配对必须在下一次滚动之前完成 —— 滚过去之后条目会被虚拟列表卸载，
+      //   DOM 顺序（配对关系的唯一载体）就没了。
+      const batch = pairReplyContext(raw, handle);
       let fresh = 0;
       for (const it of batch ?? []) {
-        if (it.id && !harvested.has(it.id)) {
+        if (!it.id) continue;
+        const prev = harvested.get(it.id);
+        if (!prev) {
           harvested.set(it.id, it);
           fresh++;
+        } else if (it.inReplyTo && !prev.inReplyTo) {
+          // 同一条可能在不同屏重复出现。带上下文的版本优先：先收进去那次
+          // 可能恰好落在屏幕边缘，前一条被卸载了，配对因此失败。
+          harvested.set(it.id, { ...prev, inReplyTo: it.inReplyTo });
         }
       }
+      for (const it of raw ?? []) if (!it.author && it.text) authorless.add(it.text.slice(0, 40));
       // 连续多步无新增才认为到底了：小步滚动下偶尔一两步不吐新条目是正常的
       // （懒加载有延迟），阈值太小会在还没翻够之前就收工。
       if (fresh === 0) {
@@ -377,23 +548,27 @@ export async function collectTimeline(opts) {
       await sleep(settleMs);
     }
 
-    await cdp.send('Target.closeTarget', { targetId }).catch(() => {});
-
     const tweets = normalizeTimelineItems([...harvested.values()], { handle, sinceMs });
     return {
       tweets,
       loggedIn: !!state.loggedIn,
       steps,
+      path,
       oldest: tweets.length ? tweets[tweets.length - 1].created_at : null,
       mode: incremental ? 'incremental' : 'full',
       stoppedBy,
+      // 作者解析失败的条目数：回复流的配对完全依赖它，静默失效等于「收了一堆
+      // 没有上下文的半句话」，而这件事不看计数是发现不了的。
+      authorsMissing: authorless.size,
+      // 带上下文的条数 = 收下来的回复条数。**以归一化后的结果为准** ——
+      // 收割 Map 与最终入库之间还隔着时间下界与空文本两道过滤，
+      // 拿 Map 统计会给出「收下 52 条、其中 54 条带上下文」这种自相矛盾的数字。
+      replyCount: tweets.filter((t) => t.inReplyTo).length,
     };
   } finally {
-    try {
-      ws.close();
-    } catch {
-      /* ignore */
-    }
-    await close();
+    // 收完就关这个 tab，别把标签页留给下一条流（也避免它继续在后台加载）
+    if (targetId) await cdp.send('Target.closeTarget', { targetId }).catch(() => {});
+    cdp.sessionId = prevSession;
+    cdp.onEvent = null;
   }
 }

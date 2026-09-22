@@ -158,11 +158,37 @@ export function renderSignal(sig) {
   const blocks = [];
 
   // ① 明确预告：他对下一次重置给了时间，可行动。
-  for (const s of sig.signals ?? []) blocks.push(signalBlock(s, sig));
+  //
+  //    **按时间窗口去重**。他习惯先铺垫、后宣布 —— 实测 2026-09-22 那一对：
+  //    09-19 在别人的帖子底下回「still coming in Tuesday」，09-22 原创说
+  //    「I promised a reset for Tuesday」，两条指向同一个窗口、信息量并不叠加。
+  //    并列展示的代价却很实在：把下面那个倒计时挤出首屏 ——
+  //    而倒计时才是这一页的主角，「会不会重置」只是它的注脚。
+  //
+  //    同一个窗口只留时间最新的那条（越晚的表述越完整），其余折成一行计数 ——
+  //    是「合并」不是「丢弃」，条数仍然说得清。
+  const exps = [];
+  const seenWin = new Set();
+  for (const s of sig.signals ?? []) {
+    const key = s.window
+      ? `${s.window.fromTs ?? s.window.from ?? ''}|${s.window.toTs ?? s.window.to ?? ''}`
+      : `id:${s.id}`;
+    if (seenWin.has(key)) continue;
+    seenWin.add(key);
+    exps.push(s);
+  }
+  for (const s of exps) blocks.push(signalBlock(s, sig));
+
+  const mergedSignal = (sig.signals?.length ?? 0) - exps.length;
+  if (mergedSignal > 0) {
+    blocks.push(
+      `<div class="sig-idle"><span class="sig-dot"></span><span>另有 <b>${mergedSignal}</b> 条指向同一时间窗口的预告（先铺垫、后宣布），不重复列出</span></div>`
+    );
+  }
 
   // ② 线索：只在没有预告时才兜底。
   //    线索是「有时间没意图」或「有意图没时间」的弱依据，跟硬信号并列会稀释前者。
-  if (!blocks.length) {
+  if (!exps.length) {
     const h = (sig.hints ?? []).find((s) => s.window) ?? null;
     if (h) blocks.push(signalBlock(h, sig));
   }

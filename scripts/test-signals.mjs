@@ -356,14 +356,52 @@ console.log('\n【4】汇总接口 + 真实数据回归');
   const NOW = new Date('2026-09-20T10:00:00.000Z').getTime();
   const sig = detectSignals(tweets, { now: NOW });
 
-  check('真实快照下不产生误报的明确信号', sig.level !== 'explicit', `实际 ${sig.level}`);
+  // 「真实数据里不该有明确预告」是个**过时的期望**：它固化的是「当时没采到预告」
+  // 这个数据事实，而不是一条规则。他是真的会预告的 —— 2026-09-22 那条
+  // 「Ladies and gentlemen... start... your... ENGINES. We are almost Tuesday
+  // and I promised a reset」就是硬预告。
+  //
+  // 所以要钉的是**预告的准入条件**，不是「不许有预告」：
+  // 凡是判成 explicit 的，必须能给出可复核的时间窗口与判定依据。
+  // 没有窗口的「快了」不算预告 —— 那会变成制造焦虑的假信号。
+  check(
+    '明确预告必须都给得出时间窗口（空话不算预告）',
+    sig.signals.every((s) => !!s.window),
+    sig.signals.map((s) => `${s.id}:${!!s.window}`).join(',')
+  );
+  check(
+    '明确预告必须给出判定依据（不只给结论）',
+    sig.signals.every((s) => (s.reasons ?? []).length > 0),
+    sig.signals.map((s) => s.id).join(',')
+  );
+
+  // 回复带来的上下文必须写进依据里 —— 「很多消息在回复里」这件事的落点，
+  // 判错了会让「他的半句话」被当成无关推文丢掉。
+  const replied = [
+    ...(sig.signals ?? []),
+    ...(sig.occurred ?? []),
+    ...(sig.hints ?? []),
+  ].filter((s) => s.inReplyTo);
+  check(
+    '带被回复内容的推文，判定依据里必须写明上下文',
+    replied.every((s) => (s.reasons ?? []).some((r) => String(r).includes('上下文'))),
+    `${replied.length} 条带上下文`
+  );
+
   const within = tweets.filter(
-    (t) => t.created_at && NOW - new Date(t.created_at).getTime() <= 60 * 864e5
+    (t) =>
+      t.created_at &&
+      NOW - new Date(t.created_at).getTime() <= 60 * 864e5 &&
+      // ⚠ 上界同样是窗口的一部分：晚于 now 的推文是「本轮之后才发生的」，
+      // 不参与本轮判断。测试用的是一个固定 NOW（2026-09-20），而库里已经有
+      // 更晚的推文，漏掉这个上界就会把「正确地跳过 6 条」读成「少扫了 6 条」。
+      new Date(t.created_at).getTime() <= NOW &&
+      t.text
   ).length;
   check(
-    '只扫描时间窗口内的推文',
+    '只扫描时间窗口内的推文（下界 60 天、上界 now）',
     sig.checkedTweets === within,
-    `${sig.checkedTweets} vs 窗口内 ${within}（文件共 ${tweets.length} 条，其中 ${tweets.length - within} 条超出 60 天）`
+    `${sig.checkedTweets} vs 窗口内 ${within}（文件共 ${tweets.length} 条）`
   );
   check('给出当前时差说明', typeof sig.zones?.diffText === 'string' && sig.zones.diffText.length > 0, sig.zones?.diffText);
 

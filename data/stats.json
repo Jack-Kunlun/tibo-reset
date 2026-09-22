@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-09-12T08:09:17.000Z",
     "last_text": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG",
-    "days_since_last": 9.824182592592592,
+    "days_since_last": 9.855036319444444,
     "avg_interval_days": 6.926367743945869,
     "median_interval_days": 3.216273148148148,
     "sd_interval_days": 11.40364106280428,
@@ -14,14 +14,23 @@
     "reset_count": 50,
     "hit_within_avg": 0.6923076923076923
   },
-  "generated_at": "2026-09-22T03:56:06.433Z",
+  "generated_at": "2026-09-22T04:40:32.188Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
     "stoppedBy": "known",
     "newTweets": 0,
-    "knownCount": 16
+    "knownCount": 69,
+    "reply": {
+      "mode": "incremental",
+      "stoppedBy": "known",
+      "steps": 1,
+      "harvested": 2,
+      "withContext": 2,
+      "authorsMissing": 0
+    },
+    "replyError": null
   },
-  "last_full_at": "2026-09-22T03:55:22.851Z",
+  "last_full_at": "2026-09-22T04:36:24.366Z",
   "errors": []
 }

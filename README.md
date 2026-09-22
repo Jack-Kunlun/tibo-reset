@@ -315,15 +315,18 @@ docs/miniprogram.md       小程序上手与截图终检
 
 ```bash
 npm ci                     # 装唯一的构建期依赖（@resvg/resvg-js）
-npm run collect            # 采集（默认增量；首次加 --bootstrap 做历史回填）
+npm run collect            # 采集（原创 + 回复两条流；默认增量，首次加 --bootstrap 做历史回填）
 npm run collect -- --full   # 强制全量重扫，用来补增量漏掉的洞
+npm run collect -- --no-replies  # 只收原创流（排查用）
 npm run build              # 构建 dist/index.html + dist/og-image.png + 两个图标
 npm run refresh            # 采集 + 构建
 npm start                  # 启动后端（含定时采集）
 npm run diagnose           # 模型诊断与回测
-npm test                   # 407 项纯函数回归（含识别词表、增量停止判据、代理探测）
+npm test                   # 416 项纯函数回归（含识别词表、增量停止、回复配对、代理探测）
 ```
 
+> 采集默认收**两条流**：`/`（原创）与 `/with_replies`（原创 + 回复）——
+> 他的关键承诺大量落在回复里，只收原创会整块丢掉（实测一轮回复流比原创流多 3 倍）。
 > 采集默认走**增量**（翻到连续两整屏都已知即停），**每 72 小时自动全量回补一次**。
 > 出口代理是**实测探测**的，不读 `HTTPS_PROXY` —— 原因见 `docs/data-source.md` §4.5。
 

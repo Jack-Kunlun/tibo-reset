@@ -1,11 +1,25 @@
 {
-  "updated_at": "2026-09-22T02:53:51.113Z",
+  "updated_at": "2026-09-22T04:36:24.298Z",
   "pool": [
     "udiWertheimer"
   ],
   "targets": {},
   "lastRun": {
     "scanned": [
+      {
+        "account": "udiWertheimer",
+        "tweetId": "2102234097858785648",
+        "repliesOnPage": 4,
+        "hits": 0,
+        "monitor": "udiWertheimer"
+      },
+      {
+        "account": "udiWertheimer",
+        "tweetId": "2102231944306328011",
+        "repliesOnPage": 4,
+        "hits": 0,
+        "monitor": "udiWertheimer"
+      },
       {
         "account": "udiWertheimer",
         "tweetId": "2102194594142208076",
@@ -31,20 +45,6 @@
         "account": "udiWertheimer",
         "tweetId": "2101500560050684401",
         "repliesOnPage": 3,
-        "hits": 0,
-        "monitor": "udiWertheimer"
-      },
-      {
-        "account": "udiWertheimer",
-        "tweetId": "2101118441138565399",
-        "repliesOnPage": 4,
-        "hits": 0,
-        "monitor": "udiWertheimer"
-      },
-      {
-        "account": "udiWertheimer",
-        "tweetId": "2101100749623341513",
-        "repliesOnPage": 6,
         "hits": 0,
         "monitor": "udiWertheimer"
       }

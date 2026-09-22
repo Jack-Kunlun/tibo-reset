@@ -6,9 +6,10 @@
  * 避免「脚本能跑、服务跑不了」这类双实现漂移。
  *
  * 用法:
- *   node scripts/collect.mjs             # 增量采集（含回复雷达）
+ *   node scripts/collect.mjs             # 增量采集（原创 + 回复两条流）
  *   node scripts/collect.mjs --full      # 强制全量回溯（忽略已入库边界）
- *   node scripts/collect.mjs --no-radar  # 跳过回复雷达
+ *   node scripts/collect.mjs --no-replies # 只收原创流，跳过 /with_replies
+ *   node scripts/collect.mjs --radar     # 额外跑回复雷达（默认关，见下方说明）
  *   node scripts/collect.mjs --bootstrap # 额外执行历史回填（冷启动）
  *   node scripts/collect.mjs --offline   # 跳过网络，只重算统计（自检用）
  *   node scripts/collect.mjs --max-age=120
@@ -57,9 +58,20 @@ const result = await runCollection({
   full: argv.includes('--full') ? true : undefined,
   fullScanHours: Number.isFinite(fullScanHours) && fullScanHours > 0 ? fullScanHours : undefined,
   maxSteps: Number.isFinite(maxSteps) && maxSteps > 0 ? maxSteps : undefined,
-  // 雷达默认开：发现「他在回复里做的预告」正是这套采集存在的理由之一。
-  // 要临时关掉用 --no-radar。
-  radar: !argv.includes('--no-radar'),
+  // 雷达默认**关**。
+  //
+  // 它当初存在的理由是「回复不进 profile 流，只能从别人推文的详情页里反着找」。
+  // 这条前提已经没了：并上 `/with_replies` 之后，他的回复是**直接**收的
+  // （实测一轮 52 条，覆盖 30+ 个被回复者），而雷达要间接地猜「他可能回了谁」，
+  // 既天生抽样（详情页只渲染部分回复），又依赖人工维护的对象池 ——
+  // 实测池里只有 1 个账号、扫 6 条详情页命中 0。
+  //
+  // 留着默认开会白花请求，更麻烦的是日志里会多一行「命中 0」的噪音，
+  // 让人误以为回复采集没工作，而真正在工作的那条通道反而被盖过去。
+  // 要用（排查、或 with_replies 连续失败时兜底）加 --radar。
+  radar: argv.includes('--radar'),
+  // 回复流默认开 —— 它是「很多消息在回复里」的直接答案。要退回只收原创用 --no-replies。
+  withReplies: !argv.includes('--no-replies'),
   radarAccounts: radarAccountsArg
     ? radarAccountsArg.split(',').map((s) => s.trim()).filter(Boolean)
     : undefined,
@@ -108,7 +120,31 @@ if (!result.skippedFresh) {
     );
   }
   if (result.coverageSince) console.log('  采集下界  ' + result.coverageSince + '（上一次重置 - 缓冲）');
-  if (result.tweetCount != null) console.log('  库内推文  ' + result.tweetCount + ' 条');
+  if (result.tweetCount != null) {
+    console.log(
+      '  库内推文  ' +
+        result.tweetCount +
+        ' 条' +
+        (result.replyTweetCount
+          ? `（其中 ${result.replyTweetCount} 条来自回复 —— 别人的帖子底下）`
+          : '')
+    );
+  }
+  // 回复流单独报：它是「很多消息在回复里」这件事的答案，采到什么程度必须看得见。
+  if (result.reply) {
+    const r = result.reply;
+    const rm = r.mode === 'incremental' ? `增量（${r.stoppedBy}）` : `全量回溯（${r.stoppedBy}）`;
+    console.log(
+      `  回复流    ${rm} · 收下 ${r.harvested} 条，其中带被回复内容 ${r.withContext} 条`
+    );
+    if (r.authorsMissing) {
+      console.log(
+        `            ⚠ 有 ${r.authorsMissing} 个条目的作者没解析出来（配对依赖它，数字偏大就该查选择器）`
+      );
+    }
+  } else if (result.replyError) {
+    console.log('  回复流    ⚠ 本轮失败：' + result.replyError);
+  }
   const sig = result.signals;
   if (sig?.counts) {
     console.log(
