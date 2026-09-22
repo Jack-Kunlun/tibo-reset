@@ -2,11 +2,11 @@
 // 离线首屏数据快照：采集脚本 → 构建 → 小程序内置。
 export default {
   "schema": 1,
-  "generatedAt": "2026-09-22T03:31:13.494Z",
-  "dataUpdatedAt": "2026-09-22T03:30:19.371Z",
+  "generatedAt": "2026-09-22T04:02:33.511Z",
+  "dataUpdatedAt": "2026-09-22T03:56:06.433Z",
   "account": "thsottiaux",
   "chart": {
-    "now": 1790047873494,
+    "now": 1790049753511,
     "count": 53,
     "gapDays": [
       49.678206018518516,
@@ -120,7 +120,7 @@ export default {
     "median": 3.135060769675926,
     "longest": 67.74240740740741,
     "shortest": 0.4963194444444444,
-    "sinceDays": 9.806903865740741,
+    "sinceDays": 9.82866332175926,
     "pct": 0.8269230769230769,
     "firstAt": "2025-09-17T04:02:52.000Z",
     "lastAt": "2026-09-12T08:09:17.000Z",
@@ -554,8 +554,8 @@ export default {
     ]
   },
   "prediction": {
-    "asOf": "2026-09-22T03:31:13.494Z",
-    "sinceDays": 9.806903865740741,
+    "asOf": "2026-09-22T04:02:33.511Z",
+    "sinceDays": 9.82866332175926,
     "last": {
       "at": "2026-09-12T08:09:17.000Z",
       "text": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG"
@@ -566,134 +566,134 @@ export default {
         "halfLifeDays": 45,
         "prior": 3
       },
-      "baseRate": 0.25492643884051264,
+      "baseRate": 0.25478114956981845,
       "nIntervals": 20,
       "nEvents": 19,
       "buckets": [
         {
           "from": 0,
           "to": 1,
-          "exposure": 12.200309646416256,
+          "exposure": 12.196556303608237,
           "events": 0,
-          "rate": 0.050313403760287756
+          "rate": 0.050297148474879885
         },
         {
           "from": 1,
           "to": 2,
-          "exposure": 10.234779011514398,
-          "events": 2.925177059857562,
-          "rate": 0.27880755494056975
+          "exposure": 10.231684338913302,
+          "events": 2.924196801933772,
+          "rate": 0.27876573806975824
         },
         {
           "from": 2,
           "to": 3,
-          "exposure": 6.531430943687196,
-          "events": 3.945538694053165,
-          "rate": 0.49418791768033676
+          "exposure": 6.529577302385663,
+          "events": 3.944216502100568,
+          "rate": 0.4940995598651861
         },
         {
           "from": 3,
           "to": 5,
-          "exposure": 6.678312901620185,
-          "events": 3.210045396135399,
-          "rate": 0.41069396629980176
+          "exposure": 6.676745149242144,
+          "events": 3.208969675804322,
+          "rate": 0.41060429547686866
         },
         {
           "from": 5,
           "to": 8,
-          "exposure": 6.21007440866282,
-          "events": 0.5054751467087992,
-          "rate": 0.13792010866226664
+          "exposure": 6.208998678609337,
+          "events": 0.5053057566145583,
+          "rate": 0.13787049489681813
         },
         {
           "from": 8,
           "to": 14,
-          "exposure": 2.0805503021835716,
-          "events": 0.6140733496613304,
-          "rate": 0.2713982903761923
+          "exposure": 2.1022180563727133,
+          "events": 0.613867567155015,
+          "rate": 0.27011997539836097
         },
         {
           "from": 14,
           "to": 30,
           "exposure": 0,
           "events": 0,
-          "rate": 0.25492643884051264
+          "rate": 0.25478114956981845
         },
         {
           "from": 30,
           "to": null,
           "exposure": 0,
           "events": 0,
-          "rate": 0.25492643884051264
+          "rate": 0.25478114956981845
         }
       ]
     },
     "prediction": {
-      "sinceDays": 9.806903865740741,
+      "sinceDays": 9.82866332175926,
       "horizons": [
         {
           "h": 1,
           "label": "24 小时内",
-          "p": 0.23768718592528892
+          "p": 0.2367120869282212
         },
         {
           "h": 3,
           "label": "3 天内",
-          "p": 0.5570041474314533
+          "p": 0.555302021036659
         },
         {
           "h": 7,
           "label": "7 天内",
-          "p": 0.84332052623983
+          "p": 0.8423615964300317
         },
         {
           "h": 14,
           "label": "14 天内",
-          "p": 0.9736961036548417
+          "p": 0.9735081860367093
         },
         {
           "h": 30,
           "label": "30 天内",
-          "p": 0.9995547440275631
+          "p": 0.9995505194134057
         }
       ],
-      "expectedRemaining": 2.9570279653416436,
-      "median": 2.5539850660044907,
-      "q25": 0.256222384476534,
-      "q75": 4.363306734216756,
-      "q90": 7.957640597905986,
-      "dailyRate": 0.2713982903761923,
-      "q50": 1.7502078754910078
+      "expectedRemaining": 2.9703996612178227,
+      "median": 2.566071537425999,
+      "q25": 0.2612387233504224,
+      "q75": 4.386210202874064,
+      "q90": 7.9825937399656155,
+      "dailyRate": 0.27011997539836097,
+      "q50": 1.7622943469125159
     },
     "rawPrediction": {
-      "q50": 2.5539850660044907,
-      "q90": 8.761417788419468,
-      "expectedRemaining": 3.7608051558551265,
+      "q50": 2.566071537425999,
+      "q90": 8.786370930479098,
+      "expectedRemaining": 3.7741768517313057,
       "horizons": [
         {
           "h": 1,
           "label": "24 小时内",
-          "p": 0.23768718592528892
+          "p": 0.2367120869282212
         },
         {
           "h": 3,
           "label": "3 天内",
-          "p": 0.5570041474314533
+          "p": 0.555302021036659
         },
         {
           "h": 7,
           "label": "7 天内",
-          "p": 0.84332052623983
+          "p": 0.8423615964300317
         },
         {
           "h": 14,
           "label": "14 天内",
-          "p": 0.9736961036548417
+          "p": 0.9735081860367093
         },
         {
           "h": 30,
           "label": "30 天内",
-          "p": 0.9995547440275631
+          "p": 0.9995505194134057
         }
       ]
     },
@@ -716,14 +716,14 @@ export default {
       "target": 7,
       "iterations": 400,
       "p": {
-        "lo": 0.5672480187019124,
-        "mid": 0.713280487955283,
-        "hi": 0.8198893064395615
+        "lo": 0.5686370981732856,
+        "mid": 0.7073439160894173,
+        "hi": 0.8264575200068691
       },
       "medianDays": {
-        "lo": 2.4617518784708112,
-        "mid": 4.248892174841256,
-        "hi": 6.058498410314282
+        "lo": 2.4114179115384546,
+        "mid": 4.315618364981319,
+        "hi": 6.055861504609197
       }
     },
     "phases": [
@@ -758,10 +758,12 @@ export default {
     ]
   },
   "signals": {
-    "level": "hint",
-    "generatedAt": "2026-09-22T03:31:13.494Z",
+    "level": "occurred",
+    "generatedAt": "2026-09-22T04:02:33.511Z",
     "checkedTweets": 16,
     "lookbackDays": 60,
+    "windowFrom": "2026-07-24T04:02:33.511Z",
+    "windowTo": "2026-09-22T04:02:33.511Z",
     "sourceZone": "America/Los_Angeles",
     "sourceZoneLabel": "太平洋时间",
     "userZone": "Asia/Shanghai",
@@ -771,8 +773,8 @@ export default {
         "zone": "Asia/Shanghai",
         "date": "2026.09.22",
         "weekday": "周二",
-        "time": "11:31",
-        "text": "2026.09.22（周二）11:31",
+        "time": "12:02",
+        "text": "2026.09.22（周二）12:02",
         "offset": "UTC+8"
       },
       "b": {
@@ -780,8 +782,8 @@ export default {
         "zone": "America/Los_Angeles",
         "date": "2026.09.21",
         "weekday": "周一",
-        "time": "20:31",
-        "text": "2026.09.21（周一）20:31",
+        "time": "21:02",
+        "text": "2026.09.21（周一）21:02",
         "offset": "UTC-7"
       },
       "diffHours": 15,
@@ -823,6 +825,88 @@ export default {
       "window": null
     },
     "signals": [],
+    "occurred": [
+      {
+        "id": "2098685367058612394",
+        "account": "thsottiaux",
+        "text": "Reset all propagated. Sweet dreams.",
+        "createdAt": "2026-09-12T08:09:17.000Z",
+        "url": "https://x.com/thsottiaux/status/2098685367058612394",
+        "reasons": [
+          "命中重置词 reset",
+          "命中「重置已完成」句式（reset all propagated 等）"
+        ],
+        "viaContext": false,
+        "inReplyTo": null,
+        "createdZones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.09.12",
+            "weekday": "周六",
+            "time": "16:09",
+            "text": "2026.09.12（周六）16:09",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "Tibo 当地时间",
+            "zone": "America/Los_Angeles",
+            "date": "2026.09.12",
+            "weekday": "周六",
+            "time": "01:09",
+            "text": "2026.09.12（周六）01:09",
+            "offset": "UTC-7"
+          },
+          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+        },
+        "level": "occurred",
+        "rejected": null,
+        "intent": 3,
+        "occurredAt": "2026-09-12T08:09:17.000Z",
+        "window": null,
+        "confidence": 0.7999999999999999
+      },
+      {
+        "id": "2098612714704891959",
+        "account": "thsottiaux",
+        "text": "Hi Astra users. A reset and a quick update on quality issues that have been posted around. Working with some of you, we have found and fixed the following issues: - Some skills written for previous models were triggering too often or preventing the model from checking its work.",
+        "createdAt": "2026-09-12T03:20:36.000Z",
+        "url": "https://x.com/thsottiaux/status/2098612714704891959",
+        "reasons": [
+          "命中重置词 reset",
+          "命中「A/the reset」名词化陈述"
+        ],
+        "viaContext": false,
+        "inReplyTo": null,
+        "createdZones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.09.12",
+            "weekday": "周六",
+            "time": "11:20",
+            "text": "2026.09.12（周六）11:20",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "Tibo 当地时间",
+            "zone": "America/Los_Angeles",
+            "date": "2026.09.11",
+            "weekday": "周五",
+            "time": "20:20",
+            "text": "2026.09.11（周五）20:20",
+            "offset": "UTC-7"
+          },
+          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+        },
+        "level": "occurred",
+        "rejected": null,
+        "intent": 3,
+        "occurredAt": "2026-09-12T03:20:36.000Z",
+        "window": null,
+        "confidence": 0.6799999999999999
+      }
+    ],
     "hints": [
       {
         "id": "2101157729037586694",
@@ -832,7 +916,7 @@ export default {
         "url": "https://x.com/thsottiaux/status/2101157729037586694",
         "reasons": [
           "含未来语气",
-          "含发布/宣传语境（扣分）"
+          "含发布/宣传语境（下调置信度）"
         ],
         "viaContext": false,
         "inReplyTo": null,
@@ -977,7 +1061,7 @@ export default {
         "url": "https://x.com/thsottiaux/status/2098639827084480864",
         "reasons": [
           "含未来语气",
-          "含发布/宣传语境（扣分）"
+          "含发布/宣传语境（下调置信度）"
         ],
         "viaContext": false,
         "inReplyTo": null,
@@ -1051,7 +1135,7 @@ export default {
         "createdAt": "2026-09-17T17:57:59.000Z",
         "url": "https://x.com/thsottiaux/status/2100645454245720513",
         "reasons": [
-          "含发布/宣传语境（扣分）"
+          "含发布/宣传语境（下调置信度）"
         ],
         "viaContext": false,
         "inReplyTo": null,
@@ -1185,15 +1269,165 @@ export default {
         "rejected": "无额度相关词",
         "intent": 0,
         "window": null
+      },
+      {
+        "id": "2100122479947817059",
+        "account": "thsottiaux",
+        "text": "Astra, as seen by Imagegen",
+        "createdAt": "2026-09-16T07:19:52.000Z",
+        "url": "https://x.com/thsottiaux/status/2100122479947817059",
+        "reasons": [],
+        "viaContext": false,
+        "inReplyTo": null,
+        "createdZones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.09.16",
+            "weekday": "周三",
+            "time": "15:19",
+            "text": "2026.09.16（周三）15:19",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "Tibo 当地时间",
+            "zone": "America/Los_Angeles",
+            "date": "2026.09.16",
+            "weekday": "周三",
+            "time": "00:19",
+            "text": "2026.09.16（周三）00:19",
+            "offset": "UTC-7"
+          },
+          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+        },
+        "level": "none",
+        "rejected": "无额度相关词",
+        "intent": 0,
+        "window": null
+      },
+      {
+        "id": "2099393115241300166",
+        "account": "thsottiaux",
+        "text": "What’s a feature we should remove from Codex that isn’t useful anymore?",
+        "createdAt": "2026-09-14T07:01:38.000Z",
+        "url": "https://x.com/thsottiaux/status/2099393115241300166",
+        "reasons": [
+          "含发布/宣传语境（下调置信度）"
+        ],
+        "viaContext": false,
+        "inReplyTo": null,
+        "createdZones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.09.14",
+            "weekday": "周一",
+            "time": "15:01",
+            "text": "2026.09.14（周一）15:01",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "Tibo 当地时间",
+            "zone": "America/Los_Angeles",
+            "date": "2026.09.14",
+            "weekday": "周一",
+            "time": "00:01",
+            "text": "2026.09.14（周一）00:01",
+            "offset": "UTC-7"
+          },
+          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+        },
+        "level": "none",
+        "rejected": "无额度相关词",
+        "intent": 0,
+        "window": null
+      },
+      {
+        "id": "2098569976143806918",
+        "account": "thsottiaux",
+        "text": "Excited to welcome Aidan & @ Sasha from the Git AI team to OpenAI! They are building in the open and have developed an open-source tool that helps developers understand how coding agents contribute to their codebase. Together, we’ll make it easier for businesses to see where",
+        "createdAt": "2026-09-12T00:30:46.000Z",
+        "url": "https://x.com/thsottiaux/status/2098569976143806918",
+        "reasons": [],
+        "viaContext": false,
+        "inReplyTo": null,
+        "createdZones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.09.12",
+            "weekday": "周六",
+            "time": "08:30",
+            "text": "2026.09.12（周六）08:30",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "Tibo 当地时间",
+            "zone": "America/Los_Angeles",
+            "date": "2026.09.11",
+            "weekday": "周五",
+            "time": "17:30",
+            "text": "2026.09.11（周五）17:30",
+            "offset": "UTC-7"
+          },
+          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+        },
+        "level": "none",
+        "rejected": "无额度相关词",
+        "intent": 0,
+        "window": null
+      },
+      {
+        "id": "2098569538510180712",
+        "account": "thsottiaux",
+        "text": "Massive upgrade to creating, sharing and hosting sites directly through ChatGPT.",
+        "createdAt": "2026-09-12T00:29:02.000Z",
+        "url": "https://x.com/thsottiaux/status/2098569538510180712",
+        "reasons": [],
+        "viaContext": false,
+        "inReplyTo": null,
+        "createdZones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.09.12",
+            "weekday": "周六",
+            "time": "08:29",
+            "text": "2026.09.12（周六）08:29",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "Tibo 当地时间",
+            "zone": "America/Los_Angeles",
+            "date": "2026.09.11",
+            "weekday": "周五",
+            "time": "17:29",
+            "text": "2026.09.11（周五）17:29",
+            "offset": "UTC-7"
+          },
+          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+        },
+        "level": "none",
+        "rejected": "无额度相关词",
+        "intent": 0,
+        "window": null
       }
-    ]
+    ],
+    "counts": {
+      "scanned": 16,
+      "explicit": 0,
+      "occurred": 2,
+      "hint": 5,
+      "none": 9
+    },
+    "truncated": false
   },
   "stats": {
     "total": 53,
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-09-12T08:09:17.000Z",
     "last_text": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG",
-    "days_since_last": 9.8062765625,
+    "days_since_last": 9.824182592592592,
     "avg_interval_days": 6.926367743945869,
     "median_interval_days": 3.216273148148148,
     "sd_interval_days": 11.40364106280428,

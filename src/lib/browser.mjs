@@ -41,7 +41,16 @@ export const BROWSER_UA =
   process.env.X_BROWSER_UA ??
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36';
 
-const PROXY = process.env.HTTPS_PROXY ?? process.env.https_proxy ?? '';
+/**
+ * 默认代理 —— 只作**兜底**：正常路径由调用方传入 `opts.proxy`，
+ * 而那个值是 `proxy.mjs` 实测探测出来的。
+ *
+ * ⚠ 刻意**不读 `HTTPS_PROXY`**。在本机它被沙箱设成自己的出口端口，
+ * 那个端口连不通 x.com（实测 HTTP 000）；Chrome 一旦用它启动，页面加载不出来，
+ * 表现成「收割到 0 条推文」，看不出是代理的错。要么用 X_PROXY 显式指定，
+ * 要么让上层传探测结果。
+ */
+const PROXY = process.env.X_PROXY ?? '';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function httpGet(url, timeoutMs = 3000) {
@@ -87,6 +96,22 @@ export function normalizeTimelineItems(items, opts = {}) {
   return [...seen.values()]
     .filter((t) => t.text)
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+}
+
+/**
+ * 增量停止判据（纯函数，单独抽出来是为了可测）。
+ *
+ * 返回 true 表示「本屏收下来的条目**全部**已入库」—— 连续若干屏如此即可停止。
+ *
+ * 两个刻意的选择：
+ *   1) 要求整屏全旧，而不是「命中一条就停」。首屏必然混着旧的，单条命中太容易误停；
+ *      整屏全旧意味着新内容都在更上面，早在上一步就收完了。
+ *   2) 只统计**取得到 id** 的条目。转发别人的推文拿不到他自己的 id，
+ *      混进来会让 `every` 恒为 false，增量就永远不会停。
+ */
+export function isKnownScreen(batch, known) {
+  const withId = (batch ?? []).filter((it) => it?.id);
+  return withId.length > 0 && withId.every((it) => known.has(it.id));
 }
 
 /* ------------------------------ CDP 客户端 ------------------------------ */
@@ -228,21 +253,34 @@ async function withBrowser({ port, proxy }) {
 }
 
 /**
- * 采集一个账号的时间线，滚动收割直到越过时间下界。
+ * 采集一个账号的时间线，滚动收割直到「追上上次的进度」或越过时间下界。
  *
  * 滚动必须**小步**（一次约一屏的 85%），不能用 `scrollTo(0, scrollHeight)` 一把跳到底：
  * X 的列表是虚拟化的，两次收割之间被渲染掉又卸载的条目就永久丢了。实测同一窗口，
  * 跳屏滚动拿到 12 条，小步滚动拿到 16 条 —— 少的 4 条不报错、不告警，只是悄悄没有。
  *
- * @param {{handle:string, sinceMs?:number, maxSteps?:number, port?:number,
+ * 增量（`knownIds`）：X 的时间线只能从最新往下翻，没有「给我某段时间」的查询入口，
+ * 所以「只取未读部分」的实现方式是 —— 翻到**连续若干屏都是已入库的推文**就停。
+ * 这样滚动深度从「翻到上次重置那天」缩短到「翻到上次见到的最新一条」，
+ * 通常 2–5 步。传入空集合等同于全量。
+ *
+ * ⚠ 增量的固有代价：两道边界都只在「时间线是连续且单调向下」时成立。
+ * 若上轮采集在中间丢过条目（虚拟列表抖动）、或他删/改了推文，增量永远补不回来。
+ * 所以调用方必须保留**周期性全量回补**（见 collect.mjs 的 fullScanHours）。
+ *
+ * @param {{handle:string, sinceMs?:number, knownIds?:Iterable<string>|null,
+ *          knownScreensToStop?:number, maxSteps?:number, port?:number,
  *          proxy?:string, settleMs?:number, stepRatio?:number,
  *          onProgress?:Function}} opts
- * @returns {Promise<{tweets:Array, loggedIn:boolean, steps:number, oldest:string|null}>}
+ * @returns {Promise<{tweets:Array, loggedIn:boolean, steps:number,
+ *          oldest:string|null, mode:'incremental'|'full', stoppedBy:string}>}
  */
 export async function collectTimeline(opts) {
   const {
     handle,
     sinceMs = 0,
+    knownIds = null,
+    knownScreensToStop = 2,
     maxSteps = 60,
     port = CDP_PORT,
     proxy = PROXY,
@@ -251,6 +289,9 @@ export async function collectTimeline(opts) {
     onProgress = null,
   } = opts ?? {};
   if (!handle) throw new Error('缺少 handle');
+
+  const known = knownIds instanceof Set ? knownIds : new Set(knownIds ?? []);
+  const incremental = known.size > 0;
 
   const { ver, close } = await withBrowser({ port, proxy });
   const ws = new WebSocket(ver.webSocketDebuggerUrl);
@@ -283,6 +324,9 @@ export async function collectTimeline(opts) {
 
     let steps = 0;
     let stagnant = 0;
+    let knownStreak = 0;
+    let stoppedBy = 'exhausted';
+
     for (let step = 1; step <= maxSteps; step++) {
       const batch = await cdp.evalJs(harvestExpression(handle));
       let fresh = 0;
@@ -295,7 +339,10 @@ export async function collectTimeline(opts) {
       // 连续多步无新增才认为到底了：小步滚动下偶尔一两步不吐新条目是正常的
       // （懒加载有延迟），阈值太小会在还没翻够之前就收工。
       if (fresh === 0) {
-        if (++stagnant >= 6) break;
+        if (++stagnant >= 6) {
+          stoppedBy = 'no-more';
+          break;
+        }
       } else {
         stagnant = 0;
       }
@@ -304,10 +351,24 @@ export async function collectTimeline(opts) {
         (min, x) => (x.time && x.time < min ? x.time : min),
         '9999'
       );
-      if (onProgress) onProgress({ step, harvested: harvested.size, oldest });
+      if (onProgress) onProgress({ step, harvested: harvested.size, oldest, knownStreak });
 
       // 已经翻过下界，再往下翻都是浪费
-      if (sinceMs > 0 && oldest !== '9999' && new Date(oldest).getTime() <= sinceMs) break;
+      if (sinceMs > 0 && oldest !== '9999' && new Date(oldest).getTime() <= sinceMs) {
+        stoppedBy = 'floor';
+        break;
+      }
+
+      // 增量停止：本屏收下来的条目全部已入库 → 已经追上上次的进度。
+      // 连续 `knownScreensToStop` 屏，是为了容忍两屏之间恰好夹着一条纯粹已知内容的情况。
+      if (incremental && isKnownScreen(batch, known)) {
+        if (++knownStreak >= knownScreensToStop) {
+          stoppedBy = 'known';
+          break;
+        }
+      } else {
+        knownStreak = 0;
+      }
 
       await cdp.evalJs(
         `window.scrollBy(0, Math.round(window.innerHeight * ${Number(stepRatio)})); 1`
@@ -324,6 +385,8 @@ export async function collectTimeline(opts) {
       loggedIn: !!state.loggedIn,
       steps,
       oldest: tweets.length ? tweets[tweets.length - 1].created_at : null,
+      mode: incremental ? 'incremental' : 'full',
+      stoppedBy,
     };
   } finally {
     try {

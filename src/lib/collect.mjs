@@ -16,8 +16,9 @@ import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { detectSignals } from './signals.mjs';
+import { detectSignals, classifyEvent } from './signals.mjs';
 import { collectTimeline } from './browser.mjs';
+import { resolveProxy } from './proxy.mjs';
 
 const execFileP = promisify(execFile);
 
@@ -42,6 +43,18 @@ export const RADAR_ACCOUNTS = (process.env.RADAR_ACCOUNTS || 'udiWertheimer')
 
 export const HISTORY_API = 'https://codex-resets.com/api/v1/resets?limit=100';
 
+/**
+ * 隔多久强制走一次**全量回溯**（小时）。
+ *
+ * 增量采集靠「翻到已入库的推文就停」省时间，代价是它假设时间线连续且单调向下：
+ *   · X 的虚拟列表在两次收割之间会把渲染过的条目卸载，偶尔丢一屏；
+ *   · 他会删推、也会发完再改（引用/重发）；
+ * 这些洞增量**永远补不回来**（它看到已知的就停了）。所以必须周期性从头翻一次。
+ *
+ * 72 小时是个保守值：按每周 2–3 次的重置频率，三天内至少覆盖一次完整重置周期。
+ */
+export const DEFAULT_FULL_SCAN_HOURS = 72;
+
 const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36';
 
@@ -54,16 +67,14 @@ const UA =
  * 必须走代理才连得上。而 **Node 内置 fetch 不读 HTTPS_PROXY / https_proxy**
  * —— 对照实验：设与不设都是 `fetch failed`（Node 24 需额外开 NODE_USE_ENV_PROXY=1）。
  *
- * 所以有代理时改走 curl 子进程：curl 的代理支持跨平台且成熟，macOS / Linux /
+ * 代理地址**不直接取环境变量**，而是交给 `resolveProxy()` 实测探测 —— 本机的
+ * `HTTPS_PROXY` 指的是沙箱自己的出口端口，连不通 x.com。原因与代价写在
+ * ./proxy.mjs 顶部，这里只调用。
+ *
+ * 探测到代理时改走 curl 子进程：curl 的代理支持跨平台且成熟，macOS / Linux /
  * GitHub runner / 本项目的 Docker 运行镜像都自带，不引入任何 npm 依赖。
- * 没有代理时仍走原生 fetch —— runner（境外机房）直连即可，那一侧无需代理。
+ * 没有可用代理时走原生 fetch —— runner（境外机房）直连即可，那一侧无需代理。
  */
-const PROXY_URL =
-  process.env.HTTPS_PROXY ||
-  process.env.https_proxy ||
-  process.env.HTTP_PROXY ||
-  process.env.http_proxy ||
-  null;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -79,7 +90,7 @@ async function hasCurl() {
   return curlProbe;
 }
 
-async function getViaCurl(url, timeout) {
+async function getViaCurl(url, timeout, proxyUrl) {
   const { stdout } = await execFileP(
     'curl',
     [
@@ -87,7 +98,7 @@ async function getViaCurl(url, timeout) {
       '-f', // 4xx/5xx 直接非零退出，交给上层的重试处理，而不是把错误页当正文
       '-L',
       '-x',
-      PROXY_URL,
+      proxyUrl,
       '-A',
       UA,
       '-H',
@@ -102,11 +113,12 @@ async function getViaCurl(url, timeout) {
 }
 
 export async function get(url, tries = 3, timeout = 25_000) {
-  const useCurl = Boolean(PROXY_URL) && (await hasCurl());
+  const proxyUrl = await resolveProxy();
+  const useCurl = Boolean(proxyUrl) && (await hasCurl());
   let lastErr;
   for (let i = 1; i <= tries; i++) {
     try {
-      if (useCurl) return await getViaCurl(url, timeout);
+      if (useCurl) return await getViaCurl(url, timeout, proxyUrl);
       const res = await fetch(url, {
         headers: { 'user-agent': UA, accept: 'text/html,application/json,*/*' },
         signal: AbortSignal.timeout(timeout),
@@ -261,20 +273,19 @@ export function parseTweetDetail(html, focalId = null) {
 
 /* ----------------------------- 事件分类 ----------------------------- */
 
-const RE_CREDIT = /\b(banked|credit|credits)\b/i;
-const RE_RESET = /\breset\b/i;
-const RE_SCOPE = /\b(limit|limits|usage|allowance|allowances|everyone|all|rate)\b/i;
-
-/** 判定一条推文是否属于「额度事件」，并给出类型 */
-export function classify(text) {
-  const t = text ?? '';
-  const hasReset = RE_RESET.test(t);
-  const hasCredit = RE_CREDIT.test(t);
-  if (hasCredit && !hasReset) return 'credit';
-  if (hasReset && hasCredit) return 'credit'; // 发券型重置
-  if (hasReset && RE_SCOPE.test(t)) return 'reset';
-  return 'other';
-}
+/**
+ * 归类一条推文是否属于「额度事件」，并给出类型（`kind` 字段）。
+ *
+ * ⚠ 这里**只是转发** signals.mjs 的判定，不再自带一份词表。
+ *
+ * 它曾经是自带的一份，于是同一份数据被两套词表判出两个结论：
+ *   · 识别侧（signals.mjs）把「Reset all propagated」当「已完成的过去事件」丢掉；
+ *   · 采集侧这份靠词表里的 `all` 把它蒙成 reset —— 可那个 all 是
+ *     「全部传播完毕」，跟额度毫无关系，纯属巧合。
+ * 同一天的「Hi Astra users. A reset and a quick update…」没有 all，
+ * 就被这份词表判成 other。两条最该被记录的数据，一条靠巧合、一条判错。
+ */
+export const classify = classifyEvent;
 
 /* ------------------------------- 采集入口 ------------------------------- */
 
@@ -295,29 +306,45 @@ export async function fetchLiveTweets(account = SOURCE_ACCOUNT) {
 }
 
 /**
- * 登录态采集：驱动本机已登录的 Chrome，滚动收割完整时间线。
+ * 登录态采集：驱动本机已登录的 Chrome，滚动收割时间线。
  *
  * 失败一律抛错，把「要不要降级」留给调用方决定。这里的失败都是**静默丢数据**
  * 型的（profile 过期退回未登录、页面结构变了、收割到 0 条）—— 吞掉它，
  * 表面上一切正常，实际覆盖范围已经悄悄缩回 7 条。
+ *
+ * @param {string} account
+ * @param {{sinceMs?:number, knownIds?:Iterable<string>|null, maxSteps?:number,
+ *          onProgress?:Function}} opts
+ *        `knownIds` 里的视为已入库，采集器翻到「连续整屏都是已知」即停 ——
+ *        这是增量的实现方式（X 没有按时间范围查询的入口，只能从最新往下翻）。
+ *        传 null / 空集合 = 全量回溯到 `sinceMs` 下界。
  */
 export async function fetchLiveTweetsViaBrowser(account = SOURCE_ACCOUNT, opts = {}) {
   const result = await collectTimeline({
     handle: account,
     sinceMs: opts.sinceMs ?? 0,
+    knownIds: opts.knownIds ?? null,
     maxSteps: opts.maxSteps,
+    // Chrome 也必须走同一个（实测出来的）代理。
+    // 早先这里没传，Chrome 便一路用系统/环境代理 —— 而沙箱注入的那个连不通 x.com。
+    proxy: opts.proxy,
     onProgress: opts.onProgress,
   });
   if (!result.loggedIn) throw new Error('Chrome profile 未登录 x.com');
   if (!result.tweets.length) throw new Error('浏览器收割到 0 条推文');
-  return result.tweets.map((t) => ({
-    ...t,
-    kind: classify(t.text),
-    account,
-    role: 'post',
-    foundVia: 'timeline-browser',
-    inReplyTo: null,
-  }));
+  return {
+    tweets: result.tweets.map((t) => ({
+      ...t,
+      kind: classify(t.text),
+      account,
+      role: 'post',
+      foundVia: 'timeline-browser',
+      inReplyTo: null,
+    })),
+    mode: result.mode,
+    stoppedBy: result.stoppedBy,
+    steps: result.steps,
+  };
 }
 
 /**
@@ -518,6 +545,7 @@ export async function runCollection(opts = {}) {
   // 「数据采集异常」横幅又被贴回页面上 —— 明明数据是新鲜的，却告警说采不到。
   // 有了短路，CI 只在数据确实陈旧时才尝试，那种失败才是真该告警的情况。
   let live = await readJson(resolve(dataDir, 'tweets.json'), { tweets: [] });
+  const prevStats = await readJson(resolve(dataDir, 'stats.json'), {});
   const lastLiveAt = live.updated_at ? new Date(live.updated_at).getTime() : 0;
   const liveAgeMs = Date.now() - lastLiveAt;
   const freshEnough =
@@ -527,6 +555,14 @@ export async function runCollection(opts = {}) {
   let liveSource = null;
   /** 登录态采集的时间下界（ISO），即「上一次重置 - 缓冲」。 */
   let coverageSince = null;
+  /** 本轮走的是增量还是全量回溯（供落盘与 CLI 展示）。 */
+  let collectMode = null;
+  /** 采集器是「怎么停下来的」：known / floor / no-more / exhausted。 */
+  let stoppedBy = null;
+  /** 本轮真正新增（库里此前没有）的推文条数。 */
+  let newCount = 0;
+  /** 本轮是否真的完成了全量回溯（用于推进 stats.json 的 last_full_at）。 */
+  let didFullScan = false;
 
   // 把一批推文并进 live。已存在的**用新版本覆盖**，而不是跳过 ——
   // 只有「只增不改」时，解析器修好了、旧数据里的错值也回不来（2026-09-21 修掉的
@@ -559,16 +595,40 @@ export async function runCollection(opts = {}) {
     const useBrowser = opts.browser ?? (process.env.X_BROWSER !== '0' && !process.env.CI);
     const floor = opts.sinceMs ?? resetFloorMs(history.records, opts.resetBufferHours);
 
+    // 增量 / 全量。默认增量（快），周期性强制全量回补。
+    //
+    // 增量怎么省时间：X 的时间线只能从最新往下翻，没有「给我 09-20 到 09-22」这种
+    // 查询入口（GraphQL 的时间线接口在未登录/受控路由下一律 404，已实测）。所以
+    // 「只取未读部分」＝ 翻到「连续整屏都是已入库的推文」就停。滚动深度于是从
+    // 「翻到上一次重置那天」缩到「翻到上次见到的最新一条」，通常 2–5 步。
+    //
+    // 为什么还必须周期性全量：增量只在「时间线连续且单调向下」时成立。虚拟列表
+    // 抖动会丢整屏、他也会删推 —— 这些洞增量永远补不回来（它看到已知的就停了）。
+    const fullScanMs = (opts.fullScanHours ?? DEFAULT_FULL_SCAN_HOURS) * 3_600_000;
+    const lastFullAt = prevStats.last_full_at ? new Date(prevStats.last_full_at).getTime() : 0;
+    const knownIds = live.tweets.map((t) => t.id).filter(Boolean);
+    const wantFull =
+      opts.full === true ||
+      knownIds.length === 0 || // 库里什么都没有，增量无从谈起
+      !lastFullAt ||
+      Date.now() - lastFullAt > fullScanMs;
+
     let fresh = null;
     let browserError = null;
     if (useBrowser) {
       try {
-        fresh = await fetchLiveTweetsViaBrowser(opts.account, {
+        const r = await fetchLiveTweetsViaBrowser(opts.account, {
           sinceMs: floor,
+          knownIds: wantFull ? null : knownIds,
           maxSteps: opts.maxSteps,
+          proxy: await resolveProxy(),
           onProgress: opts.onProgress,
         });
+        fresh = r.tweets;
         liveSource = 'browser';
+        collectMode = r.mode;
+        stoppedBy = r.stoppedBy;
+        didFullScan = r.mode === 'full';
         if (floor > 0) coverageSince = new Date(floor).toISOString();
       } catch (err) {
         browserError = err.message;
@@ -585,6 +645,8 @@ export async function runCollection(opts = {}) {
       try {
         fresh = await fetchLiveTweets(opts.account);
         liveSource = 'html';
+        collectMode = 'degraded';
+        didFullScan = false;
       } catch (err) {
         errors.push(
           `实时采集失败：${err.message}${browserError ? `（浏览器路径：${browserError}）` : ''}`
@@ -593,13 +655,24 @@ export async function runCollection(opts = {}) {
     }
 
     if (fresh) {
-      live = {
+      const known = new Set(knownIds);
+      newCount = fresh.filter((t) => t.id && !known.has(t.id)).length;
+
+      // ⚠ 用展开旧对象的方式更新，而不是**重建**对象。
+      //
+      // 重建会丢掉本轮没有重新赋值的字段 —— `coverage_since` 就踩过这个坑：
+      // 降级走 html 路径时它不被赋值，于是「覆盖范围从上次重置算起」这条关键
+      // 元信息在降级一轮后凭空消失，页面对覆盖范围的声明也就没了依据。
+      const next = {
+        ...live,
         tweets: mergeInto(live.tweets, fresh),
         updated_at: new Date().toISOString(),
         source: liveSource,
-        ...(coverageSince ? { coverage_since: coverageSince } : {}),
-        ...(liveSource === 'html' && browserError ? { degraded: browserError } : {}),
       };
+      delete next.degraded;
+      if (coverageSince) next.coverage_since = coverageSince;
+      if (liveSource === 'html' && browserError) next.degraded = browserError;
+      live = next;
     }
 
     // 2b) 回复雷达：他的预告常出现在「他回复别人的推文」里，而回复不进 profile 首屏。
@@ -683,10 +756,18 @@ export async function runCollection(opts = {}) {
 
   const stats = buildStats(history.records);
 
-  // 3) 信号识别：跟着采集一起算，避免「接口读到的信号」与「页面上的信号」来自不同时刻
+  // 3) 信号识别：跟着采集一起算，避免「接口读到的信号」与「页面上的信号」来自不同时刻。
+  //
+  //    分析按**时间窗**读推文，不是「取最近 N 条」：
+  //      · 下界取「最近 lookbackDays 天」与「上次重置 - 缓冲」里更早的那个，
+  //        这样既覆盖他近期的公开发言，又保证「上一次重置以来」的全部都在窗内
+  //        （两者取更早者，谁更长听谁的）；
+  //      · 上界就是 now。
+  //    窗口本身写进 signal.json（windowFrom / windowTo），可复核，不是隐含假设。
   const signals = detectSignals(live.tweets, {
     now: Date.now(),
     account: opts.account,
+    sinceMs: opts.sinceMs ?? resetFloorMs(history.records, opts.resetBufferHours),
   });
 
   await saveJson(resolve(dataDir, 'resets.json'), history);
@@ -695,6 +776,16 @@ export async function runCollection(opts = {}) {
   await saveJson(resolve(dataDir, 'stats.json'), {
     stats,
     generated_at: new Date().toISOString(),
+    // 本轮采集的形态。留档是为了让「上次是全量还是增量」可复核 ——
+    // 连续多轮增量之后，漏检风险是靠一次全量回补清掉的，这件事得看得见。
+    collect: {
+      mode: collectMode,
+      source: liveSource,
+      stoppedBy,
+      newTweets: newCount,
+      knownCount: live.tweets.length - newCount,
+    },
+    last_full_at: didFullScan ? new Date().toISOString() : (prevStats.last_full_at ?? null),
     errors,
   });
 
@@ -708,6 +799,9 @@ export async function runCollection(opts = {}) {
     liveAgeMs,
     source: liveSource,
     coverageSince,
+    mode: collectMode,
+    stoppedBy,
+    newCount,
     tweetCount: live.tweets.length,
     collectedAt: new Date().toISOString(),
   };

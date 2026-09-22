@@ -315,12 +315,17 @@ docs/miniprogram.md       小程序上手与截图终检
 
 ```bash
 npm ci                     # 装唯一的构建期依赖（@resvg/resvg-js）
-npm run collect            # 采集（首次加 --bootstrap 做历史回填）
+npm run collect            # 采集（默认增量；首次加 --bootstrap 做历史回填）
+npm run collect -- --full   # 强制全量重扫，用来补增量漏掉的洞
 npm run build              # 构建 dist/index.html + dist/og-image.png + 两个图标
 npm run refresh            # 采集 + 构建
 npm start                  # 启动后端（含定时采集）
 npm run diagnose           # 模型诊断与回测
+npm test                   # 407 项纯函数回归（含识别词表、增量停止判据、代理探测）
 ```
+
+> 采集默认走**增量**（翻到连续两整屏都已知即停），**每 72 小时自动全量回补一次**。
+> 出口代理是**实测探测**的，不读 `HTTPS_PROXY` —— 原因见 `docs/data-source.md` §4.5。
 
 `file://` 直接打开 `dist/index.html` 也能看，不需要起服务。
 

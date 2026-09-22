@@ -1,16 +1,24 @@
 /**
- * 重置信号识别 —— 从推文里判断「Tibo 是否预告了未来的额度重置」。
+ * 重置信号识别 —— 从推文里判断「Tibo 的额度重置处于什么状态」。
  *
- * 这个模块存在的唯一理由：**不能误报**。
+ * 这个模块存在的前置约束：**不能误报**。
  * 现有真实数据里就有一条
  *   「the main thing i was excited about launching this week will be next week instead」
  * —— 它含 "next week"，但讲的是**发布延期**，跟额度无关。
  * 如果把它标成「重置信号」，这个功能的可信度当场归零。
- * 所以信号分三级，且 `hint` 级别**不当作重置信号展示**：
  *
- *   explicit  重置意图 + 可解析的未来时间 → 明确信号，置顶展示
- *   hint      只命中其中一半（有时间没意图，或有意圖没时间）→ 只作线索
+ * 信号分四级：
+ *
+ *   explicit  重置意图 + 可解析的未来时间 → 明确预告，给出时间窗口
+ *   occurred  **已经发生**的重置（「A reset…」/「reset all propagated」）→ 记录事实
+ *   hint      只命中一半（有时间没意图，或有意圖没时间）→ 只作线索，不当信号展示
  *   none      其余
+ *
+ * 为什么要有 occurred：观测台要回答的第一个问题是「上次重置是什么时候」。
+ * 早先的实现只找预告，把「已发生」当作「已完成的过去事件」丢进 none ——
+ * 于是页面自相矛盾：下方「最近记录」里那条显眼地标着「普通重置」，
+ * 上方信号区却说「没有检测到重置预告」。同一个事实，两套结论。
+ *
  * 另外把「被排除但值得知道的」单独放进 rejected，供排查，不误导用户。
  *
  * 时间一律给出**两个时区**：推文的时间语境在发推者那边（默认太平洋时间），
@@ -25,6 +33,15 @@ export const SOURCE_ZONE_LABEL = '太平洋时间';
 
 const DAY = 86_400_000;
 const HOUR = 3_600_000;
+
+/**
+ * hints / rejected 两类进入 signal.json 的上限（纯体积保护）。
+ *
+ * 核心结论（explicit / occurred）**不设上限** —— 它们天然很少，
+ * 而且任何一个都不该被丢掉。这个数字只用于「线索」和「被排除项」，
+ * 触顶时会置 `truncated: true`，不静默。
+ */
+const MAX_LISTED = 60;
 
 /** 取「某天的某个钟点」在指定时区的 UTC 时刻。dayNum 是纯日历日序号，不受夏令时影响。 */
 function at(dayNum, hh, mm, zone) {
@@ -97,6 +114,74 @@ const RE_LAUNCH = /\b(launch(?:ing|ed)?|keynote|ship(?:ping|ped)?|releas(?:e|ing
  */
 const RE_CONTINUE =
   /\b(?:still\s+(?:coming|on\s+track|happening|landing|arriving)|(?:it'?s|it\s+is|its)\s+(?:still\s+)?coming|coming\s+(?:in|on|this|next|later|tomorrow|soon)|will\s+(?:still\s+)?(?:come|land|happen|arrive|be\s+reset|reset)|on\s+track|right\s+around\s+the\s+corner|very\s+soon)\b/i;
+
+/* ------------------- 「已发生」判定的补充词表 ------------------- */
+
+const RE_CREDIT = /\b(banked|credit|credits)\b/i;
+
+/**
+ * 「A reset」这类**名词化陈述** —— 冠词直接修饰 reset。
+ *
+ * 为什么必须单列一条：「Reset all propagated」当初是靠额度词表里的 `all` 命中
+ * 才被当成重置的 —— 那纯属巧合（那个 all 是「全部传播完毕」，跟额度毫无关系）。
+ * 而同一天更早、更该被看见的
+ *   「Hi Astra users. A reset and a quick update on quality issues…」
+ * 没写 all，就被判成普通内容。观测台最重要的两条数据，一条靠巧合、一条直接丢。
+ *
+ * 名词化（冠词 + reset）表达的是「存在一次重置」这个事实，比动词形态更接近宣布。
+ */
+const RE_ANNOUNCE =
+  /\b(?:a|an|the|another|one|this|that)\s+(?:full\s+|fresh\s+|banked\s+|surprise\s+|bonus\s+)?reset\b/i;
+
+/** 假设 / 条件 / 否定语境 —— 命中时「名词化的 reset」不能当既成事实。 */
+const RE_HYPOTHETICAL = /\b(?:if|unless|whether|would|could|might|should|suppose|imagine|unless)\b|\bwon'?t\s+reset\b/i;
+
+/** 将来完成时：「will have reset … by tomorrow」不是已完成。 */
+const RE_FUTURE_PERFECT = /\b(?:will|shall|going\s+to|gonna)\s+(?:have|be)\b/i;
+
+/**
+ * 一条推文是否在陈述「额度重置**已经发生**」。
+ *
+ * 与「预告下一次重置」是两回事：
+ *   「Reset all propagated. Sweet dreams.」          → 已完成，陈述事实
+ *   「Hi Astra users. A reset and a quick update…」  → 宣布刚刚发生
+ *   「we will reset everyone's limits next Tuesday」 → 预告，尚未发生
+ *
+ * 为什么必须分级而不是一律当预告：旧实现把「重置已完成」当垃圾丢掉
+ * （`isPast` → level:none），于是页面自相矛盾 —— 「最近记录」里那条明明标着
+ * 「普通重置」，信号区却说「没有检测到重置预告」。而观测台要回答的第一个问题
+ * 就是「上次重置是什么时候」，把已发生的事实丢掉，等于不回答自己的主问题。
+ */
+export function hasOccurredReset(text) {
+  const t = String(text ?? '');
+  if (!RE_RESET.test(t)) return false;
+  if (RE_HYPOTHETICAL.test(t)) return false;
+  if (RE_FUTURE_PERFECT.test(t)) return false;
+  // 完成句式（reset all propagated / has been reset / reset is live）是强证据：
+  // 即使同一句里还夹着别的未来语气，这条重置也已经发生了。
+  if (RE_PAST.test(t)) return true;
+  // 名词化是弱证据，只在这条没有未来语气时才作数。
+  if (RE_FUTURE.test(t)) return false;
+  return RE_ANNOUNCE.test(t);
+}
+
+/**
+ * 归类一条推文是否属于「额度事件」，并给出类型。
+ *
+ * 与 collect.mjs 里旧的 classify 的差别：旧版要求 reset 必须**同时**命中额度词，
+ * 而它的额度词表里含 `all` —— 于是 "Reset all propagated" 靠这个 all 蒙到 reset，
+ * 同一天的 "A reset and …" 没写 all 就掉成 other。
+ *
+ * 判据放在这里而不是采集侧，是为了让「采集时打的 kind」与「识别时给的 level」
+ * 出自同一份词表。它们曾经是两份，结论互相打架。
+ */
+export function classifyEvent(text) {
+  const t = String(text ?? '');
+  if (!RE_RESET.test(t)) return RE_CREDIT.test(t) ? 'credit' : 'other';
+  if (RE_CREDIT.test(t)) return 'credit'; // 发券型重置
+  if (hasOccurredReset(t) || RE_SCOPE.test(t)) return 'reset';
+  return 'other';
+}
 
 /* --------------------------- 时间表达解析 --------------------------- */
 
@@ -411,14 +496,22 @@ export function analyzeTweet(tweet, opts = {}) {
   const hasFuture = RE_FUTURE.test(text);
   const isPast = RE_PAST.test(text);
   const isLaunch = RE_LAUNCH.test(text);
+  const occurred = hasOccurredReset(text);
 
   const ownIntent = (hasReset ? 3 : 0) + (hasScope ? 2 : 0) + (hasGenerous ? 1 : 0);
+  const hasAnnounce = RE_ANNOUNCE.test(text);
   if (hasReset) reasons.push('命中重置词 reset');
   if (hasScope) reasons.push('命中额度词 limits/usage/credits');
   if (hasGenerous) reasons.push('命中「新额度」类词 fresh/new/top up');
   if (hasFuture) reasons.push('含未来语气');
-  if (isPast) reasons.push('判定为已完成的过去事件（扣分）');
-  if (isLaunch) reasons.push('含发布/宣传语境（扣分）');
+  // 「判定依据」要写**命中了什么**，不写它对分数做了什么。
+  // 早先这里写的是「判定为已完成的过去事件（扣分）」—— 那时它确实是排除理由；
+  // 现在它反过来是 occurred 的核心判据，再写「扣分」就与结论自相矛盾了。
+  if (isPast) reasons.push('命中「重置已完成」句式（reset all propagated 等）');
+  if (hasAnnounce) reasons.push('命中「A/the reset」名词化陈述');
+  // 发布语境只对「预告」构成干扰（「下周发新模型」里的 will/next 会被误读成重置预告），
+  // 对「已发生」没有影响 —— 一条已确认的重置不会因为同句提到 model 就不算数。
+  if (isLaunch && !occurred) reasons.push('含发布/宣传语境（下调置信度）');
 
   /* ── 上下文（他回复的那条推文）─────────────────────────────────────────
    *
@@ -506,15 +599,25 @@ export function analyzeTweet(tweet, opts = {}) {
     createdZones: { a: createdZones.a, b: createdZones.b, diffText: createdZones.diffText },
   };
 
-  /* 判定顺序很重要：先排除「已完成的历史事件」，再谈未来预告 */
-
-  if (isPast && !hasFuture) {
+  /* 判定顺序很重要：**先判「已发生」，再谈预告**。
+   *
+   * 已发生的重置是既成事实，比预告更硬；而且它正是观测台的主问题
+   * （上次重置是什么时候）。旧实现把这类推文判成 level:'none'
+   * （理由写的是「已完成的过去事件，不是预告」）—— 于是采集侧 classify
+   * 把它标成 kind:'reset'、识别侧说它「不是信号」，同一份数据两个结论，
+   * 页面「最近记录」显示「普通重置」，信号区却说「没有检测到重置预告」。
+   */
+  if (occurred) {
     return {
       ...base,
-      level: 'none',
-      rejected: '已完成的过去事件，不是预告',
+      level: 'occurred',
+      rejected: null,
       intent,
+      // 发生时刻就是它自己的发布时刻，base.createdZones 已经算好双时区表述，
+      // 不必再造一个「窗口」—— 窗口的语义是「未来某段区间」，会误导。
+      occurredAt: new Date(refTs).toISOString(),
       window: null,
+      confidence: Math.max(0.3, Math.min(0.95, 0.5 + intent * 0.06 + (isPast ? 0.12 : 0))),
     };
   }
 
@@ -574,9 +677,21 @@ export function analyzeTweet(tweet, opts = {}) {
 /**
  * 扫描一批推文，产出信号结论。
  *
+ * 分析按**时间窗**读，不按条数：
+ *   · 下界 = 「now 往前 lookbackDays 天」与 `sinceMs`（上一次重置 - 缓冲）里**更早**的那个，
+ *     谁更长听谁的 —— 既不漏掉近期公开发言，也保证「上一次重置以来」整段都在窗内；
+ *   · 上界 = now。
+ * 窗口原样写进结果（windowFrom / windowTo），可复核。
+ *
+ * 为什么不用「取最近 N 条」：条数口径会随他的发帖频率漂移 —— 发得勤时窗口缩到几天，
+ * 发得少时又拉得很长。按时间切，含义稳定，而且与「上一次重置以来」这个产品口径同构。
+ * 更关键的是：**超窗的推文不进窗，但留在 tweets.json 里不删** —— 数据不废弃，
+ * 只是这一轮不参与判断。
+ *
  * @param {Array} tweets
  * @param {object} opts
- * @param {number} opts.lookbackDays 只看最近多少天的推文（默认 60）
+ * @param {number} opts.lookbackDays 最少回看多少天（默认 60）
+ * @param {number} opts.sinceMs      时间窗的另一个候选下界（如「上次重置 - 缓冲」）
  * @param {number} opts.now          计算基准时刻
  */
 export function detectSignals(tweets, opts = {}) {
@@ -586,31 +701,66 @@ export function detectSignals(tweets, opts = {}) {
   const lookback = opts.lookbackDays ?? 60;
   const account = opts.account ?? 'thsottiaux';
 
+  const byLookback = now - lookback * DAY;
+  const sinceMs = Number(opts.sinceMs ?? 0);
+  const lowerBound = sinceMs > 0 ? Math.min(sinceMs, byLookback) : byLookback;
+
   const list = (tweets ?? [])
     .filter((t) => t && t.text && t.created_at)
-    .filter((t) => now - new Date(t.created_at).getTime() <= lookback * DAY)
+    .filter((t) => {
+      const at = new Date(t.created_at).getTime();
+      return Number.isFinite(at) && at >= lowerBound && at <= now;
+    })
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   const analyzed = list.map((t) => analyzeTweet(t, { sourceZone, userZone, account }));
 
   const explicit = analyzed.filter((a) => a.level === 'explicit');
+  const occurred = analyzed.filter((a) => a.level === 'occurred');
   const hints = analyzed.filter((a) => a.level === 'hint');
   const rejected = analyzed.filter((a) => a.level === 'none' && a.rejected);
 
-  const level = explicit.length ? 'explicit' : hints.length ? 'hint' : 'none';
+  // 优先级的语义：explicit 是「他对下一次重置给了时间」，可行动；
+  // occurred 是「刚刚重置过」，是事实。两者都会在页面上并列展示，
+  // 这里只决定横幅的主色调，所以 explicit 优先。
+  const level = explicit.length
+    ? 'explicit'
+    : occurred.length
+      ? 'occurred'
+      : hints.length
+        ? 'hint'
+        : 'none';
 
   return {
     level,
     generatedAt: new Date(now).toISOString(),
     checkedTweets: list.length,
     lookbackDays: lookback,
+    // 本轮实际取用的时间窗（可复核）。windowFrom 可能早于 lookbackDays ——
+    // 当「上一次重置」在更早的时候，窗会相应放宽，好让整段重置周期都在窗内。
+    windowFrom: new Date(lowerBound).toISOString(),
+    windowTo: new Date(now).toISOString(),
     sourceZone,
     sourceZoneLabel: SOURCE_ZONE_LABEL,
     userZone,
     zones: dualZone(new Date(now).toISOString(), userZone, sourceZone, '北京时间', 'Tibo 当地时间'),
     latest: analyzed[0] ?? null,
-    signals: explicit.slice(0, 5),
-    hints: hints.slice(0, 5),
-    rejected: rejected.slice(0, 5),
+    // ⚠ 这里**不做静默截断**。旧版对每类各取 `.slice(0, 5)`，而列表是按时间倒序的，
+    // 于是被丢掉的恰好是最早的那几条 —— 也就是最靠近「上一次重置」、本轮最相关的
+    // 那些。2026-09-12 03:20「A reset and a quick update…」就是这样消失的。
+    // 现在：核心结论（explicit / occurred）全量保留；hints / rejected 只作上限保护，
+    // 一旦触顶会在 counts 与 truncated 里显式标出，绝不静默丢。
+    signals: explicit,
+    occurred,
+    hints: hints.slice(0, MAX_LISTED),
+    rejected: rejected.slice(0, MAX_LISTED),
+    counts: {
+      scanned: list.length,
+      explicit: explicit.length,
+      occurred: occurred.length,
+      hint: hints.length,
+      none: analyzed.length - explicit.length - occurred.length - hints.length,
+    },
+    truncated: hints.length > MAX_LISTED || rejected.length > MAX_LISTED,
   };
 }

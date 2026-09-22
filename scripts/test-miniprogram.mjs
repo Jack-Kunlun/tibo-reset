@@ -211,22 +211,32 @@ console.log('\n【5】信号');
 
 // 断言必须从数据推出，不能写死 —— 否则收录到一条真的预告后这条用例就假失败
 const snapshotSignals = (await import(resolve(ROOT, 'miniprogram/data/snapshot.js'))).default.signals;
-const sigItems =
-  snapshotSignals.level === 'explicit'
-    ? snapshotSignals.signals
-    : snapshotSignals.level === 'hint'
-      ? snapshotSignals.hints
-      : [];
-const sigTop = sigItems.find((s) => s.window) || sigItems[0];
-const expectShow = !!(sigTop && (snapshotSignals.level === 'explicit' || sigTop.window));
+
+// 期望值与 buildSignal 的优先级同构：预告（有窗口）> 已发生（无窗口，但有硬时间戳）
+// > 线索（须有窗口）。「已发生」是唯一可以没有窗口却仍进醒目态的一档 ——
+// 它不是「快了」那种空话，而是有确切发生时刻的既成事实。
+const hasExplicitWin = (snapshotSignals.signals || []).some((s) => s.window);
+const hasOccurred = (snapshotSignals.occurred || []).length > 0;
+const hasHintWin = (snapshotSignals.hints || []).some((s) => s.window);
+const expectShow = hasExplicitWin || hasOccurred || hasHintWin;
+const expectOccurred = !hasExplicitWin && hasOccurred;
 
 check('信号对象存在', !!d.signal);
 check(
-  '醒目态与数据一致（只有拿到时间窗口才醒目）',
+  '醒目态与数据一致（预告 > 已发生 > 线索）',
   d.signal.show === expectShow,
-  `show=${d.signal.show} 期望=${expectShow}（level=${snapshotSignals.level}）`
+  `show=${d.signal.show} 期望=${expectShow}（level=${snapshotSignals.level} occurred=${hasOccurred}）`
 );
-if (expectShow) {
+if (expectOccurred) {
+  check('已发生态：不给倒计时窗口（窗口是预告的语义）', d.signal.window === null, JSON.stringify(d.signal.window));
+  check('已发生态：徽标为「已发生」', d.signal.badge === '已发生', d.signal.badge);
+  check(
+    '已发生态：大字给出日期与时刻',
+    !!(d.signal.headline && d.signal.headline.big && d.signal.headline.sub),
+    JSON.stringify(d.signal.headline)
+  );
+  check('给出判定依据（不只给结论）', !!d.signal.reason, d.signal.reason);
+} else if (expectShow) {
   check('醒目态必须给出时间窗口', !!d.signal.window, JSON.stringify(d.signal.window));
   check('窗口含双时区', !!(d.signal.window && d.signal.window.sourceZone && d.signal.window.userZone), JSON.stringify(d.signal.window));
   check('窗口含时差说明', !!(d.signal.window && d.signal.window.diffText), d.signal.window && d.signal.window.diffText);
@@ -366,6 +376,81 @@ const hintNoWin = buildSignal({
   hints: [{ level: 'hint', window: null, text: 't', reasons: [] }],
 });
 check('线索无窗口时不展示（不放没有时间的空话）', hintNoWin.show === false);
+
+/* ---------------- 8b. 「已发生」路径（此前被整类丢弃） ---------------- */
+
+/*
+ * 这是本轮修复的核心回归点。
+ *
+ * 旧实现只认「预告」，把已经发生的重置判成「已完成的过去事件，不是预告」→ 直接
+ * 丢掉。于是横幅的取值逻辑退到线索档，页面上显示的是「11pm on a Tuesday」这类
+ * 与额度无关的推文，而「Reset all propagated」那条 —— 观测台存在的理由 —— 不出现。
+ */
+
+const occurredTweets = [
+  {
+    id: '9101',
+    account: 'thsottiaux',
+    text: 'Reset all propagated. Sweet dreams.',
+    created_at: '2026-09-12T08:09:17.000Z',
+  },
+  {
+    id: '9102',
+    account: 'thsottiaux',
+    text: '11pm on a Tuesday, big startup energy',
+    created_at: '2026-09-16T07:14:19.000Z',
+  },
+];
+const occSig = detectSignals(occurredTweets, { now });
+check('已发生的重置被识别出来', occSig.occurred.length === 1, `实际 ${occSig.occurred.length}`);
+check('汇总等级为 occurred', occSig.level === 'occurred', occSig.level);
+check(
+  '与额度无关的推文不会被算进已发生',
+  !occSig.occurred.some((x) => x.id === '9102'),
+  occSig.occurred.map((x) => x.id).join(',')
+);
+
+const occVm = buildSignal(occSig);
+check(
+  '已发生 → 进醒目态（它有硬时间戳，不是「快了」这类空话）',
+  occVm.show === true,
+  `show=${occVm.show}`
+);
+check('已发生 → 徽标为「已发生」', occVm.badge === '已发生', occVm.badge);
+check(
+  '已发生 → 不给倒计时窗口（窗口的语义是「未来某段区间」）',
+  occVm.window === null,
+  JSON.stringify(occVm.window)
+);
+check(
+  '已发生 → 大字给出日期与时刻',
+  !!(occVm.headline && occVm.headline.big && occVm.headline.sub),
+  JSON.stringify(occVm.headline)
+);
+check(
+  '已发生 → 视图模型里没有 undefined / NaN',
+  !JSON.stringify(occVm).includes('undefined') && !JSON.stringify(occVm).includes('NaN'),
+  JSON.stringify(occVm).slice(0, 140)
+);
+
+// 预告优先于已发生：两者并存时，前景该是「下一次什么时候」（可行动），
+// 而不是「刚发生过」（已是既成事实）。
+const bothSig = detectSignals(
+  [
+    ...occurredTweets,
+    mkTweet(
+      'We heard you. To celebrate, we are going to reset usage limits for everyone next Tuesday.',
+      '9005'
+    ),
+  ],
+  { now }
+);
+check('预告与已发生并存时，汇总等级取 explicit', bothSig.level === 'explicit', bothSig.level);
+check(
+  '并存时横幅取预告（可行动的那条）',
+  buildSignal(bothSig).badge === '明确信号',
+  buildSignal(bothSig).badge
+);
 
 /* --------------------- 9. F9 一次性订阅提醒 --------------------- */
 

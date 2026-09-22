@@ -1,18 +1,22 @@
 #!/usr/bin/env node
 /**
- * 推文解析的回归校验。
+ * 采集链路的纯函数回归。
  *
- * 守的是一类**错位**：x.com 的 RSC payload 里 created_at_ms 不只出现在推文上 ——
- * 用户对象（UserCore）也带一个，那是账号注册时间。旧实现把「所有 full_text」
+ * 主体是推文解析，守着一类**错位**：x.com 的 RSC payload 里 created_at_ms 不只出现在
+ * 推文上 —— 用户对象（UserCore）也带一个，那是账号注册时间。旧实现把「所有 full_text」
  * 和「所有 created_at_ms」各抓成一个数组再**按索引硬配**，多出来的那一个会把整条链
  * 推歪一位：实测 7 条推文配到 8 个时间戳，第一条推文的时间被写成账号注册日 ——
  * 「2026 is the year of linux desktop」实际发于 2026-09-19，页面上却是 2025-08-07。
  *
  * 这类错位不报错、不崩溃、不产生任何日志，只会让页面上的数字悄悄错掉，
  * 而本发明最核心的那个数字（距上次额度重置多少天）正是从推文时间算出来的。
- * 所以必须有测试守着。
+ * 所以必须有测试守着。校验的是「按对象就近配对」这个契约，不是某一份具体样本。
  *
- * 校验的是「按对象就近配对」这个契约，不是某一份具体样本。
+ * 另外三块同属「采集链路上会静默出错、且不在解析里」的东西，一并放这里：
+ *   · normalizeTimelineItems —— id 归属与时间下界切早切晚
+ *   · isKnownScreen         —— 增量的停止判据（早停 = 永久漏推文）
+ *   · resolveProxy          —— 出口代理的发现规则（判错 = Chrome 静默收 0 条）
+ * 它们的共同点是：错了不报错、不崩溃，只是数据悄悄少一块。
  */
 
 import {
@@ -22,7 +26,7 @@ import {
   rankRadarCandidates,
   resetFloorMs,
 } from '../src/lib/collect.mjs';
-import { normalizeTimelineItems } from '../src/lib/browser.mjs';
+import { normalizeTimelineItems, isKnownScreen } from '../src/lib/browser.mjs';
 
 let pass = 0;
 const failures = [];
@@ -338,6 +342,75 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
     kept[1]?.url
   );
   check('空输入不抛错', normalizeTimelineItems(undefined).length === 0, '');
+}
+
+/* ==================== 增量停止判据（「已入库就停」） ==================== */
+
+/*
+ * 增量的全部依据就是这一个判断：本屏收下来的条目是否**全部**已入库。
+ * 它判错的两种方向代价不对称 —— 早停会永久漏掉新推文（增量不会再回头），
+ * 晚停只是多花几秒。所以这里把两个方向都钉住。
+ */
+
+{
+  const known = new Set(['a', 'b', 'c']);
+  const it = (id) => ({ id, time: '2026-09-12T00:00:00.000Z', text: 'x' });
+
+  check('整屏全已知 → 认定已追上', isKnownScreen([it('a'), it('b')], known) === true);
+  check(
+    '屏里有任何一条新的 → 不认已追上（早停会永久漏掉它）',
+    isKnownScreen([it('a'), it('new')], known) === false
+  );
+  check(
+    '取不到 id 的条目（转发别人的推文）不参与判断，也不阻止停',
+    isKnownScreen([it('a'), { id: '', text: '转发' }], known) === true
+  );
+  check(
+    '整屏都是取不到 id 的 → 不停（此时没证据说已追上）',
+    isKnownScreen([{ id: '', text: '转发' }], known) === false
+  );
+  check('空屏 → 不停', isKnownScreen([], known) === false);
+  check('空输入不抛错', isKnownScreen(undefined, known) === false);
+  check('已知集合为空（=全量）时，任何有 id 的屏都不算已追上', isKnownScreen([it('a')], new Set()) === false);
+}
+
+/* ==================== 出口代理的发现规则 ==================== */
+
+/*
+ * 代理判错的代价是**静默丢数据**：Chrome 拿着一个连不通的代理启动，页面加载不出来，
+ * 外层只看到「收割到 0 条推文」。本机就踩过 —— 沙箱把 HTTPS_PROXY 设成自己的
+ * 出口端口（连不通 x.com），而真实代理在 7890，且不探测就发现不了。
+ */
+
+{
+  const { resolveProxy, resetProxyCache } = await import('../src/lib/proxy.mjs');
+  const prev = process.env.X_PROXY;
+
+  process.env.X_PROXY = 'off';
+  resetProxyCache();
+  check('X_PROXY=off → 直连，且不探测', (await resolveProxy()) === null, String(await resolveProxy()));
+
+  process.env.X_PROXY = 'socks5h://127.0.0.1:19999';
+  resetProxyCache();
+  check(
+    'X_PROXY 显式指定即权威（不再探测、不被环境变量覆盖）',
+    (await resolveProxy()) === 'socks5h://127.0.0.1:19999',
+    String(await resolveProxy())
+  );
+
+  if (prev === undefined) delete process.env.X_PROXY;
+  else process.env.X_PROXY = prev;
+  resetProxyCache();
+
+  check(
+    '全部候选不可达 → null（当作直连；境外 runner 正是这种情形）',
+    (await resolveProxy({
+      candidates: ['http://127.0.0.1:9', 'http://127.0.0.1:8'],
+      timeoutMs: 1200,
+    })) === null,
+    '探测结果不为 null'
+  );
+  resetProxyCache();
 }
 
 /* ======================== 结果 ======================== */

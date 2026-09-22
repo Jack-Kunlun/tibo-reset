@@ -173,5 +173,5 @@ console.log('✓ dist/apple-touch-icon.png   180×180  iOS 添加到主屏');
 console.log(`✓ miniprogram/data/snapshot.js ${kb(snapshotJs)}  含预测与信号`);
 console.log(`✓ miniprogram/utils/scene.js  ${kb(sceneSrc)}  共享几何已同步`);
 console.log(
-  `  信号：${signals.level}（明确 ${signals.signals.length} / 线索 ${signals.hints.length} / 扫描 ${signals.checkedTweets} 条）`
+  `  信号：${signals.level}（已发生 ${signals.occurred?.length ?? 0} / 预告 ${signals.signals.length} / 线索 ${signals.hints.length} / 扫描 ${signals.checkedTweets} 条）`
 );

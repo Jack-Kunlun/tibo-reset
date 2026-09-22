@@ -7,6 +7,7 @@
  *
  * 用法:
  *   node scripts/collect.mjs             # 增量采集（含回复雷达）
+ *   node scripts/collect.mjs --full      # 强制全量回溯（忽略已入库边界）
  *   node scripts/collect.mjs --no-radar  # 跳过回复雷达
  *   node scripts/collect.mjs --bootstrap # 额外执行历史回填（冷启动）
  *   node scripts/collect.mjs --offline   # 跳过网络，只重算统计（自检用）
@@ -19,6 +20,8 @@
  *                                        # 强制走免登录首屏（只 7 条，调试用）
  *   node scripts/collect.mjs --since-buffer-hours=48
  *                                        # 采集下界 = 上一次重置往前推 48 小时（默认 24）
+ *   node scripts/collect.mjs --full-scan-hours=24
+ *                                        # 隔多久强制全量回补一次（默认 72）
  *   node scripts/collect.mjs --max-steps=40
  *                                        # 时间线最多小步滚动多少下（默认 60）
  */
@@ -39,6 +42,7 @@ const maxAgeMinutes = Number(argVal('max-age') ?? 0);
 const radarAccountsArg = argVal('radar-accounts');
 const radarLimit = Number(argVal('radar-limit') ?? 0);
 const sinceBufferHours = Number(argVal('since-buffer-hours') ?? 24);
+const fullScanHours = Number(argVal('full-scan-hours') ?? 0);
 const maxSteps = Number(argVal('max-steps') ?? 0);
 
 const result = await runCollection({
@@ -49,6 +53,9 @@ const result = await runCollection({
   // 要临时降级成免登录首屏（只 7 条）用 --no-browser。
   browser: argv.includes('--no-browser') ? false : undefined,
   resetBufferHours: Number.isFinite(sinceBufferHours) ? sinceBufferHours : 24,
+  // 增量是默认。--full 强制从头回溯一遍（对齐 GraphQL/页面结构变化后的数据）。
+  full: argv.includes('--full') ? true : undefined,
+  fullScanHours: Number.isFinite(fullScanHours) && fullScanHours > 0 ? fullScanHours : undefined,
   maxSteps: Number.isFinite(maxSteps) && maxSteps > 0 ? maxSteps : undefined,
   // 雷达默认开：发现「他在回复里做的预告」正是这套采集存在的理由之一。
   // 要临时关掉用 --no-radar。
@@ -81,10 +88,34 @@ if (!result.skippedFresh) {
       : result.source === 'html'
         ? '⚠ 免登录首屏（降级，只有最近 7 条）'
         : '(未采集)';
+  const mode =
+    result.mode === 'incremental'
+      ? `增量（翻到已入库的推文即停：${result.stoppedBy}）`
+      : result.mode === 'full'
+        ? `全量回溯（${result.stoppedBy}）`
+        : result.mode === 'degraded'
+          ? '降级路径'
+          : '(未采集)';
   console.log('\n--- 覆盖范围 ---');
   console.log('  来源      ' + src);
+  console.log('  采集模式  ' + mode);
+  if (result.newCount != null) {
+    console.log(
+      '  本轮新增  ' +
+        result.newCount +
+        ' 条' +
+        (result.newCount === 0 ? '（已是最新，库内数据原样保留）' : '')
+    );
+  }
   if (result.coverageSince) console.log('  采集下界  ' + result.coverageSince + '（上一次重置 - 缓冲）');
   if (result.tweetCount != null) console.log('  库内推文  ' + result.tweetCount + ' 条');
+  const sig = result.signals;
+  if (sig?.counts) {
+    console.log(
+      `  信号识别  已发生 ${sig.counts.occurred} · 预告 ${sig.counts.explicit} · 线索 ${sig.counts.hint} · 其余 ${sig.counts.none}` +
+        `  （共 ${sig.counts.scanned} 条，时间窗自 ${String(sig.windowFrom).slice(0, 10)}）`
+    );
+  }
 }
 
 if (result.skippedFresh) {

@@ -161,7 +161,7 @@
       "text": "Hi Astra users. A reset and a quick update on quality issues that have been posted around. Working with some of you, we have found and fixed the following issues: - Some skills written for previous models were triggering too often or preventing the model from checking its work.",
       "created_at": "2026-09-12T03:20:36.000Z",
       "url": "https://x.com/thsottiaux/status/2098612714704891959",
-      "kind": "other",
+      "kind": "reset",
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
@@ -193,7 +193,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-09-22T03:30:19.295Z",
+  "updated_at": "2026-09-22T03:56:06.376Z",
   "source": "browser",
   "coverage_since": "2026-09-11T08:09:17.000Z"
 }

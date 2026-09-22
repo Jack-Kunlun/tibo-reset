@@ -91,9 +91,40 @@ console.log('\n【1】明确信号：必须识别出等级、窗口，并给出�
 console.log('\n【2】反例：绝不能误报');
 
 {
-  // 真实历史记录里的推文，属于「已经发生」
+  // 真实历史记录里的推文 —— 它**就是** 2026-09-12 那次重置本身。
+  //
+  // 早先的实现把它判成 none（理由写「已完成的过去事件，不是预告」），于是页面
+  // 自相矛盾：下方「最近记录」里这条明明标着「普通重置」，上方信号区却说
+  // 「没有检测到重置预告」。观测台的主问题就是「上次重置是什么时候」，
+  // 把已发生的事实丢掉，等于不回答自己的主问题。
   const r = run('Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG', '2026-09-12T08:09:17.000Z');
-  check('已完成的过去事件不报信号', r.level === 'none', `实际 ${r.level}；理由 ${r.rejected}`);
+  check('已完成的重置 → occurred（不再当噪音丢弃）', r.level === 'occurred', `实际 ${r.level}`);
+  check('occurred 不再带「不是预告」这类排除理由', r.rejected === null, `实际 ${r.rejected}`);
+  check('occurred 不给未来窗口（窗口是预告才有的语义）', r.window === null, `实际 ${r.window}`);
+  check('occurred 带回发生时刻', r.occurredAt === '2026-09-12T08:09:17.000Z', `实际 ${r.occurredAt}`);
+}
+
+{
+  // 同一天更早的那条：写着 "A reset"，但**一个额度词都没有**。
+  // 旧版双重丢失 —— 词表认不出名词化陈述，且 slice(0,5) 按时间倒序把它截掉。
+  const t =
+    'Hi Astra users. A reset and a quick update on quality issues that have been posted around. ' +
+    'Working with some of you, we have found and fixed the following issues.';
+  const r = run(t, '2026-09-12T03:20:36.000Z');
+  check('「A reset…」名词化陈述 → occurred', r.level === 'occurred', `实际 ${r.level}`);
+}
+
+{
+  // 新增判据的反例 —— 放宽了「已发生」的识别面，就必须把误报面同时钉死。
+  const cases = [
+    ['the model weights reset made training faster', '与额度无关的 reset'],
+    ['we will have reset all limits by tomorrow morning', '将来完成时'],
+    ['if we did another reset, everyone would lose their banked credits', '假设语境'],
+  ];
+  for (const [text, label] of cases) {
+    const r = run(text, '2026-09-17T17:57:59.000Z');
+    check(`${label} 不判 occurred`, r.level !== 'occurred', `实际 ${r.level}（${text.slice(0, 40)}）`);
+  }
 }
 
 {
@@ -335,7 +366,19 @@ console.log('\n【4】汇总接口 + 真实数据回归');
     `${sig.checkedTweets} vs 窗口内 ${within}（文件共 ${tweets.length} 条，其中 ${tweets.length - within} 条超出 60 天）`
   );
   check('给出当前时差说明', typeof sig.zones?.diffText === 'string' && sig.zones.diffText.length > 0, sig.zones?.diffText);
-  console.log(`    真实数据结论：level=${sig.level}，明确信号 ${sig.signals.length} 条，线索 ${sig.hints.length} 条，排除 ${sig.rejected.length} 条`);
+
+  // 每一条被扫描的推文都必须落进四类之一。
+  // 旧版对每类各取 slice(0, 5)，而列表按时间倒序 —— 被丢掉的恰好是最靠近
+  // 「上一次重置」的那几条。实测 16 条里静默吞掉 6 条。
+  const sum = sig.counts.explicit + sig.counts.occurred + sig.counts.hint + sig.counts.none;
+  check('四类计数之和 = 扫描条数（不静默丢）', sum === sig.counts.scanned, `${sum} vs ${sig.counts.scanned}`);
+  check('触顶状态是显式的', typeof sig.truncated === 'boolean', `实际 ${typeof sig.truncated}`);
+
+  // 真实数据里的两条重置（09-12 的 03:20 与 08:09）都要被认出来。
+  // 它们此前一条被判 none、一条被截断，本轮修复的核心回归点。
+  check('真实数据里的两条重置都被认出', sig.occurred.length === 2, `实际 ${sig.occurred.length}`);
+
+  console.log(`    真实数据结论：level=${sig.level}，明确信号 ${sig.signals.length} 条，已发生 ${sig.occurred.length} 条，线索 ${sig.hints.length} 条，排除 ${sig.rejected.length} 条`);
 }
 
 {
