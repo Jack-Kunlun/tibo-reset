@@ -410,9 +410,13 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   flex: 1;
-  /* 「2026.09.22（周二） 全天」这一串在窄屏刚好卡在临界宽度上。默认规则允许
-     在**汉字之间**断行，于是会断成「…（周二） 全 / 天」—— 断在词中间比换行难看得多。
-     keep-all 把断点限制到空格处（值里本来就有空格），break-word 兜底防止溢出。 */
+  /* 换行位置由数据层显式给出：view.js 的 breakBeforeTime 会在「日期 / 时间」之间插 `\n`。
+     原因见那里的注释 —— 402pt 真机上整串放不下，而它**唯一的空格在 `15:00` 后**，
+     断在那里会把「起」挤成孤零零一行。pre-line 让那个 `\n` 真的生效
+     （text 组件默认不把 `\n` 当换行，必须显式声明）。 */
+  white-space: pre-line;
+  /* 兜底：拿到没有 `\n` 的值时（形态变了）也别在汉字中间断。
+     keep-all 把断点限制到空格处，break-word 防止长串溢出。 */
   word-break: keep-all;
   overflow-wrap: break-word;
 }
@@ -420,6 +424,11 @@
 .wrow .z {
   font-size: 21rpx;
   color: #8C8880;
+  /* 时区名不许被压窄、也不许内部断行。
+     默认 flex-shrink:1 会把它压到放不下，`UTC+8` 就有断成两行的风险；
+     它是这一行里最不该牺牲的信息（值可以折行，时区不能拆）。 */
+  flex: none;
+  white-space: nowrap;
 }
 
 .wfoot {
@@ -438,7 +447,12 @@
   word-break: break-word;
 }
 
+/* 与上方拉开一段距离。
+   上面要么是 `.ev`（灰底框，框底边紧贴它最后一行文字），要么是 `.quote`；
+   两者原本的间距只有框内 padding 那点余量 —— 真机实测 15.5px，
+   「判定依据」这行灰字看着就贴在灰框底边上。 */
 .meta {
+  margin-top: 16rpx;
   display: flex;
   flex-direction: column;
   gap: 8rpx;

@@ -19,6 +19,18 @@ data/*.tmp-*
 #   不显式排除就会被推到公开仓库里。
 data/subscriptions.json
 
+# ⚠ TLS 私钥与证书，**绝不能进仓库**。
+#   这份是腾讯云（TrustAsia DV）签发的 reset.example.com 证书包，
+#   里面 `reset.example.com.key` 是私钥 —— 一旦推到公开仓库，
+#   等于把 reset.example.com 的 TLS 身份公开送人（可被用于中间人）。
+#   git 历史是永久的：事后删文件也删不掉已 push 的那份，只能吊销重签。
+#   它同时被 .dockerignore 排除（Dockerfile 是 `COPY . .`，不排除会进镜像层）。
+#
+#   按腾讯云证书包的**解压命名约定**（`<域名>_nginx/`）写，不写死具体域名 ——
+#   证书 90 天到期、回来重签时目录名可能变（或换域名），写死了就会静默失效。
+*_nginx/
+*.csr
+
 # 微信开发者工具的本地私有配置（含个人设置、需要忽略）
 project.private.config.json
 

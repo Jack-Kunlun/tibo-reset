@@ -1,6 +1,16 @@
 name: collect
 
-# 构建网页 + 分发到两个方向。**CI 不采集数据。**
+# 构建页面产物并发布。**本工作流不采集数据，也不推送数据。**
+#
+# 数据链完全在本机，一眼看完：
+#   本机采集 → POST /api/ingest（后端立即生效，页面刷新即新）→ git push（留档）
+#
+# 网页本体由后端**请求时实时渲染**（server/index.mjs 调 src/lib/page.mjs，
+# 与构建期同一套代码），所以本工作流的产物只剩两样，都不是「数据」：
+#   1. GitHub Pages 上的静态页面 —— 异地备份入口（主入口是后端那个域名）
+#   2. dist/og-image.png —— OG 分享图。**图片只能在构建期出**，接口改不了它，
+#      所以它永远停在最后一次构建的数值，这是本架构已知且接受的代价
+# 镜像也复用同一份 dist 作渲染失败时的兜底。
 #
 # 采集只有一处发起方：**本机**（WorkBuddy 自动化「Tibo Reset 采集（本机出口）」，
 # 见 docs/data-source.md §5）。它走住宅出口，能过 Cloudflare —— x.com 的 Cloudflare
@@ -8,38 +18,40 @@ name: collect
 # 4/4 稳定），runner 403 Cloudflare 挑战（x.com / twitter.com / mobile.twitter.com
 # 三个域名一致）。
 #
-# 于是本工作流由两类事件触发，都不采数据：
-#   1) push：本机采完把 data/ 推上来 —— 正常路径，构建 + 发布 + 推境内
-#   2) workflow_dispatch：手动重跑（Pages 部署失败、改了页面想重发等）
+# 触发方式（都不涉及数据）：
+#   1) push 代码 —— 改了 src/ scripts/ server/ miniprogram/ 才重建
+#   2) workflow_dispatch —— 手动重跑（Pages 部署失败、想强制重发等）
 #
-# 曾有一条 `*/30` 的 schedule 充当「兜底采集」，2026-09-22 移除（decisions.md D-023）。
-# 它的净产出是「每 30 分钟重新部署一次 Pages + 一次被服务端按 stale 忽略的 POST」，
-# 数据与提交历史一个字都不动；而它唯一不可替代的职责 —— 发现「本机没在跑」——
-# 改由页面自己承担：页面拿当前时间与 data/tweets.json 的 updated_at 相减，
-# 超过两个采集周期就显示「数据未更新」（scripts/render.mjs 的 renderFreshness）。
-# ⚠ 那个判据不依赖 CI 跑多勤，所以删掉定时器之后发现能力反而更及时（页面一被打开就在算）。
-#
-# 产物有两个去处（见 docs/tech-selection.md 3.6）：
-#   1. 提交 data/ → 仓库留档；页面产物由 artifact 交给 Pages
-#   2. POST 到境内服务的 /api/ingest → 小程序 API 的数据源
-# 两路共用同一份数据与同一套模型代码，所以「页面数字 = API 数字」是架构保证，
-# 不是靠人工比对（验收 A3）。
+# 两次「瘦身」，都记在 decisions.md：
+#   · D-023（2026-09-22）：移除 `*/30` 的兜底采集。它的净产出是「每 30 分钟重新部署
+#     一次 Pages + 一次被服务端按 stale 忽略的 POST」，数据一个字都不动；它唯一
+#     不可替代的职责（发现「本机没在跑」）改由页面自己承担。
+#   · D-025（2026-09-22）：移除 `push: paths: data/**` 与 ingest 转发。页面改为
+#     请求时实时渲染之后，数据变化重建页面这件事就**没有任何产出**了 —— 页面本来
+#     就是新的，重建只是烧 CI 分钟数；而推送数据也已由本机直连后端，不必绕一圈 CI。
+#     ⚠ 下面 paths 里那两个 `!` 排除是这条决定的**必要条件**：本机采集后提交的
+#       miniprogram/data/snapshot.js 与 miniprogram/utils/scene.js 都是构建产物，
+#       不排除的话采集一次就触发一次重建，等于把 D-025 悄悄撤回。
 on:
-  workflow_dispatch:          # 支持手动触发
+  workflow_dispatch:
   push:
-    # 本机采完数据推上来时触发：直接建页面、发 Pages。
-    # CI 自己用 GITHUB_TOKEN 推的提交不会触发新的运行，所以不存在循环。
     paths:
-      - 'data/**'
-      - 'miniprogram/data/**'
-      - 'miniprogram/utils/scene.js'
+      - 'src/**'
+      - 'scripts/**'
+      - 'server/**'
+      - 'miniprogram/**'
+      - '!miniprogram/data/**'          # 构建产物（本机采集后提交），非源码
+      - '!miniprogram/utils/scene.js'   # 同上，由 build.mjs 从 src/lib/scene.js 同步
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/collect.yml'
 
 permissions:
-  contents: write             # 提交采集数据
+  contents: read              # 只读就够：本工作流不再提交任何东西
   pages: write                # 发布 Pages
   id-token: write             # deploy-pages 需要
 
-# 不让两轮并行：后一轮的产物会覆盖前一轮，且会抢同一个 git 引用
+# 不让两轮并行：后一轮的产物会覆盖前一轮
 concurrency:
   group: collect
   cancel-in-progress: false
@@ -82,7 +94,7 @@ jobs:
 
       - name: 构建页面
         env:
-          # og:url / og:image 要写成绝对地址，用对外分享的那个域名（境内镜像）。
+          # og:url / og:image 要写成绝对地址，用对外访问的那个域名。
           # 在仓库 Settings → Variables 配 SITE_URL；不配则构建会明确提示并跳过这两条 meta。
           SITE_URL: ${{ vars.SITE_URL }}
         run: node scripts/build.mjs
@@ -93,48 +105,14 @@ jobs:
         run: node scripts/check-consistency.mjs
 
       # dist/ 不进版本管理（见 AGENTS.md）：页面产物走下面的 artifact。
-      # 早先这里写的是 `git add data dist`，而 dist 被 .gitignore 排除，
-      # 那一行会让整个步骤直接失败 —— 已修正。
-      - name: 提交采集数据
-        # 身份用**环境变量**传，不写 `git config`。
-        # 那段 shell 曾被人在本机原样执行（排查问题用），后果是本仓库的 local 身份被改成
-        # github-actions[bot]、提交作者写错 —— 2026-09-22 真实发生过一次。环境变量只作用于
-        # 本 step 的 git 进程，谁在哪跑都改不到仓库配置，这个坑于是物理消失。
-        env:
-          GIT_AUTHOR_NAME: github-actions[bot]
-          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
-          GIT_COMMITTER_NAME: github-actions[bot]
-          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
-        run: |
-          # 刻意不含 miniprogram/data：它是构建产物，且内嵌了构建时刻
-          # （generatedAt / now，以及由 now 派生的全部预测值），于是**每次构建都不同**
-          # —— 哪怕数据一个字都没动，也照样产生一次提交。它由本机在采集后构建并提交
-          # （本机是主链路）；CI 这边只负责发布页面。
-          #
-          # ⚠ 提交判据是 scripts/data-changed.mjs，**不是** `git diff --staged --quiet`。
-          #   后者是字节级判据，而 data/ 下有一批字段每轮必然不同、却与「数据有没有变」
-          #   无关（stats.json 的 generated_at 与 stats.days_since_last、signal.json 的
-          #   generatedAt 与时间窗边界）。字节级判据把它们当成变化，于是刷新一轮就提交
-          #   一条 —— 而数据一个字都没动。翻统计：stats.json 的 20 次提交里 12 次是同一句
-          #   「实时采集失败：HTTP 403」，看起来像采集一直在坏。
-          #
-          #   脚本退出码：0 = 有实质变化（提交）；1 = 只有时间戳在动（跳过）。
-          #   脚本自己出错时返回 0 —— 漏提交等于数据丢档，宁可多提交一次。
-          #   git add 的范围必须与脚本里的 DEFAULT_PATHS 一致。
-          git add data miniprogram/utils/scene.js
-          if node scripts/data-changed.mjs; then
-            git commit -m "chore(data): 自动更新采集数据"
-            git push
-          else
-            echo "只有时间戳字段在动，数据没有实质变化 → 跳过提交"
-          fi
-
       - name: 上传页面产物
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
   # ------------------------------ 发布 Pages ------------------------------
+  # 定位是**异地备份入口**，不是主入口。主入口是后端那个域名（自带最新数据）。
+  # 保留它的理由：后端挂了 / 被墙了 / 域名出了问题时，还有一个能打开的页面。
   deploy:
     needs: refresh
     runs-on: ubuntu-latest
@@ -144,28 +122,3 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-
-  # ------------------------- 推送到境内服务 -------------------------
-  # 刻意独立成一个 job，而不是塞进 refresh：
-  # 境内服务不可达时，页面该发的还是要发（数据已经在 refresh 里提交了），
-  # 但这一步必须失败得明明白白 —— 否则就成了「页面是新的、API 是旧的」，
-  # 而这种静默不一致正是本架构最想避免的情况。
-  ingest:
-    needs: refresh
-    runs-on: ubuntu-latest
-    steps:
-      # refresh 已经 push 了最新数据，这里要拿的是那个提交而不是触发时的 SHA。
-      # 若 refresh 无变化跳过提交，分支 HEAD 本身就是最新的，同样正确。
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-
-      - name: 推送到境内服务
-        env:
-          INGEST_URL: ${{ secrets.INGEST_URL }}
-          INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
-        run: node scripts/push-ingest.mjs

@@ -2,12 +2,12 @@
 // 离线首屏数据快照：采集脚本 → 构建 → 小程序内置。
 export default {
   "schema": 1,
-  "generatedAt": "2026-09-22T20:07:04.596Z",
-  "dataUpdatedAt": "2026-09-22T20:06:32.485Z",
+  "generatedAt": "2026-09-23T01:25:00.929Z",
+  "dataUpdatedAt": "2026-09-23T01:23:07.216Z",
   "account": "thsottiaux",
   "chart": {
-    "now": 1790107624596,
-    "count": 53,
+    "now": 1790126700929,
+    "count": 54,
     "gapDays": [
       49.678206018518516,
       17.121145833333333,
@@ -60,7 +60,8 @@ export default {
       3.8630092592592593,
       1.0606018518518519,
       3.0538483912037035,
-      4.258559016203704
+      4.258559016203704,
+      10.42662037037037
     ],
     "sorted": [
       0.4963194444444444,
@@ -108,6 +109,7 @@ export default {
       8.978912037037038,
       9.905902777777778,
       9.982708333333333,
+      10.42662037037037,
       13.989027777777778,
       14.145277777777778,
       15.843229166666667,
@@ -116,16 +118,16 @@ export default {
       49.678206018518516,
       67.74240740740741
     ],
-    "mean": 6.92636774394587,
-    "median": 3.135060769675926,
+    "mean": 6.992410246331238,
+    "median": 3.216273148148148,
     "longest": 67.74240740740741,
     "shortest": 0.4963194444444444,
-    "sinceDays": 10.498467546296297,
-    "pct": 0.8653846153846154,
+    "sinceDays": 0.29263806712962964,
+    "pct": 0,
     "firstAt": "2025-09-17T04:02:52.000Z",
-    "lastAt": "2026-09-12T08:09:17.000Z",
-    "lastText": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG",
-    "creditCount": 3,
+    "lastAt": "2026-09-22T18:23:37.000Z",
+    "lastText": "GPT-6 Sol and Luna are out. Not only are they a very significant improvement across the board, but also in writing and general \"you know when you try it\" quality. \n\nWe are also permanently reducing the API price by 50% making both of them viable for a ton of new usecases and making your usage go further too, even on the subscriptions.\n\nAnd one more thing. We are loading a banked reset into all accounts of our Plus, Pro and Business users. Let's go!\n\nhttps://t.co/00DRh1sRrO",
+    "creditCount": 4,
     "records": [
       {
         "id": "1968163721034994139",
@@ -550,15 +552,23 @@ export default {
         "text": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG",
         "url": "https://x.com/thsottiaux/status/2098685367058612394",
         "attribution": "codex-resets.com"
+      },
+      {
+        "id": "2102463847714247142",
+        "at": "2026-09-22T18:23:37.000Z",
+        "type": "credit",
+        "text": "GPT-6 Sol and Luna are out. Not only are they a very significant improvement across the board, but also in writing and general \"you know when you try it\" quality. \n\nWe are also permanently reducing the API price by 50% making both of them viable for a ton of new usecases and making your usage go further too, even on the subscriptions.\n\nAnd one more thing. We are loading a banked reset into all accounts of our Plus, Pro and Business users. Let's go!\n\nhttps://t.co/00DRh1sRrO",
+        "url": "https://x.com/thsottiaux/status/2102463847714247142",
+        "attribution": "codex-resets.com"
       }
     ]
   },
   "prediction": {
-    "asOf": "2026-09-22T20:07:04.596Z",
-    "sinceDays": 10.498467546296297,
+    "asOf": "2026-09-23T01:25:00.929Z",
+    "sinceDays": 0.29263806712962964,
     "last": {
-      "at": "2026-09-12T08:09:17.000Z",
-      "text": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG"
+      "at": "2026-09-22T18:23:37.000Z",
+      "text": "GPT-6 Sol and Luna are out. Not only are they a very significant improvement across the board, but also in writing and general \"you know when you try it\" quality. \n\nWe are also permanently reducing the API price by 50% making both of them viable for a ton of new usecases and making your usage go further too, even on the subscriptions.\n\nAnd one more thing. We are loading a banked reset into all accounts of our Plus, Pro and Business users. Let's go!\n\nhttps://t.co/00DRh1sRrO"
     },
     "model": {
       "params": {
@@ -566,164 +576,164 @@ export default {
         "halfLifeDays": 45,
         "prior": 3
       },
-      "baseRate": 0.2503452582220816,
+      "baseRate": 0.2678149872418493,
       "nIntervals": 20,
       "nEvents": 19,
       "buckets": [
         {
           "from": 0,
           "to": 1,
-          "exposure": 12.081633323872158,
+          "exposure": 11.975393161144465,
           "events": 0,
-          "rate": 0.04979803967766927
+          "rate": 0.053651009564823084
         },
         {
           "from": 1,
           "to": 2,
-          "exposure": 10.136929072790192,
-          "events": 2.894182447457241,
-          "rate": 0.27747871682382974
+          "exposure": 9.755996091221462,
+          "events": 2.5275990790277647,
+          "rate": 0.26113554887694745
         },
         {
           "from": 2,
           "to": 3,
-          "exposure": 6.472820967398419,
-          "events": 3.90373252641605,
-          "rate": 0.49138142873195917
+          "exposure": 6.449742614774985,
+          "events": 3.8904788651783635,
+          "rate": 0.4967250451419498
         },
         {
           "from": 3,
           "to": 5,
-          "exposure": 6.62874239969638,
-          "events": 3.1760323737423213,
-          "rate": 0.4078485003952746
+          "exposure": 6.604032360158342,
+          "events": 3.1652493457360062,
+          "rate": 0.4132320840489257
         },
         {
           "from": 5,
           "to": 8,
-          "exposure": 6.176061078858593,
-          "events": 0.5001192294669904,
-          "rate": 0.13634989930656238
+          "exposure": 6.151785635037715,
+          "events": 0.4984212619958701,
+          "rate": 0.1422527007994165
         },
         {
           "from": 8,
           "to": 14,
-          "exposure": 2.7692144778343923,
-          "events": 0.6075667467895554,
-          "rate": 0.2354917687105616
+          "exposure": 2.6855345039497016,
+          "events": 1.6010065420768294,
+          "rate": 0.4229068528441823
         },
         {
           "from": 14,
           "to": 30,
           "exposure": 0,
           "events": 0,
-          "rate": 0.2503452582220816
+          "rate": 0.2678149872418493
         },
         {
           "from": 30,
           "to": null,
           "exposure": 0,
           "events": 0,
-          "rate": 0.2503452582220816
+          "rate": 0.2678149872418493
         }
       ]
     },
     "prediction": {
-      "sinceDays": 10.498467546296297,
+      "sinceDays": 0.29263806712962964,
       "horizons": [
         {
           "h": 1,
           "label": "24 小时内",
-          "p": 0.20981783279983246
+          "p": 0.10807112319836121
         },
         {
           "h": 3,
           "label": "3 天内",
-          "p": 0.5066198496968947
+          "p": 0.600179152797556
         },
         {
           "h": 7,
           "label": "7 天内",
-          "p": 0.8173907823307982
+          "p": 0.8574994473375133
         },
         {
           "h": 14,
           "label": "14 天内",
-          "p": 0.9683438754218339
+          "p": 0.9905793154541291
         },
         {
           "h": 30,
           "label": "30 天内",
-          "p": 0.9994233919265789
+          "p": 0.9998702482202814
         }
       ],
-      "expectedRemaining": 3.3320956918112654,
-      "median": 2.943403008756026,
-      "q25": 0.41784543361044213,
-      "q75": 4.941505731599241,
-      "q90": 8.601613929300001,
-      "dailyRate": 0.2354917687105616,
-      "q50": 2.139625818242543
+      "expectedRemaining": 3.216329674616448,
+      "median": 2.5006799942621942,
+      "q25": 1.3394337154614324,
+      "q75": 3.8120432671645736,
+      "q90": 7.982649791075618,
+      "dailyRate": 0.11436888410840482,
+      "q50": 2.1764231892688843
     },
     "rawPrediction": {
-      "q50": 2.943403008756026,
-      "q90": 9.405391119813483,
-      "expectedRemaining": 4.135872882324748,
+      "q50": 2.5006799942621942,
+      "q90": 8.306906596068927,
+      "expectedRemaining": 3.540586479609758,
       "horizons": [
         {
           "h": 1,
           "label": "24 小时内",
-          "p": 0.20981783279983246
+          "p": 0.10807112319836121
         },
         {
           "h": 3,
           "label": "3 天内",
-          "p": 0.5066198496968947
+          "p": 0.600179152797556
         },
         {
           "h": 7,
           "label": "7 天内",
-          "p": 0.8173907823307982
+          "p": 0.8574994473375133
         },
         {
           "h": 14,
           "label": "14 天内",
-          "p": 0.9683438754218339
+          "p": 0.9905793154541291
         },
         {
           "h": 30,
           "label": "30 天内",
-          "p": 0.9994233919265789
+          "p": 0.9998702482202814
         }
       ]
     },
     "calibration": {
-      "shift": -0.8037771905134828,
+      "shift": -0.3242568049933099,
       "n": 120,
       "cov50": 0.5,
-      "cov80": 0.8666666666666667,
-      "cov90": 0.9666666666666667,
-      "shiftUncalibratedBias": -0.6046573230387262,
-      "applied": -0.8037771905134828
+      "cov80": 0.7916666666666666,
+      "cov90": 0.9083333333333333,
+      "shiftUncalibratedBias": 0.47231163900674933,
+      "applied": -0.3242568049933099
     },
     "skill": {
-      "brier": 0.20954700774582397,
-      "baseline": 0.20480607524118083,
-      "score": -0.023148397815153654,
-      "n": 338
+      "brier": 0.21268792176200063,
+      "baseline": 0.20698925743553528,
+      "score": -0.027531208126780005,
+      "n": 358
     },
     "uncertainty": {
       "target": 7,
       "iterations": 400,
       "p": {
-        "lo": 0.5392287645118456,
-        "mid": 0.683588852704629,
-        "hi": 0.7943270821753132
+        "lo": 0.6201951492883552,
+        "mid": 0.8253535650965602,
+        "hi": 0.9403169715984109
       },
       "medianDays": {
-        "lo": 2.680584693034411,
-        "mid": 4.566693959383217,
-        "hi": 6.462546572982378
+        "lo": 1.7667508541925976,
+        "mid": 2.550444013035486,
+        "hi": 4.068369689446667
       }
     },
     "phases": [
@@ -745,22 +755,22 @@ export default {
       },
       {
         "from": "2026-07-25T19:17:12.000Z",
-        "to": "2026-09-12T08:09:17.000Z",
-        "n": 16,
-        "mean": 3.0335105613425926,
+        "to": "2026-09-22T18:23:37.000Z",
+        "n": 17,
+        "mean": 3.4683993736383445,
         "median": 2.3279050925925926,
-        "max": 8.445625
+        "max": 10.42662037037037
       }
     ],
     "warnings": []
   },
   "signals": {
     "level": "explicit",
-    "generatedAt": "2026-09-22T20:07:04.596Z",
-    "checkedTweets": 81,
+    "generatedAt": "2026-09-23T01:25:00.929Z",
+    "checkedTweets": 86,
     "lookbackDays": 60,
-    "windowFrom": "2026-07-24T20:07:04.596Z",
-    "windowTo": "2026-09-22T20:07:04.596Z",
+    "windowFrom": "2026-07-25T01:25:00.929Z",
+    "windowTo": "2026-09-23T01:25:00.929Z",
     "sourceZone": "America/Los_Angeles",
     "sourceZoneLabel": "太平洋时间",
     "userZone": "Asia/Shanghai",
@@ -770,8 +780,8 @@ export default {
         "zone": "Asia/Shanghai",
         "date": "2026.09.23",
         "weekday": "周三",
-        "time": "04:07",
-        "text": "2026.09.23（周三）04:07",
+        "time": "09:25",
+        "text": "2026.09.23（周三）09:25",
         "offset": "UTC+8"
       },
       "b": {
@@ -779,27 +789,27 @@ export default {
         "zone": "America/Los_Angeles",
         "date": "2026.09.22",
         "weekday": "周二",
-        "time": "13:07",
-        "text": "2026.09.22（周二）13:07",
+        "time": "18:25",
+        "text": "2026.09.22（周二）18:25",
         "offset": "UTC-7"
       },
       "diffHours": 15,
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
     "latest": {
-      "id": "2102484207163584745",
+      "id": "2102509629536346422",
       "account": "thsottiaux",
-      "text": "u2!",
-      "createdAt": "2026-09-22T19:44:31.000Z",
-      "url": "https://x.com/thsottiaux/status/2102484207163584745",
+      "text": "Interesting results!",
+      "createdAt": "2026-09-22T21:25:33.000Z",
+      "url": "https://x.com/thsottiaux/status/2102509629536346422",
       "reasons": [
-        "上下文：回复 @amorriscode「congrats on the launch!…」"
+        "上下文：回复 @PawelHuryn「So I tested Opus 5.5 (max) on real w…」"
       ],
       "viaContext": false,
       "inReplyTo": {
-        "account": "amorriscode",
+        "account": "PawelHuryn",
         "id": "",
-        "text": "congrats on the launch!"
+        "text": "So I tested Opus 5.5 (max) on real work. 2 repos. 105 planted bugs. Find and fix what you can. The results: GPT-6 Astra (max): 45 for $33.03 (n=3) Fable 5.1 (max): 43 for $77.55 Opus 5.5 (max): 43 for $60.49 Opus 5.0 (max): 27 for $51.33 Muse Spark 1.3 (max): 32.2 for $18.11"
       },
       "createdZones": {
         "a": {
@@ -807,8 +817,8 @@ export default {
           "zone": "Asia/Shanghai",
           "date": "2026.09.23",
           "weekday": "周三",
-          "time": "03:44",
-          "text": "2026.09.23（周三）03:44",
+          "time": "05:25",
+          "text": "2026.09.23（周三）05:25",
           "offset": "UTC+8"
         },
         "b": {
@@ -816,8 +826,8 @@ export default {
           "zone": "America/Los_Angeles",
           "date": "2026.09.22",
           "weekday": "周二",
-          "time": "12:44",
-          "text": "2026.09.22（周二）12:44",
+          "time": "14:25",
+          "text": "2026.09.22（周二）14:25",
           "offset": "UTC-7"
         },
         "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -1005,9 +1015,51 @@ export default {
     ],
     "occurred": [
       {
+        "id": "2102463847714247142",
+        "account": "thsottiaux",
+        "text": "GPT-6 Sol and Luna are out. Not only are they a very significant improvement across the board, but also in writing and general \"you know when you try it\" quality. We are also permanently reducing the API price by 50% making both of them viable for a ton of new usecases and making your usage go further too, even on the subscriptions. And one more thing. We are loading a banked reset into all accounts of our Plus, Pro and Business users. Let's go! https://t.co/00DRh1sRrO",
+        "createdAt": "2026-09-22T18:23:37.000Z",
+        "url": "https://x.com/thsottiaux/status/2102463847714247142",
+        "reasons": [
+          "命中重置词 reset",
+          "命中额度词 limits/usage/credits",
+          "命中「新额度」类词 fresh/new/top up",
+          "命中「A/the reset」名词化陈述"
+        ],
+        "viaContext": false,
+        "inReplyTo": null,
+        "createdZones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.09.23",
+            "weekday": "周三",
+            "time": "02:23",
+            "text": "2026.09.23（周三）02:23",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "Tibo 当地时间",
+            "zone": "America/Los_Angeles",
+            "date": "2026.09.22",
+            "weekday": "周二",
+            "time": "11:23",
+            "text": "2026.09.22（周二）11:23",
+            "offset": "UTC-7"
+          },
+          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+        },
+        "level": "occurred",
+        "rejected": null,
+        "intent": 6,
+        "occurredAt": "2026-09-22T18:23:37.000Z",
+        "window": null,
+        "confidence": 0.86
+      },
+      {
         "id": "2098685367058612394",
         "account": "thsottiaux",
-        "text": "Reset all propagated. Sweet dreams.",
+        "text": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG",
         "createdAt": "2026-09-12T08:09:17.000Z",
         "url": "https://x.com/thsottiaux/status/2098685367058612394",
         "reasons": [
@@ -1818,29 +1870,29 @@ export default {
       }
     ],
     "counts": {
-      "scanned": 81,
+      "scanned": 86,
       "explicit": 2,
-      "occurred": 2,
+      "occurred": 3,
       "hint": 9,
-      "none": 68,
-      "rejected": 68
+      "none": 72,
+      "rejected": 72
     },
     "truncated": false
   },
   "stats": {
-    "total": 53,
+    "total": 54,
     "first_at": "2025-09-17T04:02:52.000Z",
-    "last_at": "2026-09-12T08:09:17.000Z",
-    "last_text": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG",
-    "days_since_last": 10.498095138888889,
-    "avg_interval_days": 6.926367743945869,
+    "last_at": "2026-09-22T18:23:37.000Z",
+    "last_text": "GPT-6 Sol and Luna are out. Not only are they a very significant improvement across the board, but also in writing and general \"you know when you try it\" quality. \n\nWe are also permanently reducing the API price by 50% making both of them viable for a ton of new usecases and making your usage go further too, even on the subscriptions.\n\nAnd one more thing. We are loading a banked reset into all accounts of our Plus, Pro and Business users. Let's go!\n\nhttps://t.co/00DRh1sRrO",
+    "days_since_last": 0.2913204398148148,
+    "avg_interval_days": 6.992410246331237,
     "median_interval_days": 3.216273148148148,
-    "sd_interval_days": 11.40364106280428,
+    "sd_interval_days": 11.30558230493897,
     "longest_wait_days": 67.74240740740741,
     "shortest_wait_days": 0.4963194444444444,
-    "credit_count": 3,
+    "credit_count": 4,
     "reset_count": 50,
-    "hit_within_avg": 0.6923076923076923
+    "hit_within_avg": 0.6792452830188679
   },
   "collectErrors": []
 };

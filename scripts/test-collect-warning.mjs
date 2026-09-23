@@ -34,7 +34,7 @@ import {
   renderFreshness,
   LOCAL_COLLECT_INTERVAL_MINUTES,
   STALE_AFTER_MINUTES,
-} from './render.mjs';
+} from '../src/lib/render.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -208,65 +208,73 @@ check(
 );
 
 // 行为断言挡不住「两个常量各自写死成恰好 2 倍」，所以再锁一次推导关系本身。
-const renderSrc = await readFile(resolve(ROOT, 'scripts/render.mjs'), 'utf8');
+const renderSrc = await readFile(resolve(ROOT, 'src/lib/render.mjs'), 'utf8');
 check(
   '阈值在源码里是**引用**周期算出来的，不是字面量（否则「改一处」会退化成两处）',
   /STALE_AFTER_MINUTES\s*=\s*LOCAL_COLLECT_INTERVAL_MINUTES\b/.test(renderSrc)
 );
 
-/* ==================== 7. workflow：CI 不再采集 ==================== */
+/* ==================== 7. workflow：CI 不再采集，也不再碰数据 ==================== */
 
-section('发布链：CI 不采集，但提交判据仍不是字节级');
+section('发布链：CI 只在代码变更时构建，数据更新不触发它');
 
 const yml = await readFile(resolve(ROOT, '.github/workflows/collect.yml'), 'utf8');
+// 所有断言都先剥掉纯注释行：注释里**刻意**写着这些被禁掉的写法（用来说明为什么禁），
+// 不剥掉就等于把「解释为什么禁止」断言成违规。
+const ymlCode = yml.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
 
 check(
   'CI 里不再有任何采集（collect.mjs 不该出现在 workflow 里）',
-  !/collect\.mjs/.test(yml),
+  !/collect\.mjs/.test(ymlCode),
   '出现即说明「CI 不采集」这条被改回去了 —— 而 runner 必被 Cloudflare 403'
 );
 check(
   '定时器已移除（不再是「每 30 分钟空转一轮」）',
-  !/^\s*schedule:/m.test(yml) && !/cron:/.test(yml)
+  !/^\s*schedule:/m.test(ymlCode) && !/cron:/.test(ymlCode)
+);
+check('按运行时不再出现 --max-age（那套阈值只在 CI 采集时才有意义）', !/--max-age/.test(ymlCode));
+check('手动触发仍在（Pages 需要重发时用）', /^\s*workflow_dispatch:/m.test(ymlCode));
+
+// 下面几条合起来构成 D-025 的核心：数据由本机直推后端，**CI 与数据彻底解耦**。
+// 这里最容易出的错是「只排除了 data/**、漏掉构建产物」—— 本机采集后会把
+// miniprogram/data/snapshot.js 与 miniprogram/utils/scene.js 一起提交，
+// 漏掉任何一个，都等于「每采一次触发一次重建」，整个决定被悄悄撤回。
+const pathLines = [...ymlCode.matchAll(/^\s*- '([^']+)'/gm)].map((m) => m[1]);
+
+check(
+  'push 触发不再盯着 data/**（数据更新不该触发构建）',
+  !pathLines.some((p) => p === 'data' || p.startsWith('data/')),
+  `paths 里出现 data 就等于把「数据变化触发构建」改回来了：${pathLines.join(' ')}`
 );
 check(
-  '按运行时不再出现 --max-age（那套阈值只在 CI 采集时才有意义）',
-  !/--max-age/.test(yml)
+  'push 触发排除了构建产物 miniprogram/data/** 与 utils/scene.js',
+  pathLines.includes('!miniprogram/data/**') && pathLines.includes('!miniprogram/utils/scene.js'),
+  `当前 paths：${pathLines.join(' ')}`
 );
 check(
-  'push 触发仍在，且盯着 data/（本机采完推上来就走这条路）',
-  /^\s*push:/m.test(yml) && /'data\/\*\*'/.test(yml)
+  'CI 不再转发数据（没有任何 ingest 相关代码）',
+  !/ingest/i.test(ymlCode),
+  '数据改由本机 scripts/push-ingest.mjs 直推；CI 再转发就多一条会断的链'
 );
-check('手动触发仍在（Pages 需要重发时用）', /^\s*workflow_dispatch:/m.test(yml));
+check(
+  'CI 不再提交任何东西（没有 git add / commit / push）',
+  !/git\s+(add|commit|push)/.test(ymlCode),
+  '本机才是数据的提交方；CI 一提交就回到「每轮一条垃圾提交」'
+);
+check(
+  'workflow 权限收到只读（contents: read）',
+  /contents:\s*read/.test(ymlCode),
+  '既然不再提交，就不该留着写权限'
+);
 
 // job 里的 step 缩进是 6 空格。按它切分再按 name 定位。
-const steps = yml.split(/\n(?= {6}- )/).filter((s) => /^ {6}- /.test(s));
-const stepOf = (name) => steps.find((s) => s.startsWith(`      - name: ${name}\n`)) ?? null;
+const steps = ymlCode.split(/\n(?= {6}- )/).filter((s) => /^ {6}- /.test(s));
 
-const buildStep = stepOf('构建页面');
-const commitStep = stepOf('提交采集数据');
-// 提交那段 run 块的注释里**刻意**提到了 `git config` 与 `git diff --staged`
-// （用来说明为什么不用它们），所以判据要先把以 # 开头的行去掉 ——
-// 否则那些「解释为什么禁止」的说明反而会把自己断言成违规。
-const commitBody = commitStep
-  ? commitStep
-      .split('\n')
-      .filter((l) => !/^\s*#/.test(l))
-      .join('\n')
-  : '';
-
+const buildStep = steps.find((s) => s.startsWith('      - name: 构建页面\n')) ?? null;
 check('「构建页面」step 存在且只跑 build', !!buildStep && /node scripts\/build\.mjs/.test(buildStep));
 check(
   '「构建页面」step 仍把 SITE_URL 传进去',
   !!buildStep && /SITE_URL:\s*\$\{\{\s*vars\.SITE_URL\s*\}\}/.test(buildStep)
-);
-check(
-  '提交判据仍是 scripts/data-changed.mjs（字节级判据会把时间戳当变化）',
-  !!commitStep && /data-changed\.mjs/.test(commitBody) && !/diff --staged/.test(commitBody)
-);
-check(
-  '提交用的 git 身份走环境变量，不再写 `git config`（本机原样跑会改仓库身份）',
-  !!commitStep && /GIT_AUTHOR_NAME/.test(commitBody) && !/git config/.test(commitBody)
 );
 check(
   '没有 step 把采集与构建塞进同一个 run 块',

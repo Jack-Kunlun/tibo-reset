@@ -1,6 +1,89 @@
 {
   "tweets": [
     {
+      "id": "2102509629536346422",
+      "text": "Interesting results!",
+      "created_at": "2026-09-22T21:25:33.000Z",
+      "url": "https://x.com/thsottiaux/status/2102509629536346422",
+      "inReplyTo": {
+        "account": "PawelHuryn",
+        "id": "",
+        "text": "So I tested Opus 5.5 (max) on real work. 2 repos. 105 planted bugs. Find and fix what you can. The results: GPT-6 Astra (max): 45 for $33.03 (n=3) Fable 5.1 (max): 43 for $77.55 Opus 5.5 (max): 43 for $60.49 Opus 5.0 (max): 27 for $51.33 Muse Spark 1.3 (max): 32.2 for $18.11",
+        "created_at": "2026-09-22T19:24:54.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-23T01:18:01.554Z"
+    },
+    {
+      "id": "2102509507415048245",
+      "text": "Maybe our cutest launch so far. But still packing the biggest punch.",
+      "created_at": "2026-09-22T21:25:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2102509507415048245",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-23T01:18:01.554Z"
+    },
+    {
+      "id": "2102501670647472147",
+      "text": "No benchmaxxing here, just a better model all around.",
+      "created_at": "2026-09-22T20:53:55.000Z",
+      "url": "https://x.com/thsottiaux/status/2102501670647472147",
+      "inReplyTo": {
+        "account": "weswinder",
+        "id": "",
+        "text": "gpt-6 sol is worse than gpt-5.6 sol on deepswe i get that it's cheaper but it's really weird having a new model that isn't better than the old model on every metric seems like they are trying to bury this benchmark",
+        "created_at": "2026-09-22T19:10:31.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-23T01:18:01.554Z"
+    },
+    {
+      "id": "2102501432884891720",
+      "text": "It’s a good day sir",
+      "created_at": "2026-09-22T20:52:58.000Z",
+      "url": "https://x.com/thsottiaux/status/2102501432884891720",
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "Opus 5.5, GPT-6 Sol and GPT-6 Luna all in a day?? Damn",
+        "created_at": "2026-09-22T18:28:59.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-23T01:18:01.554Z"
+    },
+    {
+      "id": "2102497184805720459",
+      "text": "It’s good to want it all",
+      "created_at": "2026-09-22T20:36:06.000Z",
+      "url": "https://x.com/thsottiaux/status/2102497184805720459",
+      "inReplyTo": {
+        "account": "viticci",
+        "id": "",
+        "text": "I want Grok Bot, but with GPT-6 models, and with Claude's taste, and with Muse's speed, and with GPT-Live voice is that too much to ask these days",
+        "created_at": "2026-09-22T18:20:53.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-23T01:18:01.554Z"
+    },
+    {
       "id": "2102484207163584745",
       "text": "u2!",
       "created_at": "2026-09-22T19:44:31.000Z",
@@ -74,14 +157,15 @@
     },
     {
       "id": "2102463847714247142",
-      "text": "GPT-6 Sol and Luna are out. Not only are they a very significant improvement across the board, but also in writing and general \"you know when you try it\" quality. We are also permanently reducing the API price by 50% making both of them viable for a ton of new usecases and",
+      "text": "GPT-6 Sol and Luna are out. Not only are they a very significant improvement across the board, but also in writing and general \"you know when you try it\" quality. We are also permanently reducing the API price by 50% making both of them viable for a ton of new usecases and making your usage go further too, even on the subscriptions. And one more thing. We are loading a banked reset into all accounts of our Plus, Pro and Business users. Let's go! https://t.co/00DRh1sRrO",
       "created_at": "2026-09-22T18:23:37.000Z",
       "url": "https://x.com/thsottiaux/status/2102463847714247142",
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-09-22T20:06:32.419Z"
+      "first_seen": "2026-09-22T20:06:32.419Z",
+      "text_full": true
     },
     {
       "id": "2102440619616682120",
@@ -1247,7 +1331,7 @@
     },
     {
       "id": "2098685367058612394",
-      "text": "Reset all propagated. Sweet dreams.",
+      "text": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG",
       "created_at": "2026-09-12T08:09:17.000Z",
       "url": "https://x.com/thsottiaux/status/2098685367058612394",
       "kind": "reset",
@@ -1255,7 +1339,8 @@
       "role": "post",
       "foundVia": "timeline-browser",
       "inReplyTo": null,
-      "first_seen": "2026-09-22T03:16:19.218Z"
+      "first_seen": "2026-09-22T03:16:19.218Z",
+      "text_full": true
     },
     {
       "id": "2098639827084480864",
@@ -1342,7 +1427,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-09-22T20:06:32.420Z",
+  "updated_at": "2026-09-23T01:23:07.086Z",
   "source": "browser",
   "coverage_since": "2026-09-11T08:09:17.000Z"
 }

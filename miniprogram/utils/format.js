@@ -28,10 +28,32 @@ export function beijingParts(ts) {
   };
 }
 
+/**
+ * 把「一个时刻的任意表示」收敛成时间戳；取不到就给 NaN。
+ *
+ * 存在的理由：数据层给的时刻是 **ISO 串**（`2026-07-25T02:15:29.011Z`，
+ * 原始值、可复核），端上要显示就得先解析。少了解析这一环、把串直接渲进
+ * 模板，页面上就会出现机器格式的时间 —— 实测在「静默态」那行发生过。
+ *
+ * 集中在这里而不是各处手写 `new Date(x).getTime()`：解析规则只该有一份。
+ */
+export function toTs(v) {
+  if (typeof v === 'number') return Number.isFinite(v) ? v : NaN;
+  if (typeof v !== 'string' || !v) return NaN;
+  const ts = Date.parse(v);
+  return Number.isFinite(ts) ? ts : NaN;
+}
+
 /** 2026.09.12 */
 export function fmtDate(ts) {
   const p = beijingParts(ts);
   return `${p.year}.${p.month}.${p.day}`;
+}
+
+/** 时刻（ISO 串或时间戳）→ 北京日期 `2026.09.12`；取不到给空串 */
+export function fmtDay(v) {
+  const ts = toTs(v);
+  return Number.isFinite(ts) ? fmtDate(ts) : '';
 }
 
 /** 2026.09.12 16:09 */

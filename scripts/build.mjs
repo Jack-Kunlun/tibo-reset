@@ -15,26 +15,12 @@ import { copyFile, readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { buildChartData } from '../src/lib/chart-data.js';
-import { predictAll } from '../src/lib/predict.mjs';
-import { detectSignals } from '../src/lib/signals.mjs';
+import { derive, logoDataUri, renderPage } from '../src/lib/page.mjs';
 import { buildOgImage } from './og-image.mjs';
-import { renderAll } from './render.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = async (p) => JSON.parse(await readFile(resolve(ROOT, p), 'utf8'));
 
-/**
- * 品牌标内联成 data URI。
- *
- * 为什么内联而不是让 HTML 引一个 logo.png：产物要能**单独拿走就成立**（本项目页面只有一个 HTML）。
- * 图标则相反 —— 浏览器是独立地、自主地发请求去取 favicon 的，内联不可靠（Safari 尤其），
- * 所以那两个 png 走独立文件。两者取舍不同，不是不一致。
- */
-async function logoDataUri() {
-  const buf = await readFile(resolve(ROOT, 'src/assets/logo-96.png'));
-  return `data:image/png;base64,${buf.toString('base64')}`;
-}
 const ACCOUNT = process.env.SOURCE_ACCOUNT ?? 'thsottiaux';
 const SCENE_HEADER =
   '/** ⚠ 本文件由 scripts/build.mjs 从 src/lib/scene.js 同步生成，请勿直接修改。 */\n';
@@ -64,14 +50,15 @@ function pickNow(raw) {
 
 if (process.env.BUILD_NOW) console.log(`▸ 构建时刻已固定为 ${new Date(now).toISOString()}（BUILD_NOW）`);
 
-const chartData = buildChartData(resets.records, now);
-if (!chartData) throw new Error('记录不足（至少需要 2 条带时间的记录），无法构建');
-
-const prediction = predictAll(resets.records, { now });
-const signals = detectSignals(tweets.tweets, { now, account: ACCOUNT });
-
-// 页面与卡片共用同一个 model，数字不可能对不上
-const model = { ...chartData, generatedAt: statsFile.generated_at ?? new Date(now).toISOString() };
+// 页面与卡片共用同一份派生值（同一份数据 + 同一个 now），数字不可能对不上。
+// derive 内部会校验记录条数，不足时抛错。
+const { chart: chartData, prediction, signals, model } = derive({
+  resets,
+  tweets,
+  statsFile,
+  now,
+  account: ACCOUNT,
+});
 
 /* -------------------------- F8 分享卡片 -------------------------- */
 
@@ -90,11 +77,17 @@ if (!og) {
 
 /* ---------------------------- 网页 ---------------------------- */
 
-const parts = renderAll(model, prediction, signals, {
+// 组装本身在 src/lib/page.mjs —— 后端请求时实时渲染走的是**同一个函数**，
+// 所以「构建产物 = 线上页面」是同一套代码的结果，不是两份实现对表对出来的。
+const html = renderPage({
+  template,
+  model,
+  prediction,
+  signals,
   og,
-  // 采集异常必须显示在页面上，不能只留在 CI 日志里 ——
-  // 发布链已改成「采集失败不阻断」（见 .github/workflows/collect.yml 的注释），
-  // 页面会在数据陈旧时照常上线，那就必须自己把这件事说出来。
+  // 采集异常必须显示在页面上，不能只留在日志里 ——
+  // 发布链是「采集失败不阻断」，页面会在数据陈旧时照常上线，
+  // 那就必须自己把这件事说出来。
   //
   // lastLiveAt 取 tweets.json 的 `updated_at`：它只在实时采集**成功**时才推进。
   // 不要换成 statsFile.generated_at —— 那个每轮都刷新，采集失败时记的是失败时刻。
@@ -103,22 +96,9 @@ const parts = renderAll(model, prediction, signals, {
     attemptedAt: statsFile.generated_at ?? null,
     lastLiveAt: tweets.updated_at ?? null,
   },
+  // 品牌标内联成 data URI，走与其他占位符同一套替换机制
+  logoUri: await logoDataUri(),
 });
-
-// 品牌标在构建期内联成 data URI，走与其他占位符同一套替换机制
-parts.LOGO_URI = await logoDataUri();
-
-// 用函数式替换：字符串形式的 replace 会把内容里的 $& / $1 当特殊序列处理
-let html = template;
-for (const [key, value] of Object.entries(parts)) {
-  const token = `<!--__${key.toUpperCase()}__-->`;
-  if (!html.includes(token)) throw new Error(`模板缺少占位符 ${token}`);
-  html = html.replace(token, () => value);
-}
-
-// 兜底：任何未替换的占位符都视为构建失败，避免静默产出空白页面
-const leftover = html.match(/<!--__[A-Z_]+__-->/g);
-if (leftover) throw new Error(`存在未替换的占位符：${leftover.join(', ')}`);
 
 await mkdir(resolve(ROOT, 'dist'), { recursive: true });
 await writeFile(resolve(ROOT, 'dist/index.html'), html, 'utf8');

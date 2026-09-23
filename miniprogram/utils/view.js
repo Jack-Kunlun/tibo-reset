@@ -7,7 +7,7 @@
  * 横幅长什么样」这种平时根本触发不到的路径。
  */
 
-import { fmtDate, fmtClock, pct1, trim1 } from './format.js';
+import { fmtDate, fmtClock, fmtDay, pct1, toTs, trim1 } from './format.js';
 
 const PRECISION_TEXT = {
   day: '全天',
@@ -81,7 +81,10 @@ export function buildSignal(sig) {
     show: false,
     checked: sig.checkedTweets,
     lookback: sig.lookbackDays,
-    windowFrom: sig.windowFrom || '',
+    // ⚠ 数据层给的是 ISO 串。**必须过一遍格式化** —— 直接透传的话，
+    // 页面上那行会显示成 `时间窗自 2026-07-25T02:15:29.011Z 起`：
+    // 机器格式、又长到把右对齐的副行顶出卡片。真机截图实测。
+    windowFrom: fmtDay(sig.windowFrom),
     hintCount: (sig.hints || []).length,
   };
 }
@@ -133,7 +136,8 @@ function forecastView(f) {
  * 以为这几条推文分量相等。正文截到 180 字，够看清说了什么，看全文点链接。
  */
 function evidenceView(e) {
-  const ts = e.createdAt ? new Date(e.createdAt).getTime() : NaN;
+  // 走 format.js 的统一定义（toTs 已内含「非数字 / 空串 → NaN」的处理）
+  const ts = toTs(e.createdAt);
   const when = Number.isFinite(ts) ? `${fmtDate(ts).slice(5)} ${fmtClock(ts)}` : '';
   return {
     id: e.id || '',
@@ -149,12 +153,45 @@ function evidenceView(e) {
   };
 }
 
+/**
+ * 窄屏上把「日期」与「时间」拆成两行。
+ *
+ * 为什么需要：北京时间那行的值实际是 `2026.09.22（周二）15:00 起` ——
+ * **整串只有一个空格**（在 `15:00` 后面），而 `.wrow .v` 是 `word-break: keep-all`
+ * （禁止汉字间断行，只在空格处断）。402pt 真机上整串放不下
+ * （实测约需 352rpx，可用宽度只有 313rpx），于是唯一的那个断点被用上，断成
+ *
+ *     2026.09.22（周二）15:00
+ *     起
+ *
+ * 「起」孤零零一行 —— 真机截图实测，不是推测。注意 `（周二）` 与 `15:00` 之间
+ * **没有空格**，所以「换个空格」那类修法在这儿根本无从下手。
+ *
+ * 与其去挤宽度（差 39rpx，挤到了也经不起字体渲染的细微差异），不如把断点
+ * **显式放到该在的位置**：
+ *
+ *     2026.09.22（周二）
+ *     15:00 起
+ *
+ * 判据只认「前面有内容 + 后面跟 HH:MM」这一种形态。没有时间的值
+ * （如 `2026.09.22（周二） 全天`）原样返回 —— 它本来就放得下。
+ * 已含换行的串原样返回，保证重复调用是幂等的。
+ */
+export function breakBeforeTime(s) {
+  if (typeof s !== 'string' || s.includes('\n')) return s;
+  const m = /^(.*?)(\d{1,2}:\d{2}.*)$/.exec(s);
+  if (!m || !m[1].trim()) return s;
+  return `${m[1].trimEnd()}\n${m[2]}`;
+}
+
 /** 窗口视图（预告与线索共用）。 */
 function windowView(w) {
   if (!w) return null;
   return {
-    sourceZone: w.sourceZone,
-    userZone: w.userZone,
+    // 两行都过一遍：窄屏上整串放不下时，把断点放到「日期 / 时间」之间，
+    // 而不是让它落在唯一的那个空格上、把尾词挤成孤字（`全天` 那行没有时间，不受影响）。
+    sourceZone: breakBeforeTime(w.sourceZone),
+    userZone: breakBeforeTime(w.userZone),
     srcOffset: (w.zones && w.zones.b && w.zones.b.offset) || '',
     usrOffset: (w.zones && w.zones.a && w.zones.a.offset) || '',
     diffText: (w.zones && w.zones.diffText) || '',
@@ -218,7 +255,7 @@ export function buildMetrics(chart) {
     { k: '平均间隔', v: chart.mean.toFixed(1), u: '天', note: '被极端值拉高' },
     { k: '中位间隔', v: chart.median.toFixed(1), u: '天', note: '一半情况比这更快', hi: true },
     { k: '最长等待', v: chart.longest.toFixed(1), u: '天', note: '极端长尾' },
-    { k: '记录总数', v: String(chart.count), note: `${fmtDate(new Date(chart.firstAt).getTime())} 起` },
+    { k: '记录总数', v: String(chart.count), note: `${fmtDay(chart.firstAt)} 起` },
     { k: '普通重置', v: String(chart.count - chart.creditCount), note: '额度直给' },
     { k: '发券型', v: String(chart.creditCount), note: '改成给券' },
   ];
@@ -302,8 +339,8 @@ export function buildForecast(pred) {
     },
     phases: pred.phases.map((ph, i) => ({
       i: i + 1,
-      from: fmtDate(new Date(ph.from).getTime()),
-      to: fmtDate(new Date(ph.to).getTime()),
+      from: fmtDay(ph.from),
+      to: fmtDay(ph.to),
       mean: ph.mean.toFixed(2),
       n: ph.n,
       max: ph.max.toFixed(0),

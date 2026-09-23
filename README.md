@@ -23,53 +23,61 @@
 ## 二、架构
 
 ```
-                    ┌─────────────────────────────────────┐
-   x.com/thsottiaux │  GitHub Actions（境外 runner）       │
-        │           │  scripts/collect.mjs                │
-        ▼           │        src/lib/collect.mjs          │
-   未登录 HTML       └──────────────┬──────────────────────┘
-   （内嵌 RSC 载荷）                 │ 解析 + 分类 + 合并
-        │                          ▼
-        └──► 正则抽取 ──────► data/resets.json
-                               data/tweets.json
-                               data/stats.json
-                                    │
-                                    ▼
-                        src/lib/predict.mjs
-                  分段常数风险模型 + 样本外平移校准
-                                    │
-                    ┌───────────────┴───────────────┐
-                    ▼                               ▼
-        scripts/build.mjs                  server/index.mjs
-    （构建期预渲染 + 出 OG 分享卡）          （HTTP API + 订阅通知）
-                    │                               ▲
-                    ▼                               │ POST /api/ingest
-          dist/index.html ────────────────────────► │
-        （单文件、无运行时依赖）                     │
-                    │                               ▼
-                    ▼                       小程序 / GET /api/state
-        GitHub Pages（作品集入口）
-        境内镜像（对外分享用这个域名）
+   x.com/thsottiaux ──► 本机（住宅出口）· 定时任务
+   （登录态 HTML，       └─ scripts/collect.mjs   采集 + 分类 + 识别信号
+     CDP 驱动登录态 Chrome）  ├─ POST /api/ingest   数据直推后端（页面立刻变新）
+                              └─ git push data/     推上仓库留档
+                                        │
+                                        ▼
+             ┌──────────────────────────────────────────────────┐
+             │  Docker 容器 · 境内云服务器                       │
+             │  reset.example.com（Nginx 反代 + TLS）       │
+             │                                                  │
+             │  server/index.mjs                                │
+             │    ├─ GET /            请求时用当前数据实时渲染网页 │
+             │    ├─ /api/*           预测 / 信号 / 图表 / 历史   │
+             │    └─ POST /api/ingest 接收本机推来的数据          │
+             │                                                  │
+             │  /app/data ← 挂载卷（唯一数据落点）                │
+             └──────────────────────────────────────────────────┘
+                       ▲                        ▲
+                       │ HTTPS                  │ HTTPS
+                 浏览器（主入口）           微信小程序
+
+   GitHub Actions（只有改代码才触发；既不采集也不推数据）
+     └─ build → dist/index.html（渲染失败时的兜底）+ og-image.png + Pages 异地备份
 ```
 
-采集只在**境外**发生一次，产物分两路走：git 提交供 GitHub Pages 构建，
-`POST /api/ingest` 供境内服务落盘。两路共用同一份数据与同一套模型代码 ——
-所以「页面上的数字 = API 返回的数字」是架构保证，不是靠人工比对（验收 A3）。
+采集只在**一处**发生一次（本机），产物分两路走：`POST /api/ingest` 供后端落盘、
+git 提交供仓库留档。两路共用同一份数据与同一套模型代码 —— 所以「页面上的数字 = API
+返回的数字」是架构保证，不是靠人工比对（验收 A3）。
 
-`x.com` 在境内不可直连（实测 3/3 超时），所以采集不能放在境内主机上跑；
-境内那份服务只负责读数据、算预测、出 API、发订阅通知。
+**网页不是构建产物。** 后端 `GET /` 读模板 + 当前 `data/` **在请求时现渲染**，调的是
+构建期**同一个** `src/lib/page.mjs`。所以数据一到、刷新即新，不需要重新构建，也不需要
+重启容器；CI 那条 `data/**` 触发因此被摘掉（D-025）。`dist/index.html` 只在渲染失败时
+兜底，GitHub Pages 退为异地备份入口（后端域名才是主入口）。
+
+**采集为什么不在 CI 上跑**：`x.com` 的 Cloudflare 拦的是**机房 IP 段**，不是「境外 IP」。
+实测同一时刻：本机住宅出口 200（213KB 完整页面，4/4 稳定），Actions runner 403 挑战页。
+所以采集由本机承担；后端只负责接收、落盘、预测、出页面与 API。
 
 ---
 
 ## 三、后端服务
 
+**它是网页与 API 的唯一提供方** —— 网页在请求时用当前数据实时渲染（D-025）。
+容器化部署见 [`docs/deploy.md`](./docs/deploy.md)。
+
 ```bash
-npm start                      # 默认 8787 端口，自动开始定时采集
+npm start                      # 默认 8787 端口：网页 + API（内置采集默认关闭）
 # 或
 PORT=9000 COLLECT_INTERVAL_MIN=15 ADMIN_TOKEN=secret node server/index.mjs
 ```
 
-零依赖，只用 `node:http`。因为没有依赖，部署到境外小机器时不会有安装失败风险。
+零依赖，只用 `node:http`。因为没有依赖，「拷源码 + 启动」就是全部部署步骤 ——
+没有 `npm install` 这一步，也就没有它带来的安装失败点与供应链面。
+（容器镜像里同样零依赖：`src/` 与 `dist/` 拷进去就能跑，渲染逻辑在 `src/lib/`，
+不依赖任何构建期包。）
 
 ### 环境变量
 
@@ -79,10 +87,11 @@ PORT=9000 COLLECT_INTERVAL_MIN=15 ADMIN_TOKEN=secret node server/index.mjs
 |---|---|---|
 | `PORT` | `8787` | 监听端口 |
 | `DATA_DIR` | `<repo>/data` | 数据目录 |
-| `COLLECT_INTERVAL_MIN` | `30` | 采集间隔（分钟）。设为 `0` 关闭内置调度，改由外部计划任务调用 `POST /api/refresh` |
+| `COLLECT_INTERVAL_MIN` | `0` | 采集间隔（分钟）。**默认关闭** —— 本服务跑在机房出口，采集必被 Cloudflare 挑战（见下文「部署位置」）。设成正数才会启动内置调度 |
 | `ADMIN_TOKEN` | 空 | 设置后 `POST /api/refresh` 需要 `Authorization: Bearer <token>` |
 | `INGEST_TOKEN` | 空 | 设置后 `POST /api/ingest` 需要 `Authorization: Bearer <token>`。**境内服务必须设**，否则任何人都能往数据目录写东西 |
 | `SOURCE_ACCOUNT` | `thsottiaux` | 被观测的 X 账号，换掉即可观测别的账号 |
+| `SITE_URL` | 空 | 对外访问地址（如 `https://reset.example.com`），用于页面里的 `og:url` / `og:image`。不配则不输出这两条 meta —— 宁可少两条，也不给分享平台一个抓不到的地址 |
 
 **F9 订阅消息**（四个都配齐才会启用，缺任一项则该功能静默关闭并在启动日志里说明）
 
@@ -101,12 +110,22 @@ PORT=9000 COLLECT_INTERVAL_MIN=15 ADMIN_TOKEN=secret node server/index.mjs
 | `SITE_URL` | 空 | `og:url` / `og:image` 的绝对地址前缀。**不配则这两条 meta 不输出**，分享卡片抓不到图（验收 A10 不成立） |
 | `BUILD_NOW` | 当前时间 | 固定「构建时刻」，ISO 串或毫秒时间戳。设了之后同一输入可逐字节复现 |
 
-**采集端**（GitHub Actions 侧）
+**CI 侧**（只构建产物 —— 既不采集也不推数据，见下文「部署位置」）
 
 | 变量 | 说明 |
 |---|---|
-| `INGEST_URL` | 境内服务的 ingest 地址，如 `https://api.example.com/api/ingest` |
-| `INGEST_TOKEN` | 与境内服务的 `INGEST_TOKEN` 一致 |
+| `SITE_URL` | 仓库 Variable。写进 `dist/index.html` 的 `og:url` / `og:image` |
+| ~~`INGEST_URL`~~ / ~~`INGEST_TOKEN`~~ | **已作废**（D-025）：数据改由本机直推后端，见下一张表 |
+
+**本机采集侧**（自动化任务用；`push-ingest.mjs` 读它把数据直推后端）
+
+| 变量 | 说明 |
+|---|---|
+| `INGEST_URL` | 后端的 ingest 地址，如 `https://reset.example.com/api/ingest` |
+| `INGEST_TOKEN` | 与后端容器的 `INGEST_TOKEN` 一致（同一个随机串） |
+
+⚠ 这两个**不在 CI 里**：凭据放在本机 `~/.tibo-ingest.env`（`chmod 600`），不进仓库。
+GitHub Secrets 里原先那两个同名项可以删掉。详见 `docs/deploy.md` 第四节。
 
 **测试脚本**
 
@@ -129,30 +148,36 @@ PORT=9000 COLLECT_INTERVAL_MIN=15 ADMIN_TOKEN=secret node server/index.mjs
 | `GET /api/stats` | 统计 + 采集错误明细 |
 | `GET /api/health` | 存活 + 调度器状态（上次运行、下次运行、连续失败次数） |
 | `POST /api/refresh` | 立即触发一次采集（受 `ADMIN_TOKEN` 保护） |
-| `POST /api/ingest` | 接收境外 Actions 推来的数据并落盘（受 `INGEST_TOKEN` 保护） |
+| `POST /api/ingest` | 接收本机推来的数据并落盘（受 `INGEST_TOKEN` 保护）。数据源是**本机**的采集任务 |
 | `POST /api/subscribe` | F9：用工信 `code` 换 `openid` 并登记订阅 |
 | `POST /api/unsubscribe` | F9：退订 |
 
-### 部署位置是硬约束（已实测）
+> 网页（`GET /`）虽是端点，但不在上表：它在请求时用当前 `data/` 实时渲染整个页面，
+> 不是一份读出来的静态文件。
 
-**x.com 在中国境内无法直连。** 实测（广州，连续 3 次探测）：x.com 全部超时失败
-（`http=000`，各 15.5s），同期 github.com、codex-resets.com 均可达。所以采集**不能**在国内主机上跑。
+### 部署
 
-两条可行路径：
+**完整步骤（docker + Nginx + 证书 + 校验清单 + 排障）见 [`docs/deploy.md`](./docs/deploy.md)。**
 
-| 方案 | 做法 | 成本 |
-|---|---|---|
-| **A. GitHub Actions + 静态托管**（推荐） | 用 `.github/workflows/collect.yml` 重建页面并发布到 GitHub Pages 或任意静态托管。**它不采集** —— 采集由本机定时任务完成（见下），采完推上来即触发构建 | 免费、免备案 |
-| **B. 境外单机** | `docker build` 后跑 `server/index.mjs`，内置调度器负责采集，顺带提供 API | 一台最小境外 VPS |
+要点四条：
 
-如果坚持把服务放在境内：把 `COLLECT_INTERVAL_MIN=0` 关掉内置调度，
-采集交给本机定时任务，本服务只读数据、算预测、出 API。
+1. **镜像在【本机】构建好、传过去；服务器只 `docker load`** —— 服务器上不要 git、不要
+   node、不要 npm，也不需要在境内网络里拉 Docker Hub。出镜像用 `scripts/ship-image.sh`，
+   它默认 `--platform linux/amd64`：本机是 Apple Silicon（arm64）、服务器是 x86_64，
+   而架构错了的报错只有 `exec format error`，**一个字都不提「架构」**。
+2. **服务必须放在境内**（云服务器 / 容器平台）：小程序的 `request` 合法域名必须已 ICP 备案，
+   而境外域名备不了案 —— 这是微信侧的硬要求，它单独就决定了服务只能落在境内。
+3. **不要给服务开启内置采集** —— `COLLECT_INTERVAL_MIN` 保持默认的 `0`。云机房出口属
+   **机房 IP 段**，而 x.com 的 Cloudflare 拦的正是机房 IP 段：实测同一时刻 runner 403
+   挑战页（5,749 字节），本机住宅出口 200（213KB 完整页面，4/4 稳定）。
+   采集交给**本机**的定时任务，采完直接 POST 到 `/api/ingest`。详见 `docs/data-source.md`。
+4. **数据目录必须挂卷**（`/app/data`）。它是唯一的数据落点，不挂卷的话容器一重启就退回
+   镜像里那份初始快照。容器启动脚本会在卷为空时自动填入种子数据，所以「直接 run」就可用。
 
-⚠ **为什么 CI 不能采集**：x.com 的 Cloudflare 拦的是**机房 IP 段**，runner 必然 403
-（同一时刻本机住宅出口是 200）。所以采集放在本机跑，CI 只负责构建与分发。详见 `docs/data-source.md`。
 
 > 采集失败不会污染数据：服务会保留上一份数据、把错误写进 `stats.json` 的 `errors`
-> 并通过 `/api/state`、`/api/health` 暴露出来。实测过一次超时失败，历史记录完好无损。
+> 并通过 `/api/state`、`/api/health` 暴露出来，页面上也会显形。实测过一次超时失败，
+> 历史记录完好无损。
 
 ---
 
@@ -256,8 +281,12 @@ halfLifeDays = 45        # 且更近的样本再获得额外指数权重
 
 | 来源 | 用途 | 说明 |
 |---|---|---|
-| `x.com/thsottiaux` 未登录页面 | **主链路** | 免登录、免 API Key、零成本。页面内嵌的 RSC 载荷里含推文正文与时间戳 |
-| `codex-resets.com/api/v1/resets` | 历史回填 | 仅冷启动用一次，记录内标注 `attribution` |
+| `x.com/thsottiaux` **登录态浏览器**（CDP 驱动） | **主链路** | 免登录、免 API Key、零成本。页面内嵌的 RSC 载荷里含推文正文与时间戳 |
+| 同上的**免登录** HTML | 降级兜底 | 只覆盖最近约 7 条，会漏掉上一次重置。降级这件事写进 `tweets.json` 的 `source` / `degraded`，不假装正常 |
+| `codex-resets.com/api/v1/resets` | 历史记录 | **每轮刷新并按 id 合并**（本地是缓存、上游是权威），记录内标注 `attribution`；同时用它的**完整正文**回填被 X 页面截断的长推文（见 `docs/data-source.md` §4.7） |
+
+⚠ 主链路的**已知边界**：X 对长推文只渲染前约 280 字符，采集拿到的正文天然只有前半段 ——
+而重置的宣告常在长公告的**最后一句**。补法见上表第三行。
 
 X 官方 API 的 Basic 档要 $200/月，因此自建采集是整个项目能零成本运行的前提。
 
@@ -271,14 +300,19 @@ src/lib/predict.mjs       风险模型、回测、覆盖率检验、校准、boo
 src/lib/signals.mjs       重置信号识别（明确 / 线索 / 无）
 src/lib/chart-data.js     从记录构建统一的图表数据（双端共用）
 src/lib/scene.js          图元几何（双端共用，无渲染目标依赖）
+src/lib/render.mjs        渲染层：数据 → HTML 片段（构建期与后端**共用同一套**）
+src/lib/svg.mjs           图元 → SVG 序列化（render.mjs 的依赖，零依赖纯函数）
+src/lib/page.mjs          页面组装：derive / renderPage / injectTokens / logoDataUri
 src/index.html            页面模板（含 <!--__XXX__--> 占位符）
 
 scripts/collect.mjs       CLI：采集 + 落盘
-scripts/build.mjs         构建期预渲染 → dist/index.html（含 OG 卡与数据摘要）
-scripts/render.mjs        所有渲染逻辑（在 Node 里跑，不在浏览器里）
+scripts/build.mjs         构建产物 → dist/（兜底页面 + OG 卡 + 小程序快照）
 scripts/og-image.mjs      F8：SVG → 1200×630 PNG（@resvg/resvg-js）
 scripts/diagnose.mjs      模型诊断：配置对比 / 覆盖率 / 校准曲线 / 分阶段
 scripts/push-ingest.mjs   把采集结果 POST 到境内服务（Actions 侧调用）
+
+scripts/ship-image.sh        出镜像：构建 → tar.gz + sha256 →（可选）scp 到服务器
+scripts/fetch-base-image.sh  本机拉不到 Docker Hub 时，把目标架构的基础镜像搬进本地
 
 server/index.mjs          HTTP 服务 + 路由 + 鉴权
 server/scheduler.mjs      定时采集调度（防重叠、失败退避、状态暴露）
@@ -287,13 +321,15 @@ server/ingest.mjs         POST /api/ingest：落盘后再异步发通知
 server/subscribe.mjs      F9：订阅名单持久化 + 「有新重置」判定
 server/wechat.mjs         F9：access_token / code 换 openid / 发订阅消息
 
-scripts/test-*.mjs        测试套件（signals / shared / miniprogram / ingest / og / subscribe）
+scripts/test-*.mjs        测试套件（signals / parse / shared / miniprogram / ingest / og /
+                          subscribe / collect-warning / data-changed / secrets / ship / history）
 scripts/check-consistency.mjs  A3：页面数字 ↔ API
 scripts/check-layout.mjs       A7：窄屏横向溢出
 scripts/acceptance.mjs         A1–A10 验收编排器
 
 docs/PRD.md               需求基线（功能范围、验收标准、里程碑、评审记录）
 docs/tech-selection.md    技术选型与部署清单
+docs/deploy.md            部署步骤（docker + Nginx + 证书）与排障
 docs/acceptance.md        M3 验收记录（脚本生成）
 docs/decisions.md         已定的技术决策
 docs/known-issues.md      已知问题
@@ -318,7 +354,7 @@ docs/miniprogram.md       小程序上手与截图终检
 
 ```bash
 npm ci                     # 装唯一的构建期依赖（@resvg/resvg-js）
-npm run collect            # 采集（原创 + 回复两条流；默认增量，首次加 --bootstrap 做历史回填）
+npm run collect            # 采集（原创 + 回复两条流；默认增量。历史记录每轮自动刷新，无需 --bootstrap）
 npm run collect -- --full   # 强制全量重扫，用来补增量漏掉的洞
 npm run collect -- --no-replies  # 只收原创流（排查用）
 npm run build              # 构建 dist/index.html + dist/og-image.png + 两个图标
@@ -342,7 +378,7 @@ npm test                   # 440 项纯函数回归（识别词表、钟点解�
 构建与验收：
 
 ```bash
-npm run check                                  # 6 个测试套件 + 构建 + A3 一致性
+npm run check                                  # 12 个测试套件 + 构建 + A3 一致性
 SITE_URL=https://<你的域名> npm run accept       # A1–A10 全量验收（会先自动重建 dist）
 SITE_URL=https://<你的域名> npm run accept -- --write   # 顺带写 docs/acceptance.md
 ```

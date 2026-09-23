@@ -45,8 +45,10 @@ function makeWx(record) {
   return {
     request(opts) {
       record.requestCount++;
-      // 默认禁用联网：走到这里说明逻辑有问题。
-      // F9 那组用例会用 record.onRequest 临时接管，测完再恢复。
+      // 记下「第一次发请求时已经渲染过几次」—— 用来证明首屏是**先出图再联网**的
+      if (record.rendersAtFirstRequest === undefined) record.rendersAtFirstRequest = renders.length;
+      // 默认让请求失败：这是「接口不可用」这一路的模拟（域名没备案、后端挂了、
+      // 超时都归到这里）。要测成功路径的用例用 record.onRequest 临时接管，测完恢复。
       if (record.onRequest) return record.onRequest(opts);
       if (opts && opts.fail) opts.fail({ errMsg: 'url not in domain list' });
     },
@@ -118,7 +120,14 @@ globalThis.clearInterval = () => {};
 
 const PAGE_PATH = resolve(ROOT, 'miniprogram/pages/index/index.js');
 
-const wxRecord = { requestCount: 0, loginCount: 0, subscribeCalls: [], subscribeVerdict: 'accept', onRequest: null };
+const wxRecord = {
+  requestCount: 0,
+  loginCount: 0,
+  subscribeCalls: [],
+  subscribeVerdict: 'accept',
+  onRequest: null,
+  rendersAtFirstRequest: undefined,
+};
 globalThis.wx = makeWx(wxRecord);
 
 await import(PAGE_PATH);
@@ -144,7 +153,23 @@ page.onReady();
 await new Promise((r) => setTimeout(r, 30));
 
 check('onLoad / onReady 未抛异常', true);
-check('禁止联网时没有发出请求', wxRecord.requestCount === 0, `实际 ${wxRecord.requestCount} 次`);
+
+// 首屏不依赖网络 —— 这是「域名没备案也不会白屏」这条设计的可验证形式：
+// 发第一次请求时，快照已经渲染过了。若哪天有人把首屏改成等接口回来再渲染，这条会立刻红。
+check(
+  '首屏先出图：第一次发请求之前快照就已渲染',
+  wxRecord.rendersAtFirstRequest === undefined || wxRecord.rendersAtFirstRequest > 0,
+  `发请求时已渲染 ${wxRecord.rendersAtFirstRequest} 次`
+);
+
+// 联网策略由 config.enabled 决定，断言跟着配置走而不是写死 ——
+// 否则改一次开关就得来改测试，测试会慢慢退化成维护成本的装饰品。
+const mpConfig = (await import(resolve(ROOT, 'miniprogram/config.js'))).default;
+check(
+  mpConfig.enabled ? '允许联网时会去拉接口' : '禁止联网时不发任何请求',
+  mpConfig.enabled ? wxRecord.requestCount > 0 : wxRecord.requestCount === 0,
+  `实际 ${wxRecord.requestCount} 次（config.enabled=${mpConfig.enabled}）`
+);
 
 /* --------------------------- 2. 数据可渲染性 --------------------------- */
 
@@ -277,6 +302,12 @@ if (expectShow) {
 } else {
   check('空闲态给出扫描条数', Number.isFinite(d.signal.checked) && d.signal.checked > 0, String(d.signal.checked));
   check('空闲态不显示时间窗口', !d.signal.window, JSON.stringify(d.signal.window));
+  // 真实数据下的即时防线（合成输入的完整覆盖见第 11 节）
+  check(
+    '空闲态时间窗起点是日期而非 ISO 机器串',
+    d.signal.windowFrom === '' || /^\d{4}\.\d{2}\.\d{2}$/.test(d.signal.windowFrom),
+    d.signal.windowFrom
+  );
 }
 
 console.log('\n【6】顶栏与页脚');
@@ -368,6 +399,46 @@ check(
   '视图模型里没有 undefined / NaN',
   !JSON.stringify(vm).includes('undefined') && !JSON.stringify(vm).includes('NaN'),
   JSON.stringify(vm).slice(0, 120)
+);
+
+/* ---- 窄屏断行：尾部那个词不许落单 ---- */
+
+// 真机（402pt）上 `2026.09.22（周二）15:00 起` 整串放不下（约需 352rpx，可用只有 313rpx），
+// 而它**只有一个空格**（在 `15:00` 后），`word-break: keep-all` 又禁止汉字间断行 ——
+// 于是唯一的那个断点被用上，「起」孤零零一行。
+// 修法不是挤宽度（差 39rpx，挤到了也经不起字体渲染差异），而是把断点显式放到要断的位置。
+const { breakBeforeTime } = await import(resolve(ROOT, 'miniprogram/utils/view.js'));
+
+check(
+  '日期+时间：断点显式落在时间前（就是真机实测那个值）',
+  breakBeforeTime('2026.09.22（周二）15:00 起') === '2026.09.22（周二）\n15:00 起',
+  JSON.stringify(breakBeforeTime('2026.09.22（周二）15:00 起'))
+);
+check(
+  '日期与时间之间本来有空格时，仍断成同样两行',
+  breakBeforeTime('2026.09.22（周二） 15:00 起') === '2026.09.22（周二）\n15:00 起',
+  JSON.stringify(breakBeforeTime('2026.09.22（周二） 15:00 起'))
+);
+check(
+  '没有时间的值一个字都不动（它本来就放得下）',
+  breakBeforeTime('2026.09.22（周二） 全天') === '2026.09.22（周二） 全天'
+);
+check('已含换行的值幂等（不会插第二个）', breakBeforeTime('a\n15:00 起') === 'a\n15:00 起');
+check('时间在最前面、前面没内容：不动（否则首行会是空的）', breakBeforeTime('15:00 起') === '15:00 起');
+check(
+  '多个时间：只断第一个',
+  breakBeforeTime('09.22 15:00 起 19:00 止') === '09.22\n15:00 起 19:00 止',
+  JSON.stringify(breakBeforeTime('09.22 15:00 起 19:00 止'))
+);
+check('非字符串：原样返回', breakBeforeTime(null) === null && breakBeforeTime(undefined) === undefined);
+
+// 集成点：windowView 必须真的调它。少了这一条，上面的纯函数单测在
+// 「调用被删掉」时照样全绿 —— 而孤字会原样回来。
+const viewSrc = await readFile(resolve(ROOT, 'miniprogram/utils/view.js'), 'utf8');
+check(
+  'windowView 对两行时区值都过 breakBeforeTime',
+  /sourceZone:\s*breakBeforeTime\(/.test(viewSrc) && /userZone:\s*breakBeforeTime\(/.test(viewSrc),
+  '调用点被删了'
 );
 
 // 反例：有额度词但通篇没有任何时间表达 —— 不得进醒目态（否则就是制造焦虑）
@@ -631,6 +702,64 @@ console.log('\n【10】预告倒计时 / 大字公告 / 等待进度尺');
     'pct 越界被夹到 0–100',
     buildGauge({ pct: 1.4 }).fill === '100.0' && buildGauge({ pct: -0.2 }).fill === '0.0',
     `${buildGauge({ pct: 1.4 }).fill} / ${buildGauge({ pct: -0.2 }).fill}`
+  );
+}
+
+/* ---------------- 11. 空闲态的时间窗起点不许是机器格式 ---------------- */
+
+console.log('\n【11】时间窗起点的格式化（真机曾显示 `2026-07-25T02:15:29.011Z`）');
+
+{
+  const { buildSignal } = await import(resolve(ROOT, 'miniprogram/utils/view.js'));
+  const { toTs } = await import(resolve(ROOT, 'miniprogram/utils/format.js'));
+
+  // 数据层给的是 ISO 串（原始值、可复核）。端上少了解析这一环，那一行就会
+  // 把机器格式直接印出来 —— 真机截图实测，而且还长到把副行顶出卡片。
+  // 这里用**合成输入**而不是真实数据：真实数据的窗口起点天天在变，
+  // 拿它当断言基准，测试会自己过期。
+  const idle = (windowFrom) =>
+    buildSignal({ checkedTweets: 86, lookbackDays: 60, windowFrom });
+
+  check(
+    '线上真实形态：ISO 串 → 北京时间日期',
+    idle('2026-07-25T02:15:29.011Z').windowFrom === '2026.07.25',
+    idle('2026-07-25T02:15:29.011Z').windowFrom
+  );
+  check(
+    '按北京切日期而非 UTC 切（UTC 18:30 已是北京次日）',
+    idle('2026-07-25T18:30:00.000Z').windowFrom === '2026.07.26',
+    idle('2026-07-25T18:30:00.000Z').windowFrom
+  );
+  check(
+    '取不到 → 空串（模板 wx:if 挡住「时间窗自  起」）',
+    ['', null, undefined, 'not-a-date'].every((v) => idle(v).windowFrom === ''),
+    ['', null, undefined, 'not-a-date'].map((v) => JSON.stringify(idle(v).windowFrom)).join(' ')
+  );
+
+  // 反向：机器格式的三个特征字符一个都不许出现
+  const PROBES = [
+    '2026-07-25T02:15:29.011Z',
+    '2026-12-31T16:00:00.000Z',
+    '2026-01-01T00:00:00.000Z',
+    '2026-07-25',
+    '2026-07-25T02:15:29+08:00',
+  ];
+  const leaked = PROBES.map((v) => idle(v).windowFrom).filter(
+    (out) => /[TZ-]/.test(out)
+  );
+  check(
+    `${PROBES.length} 个输入均未泄漏机器格式（无 T / Z / 连字符）`,
+    leaked.length === 0,
+    leaked.join(' | ') || 'clean'
+  );
+
+  check(
+    'toTs：数字直通、NaN 输入不抛异常',
+    toTs(1753412129011) === 1753412129011 &&
+      Number.isNaN(toTs(NaN)) &&
+      Number.isNaN(toTs(undefined)) &&
+      Number.isNaN(toTs(null)),
+    String(toTs(1753412129011))
   );
 }
 

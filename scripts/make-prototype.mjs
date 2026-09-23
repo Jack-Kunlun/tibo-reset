@@ -9,7 +9,7 @@
  * 硬约束：
  *   1) 样例推文只存在于本脚本内存里，**不写入 data/**，不污染产品数据；
  *   2) 原型页顶部必须有一条醒目的「演示数据」声明，避免被误当成真实预告；
- *   3) 复用 scripts/render.mjs，不另写一套渲染 —— 否则原型与产品会漂移。
+ *   3) 复用 src/lib/render.mjs，不另写一套渲染 —— 否则原型与产品会漂移。
  */
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 import { buildChartData } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
 import { detectSignals } from '../src/lib/signals.mjs';
-import { renderAll } from './render.mjs';
+import { renderAll } from '../src/lib/render.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = async (p) => JSON.parse(await readFile(resolve(ROOT, p), 'utf8'));

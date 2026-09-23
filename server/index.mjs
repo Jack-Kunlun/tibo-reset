@@ -3,24 +3,40 @@
  * Tibo Reset Observatory —— 后端服务
  *
  * 职责：
- *   1) 定时采集 Tibo 的推文与额度事件
+ *   1) （可选）定时采集 Tibo 的推文与额度事件 —— 境内部署时必须关闭，见下方「部署位置」
  *   2) 用风险模型算出「下一次重置还要等多久」以及各时间窗的概率
  *   3) 通过 HTTP API 把这些数据交付给页面 / 群机器人 / 任何调用方
+ *   4) 直接对外提供**网页本体**：请求时用当前数据实时渲染（调 src/lib/page.mjs）
+ *
+ * 页面为什么在请求时渲染，而不是读构建产物：
+ *   数据由本机采集后直接 POST 到 /api/ingest，一天里会变很多次。若页面是构建期快照，
+ *   每次数据变化都要重新构建 + 重新部署才生效；而「拿数据渲染页面」这件事后端本来
+ *   就会做 —— 它与构建共用 src/lib/page.mjs 同一套代码，不存在两份实现。
+ *   实时渲染之后，数据一到、刷新即新，构建只负责 OG 分享图那类**图片**产物。
+ *   dist/index.html 仍在，但降级为兜底：渲染出错时退回它，宁可数据旧也不白屏。
  *
  * 零依赖（只用 node:http），因为要跑在一台只做转发的境内小机器上 —— 装依赖本身就是风险。
  *
  * 部署位置（由 M2 技术选型确定）：
- *   本服务**部署在境内**，给小程序提供 HTTPS API（微信要求 request 域名必须已备案）。
- *   采集**不在这里跑** —— x.com 境内不通。采集由 GitHub Actions 在境外执行，
- *   完成后 POST 到 /api/ingest（见 server/ingest.mjs），本服务只负责接收、落盘、预测。
+ *   本服务**部署在境内**，给小程序提供 HTTPS API —— 微信要求 request 合法域名必须已 ICP
+ *   备案，而境外域名备不了案，这一条单独就决定了服务只能落在境内。
  *
- *   ⚠ 因此境内部署时**必须**把 COLLECT_INTERVAL_MIN 设为 0：在境内跑采集必然超时，
- *     只会每 30 分钟产生一条无意义的错误记录，把真正的错误淹没掉。
+ *   采集**不在这里跑**：本服务跑在云机房，出口属**机房 IP 段**，而 x.com 的 Cloudflare
+ *   拦的正是机房 IP 段（实测同一时刻：runner 403 挑战页 / 住宅出口 200 完整页面）。
+ *   采集由**本机（住宅出口）**的定时任务完成，采完**直接 POST 到 /api/ingest**
+ *   （见 server/ingest.mjs），同时 push 上仓库留档；本服务只负责接收、落盘、预测、出页面。
+ *
+ *   ⚠ 因此境内部署时**必须**把 COLLECT_INTERVAL_MIN 设为 0（Dockerfile 里已是默认值）：
+ *     在机房出口跑采集必被挑战，只会每 30 分钟产生一条无意义的错误记录，把真正的错误淹没。
  *
  * 环境变量：
  *   PORT                 监听端口，默认 8787
  *   DATA_DIR             数据目录，默认 <repo>/data
- *   COLLECT_INTERVAL_MIN 采集间隔（分钟），默认 30；**境内部署必须设为 0**
+ *   SITE_URL             对外访问地址（如 https://reset.example.com），用于拼
+ *                        og:url / og:image。不配则这两条 meta 不输出 ——
+ *                        宁可少两条，也不给平台一个抓不到的地址（抓不到会展开成空白卡）
+ *   COLLECT_INTERVAL_MIN 采集间隔（分钟）。**默认 0，即关闭** ——
+ *                        本服务唯一合法的部署地是境内的云机房，而那里开着采集必被挑战
  *   ADMIN_TOKEN          若设置，则 POST /api/refresh 需要 Authorization: Bearer <token>
  *   INGEST_TOKEN         若设置，则 POST /api/ingest 需要 Authorization: Bearer <token>；
  *                        未设置时该入口直接返回 503 —— 这是唯一能从外部改写线上数据的入口，
@@ -42,8 +58,9 @@ import { fileURLToPath } from 'node:url';
 
 import { runCollection } from '../src/lib/collect.mjs';
 import { predictAll, DEFAULT_CONFIG } from '../src/lib/predict.mjs';
-import { detectSignals, USER_ZONE, SOURCE_ZONE } from '../src/lib/signals.mjs';
+import { detectSignals, latestEventMs, USER_ZONE, SOURCE_ZONE } from '../src/lib/signals.mjs';
 import { buildChartData } from '../src/lib/chart-data.js';
+import { derive, logoDataUri, renderPage } from '../src/lib/page.mjs';
 import { createStore } from './store.mjs';
 import { createScheduler } from './scheduler.mjs';
 import { handleIngest } from './ingest.mjs';
@@ -58,7 +75,13 @@ import { createWeChatClient } from './wechat.mjs';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = Number(process.env.PORT ?? 8787);
 const DATA_DIR = process.env.DATA_DIR ?? resolve(ROOT, 'data');
-const INTERVAL_MIN = Number(process.env.COLLECT_INTERVAL_MIN ?? 30);
+// 对外访问地址。只用于 OG meta 的绝对地址 —— 分享平台抓不到相对路径。
+const SITE_URL = (process.env.SITE_URL ?? '').trim().replace(/\/+$/, '');
+// 默认 0（关闭内置采集）。本服务唯一合法的部署地是境内的云机房，而那里开着采集
+// 必被 Cloudflare 挑战（见文件头的「部署位置」）。默认值取 0 而不是 30，是为了让
+// 「忘了关」这个错误不可能发生 —— 与 collect.yml 里「阈值必须由周期推导」同一个思路：
+// 靠默认值与推导，不靠人的记性。
+const INTERVAL_MIN = Number(process.env.COLLECT_INTERVAL_MIN ?? 0);
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN ?? '';
 const INGEST_TOKEN = process.env.INGEST_TOKEN ?? '';
 const SOURCE_ACCOUNT = process.env.SOURCE_ACCOUNT ?? 'thsottiaux';
@@ -106,11 +129,18 @@ async function getPrediction() {
 let sigCache = { key: null, value: null };
 
 async function getSignals() {
-  const file = await store.getTweets();
+  const [file, resets] = await Promise.all([store.getTweets(), store.getResets()]);
   const tweets = file.tweets ?? [];
-  const key = `${file.updated_at ?? ''}|${tweets.length}|${SOURCE_ACCOUNT}|${SOURCE_ZONE}|${USER_ZONE}`;
+  const lastResetAt = latestEventMs(resets.records ?? []);
+  // 缓存 key 里这两项都是**必需**的，少一个这次修复就等于没做：
+  //   · lastResetAt —— 预告兑现的那一刻要立刻失效（本次修复的核心场景）；
+  //   · hourBucket —— 「窗口已经过去」是**时间驱动**的判据，没有数据变化也必须能失效。
+  //     按小时重算足够：窗口边界精确到分钟的场景一年也遇不上几次，
+  //     而 signals 只是对几十条推文做正则，重算的开销可忽略。
+  const hourBucket = Math.floor(Date.now() / 3_600_000);
+  const key = `${file.updated_at ?? ''}|${tweets.length}|${lastResetAt}|${hourBucket}|${SOURCE_ACCOUNT}|${SOURCE_ZONE}|${USER_ZONE}`;
   if (sigCache.key === key) return sigCache.value;
-  const value = detectSignals(tweets, { account: SOURCE_ACCOUNT });
+  const value = detectSignals(tweets, { account: SOURCE_ACCOUNT, lastResetAt });
   sigCache = { key, value };
   return value;
 }
@@ -154,8 +184,98 @@ async function serveStatic(res, urlPath) {
   } catch {
     send(res, 404, {
       error: 'not found',
-      hint: '页面产物不存在，请先运行 `npm run build` 生成 dist/index.html',
+      hint: '静态资源不存在。图标与 OG 图由 `npm run build` 生成到 dist/',
     });
+  }
+}
+
+/* ---------------------------- 网页实时渲染 ---------------------------- */
+
+// 页面的两个来源，优先前者：
+//   1. 实时渲染（正常路径）—— 用当前 data/ 现渲染。数据一到、刷新即新，
+//      不需要重新构建、不需要重启容器
+//   2. dist/index.html（兜底）—— 渲染出错时退回构建期产物，宁可数据旧也不白屏
+//
+// 模板与品牌标随镜像发布、运行期不变，读一次缓存住；数据会随 /api/ingest 变化，
+// 每次重新读（store 层按 mtime 缓存，未变时几乎零成本）。
+
+let pageAssets = null;
+
+async function loadPageAssets() {
+  if (!pageAssets) {
+    pageAssets = {
+      template: await readFile(resolve(ROOT, 'src/index.html'), 'utf8'),
+      logoUri: await logoDataUri(),
+    };
+  }
+  return pageAssets;
+}
+
+// OG meta 里的绝对地址。OG 图是**构建期**产物（图片，接口改不了它），
+// 所以启动后解析一次即可 —— 缺文件就整体不输出，避免给平台一个抓不到的地址。
+let ogMetaResolved = false;
+let ogMeta = null;
+
+async function getOgMeta() {
+  if (ogMetaResolved) return ogMeta;
+  ogMetaResolved = true;
+  if (!SITE_URL) return (ogMeta = null);
+  try {
+    const info = await stat(resolve(ROOT, 'dist/og-image.png'));
+    ogMeta = info.isFile()
+      ? { pageUrl: SITE_URL, imageUrl: `${SITE_URL}/og-image.png` }
+      : null;
+  } catch {
+    ogMeta = null;
+  }
+  return ogMeta;
+}
+
+async function renderIndexHtml() {
+  const [resets, tweets, statsFile, assets, og] = await Promise.all([
+    store.getResets(),
+    store.getTweets(),
+    store.getStats(),
+    loadPageAssets(),
+    getOgMeta(),
+  ]);
+  const derived = derive({
+    resets,
+    tweets,
+    statsFile,
+    now: Date.now(),
+    account: SOURCE_ACCOUNT,
+  });
+  return renderPage({
+    template: assets.template,
+    ...derived,
+    og,
+    // 「采集异常」与「数据未更新」两条提示都在页面里（渲染层保证两者互斥），
+    // 所以这三个字段必须给对 —— lastLiveAt 只能是 tweets.json 的 updated_at，
+    // 它才代表「数据多新」（stats.generated_at 采集失败时照样推进）。
+    collect: {
+      errors: statsFile.errors ?? [],
+      attemptedAt: statsFile.generated_at ?? null,
+      lastLiveAt: tweets.updated_at ?? null,
+    },
+    logoUri: assets.logoUri,
+  });
+}
+
+async function serveIndex(res) {
+  try {
+    const html = await renderIndexHtml();
+    res.writeHead(200, {
+      'content-type': 'text/html; charset=utf-8',
+      'content-length': Buffer.byteLength(html),
+      // 绝不能被缓存住：页面内容跟着数据变，缓存住就等于把「数据一到即新」
+      // 这件事原样还回去了 —— 读者会拿到一份旧快照，还以为是最新的。
+      'cache-control': 'no-cache',
+    });
+    res.end(html);
+  } catch (err) {
+    console.error(`[page] 实时渲染失败，退回构建期产物（dist/index.html）：${err.message}`);
+    return serveStatic(res, '/index.html');
   }
 }
 
@@ -314,7 +434,7 @@ async function handleApi(req, res, url) {
     }
   }
 
-  // 接收境外 Actions 推来的采集产物。放在这里而不是 ROUTES 表里，
+  // 接收本机采集任务推来的产物。放在这里而不是 ROUTES 表里，
   // 因为它要读请求体（ROUTES 的处理器只吃 url）。
   if (url.pathname === '/api/ingest') {
     return handleIngest(req, res, {
@@ -377,6 +497,9 @@ async function handleApi(req, res, url) {
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host ?? 'localhost'}`);
   if (url.pathname.startsWith('/api/')) return handleApi(req, res, url);
+  // 首屏走实时渲染（两个来源的取舍见 serveIndex 上方注释）；
+  // 图标、OG 图、以及渲染失败时的兜底产物仍从 dist/ 出。
+  if (url.pathname === '/' || url.pathname === '/index.html') return serveIndex(res);
   return serveStatic(res, url.pathname);
 });
 
@@ -385,6 +508,8 @@ server.listen(PORT, () => {
   console.log(`  监听      http://127.0.0.1:${PORT}`);
   console.log(`  数据目录  ${DATA_DIR}`);
   console.log(`  观测账号  x.com/${SOURCE_ACCOUNT}`);
+  console.log(`  页面      请求时实时渲染 · 渲染失败退回 dist/index.html`);
+  console.log(`  对外地址  ${SITE_URL || '未设置（不影响页面本身，只少 og:url / og:image）'}`);
   console.log(
     `  采集间隔  ${INTERVAL_MIN > 0 ? INTERVAL_MIN + ' 分钟' : '已关闭（仅手动触发）'}`
   );
@@ -403,10 +528,12 @@ server.listen(PORT, () => {
   );
   if (INTERVAL_MIN > 0) {
     scheduler.start();
-    console.log('  ⚠ 内置采集调度已开启。本服务应部署在境内，而境内跑不通 x.com。');
-    console.log('     采集若交给境外 Actions，请设 COLLECT_INTERVAL_MIN=0 关掉它。');
+    console.log('  ⚠ 内置采集调度已开启 —— 本服务将自行抓取 x.com。');
+    console.log('     若本服务跑在云机房（云服务器 / 容器平台），出口属机房 IP 段，');
+    console.log('     而 x.com 的 Cloudflare 拦的正是机房 IP 段，采集必被挑战。');
+    console.log('     请设 COLLECT_INTERVAL_MIN=0 关掉它，采集交给本机（住宅出口）。');
   } else {
-    console.log('  采集      已关闭（数据由境外 Actions 经 POST /api/ingest 推送）');
+    console.log('  采集      已关闭（数据由本机采集后直接 POST /api/ingest 推送）');
   }
 });
 

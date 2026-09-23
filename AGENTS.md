@@ -11,32 +11,40 @@ data/                运行期数据（产品本体，纳入版本管理）
   stats.json         统计 + 采集错误
   signal.json        信号识别结果（由采集阶段产出；只做过冷启动回填、还没跑过采集时不存在）
   subscriptions.json F9 订阅名单（含 openid）—— 已 gitignore，**绝不能提交**
-dist/                网页构建产物（不纳入版本管理）
-docs/                需求 / 调研 / 决策 / 选型 / 验收
+dist/                网页构建产物（不纳入版本管理）—— 后端渲染失败时的兜底 + Pages 产物
+docs/                需求 / 调研 / 决策 / 选型 / 验收 / 部署
   PRD.md               需求基线（功能范围 F1–F12、验收 A1–A10、里程碑）
   tech-selection.md    技术选型与部署清单
+  deploy.md            部署步骤（docker + nginx + 证书）与排障
   acceptance.md        M3 验收记录，由 scripts/acceptance.mjs --write 生成，勿手改
   miniprogram.md       小程序上手与截图终检步骤
-scripts/             构建 / 采集 / 渲染 / 诊断 / 验收 / 测试（Node，直接跑）
-server/              后端服务（零依赖，node:http）
-  index.mjs            路由 + 鉴权 + 启动
+scripts/             构建 / 采集 / 诊断 / 验收 / 测试（Node，直接跑）+ 出镜像（ship-image.sh）
+server/              后端服务（零依赖，node:http）—— 网页与 API 的唯一提供方
+  index.mjs            路由 + 鉴权 + 启动 + ★请求时实时渲染网页
+  entrypoint.sh        容器启动：数据卷为空时填种子数据，再 exec 到 node
   scheduler.mjs        定时采集调度（防重叠、失败退避、状态暴露）
   store.mjs            数据读取 + mtime 缓存 + 原子写
-  ingest.mjs           POST /api/ingest：境外 Actions → 境内落盘
+  ingest.mjs           POST /api/ingest：本机 → 落盘（数据源是本机的采集任务）
   subscribe.mjs        F9 订阅名单持久化与「新重置」通知
   wechat.mjs           微信 access_token / openid / 订阅消息（零依赖 fetch）
 src/index.html       网页模板（含 <!--__KEY__--> 占位符）
-src/lib/             共享逻辑（纯 JS）
+src/lib/             共享逻辑（纯 JS/ESM）
   collect.mjs          采集（CLI 与后端共用）
   browser.mjs          ★ 登录态时间线采集（CDP 驱动 Chrome，主链路；一次会话收原创 + 回复两条流）
   predict.mjs          风险模型 / 回测 / 校准
   signals.mjs          ★ 信号识别（四档）+ 钟点解析 + 跨推文聚合（hypothesis / forecasts）
   chart-data.js        ★ 从记录构建统一图表数据（双端共用）
   scene.js             ★ 图元几何（双端共用，无渲染目标依赖）
+  render.mjs           ★ 渲染层：数据 → HTML 片段（构建期与后端**共用同一套**）
+  svg.mjs              ★ 图元 → SVG 序列化（render.mjs 的依赖，零依赖纯函数）
+  page.mjs             ★ 页面组装：derive / renderPage / injectTokens / logoDataUri
 miniprogram/         微信小程序
   utils/scene.js       由 scripts/build.mjs 从 src/lib/scene.js 同步，勿手改
   utils/subscribe.js   F9 一次性订阅的客户端封装（一次授权 = 一次通知）
   data/snapshot.js     由构建写入的数据快照（离线首屏用）
+*_nginx/             TLS 证书包（腾讯云 DV，**内含私钥** `.key`）
+                     —— 已同时 gitignore + dockerignore，**绝不能提交、绝不能进镜像**
+                       实际路径写在各人机器上，仓库里不该有这个目录的任何副本
 ```
 
 ## 语言与模块规范
@@ -57,6 +65,44 @@ miniprogram/         微信小程序
 - **不要**直接编辑 `miniprogram/utils/scene.js`。
 - 几何函数必须接受 `{ width, height, fontScale }`，不得写死像素尺寸 ——
   桌面 900px 的布局等比缩到手机 345px 会让图内文字变成 4px，等于没有。
+
+## 网页由后端在**请求时**实时渲染（不是构建产物）
+
+**页面不是构建产物。** 后端 `GET /` 读 `src/index.html` 模板 + 当前 `data/`，调
+`src/lib/page.mjs` 现渲染出完整 HTML；构建期（`scripts/build.mjs`）走的是**同一个函数**。
+
+- ⛔ **页面渲染逻辑只许有一份**（`src/lib/render.mjs` + `src/lib/page.mjs`）。
+  不要为「让浏览器自己再渲染一次」写第二套实现 —— 同一件事有两种算法，本项目在
+  词表分裂、时间戳口径上已经各吃过一次亏，每次都是静默不一致。
+- ⛔ **数据更新不得触发构建**。本机采完直接 `POST /api/ingest`，后端读到的就是最新数据，
+  重建页面**没有任何产出**（D-025）。`collect.yml` 的 `paths` 因此刻意排除了
+  `miniprogram/data/**` 与 `miniprogram/utils/scene.js` —— 这两个都是**构建产物**，
+  本机每采集一次都会提交它们，不排除就等于每采一次触发一次重建。
+- `dist/index.html` 降级为**兜底**：实时渲染抛错时退回它（宁可数据旧也不白屏），
+  所以构建仍然要做，只是产出只剩「兜底页面 + OG 图 + Pages 备份」。
+- 页面响应必须带 `Cache-Control: no-cache`。缓存住就等于把「数据一到即新」还回去了：
+  读者会拿到一份旧快照，还以为是最新的。
+- ⚠ **OG 分享图动态不了**。它是图片文件，只能构建期生成，接口改不了它 ——
+  分享出去的卡片会停在最后一次构建的数值。这是本架构已知且接受的代价，别再试着去"修"。
+- 部署侧只能挂卷给数据：数据目录必须独立于容器与镜像，也**别放进任何 git 工作区**
+  —— 仓库里那份 `data/` 是构建输入、不是运行数据。见 `docs/deploy.md`。
+
+## 出镜像：只在本机构建，服务器只 `docker load`
+
+部署物是**一个镜像文件**（网页 + API 都在里面，见上一节），服务器上只需要 docker ——
+不要 git、不要 node、不要 npm，也不需要在境内网络里拉 Docker Hub。
+
+- 出镜像：`scripts/ship-image.sh [root@服务器IP]` —— 构建 → 导出 tar.gz + sha256 → 可选 scp。
+- ⚠ **架构必须匹配，默认写死 `--platform linux/amd64`**。本机是 Apple Silicon（arm64），
+  服务器（腾讯云 Ubuntu 64bit）是 x86_64。产出本机架构的镜像搬过去是 `exec format error`，
+  而**那个报错一个字都不提「架构」**，很容易往别处查。
+- 本机 daemon 拉不到 Docker Hub（实测 `auth.docker.io` 直连超时、经代理 502，且 daemon
+  不走 macOS 系统代理），跨架构构建要的 amd64 基础镜像拿不到时跑
+  `scripts/fetch-base-image.sh` —— 用容器内的 skopeo 走 `host.docker.internal:<代理端口>`
+  拉进来，落到 `node:24-slim-amd64` 这种**带架构后缀**的名字上（本机原有的 arm64 那份保持不动）。
+  `ship-image.sh` 会自己检测、临时切换、构建完还原。细节见 `docs/deploy.md` 2.3。
+- ⛔ **不要改成「服务器上 `git clone` + `docker build`」**：那会让服务器需要 git 与 node，
+  而且每次重建都要在境内网络里拉一遍基础镜像 —— 正是这条路把「简单点」变成了多重失败点。
 
 ## 用户可见文案的红线
 
@@ -81,6 +127,19 @@ miniprogram/         微信小程序
    - `.pulse #upd` 要带 `font-variant-numeric: tabular-nums`，否则秒位一跳整块胶囊就左右晃。
    - **降级态（`degraded`）是例外**：那里要传达的正是「这是什么时候的快照」，
      所以仍给数据时刻，文案两端统一为 `快照 · HH:MM`。
+6. **时间与数值字段一律在渲染层格式化，不许把数据层的原始值直通模板。**
+   数据层保留 ISO 串是对的（`windowFrom`、`createdAt` 都是可复核的原始值），但直接把它
+   渲进页面就会吐出 `2026-07-25T02:15:29.011Z` 这种机器串 —— 真机实测，而且串长到把
+   右对齐的副行（`.isub` 是 `margin-left: auto`）顶出卡片边界。
+   - ⚠ **同一字段有多个渲染端，改一处不等于都改了。** 这个字段出现在三处：网页
+     （`src/lib/render.mjs`）、小程序（`miniprogram/utils/view.js`）、预览页
+     （`scripts/preview-miniprogram.mjs`）。
+   - 网页端那处曾经是 `String(sig.windowFrom).slice(0, 10)` —— 切的是 **UTC** 日期
+     （起点落在 UTC 16:00–24:00 时会比北京日期**早一天**），格式也与别处不一致。
+     现统一走 `render.mjs` 现成的 `fmtDate(iso)`（按 `Asia/Shanghai`）。见
+     `docs/known-issues.md` KI-005。
+   - 小程序侧的解析统一走 `miniprogram/utils/format.js` 的 `toTs` / `fmtDay`，
+     **不要**在各处手写 `new Date(x).getTime()`。
 
 ## 数据新鲜度：必须自己现形，且不许撒谎
 
@@ -99,7 +158,7 @@ miniprogram/         微信小程序
 - ⛔ **时间锚点必须是 `tweets.json` 的 `updated_at`**（只在采集**成功**时推进）。
   不许用 `stats.json` 的 `generated_at` —— 后者采集失败时照样推进，拿它当「数据多新」
   就是在页面上说一句当时并不成立的话（见上文「用户可见文案的红线」第 4 条）。
-- ⛔ **陈旧阈值必须由本机周期推导，不许手写第二个数字。** 源在 `scripts/render.mjs`
+- ⛔ **陈旧阈值必须由本机周期推导，不许手写第二个数字。** 源在 `src/lib/render.mjs`
   的 `LOCAL_COLLECT_INTERVAL_MINUTES`（仓库里唯一的真值来源，取**实测值**）；
   阈值是两个周期 —— 连续漏掉一整轮才提示，抗调度抖动与休眠补跑。改频率只改那一处。
   回归断言含「阈值在源码里是**引用**周期算出来的」，防它退化成两个各自写死的数字。
@@ -168,10 +227,14 @@ HTTP 200 / 213KB 完整页面 / 4 次重试全中；runner（AWS）403 挑战页
   扫 6 条详情页命中 0，而回复流一次收 52 条。**不要把它重新打开当主路径**，
   也不要试图靠扩它的池子来提覆盖（那是绕远路：池子要人工维护，而回复流自己就带着
   「他回复了谁」）—— 留着它是为了 `with_replies` 连续失败时兜底与排查。
-- **本机采集由定时任务每 8 小时触发一次**（WorkBuddy 自动化「Tibo Reset 采集（本机出口）」，
-  工作目录就是这个仓库）。它只做「采集 → 构建 → 有实质变化才提交推送」，且只允许改
-  `data/` 与 `miniprogram/`。**不要再叠加一个 launchd 定时任务** —— 会重复采集。
-  它靠 workbuddy 在跑；这条依赖是已知边界，写在 `docs/data-source.md` §5。
+- **本机采集由定时任务触发**（WorkBuddy 自动化「Tibo Reset 采集（本机出口）」，
+  工作目录就是这个仓库）。它做三件事：采集 → 构建 → **推两路** —— git（留档）与
+  `POST /api/ingest`（线上立即生效，因为页面是请求时渲染的）。直推凭据放在
+  **`~/.tibo-ingest.env`**（不在仓库里，也别打印它）。它只允许改 `data/` 与 `miniprogram/`。
+  **不要再叠加一个 launchd 定时任务** —— 会重复采集。
+  ⚠ 配置声明的周期是 8 小时，日志实测间隔约 2 小时，两者不一致、成因未确证；
+  `src/lib/render.mjs` 的陈旧阈值按**实测值**取（页面开始常态提示「数据未更新」，
+  就是周期真的变了）。这条依赖是已知边界，写在 `docs/data-source.md` §5。
 - **出口代理必须实测探测**（`src/lib/proxy.mjs`），**不要读 `HTTPS_PROXY`**。
   在本机它被沙箱设成自己的出口端口（实测 57119），那个端口**连不通 x.com**（HTTP 000）。
   真实代理在 7890，不探测就发现不了。这个坑的隐蔽处在于它时好时坏：复用用户手动
@@ -185,9 +248,10 @@ HTTP 200 / 213KB 完整页面 / 4 次重试全中；runner（AWS）403 挑战页
   调用方**：CI 那套兜底采集 2026-09-22 已移除（D-023）。本机手动重跑时可拿它避免白跑一轮。
 - 短路时**不写任何文件**。写了 `generated_at`（采集运行时刻）就会变，而那个字段与
   「数据有没有变」无关 —— 提交判据是 `scripts/data-changed.mjs`，见上文。
-- CI 的提交范围**不含** `miniprogram/data/snapshot.js`。它是构建产物，内嵌了构建时刻
-  （`generatedAt` / `now` 及其派生的全部预测值），每次构建都不同；提交它等于换个来源
-  继续污染历史。它由本机构建后提交。
+- `miniprogram/data/snapshot.js` 由**本机**采集后构建并提交，CI 不碰它。它是构建产物，
+  内嵌了构建时刻（`generatedAt` / `now` 及其派生的全部预测值），每次构建都不同；
+  换个来源提交等于继续污染历史。（CI 现在**不提交任何东西** —— 它只在代码变更时
+  构建产物并发 Pages，见 D-025。）
 - 改 `parseTweets` 前后**必须**跑 `node scripts/test-parse.mjs`。它锁的是 RSC payload 的
   **结构契约**：`created_at_ms` 不只出现在推文上 —— 用户对象（UserCore）也带一个，
   那是账号注册时间。按索引硬配会让整条链错位一位（实测 7 条推文配 8 个时间戳），
@@ -354,12 +418,15 @@ HTTP 200 / 213KB 完整页面 / 4 次重试全中；runner（AWS）403 挑战页
 
 改这一块**必须**跑 `node scripts/test-signals.mjs` 的【3b】与【5】两段。
 
-## 构建期的两个环境变量
+## 构建期与运行时的环境变量
 
-| 变量 | 作用 | 不设的后果 |
-|---|---|---|
-| `SITE_URL` | 决定 `og:url` / `og:image` 的绝对地址 | 这两条 meta **不输出**（平台抓不到相对地址），A10 不成立 |
-| `BUILD_NOW` | 固定「构建时刻」（ISO 串或毫秒时间戳） | 用当前时间。设了之后同一输入可**逐字节复现** —— A8 的时区判等就靠这个 |
+| 变量 | 用在 | 作用 | 不设的后果 |
+|---|---|---|---|
+| `SITE_URL` | **构建期 + 运行时** | 决定 `og:url` / `og:image` 的绝对地址 | 这两条 meta **不输出**（平台抓不到相对地址），A10 不成立 |
+| `BUILD_NOW` | 构建期 | 固定「构建时刻」（ISO 串或毫秒时间戳） | 用当前时间。设了之后同一输入可**逐字节复现** —— A8 的时区判等就靠这个 |
+
+⚠ `SITE_URL` **两边都要给**：构建期写进 `dist/index.html` 的 og meta（兜底产物），
+运行时写进实时渲染的每一份响应。只给一边的话，另一条路径上的页面就会缺这两条 meta。
 
 后端与采集侧还有自己的环境变量（`PORT` / `DATA_DIR` / `COLLECT_INTERVAL_MIN` /
 `ADMIN_TOKEN` / `SOURCE_ACCOUNT` / `INGEST_URL` / `INGEST_TOKEN` / `WX_*`），
@@ -370,13 +437,18 @@ HTTP 200 / 213KB 完整页面 / 4 次重试全中；runner（AWS）403 挑战页
 - conventional commits：`type(scope): desc`，分支 `type/desc`。
 - 线性合入，不用 merge commit。
 - 提交前排除临时目录与缓存。
+- ⚠ **证书与私钥永不提交、永不进镜像**。仓库根的 `*_nginx/`（腾讯云证书包，含 `.key`）
+  已在 `.gitignore` 与 `.dockerignore` 各有一条规则 —— **不要 `git add -f` 绕过它**。
+  git 历史是永久的：一旦推上去，删文件也删不掉，只能吊销重签。同一条规则适用于
+  `data/subscriptions.json`（含 openid）。
+  **检查手段**：`git status --short` 里不该出现证书目录；`git check-ignore -v <路径>` 能验证规则命中。
 
 ## 验证配方（本机可复现，勿凭感觉判断）
 
 ### 一次跑完
 
 ```bash
-npm run check                              # 8 个测试套件 + 构建 + A3 一致性（不依赖 Chrome）
+npm run check                              # 12 个测试套件 + 构建 + A3 一致性（不依赖 Chrome）
 SITE_URL=https://<你的域名> npm run accept  # A1–A10 全量验收（会先自动重建 dist）
 ```
 
@@ -388,17 +460,37 @@ SITE_URL=https://<你的域名> npm run accept  # A1–A10 全量验收（会先
 ### 单个套件
 
 ```bash
-node scripts/test-signals.mjs       # 信号解析用例
+node scripts/test-signals.mjs       # 信号解析用例（含「已兑现／已过期的预告不再展示」的正反两向）
 node scripts/test-parse.mjs         # 推文解析：字段按对象就近配对（防时间戳错位）
 node scripts/test-shared.mjs        # 共享层：图元越界 / 同步一致性
-node scripts/test-miniprogram.mjs   # 小程序图元在目标尺寸下不越界
+node scripts/test-miniprogram.mjs   # 小程序：图元不越界、页面可加载、时间/数值格式无机器串（ISO 串不得直通模板）
 node scripts/test-og.mjs            # OG 卡：缺字体守卫 / 尺寸 / 安全区 / meta 三态
 node scripts/test-ingest.mjs        # POST /api/ingest 的鉴权与落盘
 node scripts/test-subscribe.mjs     # F9 订阅链路（token 缓存 / 永久失败码 / 水位线）
 node scripts/test-collect-warning.mjs  # 数据不新鲜的外显（两道互斥的提示）+ CI 不再采集
+node scripts/test-secrets.mjs       # 证书/私钥进不了 git、也进不了镜像（含「规则是否被删」）
+node scripts/test-ship.mjs          # 发布脚本：目标架构是 amd64、服务器侧不走 git、$var 不紧跟中文、apt 源可按环境切换
+node scripts/test-history.mjs       # 历史每轮刷新（不能冻结）+ 长推文正文回填（截断在 ~280 字符）
 node scripts/check-consistency.mjs  # A3：页面数字 ↔ API
 node scripts/check-layout.mjs       # A7：窄屏横向溢出（需要 Chrome）
 node scripts/diagnose.mjs           # 复现全部回测与校准数字
+```
+
+### 验证「后端实时渲染」的两件事
+
+用临时数据目录跑，不碰真数据：
+
+```bash
+# 1. 数据一变、页面立即反映（同一进程，不重启）
+cp -r data /tmp/tibo-data
+COLLECT_INTERVAL_MIN=0 PORT=18795 DATA_DIR=/tmp/tibo-data node server/index.mjs &
+curl -s localhost:18795/ | grep -o 'id="gen"[^>]*>[^<]*'    # 记下「最近一次采集」
+# 把 /tmp/tibo-data/stats.json 的 generated_at 改掉，再请求一次 → 该处应立刻变成新值
+
+# 2. 数据不可用时必须退回兜底，不能白屏
+mkdir -p /tmp/tibo-empty
+COLLECT_INTERVAL_MIN=0 PORT=18796 DATA_DIR=/tmp/tibo-empty node server/index.mjs &
+curl -s -o /tmp/f.html -w '%{http_code}\n' localhost:18796/  # 200，且日志有「退回构建期产物」
 ```
 
 ### 无头 Chrome：两个必须知道的坑
@@ -449,6 +541,12 @@ node --check miniprogram/pages/index/index.js   # 逐文件语法检查
 
 ## 工具使用的坑（踩过，别再踩）
 
-**同一文件的多个编辑不要在同一条消息里并行发送** —— 实测 6 处编辑只保住 1 处，
-其余静默丢失（工具均返回「成功」），直到构建报错才发现。
-同一文件多处修改要么串行，要么直接整文件重写。
+⛔ **同一文件的多个编辑不要在同一条消息里并行发送** —— 实测踩过两次：一次 6 处编辑
+只保住 1 处，另一次 4 处保住 2 处，其余静默丢失（工具均返回「成功」），直到构建或运行
+报错才发现。同一文件多处修改**要么串行发，要么直接整文件重写**。
+
+⛔ **macOS 的 `grep` 不支持 `\|` 做交替**（那是 GNU 扩展）。`grep -rn "a\|b" dir/`
+在 BSD grep 下整个模式被当成字面量 `a|b`，于是**静默返回空** —— 看起来像「这个目录里
+没有」，实际是模式没生效。要写 `grep -rEn "a|b" dir/`（或 `grep -rn -e a -e b`）。
+排查时踩过一次：一度以为搜索跳过了 `miniprogram/` 目录，差点把假坑写进文档。
+**「没匹配到」时先怀疑自己的模式，再怀疑工具** —— 反例验证只需要一条命令。

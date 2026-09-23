@@ -33,6 +33,14 @@ data/*.tmp-*
 #   一旦 push 到registry就等于把 openid 列表公开了。
 data/subscriptions.json
 
+# ⚠ TLS 私钥与证书，**绝不能进镜像**。
+#   证书是给宿主机上的 Nginx 用的（TLS 在那一层终止），容器内根本不需要它。
+#   而 Dockerfile 是 `COPY . .`，不排除就会把私钥打进层里 —— 且镜像层是叠加的，
+#   事后删文件也删不掉那份残留，一旦 push 到 registry 就等于公开私钥。
+#   同 .gitignore：按解压命名约定（`<域名>_nginx/`）写，不写死具体域名。
+*_nginx/
+*.csr
+
 # 系统 / 编辑器
 .DS_Store
 *.swp

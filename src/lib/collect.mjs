@@ -16,7 +16,7 @@ import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { detectSignals, classifyEvent } from './signals.mjs';
+import { detectSignals, latestEventMs, classifyEvent } from './signals.mjs';
 import { collectStreams } from './browser.mjs';
 import { resolveProxy } from './proxy.mjs';
 
@@ -434,6 +434,88 @@ export async function fetchHistory() {
   }));
 }
 
+/**
+ * 把上游历史合并进本地记录。
+ *
+ * 为什么需要它：此前历史只在 `--bootstrap` 或**本地记录为空**时回填一次，
+ * 之后每一轮采集都不再碰它 —— records 于是冻结在首次回填那一刻，
+ * 上游后来新增的重置**永远进不来**。
+ *
+ * 2026-09-22 那次就是这样丢的：上游（codex-resets.com）当天就收录了那条
+ * 「we are loading a banked reset into all accounts」，而本地库停在 09-12，
+ * 页面上「距上次重置」一直显示 10 天，用户看到重置卡都发下来了、观测台还说没有。
+ *
+ * 合并规则：本地是缓存，上游是权威，但**不能无条件覆盖** ——
+ *   · 按 id 对齐。上游有些条目用合成 id（`observed-<statusId>`），本地沿用同一套，
+ *     所以共有条目能正确配对；id 缺失或时间非法的条目直接跳过，不污染库。
+ *   · 共有条目以上游字段为准（他的推文可能被编辑、上游可能修正时间）；
+ *   · 唯独 `text` 取**两者中更长的** —— 上游偶有截断/摘要化，而本地可能已经从
+ *     别处补过完整正文，用短的去覆盖长的会让识别能力无声退步。
+ *
+ * 返回 `added` / `updated`：调用方靠它判断「这轮历史到底有没有变」，
+ * 因为「没变」与「变了」在落盘与短路上的处理不同。
+ */
+export function mergeHistory(local = [], upstream = []) {
+  const byId = new Map();
+  for (const r of local ?? []) if (r?.id) byId.set(r.id, r);
+
+  let added = 0;
+  let updated = 0;
+  for (const u of upstream ?? []) {
+    if (!u?.id || !u.announced_at || Number.isNaN(new Date(u.announced_at).getTime())) continue;
+    const prev = byId.get(u.id);
+    if (!prev) {
+      byId.set(u.id, u);
+      added++;
+      continue;
+    }
+    const keepLongerText =
+      (u.text ?? '').length >= (prev.text ?? '').length ? u.text : prev.text;
+    const next = { ...prev, ...u, text: keepLongerText };
+    // 只在字段真的变了时才计入 updated —— 否则每轮都会「有变化」，
+    // 短路形同虚设，自动化会每轮多提交一条空历史（历史上「48 条提交/天」的成因）。
+    if (JSON.stringify(next) !== JSON.stringify(prev)) updated++;
+    byId.set(u.id, next);
+  }
+
+  return {
+    records: [...byId.values()].sort(
+      (a, b) => new Date(b.announced_at) - new Date(a.announced_at)
+    ),
+    added,
+    updated,
+  };
+}
+
+/**
+ * 用上游记录里的**完整正文**回填被截断的推文。
+ *
+ * 为什么需要：长推文在 X 页面上只渲染前 ~280 字符（"Show more" 之后的节点不在 DOM 里），
+ * 而采集取的是 `innerText` —— 于是长推文天然只采到前半段。这是采集端的硬边界，
+ * 不是我们哪一行 slice 写错了。
+ *
+ * 2026-09-22 那条 GPT-6 公告正文有 477 字符，前半段在讲模型与 API 降价，
+ * 「And one more thing. We are loading a banked reset into all accounts…」
+ * 恰好落在**被切掉的后半段**里 —— 采到的 273 字符里 `banked` / `reset` 一个都没有，
+ * 词表再全也读不出这是重置，整条被当成无关推文排除。
+ *
+ * 归一化口径与推文库一致（`\s+` → 单空格），避免同一份库里混进两种格式；
+ * 只在更长时替换，短的一律不动。
+ */
+export function patchTruncatedTexts(tweets = [], textById = new Map()) {
+  let patched = 0;
+  const next = (tweets ?? []).map((t) => {
+    const full = textById.get(t.id);
+    if (!full) return t;
+    const norm = String(full).replace(/\s+/g, ' ').trim();
+    if (norm.length <= (t.text ?? '').length) return t;
+    patched++;
+    // text_full 是显式记账：这条的正文是**补全**来的，不是页面上直接采到的。
+    return { ...t, text: norm, text_full: true };
+  });
+  return { tweets: next, patched };
+}
+
 /* ------------------------------- 回复雷达 ------------------------------- */
 
 /**
@@ -577,15 +659,52 @@ export async function runCollection(opts = {}) {
   await mkdir(dataDir, { recursive: true });
 
   // 1) 历史记录
+  //
+  // ⚠ **每一轮都要刷新**，不能只在 bootstrap / 空库时回填。
+  //
+  // 旧实现的条件写作 `(opts.bootstrap || history.records.length === 0)`,
+  // 于是 records 一旦有内容，就再也没人去拉上游 —— 观测台的核心数字
+  //（「距上次重置多少天」「共重置过几次」）从此冻结在首次回填那一刻。
+  // 2026-09-22 那次 banked reset 就是这么丢的：上游当天就收录了，
+  // 本地库还停在 09-12，页面上说「距上次重置 10 天」，而用户的卡早就发下来了。
+  //
+  // 这个请求很便宜（一次 GET，limit=100 的历史列表），比「漏掉一次重置」的代价低得多。
   let history = await readJson(resolve(dataDir, 'resets.json'), { records: [] });
-  if ((opts.bootstrap || history.records.length === 0) && !opts.skipLive) {
+  /** 上游正文映射（id → 完整正文），用于回填被截断的推文，见 patchTruncatedTexts。 */
+  const upstreamText = new Map();
+  /** 本轮历史相对本地是否有实质变化 —— 短路判断要参考它。 */
+  let historyChanged = false;
+  let historyReport = { added: 0, updated: 0, upstreamCount: 0, refreshedAt: null, error: null };
+
+  if (!opts.skipLive) {
     try {
+      const upstream = await fetchHistory();
+      for (const r of upstream) if (r.id && r.text) upstreamText.set(r.id, r.text);
+      const merged = mergeHistory(history.records, upstream);
+      historyChanged = merged.added > 0 || merged.updated > 0;
       history = {
-        records: await fetchHistory(),
-        bootstrapped_at: new Date().toISOString(),
+        ...history,
+        records: merged.records,
+        // bootstrapped_at 是「这份库从什么时候开始有的」，保留首次值；
+        // 本轮刷新时刻另存 refreshed_at。两者语义不同，不要互相顶掉。
+        bootstrapped_at: history.bootstrapped_at ?? new Date().toISOString(),
+        refreshed_at: new Date().toISOString(),
       };
+      historyReport = {
+        added: merged.added,
+        updated: merged.updated,
+        upstreamCount: upstream.length,
+        refreshedAt: history.refreshed_at,
+        error: null,
+      };
+      if (merged.records.length === 0) errors.push('历史记录为空：上游没有返回任何重置记录');
     } catch (err) {
-      errors.push(`历史回填失败：${err.message}`);
+      historyReport.error = err.message;
+      // 本地已有数据时，上游失败只是「这轮没更新」，**不升级成整轮失败** ——
+      // 那会在页面上贴一条「数据采集异常」横幅，而数据本身是好的，是误导。
+      // 但也不能静默：写进 historyReport（落盘进 stats.json）并打一行警告。
+      if (history.records.length === 0) errors.push(`历史回填失败：${err.message}`);
+      else console.warn(`⚠ 历史刷新失败（沿用本地 ${history.records.length} 条）：${err.message}`);
     }
   }
   history.records = history.records
@@ -807,13 +926,34 @@ export async function runCollection(opts = {}) {
     }
   }
 
+  // 2c) 正文回填：用上游历史里的**完整正文**，补上被 X 页面截断的部分。
+  //
+  //     为什么必须做：长推文在页面上只渲染前 ~280 字符（"Show more" 之后的节点
+  //     不在 DOM 里），采集取 innerText 所以天然只有前半段 —— 这是采集端的硬边界。
+  //     2026-09-22 那条 GPT-6 公告正文 477 字符，「And one more thing. We are loading
+  //     a banked reset into all accounts…」在被切掉的后半段里；采到的 273 字符
+  //     里 `banked` / `reset` 一个都没有，于是整条被当作无关推文排除。
+  //     只补记录里出现过的 id，不引入新推文（那归实时采集管）。
+  let textPatched = 0;
+  if (upstreamText.size) {
+    const r = patchTruncatedTexts(live.tweets, upstreamText);
+    if (r.patched > 0) {
+      live = { ...live, tweets: r.tweets, updated_at: new Date().toISOString() };
+      textPatched = r.patched;
+    }
+  }
+
   // 短路时到此为止：本轮什么都没做，就不该写任何文件。
   //
   // 写了会让「有无变化」的判断失去意义 —— stats.json 的 generated_at 是采集运行时刻，
   // 每轮都会变，而它与「数据有没有变」无关；谁把它当成一次变化，谁就会每轮多提交一条
   // 垃圾历史（这正是此前「48 条提交/天」的来源）。
   // 不写文件，「没变化」就真的意味着没变化。
-  if (skippedFresh) {
+  //
+  // ⚠ 但「历史刷新」与「正文回填」**不算「什么都没做」**：它们是数据的变化。
+  // 若把它们一起短路掉，那本轮拉到的上游新记录就白拉了 —— 而且因为下一轮同样会
+  // 因数据够新而短路，这条新记录可以**永远**进不了库。所以短路的前提是三者都没变。
+  if (skippedFresh && !historyChanged && textPatched === 0) {
     return {
       ok: errors.length === 0,
       stats: buildStats(history.records),
@@ -839,6 +979,8 @@ export async function runCollection(opts = {}) {
     now: Date.now(),
     account: opts.account,
     sinceMs: opts.sinceMs ?? resetFloorMs(history.records, opts.resetBufferHours),
+    // 已兑现的预告不再作为「未来预告」落进 signal.json（见 signals.mjs 的 isExpiredForecast）
+    lastResetAt: latestEventMs(history.records),
   });
 
   await saveJson(resolve(dataDir, 'resets.json'), history);
@@ -849,17 +991,25 @@ export async function runCollection(opts = {}) {
     generated_at: new Date().toISOString(),
     // 本轮采集的形态。留档是为了让「上次是全量还是增量」可复核 ——
     // 连续多轮增量之后，漏检风险是靠一次全量回补清掉的，这件事得看得见。
-    collect: {
-      mode: collectMode,
-      source: liveSource,
-      stoppedBy,
-      newTweets: newCount,
-      knownCount: live.tweets.length - newCount,
-      // 回复流留档：它坏掉时（作者解析失效 → 配对全空）页面上看不出来，
-      // 只有这里能看出来。
-      reply: replyInfo,
-      replyError,
-    },
+    collect: liveSource
+      ? {
+          mode: collectMode,
+          source: liveSource,
+          stoppedBy,
+          newTweets: newCount,
+          knownCount: live.tweets.length - newCount,
+          // 回复流留档：它坏掉时（作者解析失效 → 配对全空）页面上看不出来，
+          // 只有这里能看出来。
+          reply: replyInfo,
+          replyError,
+        }
+      // 走到这里但没采推文 = 推文数据够新（短路），只是历史 / 正文有了更新。
+      // 把上一轮的形态带过来，否则 `source` 会显示为空 —— 那读起来像「这轮采集坏了」，
+      // 而事实是「数据本来就是新的」。carriedOver 把这个区别写进数据里。
+      : { ...(prevStats.collect ?? {}), carriedOver: true },
+    // 历史刷新的留档。它决定「距上次重置多少天」这类核心数字有没有跟上上游；
+    // 上游失败时（本地已有数据、不进 errors）只有这里看得见。
+    history: { ...historyReport, changed: historyChanged, patchedTexts: textPatched },
     last_full_at: didFullScan ? new Date().toISOString() : (prevStats.last_full_at ?? null),
     errors,
   });
@@ -877,6 +1027,8 @@ export async function runCollection(opts = {}) {
     mode: collectMode,
     stoppedBy,
     newCount,
+    // 历史刷新与正文回填的结果 —— 「为什么距上次重置变了」要答得出来。
+    history: { ...historyReport, changed: historyChanged, patchedTexts: textPatched },
     tweetCount: live.tweets.length,
     /** 库里带 inReplyTo 的条数 —— 「他的发言有多少来自回复」的分母。 */
     replyTweetCount: live.tweets.filter((t) => t.role === 'reply').length,

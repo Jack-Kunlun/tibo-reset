@@ -1,10 +1,10 @@
 {
   "level": "explicit",
-  "generatedAt": "2026-09-22T20:06:32.421Z",
-  "checkedTweets": 81,
+  "generatedAt": "2026-09-23T01:23:07.086Z",
+  "checkedTweets": 86,
   "lookbackDays": 60,
-  "windowFrom": "2026-07-24T20:06:32.421Z",
-  "windowTo": "2026-09-22T20:06:32.421Z",
+  "windowFrom": "2026-07-25T01:23:07.086Z",
+  "windowTo": "2026-09-23T01:23:07.086Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -14,8 +14,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.09.23",
       "weekday": "周三",
-      "time": "04:06",
-      "text": "2026.09.23（周三）04:06",
+      "time": "09:23",
+      "text": "2026.09.23（周三）09:23",
       "offset": "UTC+8"
     },
     "b": {
@@ -23,27 +23,27 @@
       "zone": "America/Los_Angeles",
       "date": "2026.09.22",
       "weekday": "周二",
-      "time": "13:06",
-      "text": "2026.09.22（周二）13:06",
+      "time": "18:23",
+      "text": "2026.09.22（周二）18:23",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2102484207163584745",
+    "id": "2102509629536346422",
     "account": "thsottiaux",
-    "text": "u2!",
-    "createdAt": "2026-09-22T19:44:31.000Z",
-    "url": "https://x.com/thsottiaux/status/2102484207163584745",
+    "text": "Interesting results!",
+    "createdAt": "2026-09-22T21:25:33.000Z",
+    "url": "https://x.com/thsottiaux/status/2102509629536346422",
     "reasons": [
-      "上下文：回复 @amorriscode「congrats on the launch!…」"
+      "上下文：回复 @PawelHuryn「So I tested Opus 5.5 (max) on real w…」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "amorriscode",
+      "account": "PawelHuryn",
       "id": "",
-      "text": "congrats on the launch!"
+      "text": "So I tested Opus 5.5 (max) on real work. 2 repos. 105 planted bugs. Find and fix what you can. The results: GPT-6 Astra (max): 45 for $33.03 (n=3) Fable 5.1 (max): 43 for $77.55 Opus 5.5 (max): 43 for $60.49 Opus 5.0 (max): 27 for $51.33 Muse Spark 1.3 (max): 32.2 for $18.11"
     },
     "createdZones": {
       "a": {
@@ -51,8 +51,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.09.23",
         "weekday": "周三",
-        "time": "03:44",
-        "text": "2026.09.23（周三）03:44",
+        "time": "05:25",
+        "text": "2026.09.23（周三）05:25",
         "offset": "UTC+8"
       },
       "b": {
@@ -60,8 +60,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.09.22",
         "weekday": "周二",
-        "time": "12:44",
-        "text": "2026.09.22（周二）12:44",
+        "time": "14:25",
+        "text": "2026.09.22（周二）14:25",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -249,9 +249,51 @@
   ],
   "occurred": [
     {
+      "id": "2102463847714247142",
+      "account": "thsottiaux",
+      "text": "GPT-6 Sol and Luna are out. Not only are they a very significant improvement across the board, but also in writing and general \"you know when you try it\" quality. We are also permanently reducing the API price by 50% making both of them viable for a ton of new usecases and making your usage go further too, even on the subscriptions. And one more thing. We are loading a banked reset into all accounts of our Plus, Pro and Business users. Let's go! https://t.co/00DRh1sRrO",
+      "createdAt": "2026-09-22T18:23:37.000Z",
+      "url": "https://x.com/thsottiaux/status/2102463847714247142",
+      "reasons": [
+        "命中重置词 reset",
+        "命中额度词 limits/usage/credits",
+        "命中「新额度」类词 fresh/new/top up",
+        "命中「A/the reset」名词化陈述"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.23",
+          "weekday": "周三",
+          "time": "02:23",
+          "text": "2026.09.23（周三）02:23",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.22",
+          "weekday": "周二",
+          "time": "11:23",
+          "text": "2026.09.22（周二）11:23",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "occurred",
+      "rejected": null,
+      "intent": 6,
+      "occurredAt": "2026-09-22T18:23:37.000Z",
+      "window": null,
+      "confidence": 0.86
+    },
+    {
       "id": "2098685367058612394",
       "account": "thsottiaux",
-      "text": "Reset all propagated. Sweet dreams.",
+      "text": "Reset all propagated. Sweet dreams. https://t.co/VgKVUixoJG",
       "createdAt": "2026-09-12T08:09:17.000Z",
       "url": "https://x.com/thsottiaux/status/2098685367058612394",
       "reasons": [
@@ -755,6 +797,213 @@
   ],
   "rejected": [
     {
+      "id": "2102509629536346422",
+      "account": "thsottiaux",
+      "text": "Interesting results!",
+      "createdAt": "2026-09-22T21:25:33.000Z",
+      "url": "https://x.com/thsottiaux/status/2102509629536346422",
+      "reasons": [
+        "上下文：回复 @PawelHuryn「So I tested Opus 5.5 (max) on real w…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "PawelHuryn",
+        "id": "",
+        "text": "So I tested Opus 5.5 (max) on real work. 2 repos. 105 planted bugs. Find and fix what you can. The results: GPT-6 Astra (max): 45 for $33.03 (n=3) Fable 5.1 (max): 43 for $77.55 Opus 5.5 (max): 43 for $60.49 Opus 5.0 (max): 27 for $51.33 Muse Spark 1.3 (max): 32.2 for $18.11"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.23",
+          "weekday": "周三",
+          "time": "05:25",
+          "text": "2026.09.23（周三）05:25",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.22",
+          "weekday": "周二",
+          "time": "14:25",
+          "text": "2026.09.22（周二）14:25",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2102509507415048245",
+      "account": "thsottiaux",
+      "text": "Maybe our cutest launch so far. But still packing the biggest punch.",
+      "createdAt": "2026-09-22T21:25:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2102509507415048245",
+      "reasons": [
+        "含发布/宣传语境（下调置信度）"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.23",
+          "weekday": "周三",
+          "time": "05:25",
+          "text": "2026.09.23（周三）05:25",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.22",
+          "weekday": "周二",
+          "time": "14:25",
+          "text": "2026.09.22（周二）14:25",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2102501670647472147",
+      "account": "thsottiaux",
+      "text": "No benchmaxxing here, just a better model all around.",
+      "createdAt": "2026-09-22T20:53:55.000Z",
+      "url": "https://x.com/thsottiaux/status/2102501670647472147",
+      "reasons": [
+        "含发布/宣传语境（下调置信度）",
+        "上下文：回复 @weswinder「gpt-6 sol is worse than gpt-5.6 sol …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "weswinder",
+        "id": "",
+        "text": "gpt-6 sol is worse than gpt-5.6 sol on deepswe i get that it's cheaper but it's really weird having a new model that isn't better than the old model on every metric seems like they are trying to bury this benchmark"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.23",
+          "weekday": "周三",
+          "time": "04:53",
+          "text": "2026.09.23（周三）04:53",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.22",
+          "weekday": "周二",
+          "time": "13:53",
+          "text": "2026.09.22（周二）13:53",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2102501432884891720",
+      "account": "thsottiaux",
+      "text": "It’s a good day sir",
+      "createdAt": "2026-09-22T20:52:58.000Z",
+      "url": "https://x.com/thsottiaux/status/2102501432884891720",
+      "reasons": [
+        "上下文：回复 @theo「Opus 5.5, GPT-6 Sol and GPT-6 Luna a…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "Opus 5.5, GPT-6 Sol and GPT-6 Luna all in a day?? Damn"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.23",
+          "weekday": "周三",
+          "time": "04:52",
+          "text": "2026.09.23（周三）04:52",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.22",
+          "weekday": "周二",
+          "time": "13:52",
+          "text": "2026.09.22（周二）13:52",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2102497184805720459",
+      "account": "thsottiaux",
+      "text": "It’s good to want it all",
+      "createdAt": "2026-09-22T20:36:06.000Z",
+      "url": "https://x.com/thsottiaux/status/2102497184805720459",
+      "reasons": [
+        "上下文：回复 @viticci「I want Grok Bot, but with GPT-6 mode…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "viticci",
+        "id": "",
+        "text": "I want Grok Bot, but with GPT-6 models, and with Claude's taste, and with Muse's speed, and with GPT-Live voice is that too much to ask these days"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.23",
+          "weekday": "周三",
+          "time": "04:36",
+          "text": "2026.09.23（周三）04:36",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.22",
+          "weekday": "周二",
+          "time": "13:36",
+          "text": "2026.09.22（周二）13:36",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
       "id": "2102484207163584745",
       "account": "thsottiaux",
       "text": "u2!",
@@ -919,45 +1168,6 @@
       "level": "none",
       "rejected": "无额度相关词",
       "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2102463847714247142",
-      "account": "thsottiaux",
-      "text": "GPT-6 Sol and Luna are out. Not only are they a very significant improvement across the board, but also in writing and general \"you know when you try it\" quality. We are also permanently reducing the API price by 50% making both of them viable for a ton of new usecases and",
-      "createdAt": "2026-09-22T18:23:37.000Z",
-      "url": "https://x.com/thsottiaux/status/2102463847714247142",
-      "reasons": [
-        "命中「新额度」类词 fresh/new/top up",
-        "含发布/宣传语境（下调置信度）"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.23",
-          "weekday": "周三",
-          "time": "02:23",
-          "text": "2026.09.23（周三）02:23",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.22",
-          "weekday": "周二",
-          "time": "11:23",
-          "text": "2026.09.22（周二）11:23",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 1,
       "window": null,
       "candidateWindow": null
     },
@@ -3867,12 +4077,12 @@
     }
   ],
   "counts": {
-    "scanned": 81,
+    "scanned": 86,
     "explicit": 2,
-    "occurred": 2,
+    "occurred": 3,
     "hint": 9,
-    "none": 68,
-    "rejected": 68
+    "none": 72,
+    "rejected": 72
   },
   "truncated": false
 }

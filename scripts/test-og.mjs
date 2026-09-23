@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { buildChartData } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
 import { OG_H, OG_LAYOUT, OG_W, buildOgImage, detectCjkFont, ogNumbers } from './og-image.mjs';
-import { renderOgMeta } from './render.mjs';
+import { renderOgMeta } from '../src/lib/render.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 

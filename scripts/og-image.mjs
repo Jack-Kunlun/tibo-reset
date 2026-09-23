@@ -27,8 +27,8 @@ import { Resvg } from '@resvg/resvg-js';
 import { buildChartData, fmtDateIn, fmtDateTimeIn } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
 import { PALETTE, estimateTextWidth, survivalScene } from '../src/lib/scene.js';
-import { verdictOf } from './render.mjs';
-import { renderSceneSvg } from './svg.mjs';
+import { verdictOf } from '../src/lib/render.mjs';
+import { renderSceneSvg } from '../src/lib/svg.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CJK = 'Asia/Shanghai';

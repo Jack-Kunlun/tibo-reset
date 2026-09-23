@@ -1073,6 +1073,27 @@ function asEvidence(a, weight, contributes) {
   };
 }
 
+/**
+ * 最近一次「额度事件」的时刻（毫秒）。**不分 reset / credit** ——
+ * 这与 collect.mjs 的 `resetFloorMs` 口径刻意不同：那里只认 `type === 'reset'`，
+ * 因为它的用途是**保守地取采集下界**（口径争议见 KI-003）；而这里回答的是另一个问题 ——
+ * 「他预告的那次发放，是否已经落地」。无论形式是重置还是发券，预告都已经兑现了。
+ *
+ * 实测：2026-09-23 02:23 那次正是 `credit`（发券）型，若沿用 resetFloorMs 的口径，
+ * 这次「预告已兑现」根本判不出来。
+ *
+ * @param {Array} records resets.json 的 records
+ * @returns {number} 毫秒时间戳；没有记录时返回 0（调用方据此跳过这道判据）
+ */
+export function latestEventMs(records) {
+  let max = 0;
+  for (const r of records ?? []) {
+    const t = new Date(r?.announced_at ?? 0).getTime();
+    if (Number.isFinite(t) && t > max) max = t;
+  }
+  return max;
+}
+
 /* ------------------------------- 入口 ------------------------------- */
 
 /**
@@ -1094,6 +1115,9 @@ function asEvidence(a, weight, contributes) {
  * @param {number} opts.lookbackDays 最少回看多少天（默认 60）
  * @param {number} opts.sinceMs      时间窗的另一个候选下界（如「上次重置 - 缓冲」）
  * @param {number} opts.now          计算基准时刻
+ * @param {number} opts.lastResetAt  最近一次额度事件的时刻（毫秒，见 latestEventMs）。
+ *   用来判断预告是否**已经兑现**。不传的话只剩「窗口是否已过去」这一道判据，
+ *   于是「窗口内已经重置过、但窗口还没走完」的预告会一直挂在页面上。
  */
 export function detectSignals(tweets, opts = {}) {
   const sourceZone = opts.sourceZone ?? SOURCE_ZONE;
@@ -1116,10 +1140,46 @@ export function detectSignals(tweets, opts = {}) {
 
   const analyzed = list.map((t) => analyzeTweet(t, { sourceZone, userZone, account }));
 
-  const explicit = analyzed.filter((a) => a.level === 'explicit');
-  const occurred = analyzed.filter((a) => a.level === 'occurred');
-  const hints = analyzed.filter((a) => a.level === 'hint');
-  const rejected = analyzed.filter((a) => a.level === 'none' && a.rejected);
+  /* ── 已过期的预告不再展示 ────────────────────────────────────────────
+   *
+   * analyzeTweet 里那段「未来窗口」判定（约第 699 行）是**静态的**：它只跟**推文
+   * 自己的发布时刻**比，回答的是「他发这条的时候，说的那天还在不在未来」。那个判据
+   * 当时是对的，但它**不会随时间失效** —— 于是预告兑现之后，那条推文仍然留在 explicit 里，
+   * 页面继续把它当成「还没发生、随时会发生」。
+   *
+   * 实测症状（2026-09-23）：他 09-22 预告「周二重置」（窗口到北京 09-23 14:59），
+   * 而重置在 09-23 02:23 真的发生了。页面却还挂着「窗口已开启 · 随时可能重置」，
+   * 倒计时归零定在那里 —— 一条**已经兑现**的预告，被展示成「随时会发生」。
+   * 这比不显示更糟：它把读者的判断方向整个带反。
+   *
+   * 两道判据，任一成立即视为过期：
+   *   ① 窗口已经过去（to < now）—— 预告落空或已兑现，都不该再作为「未来预告」出现
+   *   ② 窗口开启之后已发生过重置（lastResetAt >= from）—— 预告兑现了
+   *
+   * 为什么 ② 不用「落在窗口内」当判据：重置也可能发生在窗口**结束之后**（他预告周二、
+   * 实际周三才按按钮），那同样说明这条预告不再是「待验证的未来」。`>= from` 一并覆盖，
+   * 语义是「这个窗口指向的那次重置，已经落地了」。
+   *
+   * ⚠ 连带效应是**有意**的：过滤发生在构造 hypothesis **之前**，所以「依据」里那些
+   * 同日提及（"3am"、"coming in tuesday" 这类线索）会跟着一起撤走。一条预告只有一个去处 ——
+   * 撤回它就要把它挂着的证据一起撤回，否则页面会既说「没有预告」、又列着 4 条依据。
+   */
+  const lastResetAt = Number(opts.lastResetAt ?? 0);
+  const isExpiredForecast = (a) => {
+    const w = a.window;
+    if (!w) return false;
+    const from = new Date(w.from).getTime();
+    const to = new Date(w.to).getTime();
+    if (!Number.isFinite(from) || !Number.isFinite(to)) return false;
+    if (to < now) return true;
+    return lastResetAt > 0 && lastResetAt >= from;
+  };
+  const live = analyzed.filter((a) => !(a.level === 'explicit' && isExpiredForecast(a)));
+
+  const explicit = live.filter((a) => a.level === 'explicit');
+  const occurred = live.filter((a) => a.level === 'occurred');
+  const hints = live.filter((a) => a.level === 'hint');
+  const rejected = live.filter((a) => a.level === 'none' && a.rejected);
 
   // 优先级的语义：explicit 是「他对下一次重置给了时间」，可行动；
   // occurred 是「刚刚重置过」，是事实。两者都会在页面上并列展示，
@@ -1135,7 +1195,9 @@ export function detectSignals(tweets, opts = {}) {
   // 综合假设：把指向同一天的推文收成一条证据链，分明 hard / soft。
   // 这是「不只是抓到一条 reset 就结束」的落点 —— 单条结论之外，
   // 还要说清「有哪些推文共同指向这个时间、哪些没被采用、为什么」。
-  const hypothesis = buildHypothesis(analyzed);
+  // 用 live 而不是 analyzed：已过期的预告不能成为假设链的锚点，它的同日提及
+  // 也不能再当证据（否则 forecasts 会挂着一条已经没有主语的证据链）
+  const hypothesis = buildHypothesis(live);
 
   return {
     level,
@@ -1176,9 +1238,9 @@ export function detectSignals(tweets, opts = {}) {
       explicit: explicit.length,
       occurred: occurred.length,
       hint: hints.length,
-      none: analyzed.length - explicit.length - occurred.length - hints.length,
+      none: live.length - explicit.length - occurred.length - hints.length,
       // 未截断的真实条数。触顶时 `rejected.length` 是**保留数**，两者不相等 ——
-      // 渲染层要写「保留 X / 共 Y 条」就得有 Y（见 render.mjs 的截断提示）。
+      // 渲染层要写「保留 X / 共 Y 条」就得有 Y（见 src/lib/render.mjs 的截断提示）。
       // 不复用 counts.none 是因为那是个减法结果，语义是「none 级的条数」；
       // 当前二者相等只因为每条 none 都被排除，不是定义上的等价。
       rejected: rejected.length,

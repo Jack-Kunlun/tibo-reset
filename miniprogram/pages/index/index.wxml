@@ -112,7 +112,8 @@
   <view wx:else class="sig-idle">
     <text class="idot"></text>
     <text>时间窗内 <text class="b">{{signal.checked}}</text> 条推文中没有检测到重置预告</text>
-    <text class="isub">时间窗自 {{signal.windowFrom}} 起</text>
+    <!-- 取不到窗口起点时整行不出现 —— 否则渲染成「时间窗自  起」，比没有更差 -->
+    <text wx:if="{{signal.windowFrom}}" class="isub">时间窗自 {{signal.windowFrom}} 起</text>
   </view>
 
   <!-- ============ HERO：滚动计时 ============ -->

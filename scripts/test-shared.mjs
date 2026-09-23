@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 
 import { buildChartData } from '../src/lib/chart-data.js';
 import { survivalScene, stripScene, sceneBounds } from '../src/lib/scene.js';
-import { sceneToSvgTag } from './svg.mjs';
+import { sceneToSvgTag } from '../src/lib/svg.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -72,7 +72,20 @@ check(
 section('2. 数据层形状');
 
 const resets = JSON.parse(await readFile(resolve(ROOT, 'data/resets.json'), 'utf8'));
-const NOW = Date.parse('2026-09-21T02:00:00Z');
+
+// ⚠ NOW 必须**晚于最新一条记录**。
+//
+// sinceDays 是「最新记录 → now」这段右删失区间的长度，数据点本身又被用来定
+// 生存曲线的时间轴范围。写死一个日期，那么每次新增记录后它都会过期 ——
+// 2026-09-23 加了 09-22 那条之后，写死的 09-21 就变成了「now 早于最新记录」，
+// 于是 sinceDays 变负、曲线起点被甩到画布左侧外，两个不相干的断言一起红。
+//
+// 取「最新记录 + 6 小时」：永远成立，且保持**确定性**（不能用 Date.now()，
+// 否则同一份数据在不同时刻跑出不同结果，失败无法复现）。
+const latestRecordMs = Math.max(
+  ...resets.records.map((r) => new Date(r.announced_at).getTime()).filter((t) => Number.isFinite(t))
+);
+const NOW = latestRecordMs + 6 * 3_600_000;
 const data = buildChartData(resets.records, NOW);
 
 check('chartData 构建成功', !!data);

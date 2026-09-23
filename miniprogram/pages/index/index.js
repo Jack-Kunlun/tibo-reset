@@ -8,7 +8,7 @@
  */
 
 import config from '../../config.js';
-import { loadState } from '../../utils/api.js';
+import { loadState, snapshotState } from '../../utils/api.js';
 import { buildGauge, buildSignal, buildMetrics, buildForecast } from '../../utils/view.js';
 import { survivalScene, stripScene } from '../../utils/scene.js';
 import { drawScene, setupCanvas } from '../../utils/draw.js';
@@ -60,6 +60,16 @@ Page({
     this._painting = false;
     this._reminding = false;
     this.initRemind();
+    // 首屏先铺内置快照，**不等网络** —— 接口回来再覆盖（见 utils/api.js 的三级降级）。
+    //
+    // ⚠ 这一句是「域名没配也不会白屏」这句承诺的真正落点，不能省：
+    //   loadState 是「先 await 请求、再返回」的，只靠它兜底的话，接口慢或超时
+    //   （timeoutMs 上限 8 秒）会先空着一整屏 —— 那正是这条设计要避免的事。
+    this.apply({
+      state: snapshotState(),
+      degraded: true,
+      reason: '正在获取最新数据，当前显示构建时快照',
+    });
     this.load();
   },
 

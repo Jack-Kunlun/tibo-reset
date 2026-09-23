@@ -13,7 +13,7 @@
 import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { analyzeTweet, detectSignals, SOURCE_ZONE, USER_ZONE } from '../src/lib/signals.mjs';
+import { analyzeTweet, detectSignals, latestEventMs, SOURCE_ZONE, USER_ZONE } from '../src/lib/signals.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -763,6 +763,100 @@ console.log('\n【6】预告：一个窗口一条，支撑它的推文挂在里�
   );
   check('没有承诺 → 不产生预告', sig.forecasts.length === 0, `实际 ${sig.forecasts.length}`);
   check('但线索照常保留（hint 档兜底）', sig.hints.length >= 1, `实际 ${sig.hints.length}`);
+}
+
+/* ==================== 7. 已兑现／已过期的预告不再展示 ==================== */
+
+console.log('\n【7】过期的预告：兑现之后、或窗口走完之后，不再作为「未来预告」出现');
+
+{
+  /* 真实场景（2026-09-23）：他 09-20 / 09-21 预告「周二重置」，窗口是北京
+   * 09-22 15:00 → 09-23 14:59；而重置在 09-23 02:23 真的发生了（发券型 credit）。
+   *
+   * 修复前：页面继续挂着「窗口已开启 · 随时可能重置」，倒计时归零定在那里 ——
+   * 一条**已经兑现**的预告被展示成「随时会发生」，把读者的判断方向整个带反。
+   * 根因是 analyzeTweet 里的「未来窗口」判定只跟**推文自己的发布时刻**比，
+   * 是静态的，不会随时间失效（见 signals.mjs 里 isExpiredForecast 的注释）。
+   */
+  const promised = [{ id: 'p1', text: 'I promised a reset for Tuesday.', created_at: '2026-09-21T22:31:00.000Z' }];
+  const now = new Date('2026-09-23T01:49:00.000Z').getTime(); // 北京 09-23 09:49
+  const fulfilled = new Date('2026-09-22T18:23:37.000Z').getTime(); // 北京 09-23 02:23
+
+  const before = detectSignals(promised, { now });
+  const after = detectSignals(promised, { now, lastResetAt: fulfilled });
+
+  check('修复前的状态：预告在场（先把问题本身钉住）', before.forecasts.length === 1, `实际 ${before.forecasts.length}`);
+  check('预告兑现后：forecasts 被撤回', after.forecasts.length === 0, `实际 ${after.forecasts.length}`);
+  check(
+    'signals 与 forecasts 口径一致（explicit 一并清空）',
+    after.counts.explicit === 0,
+    `实际 ${after.counts.explicit}`
+  );
+  check(
+    '假设链一起撤 —— 不留「没有主语」的证据链',
+    after.hypothesis === null,
+    after.hypothesis ? `还在（dayNum=${after.hypothesis.dayNum}）` : ''
+  );
+}
+
+{
+  // 窗口走完、但并没有发生新重置（预告落空）—— 同样不该再当「未来预告」挂着
+  const promised = [{ id: 'p1', text: 'I promised a reset for Tuesday.', created_at: '2026-09-21T22:31:00.000Z' }];
+  const later = new Date('2026-09-25T04:00:00.000Z').getTime();
+  const sig = detectSignals(promised, { now: later, lastResetAt: new Date('2026-09-12T00:00:00.000Z').getTime() });
+  check('窗口已过去 → 撤回（落空的预告也不该留着）', sig.forecasts.length === 0, `实际 ${sig.forecasts.length}`);
+}
+
+{
+  /* ⚠ 这两条反向用例比上面几条更重要。
+   *
+   * 「过期就不展示」极易做过头 —— 判成「一律不展示」，观测台就彻底失去预告能力，
+   * 而且那种错误在真实数据上**看不出来**（当前恰好没有未来预告，页面一样是空的）。
+   */
+  const future = [
+    { id: 'q1', text: 'We will reset all usage limits next Tuesday.', created_at: '2026-09-17T17:57:59.000Z' },
+  ];
+  const now = new Date('2026-09-18T04:00:00.000Z').getTime();
+
+  const a = detectSignals(future, { now });
+  const b = detectSignals(future, { now, lastResetAt: new Date('2026-09-12T00:00:00.000Z').getTime() });
+  check(
+    '预告指向未来 + 期间没有新重置 → 必须保留',
+    a.forecasts.length === 1 && b.forecasts.length === 1,
+    `不传 ${a.forecasts.length} / 传 ${b.forecasts.length}`
+  );
+
+  // 上一次重置发生在窗口**开始之前**，不构成「这次预告兑现了」——
+  // 判据是 lastResetAt >= window.from，不能用 `> 0` 之类偷懒
+  const c = detectSignals(future, {
+    now,
+    lastResetAt: new Date('2026-09-16T00:00:00.000Z').getTime(),
+  });
+  check('重置发生在窗口开始之前 → 不算兑现，仍保留', c.forecasts.length === 1, `实际 ${c.forecasts.length}`);
+}
+
+{
+  // 调用方漏传 lastResetAt 时，行为必须与改动前一致（只剩「窗口是否已过去」一道判据）
+  const promised = [{ id: 'p1', text: 'I promised a reset for Tuesday.', created_at: '2026-09-21T22:31:00.000Z' }];
+  const now = new Date('2026-09-23T01:49:00.000Z').getTime();
+  const sig = detectSignals(promised, { now });
+  check('不传 lastResetAt：不动旧行为（向后兼容）', sig.forecasts.length === 1, `实际 ${sig.forecasts.length}`);
+}
+
+{
+  // latestEventMs 的口径是「不分 reset / credit」—— 这次兑现的恰恰是发券型，
+  // 若沿用 resetFloorMs 那种只认 type==='reset' 的口径，本次修复根本判不出来。
+  const recs = [
+    { announced_at: '2026-09-12T03:20:00.000Z', type: 'reset' },
+    { announced_at: '2026-09-22T18:23:37.000Z', type: 'credit' },
+    { announced_at: '2026-08-01T00:00:00.000Z', type: 'reset' },
+  ];
+  check(
+    'latestEventMs 取最近一次，且**含 credit**',
+    latestEventMs(recs) === new Date('2026-09-22T18:23:37.000Z').getTime(),
+    new Date(latestEventMs(recs)).toISOString()
+  );
+  check('空记录 / null → 0（调用方据此跳过这道判据）', latestEventMs([]) === 0 && latestEventMs(null) === 0);
 }
 
 /* ================================ 结果 ================================ */

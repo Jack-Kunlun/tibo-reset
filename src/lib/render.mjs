@@ -1,6 +1,11 @@
 /**
- * 构建时渲染：把所有内容（图表 SVG、指标、时间线、判定、信号）在 Node 里算好，
- * 产出纯静态 HTML 片段。
+ * 渲染层：把所有内容（图表 SVG、指标、时间线、判定、信号）在 Node 里算好，
+ * 产出纯 HTML 片段。
+ *
+ * **两个消费者，同一套代码**（组装在 src/lib/page.mjs）：
+ *   1. scripts/build.mjs   —— 构建期出 dist/index.html（Pages + 镜像兜底）
+ *   2. server/index.mjs    —— 请求时实时渲染，数据一变刷新即新，不经构建
+ * 两份产物因此逐字节同源，不会各自漂移。
  *
  * 为什么不放在浏览器里跑？
  *  - 不依赖 JS 运行环境，脚本被限制的 WebView 也能正常显示
@@ -11,8 +16,8 @@
  *   曾经用本地时区，结果部署到 GitHub Actions（runner 是 UTC）后页面上全是 UTC 时间。
  */
 
-import { fmtDateIn, fmtDateTimeIn, partsIn, dualZone } from '../src/lib/chart-data.js';
-import { survivalScene, stripScene } from '../src/lib/scene.js';
+import { fmtDateIn, fmtDateTimeIn, partsIn, dualZone } from './chart-data.js';
+import { survivalScene, stripScene } from './scene.js';
 import { sceneToSvgTag } from './svg.mjs';
 
 const CJK = 'Asia/Shanghai';
@@ -215,11 +220,19 @@ export function renderSignal(sig) {
   if (!blocks.length) {
     const hints = (sig.hints ?? []).length;
     const extra = hints ? `，${hints} 条线索` : '';
+    // 时间窗起点是 ISO 串，必须走格式化。此前这里写的是 `.slice(0, 10)` ——
+    // 那切的是 **UTC** 日期（起点落在 UTC 16:00–24:00 时会比北京日期**早一天**），
+    // 格式也与页面别处（`2026.07.25`）不一致。取不到起点时整行不出现，
+    // 而不是渲染成「时间窗自  起 · 共扫 N 条」。与小程序端（view.js 的 fmtDay）对齐。
+    const from = sig.windowFrom ? fmtDate(sig.windowFrom) : '';
+    const fromLine = from
+      ? `<span class="sig-idle-sub">时间窗自 ${esc(from)} 起 · 共扫 ${sig.checkedTweets} 条</span>`
+      : '';
     return `
     <div class="sig-idle">
       <span class="sig-dot"></span>
       <span>时间窗内 <b>${sig.checkedTweets}</b> 条推文中没有检测到重置预告${extra}</span>
-      <span class="sig-idle-sub">时间窗自 ${esc(String(sig.windowFrom ?? '').slice(0, 10))} 起 · 共扫 ${sig.checkedTweets} 条</span>
+${fromLine}
     </div>${truncNote}`;
   }
 

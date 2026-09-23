@@ -122,6 +122,21 @@ if (!result.skippedFresh) {
     );
   }
   if (result.coverageSince) console.log('  采集下界  ' + result.coverageSince + '（上一次重置 - 缓冲）');
+  // 历史刷新单独报一行。它是「距上次重置多少天」这类核心数字的上游 ——
+  // 这一环坏掉时页面不会有任何异常，只是数字停在一个过时的值上，
+  // 所以「这轮到底刷新了没有、新增了什么」必须看得见。
+  if (result.history) {
+    const h = result.history;
+    console.log(
+      '  历史记录  ' +
+        (h.error
+          ? `⚠ 刷新失败（沿用本地）：${h.error}`
+          : h.changed
+            ? `上游 ${h.upstreamCount} 条 → 新增 ${h.added} · 更新 ${h.updated}` +
+              (h.patchedTexts ? ` · 回填正文 ${h.patchedTexts} 条` : '')
+            : `已是最新（上游 ${h.upstreamCount} 条，无变化）`)
+    );
+  }
   if (result.tweetCount != null) {
     console.log(
       '  库内推文  ' +

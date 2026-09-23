@@ -11,7 +11,7 @@
 
 | # | 约束 | 来源 | 影响 |
 |---|---|---|---|
-| C1 | `x.com` 在中国境内**不可直连**（实测 3/3 超时，`http=000`） | 实测 | 采集必须在境外执行 |
+| C1 | `x.com` 的 Cloudflare 拦的是**机房 IP 段**，不是「境外 IP」（实测同一时刻：runner 403 挑战页 / 本机住宅出口 200 完整页面） | 实测 | 采集必须从**非机房出口**发起（现由本机承担）；服务自身跑在机房，故服务不采集 |
 | C2 | 小程序的 `request` 合法域名**必须已 ICP 备案**且走 HTTPS | 微信侧硬要求 | 小程序后端必须在境内、有备案域名 |
 | C3 | 定位是**作品 + 引流**，不是商业产品 | PRD 1.1 | 成本趋零优先于性能与扩展性 |
 | C4 | 受众在国内（同行 / 招聘方 / 内容创作者） | PRD 二 | 分享链接的**国内可达性**是效果前提 |
@@ -21,9 +21,9 @@
 
 | 资源 | 状态 | 用途 |
 |---|---|---|
-| 境内服务器 | 已有 | 小程序后端 + 网页镜像 |
-| 已备案域名 | 另有（非本仓库内） | 后端 HTTPS 入口 |
-| GitHub 账号 | 已有（`Jack-Kunlun`） | 代码托管 + Actions 采集 + Pages |
+| 境内服务器 | 已有 | 小程序后端 + **网页主站**（同源托管） |
+| 已备案域名 | 已有：`reset.example.com` | 后端 HTTPS 入口，也是网页主站入口 |
+| GitHub 账号 | 已有（`<你的 GitHub 用户名>`） | 代码托管 + 代码变更时构建 + Pages（异地备份） |
 | 微信小程序（已备案） | 已有 | 第二载体 |
 
 ---
@@ -31,45 +31,33 @@
 ## 二、总体架构
 
 ```
-        ┌──────────────────── 采集与构建 ───────────────────────────────┐
-        │                                                              │
-   x.com/thsottiaux ──► 本机（住宅出口）：WorkBuddy 定时任务              │
-   （登录态 HTML，        └─ node scripts/collect.mjs   采集 + 分类 + 识别信号
-     CDP 驱动 Chrome，              build.mjs           构建网页与小程序快照
-     收 / 与 /with_replies）        git push data/      推上仓库（有实质变化才提交）
-        │                            │
-        │                            ▼
-        │                    GitHub Actions（push 触发；**不采集** ——
-        │                    runner 是机房 IP，必被 Cloudflare 403）
-        │                      ├─ node scripts/build.mjs        构建期预渲染
-        │                      ├─ node scripts/check-consistency.mjs  A3 一致性
-        │                      └─ node scripts/push-ingest.mjs  推送数据到境内
-        │                            │
-        │                            ├──────────────► git commit data/（有实质变化才提交）
-        │                            │                        │
-        │                            │                        ▼
-        │                            │                 GitHub Pages
-        │                            │                 （主站，PRD 已确认）
-        │                            │
-        └────────────────────────────┼────────────────────────────┐
-                                     │ POST /api/ingest           │
-        ┌──────────────────────────── 境内 ─────────────▼───────────┴────┐
-        │                                                              │
-        │  境内服务器（已备案域名 + HTTPS，反向代理 Caddy）              │
-        │    ├─ POST /api/ingest    接收境外采集结果（token 鉴权）       │
-        │    ├─ data/*.json         运行时唯一数据源                     │
-        │    ├─ node scripts/build.mjs   数据更新后重建 dist/（境内镜像） │
-        │    ├─ GET /api/*          小程序调用的接口                     │
-        │    └─ GET /               境内镜像站（分享用链接）              │
-        │                                                              │
-        └──────────────────────────────────────────────────────────────┘
-                                     ▲
-                                     │ HTTPS
-                              微信小程序（已备案）
+   x.com/thsottiaux ──► 本机（住宅出口）· WorkBuddy 定时任务   ← 采集只在这里发生
+   （登录态 HTML，        └─ node scripts/collect.mjs   CDP 驱动已登录 Chrome，增量收割
+     CDP 驱动 Chrome，              build.mjs           构建兜底页 dist/ + OG 卡 + 小程序快照
+     收 / 与 /with_replies）        push-ingest.mjs     ① 直推后端 → 线上立即生效
+                                    git push            ② 提交留档（有实质变化才提交）
+        │
+        │ ① POST /api/ingest
+        ▼
+   境内 · 已备案域名 https://reset.example.com · Nginx 终结 TLS
+     tibo-reset 容器（docker run --restart always）
+       ├─ POST /api/ingest   接收本机推送（Bearer token 鉴权）
+       ├─ data/*.json        运行时唯一数据源
+       ├─ GET /              **请求时**用当前数据实时渲染整页（不是构建产物）
+       ├─ GET /api/*         小程序调用的接口
+       └─ dist/              渲染失败时的兜底页 + OG 分享图（构建期产物）
+        ▲
+        │ HTTPS
+   微信小程序（已备案）
+
+        └── ② git push（只有**代码**变更才触发构建）
+              GitHub Actions ──► GitHub Pages（异地备份入口，不是主入口）
 ```
 
-**这张图里最关键的一条线**：Actions 采集一次，产出物经**两条通道分发**（git → Pages；POST → 境内），
-两边用的是**同一份采集产物 + 同一份模型代码**。A3 验收（页面数字与 API 数字一致）由此成立，
+**这张图里最关键的一条线**：采集只发生一次（本机），产出的数据**同时**走两路 ——
+`POST /api/ingest` 直推后端（线上立即生效，**不经构建**），git 提交留档。
+页面由后端在**请求时**用当前数据实时渲染，所以「数据变了」与「页面变了」之间没有任何中间环节。
+两路用的是**同一份采集产物 + 同一份模型代码**，A3 验收（页面数字与 API 数字一致）由此成立，
 不靠人工比对维持。
 
 ---
@@ -83,15 +71,15 @@
 | 运行时依赖 | **0 个** | 部署即拷源码，无 `npm install` 失败点、无供应链面 |
 | 构建期依赖 | **允许**（仅 OG 图生成引入 1 个） | 构建在 CI 里跑，失败可见且不污染线上 |
 | 数据存储 | **JSON 文件 + 原子写** | 53 条记录 / 一年跨度，数据库是负资产 |
-| 采集执行环境 | **GitHub Actions** | runner 在境外（解 C1），免服务器、免运维 |
-| 数据分发 | **git（备份+Pages源） + POST 推送（境内）** | 境外出、境内入，境内服务器无需访问境外 |
-| 网页托管 | **GitHub Pages（主） + 境内镜像（分享用）** | 见 3.5 —— 这是本文最需要你看的一段 |
-| 小程序后端 | **境内自制服务 + 反向代理 + Let's Encrypt** | 解 C2 |
-| 反向代理 | **Caddy** | 自动申请与续期证书，配置文件只有 5 行 |
-| 进程守护 | **systemd** | 与「零依赖」一致，不用 pm2 |
+| 采集执行环境 | **本机（住宅出口）· 定时任务** | 只有非机房出口能过 Cloudflare（解 C1）；CI 采不到 |
+| 数据分发 | **本机 POST 直推（境内） + git（留档）** | 数据一到即生效，不经构建；境内服务器不访问境外 |
+| 网页托管 | **后端容器同源托管（主） + GitHub Pages（异地备份）** | 见 3.5 —— 主入口在境内，分享链接不再看 Pages 的脸色 |
+| 小程序后端 | **境内自制服务 + 反向代理 + 域名 DV 证书** | 解 C2 |
+| 反向代理 | **Nginx**（复用服务器上已有的） | 主域站点已用它；子域证书另签，见 `deploy.md` |
+| 进程守护 | **`docker run --restart always`** | 镜像即部署单元，不用 systemd，也不用 pm2 |
 | 分享卡片图 | **构建期 SVG → PNG**（`@resvg/resvg-js`） | 复用已有的图表 SVG 生成能力 |
 | 订阅消息 | **小程序一次性订阅 + 服务端 push** | 长期订阅对工具类目不开放，见第六节 |
-| 监控告警 | **`/api/health` + GitHub Actions 内置失败通知** | 本阶段不自建外部通道，见 3.8 |
+| 监控告警 | **`/api/health` + 页面自带的数据陈旧提示** | 本阶段不自建外部通道，见 3.8 |
 
 ### 3.1 运行时：Node 20 → 24 LTS
 
@@ -150,29 +138,35 @@
 **唯一需要重新评估的触发条件**：F9 订阅用户数超过约 1 万。届时 JSON 全量读写会变成瓶颈，
 再切换到 SQLite 或云数据库 —— 数据访问已经收敛在 `server/store.mjs` 一个文件里，迁移成本可控。
 
-### 3.4 数据分发：境外出、境内入
+### 3.4 数据分发：本机直推，境内被动接收
 
-这是全篇最麻烦的一环，因为 C1 与 C2 把「采集」和「服务」硬性分到了两个网络域。
+这是全篇最麻烦的一环，因为 C1 与 C2 把「采集的出口」与「服务的入口」分到了两种性质不同的网络。
 
-**结论：数据**只**在境外采集一次，然后朝两个方向分发，境内服务器不主动访问境外。**
+**结论：数据只采集一次（本机），采完立刻 `POST` 给境内服务落盘；git 提交只做留档。**
+境内服务器全程不主动访问境外。
 
 ```
-Actions 采集完成
-   ├─ 通道 1：git commit data/ + dist/  →  GitHub Pages 部署
-   └─ 通道 2：POST https://<已备案域名>/api/ingest  →  境内服务器落盘
+本机（住宅出口）采集完成
+   ├─ 主通道：POST https://reset.example.com/api/ingest → 境内落盘 → 页面刷新即新
+   └─ 留档：  git commit data/ miniprogram/ → 仓库历史（不再是任何分发链路的中间站）
 ```
 
 **为什么不让境内服务器定时 `git pull`**：
 境内访问 `github.com` 虽然实测可达，但 `git pull` 依赖的是长期稳定的 HTTPS 链路，
 一旦抖动就会出现「页面是新的、API 是旧的」这种最难排查的静默不一致。
-而「境外主动 POST 到境内」这个方向 —— 境内服务器的公网入口本来就对全球开放，
-GitHub runner 访问它没有任何网络障碍。**把不可靠的方向换成可靠的方向，比加重试更有效。**
+而「本机主动 POST 到境内」这个方向 —— 境内服务器的公网入口本来就对全球开放，
+阻力只在本机这一侧，而它本来就在跑采集。**把不可靠的方向换成可靠的方向，比加重试更有效。**
+
+**为什么不再经 CI 中转**（2026-09-22，D-025）：
+原先是 `git push` → CI 构建 → CI 转发 `POST`。这条链多出的两个环节现在都没有产出 ——
+页面已改为请求时实时渲染、不再需要构建，「数据变化触发构建」这件事本身也就失去了意义。
+绕一整圈还让数据链多一个能断的地方。**采完直推，链路最短。**
 
 **失败与幂等**：
 
 | 情况 | 处理 |
 |---|---|
-| POST 失败 | Actions 内重试 3 次（指数退避）；仍失败则记录，下一轮采集会覆盖 |
+| POST 失败 | `push-ingest.mjs` **单次尝试，不重试**，当轮日志记一次失败。下次采集有实质变化时会重推（全量覆盖），不需要补数据 |
 | 境内服务重启中 | 同上，下一轮补齐。数据本身带 `generatedAt`，下一轮是全量覆盖而非增量追加 |
 | 推送乱序（旧数据后到） | 服务端只接受 `generatedAt` 比当前更新的载荷，旧的直接丢弃并返回 `stale` |
 
@@ -196,68 +190,83 @@ Content-Type: application/json
 `INGEST_TOKEN` 与 `ADMIN_TOKEN` **用两个不同的值**：前者只允许写数据，
 后者允许触发采集 —— 采集在境内会失败（C1），没有理由让一个只写数据的凭证拥有触发采集的权限。
 
-### 3.5 网页托管：GitHub Pages 为主，境内镜像兜底
+### 3.5 网页托管：后端同源托管为主，GitHub Pages 只做异地备份
 
-**已确认：主站放 GitHub Pages。** 这个选择的好处很实在 —— 免费、免备案、部署链路最短
-（Actions 构建完直接发布，不需要管服务器）。技术选型层面它没有问题。
+**结论：主站在后端容器里同源托管，地址 `https://reset.example.com`。**
+`GET /` 由 `server/index.mjs` 在请求时用当前数据实时渲染，与 `/api/*` 同一个进程、同一个域名。
+GitHub Pages 保留，但定位降为**异地备份** —— 主域或服务器整体出事时，还有个能打开的副本。
 
-但有一件事必须说清楚，因为它直接关系到 G3（分享物料）这个目标能不能达成：
+为什么把主备反过来（2026-09-22，D-025）：原方案是「Pages 为主 + 境内镜像兜底」，
+但它要求**人工守住**「对外发的链接一律用境内域名」这条纪律 —— 一旦哪次顺手发了 Pages
+地址，就暴露在可达性风险里。主站直接放境内，等于把这条纪律变成默认值。
 
-> **GitHub Pages 在中国境内的可达性是不稳定的。**它不是「慢」，是「时好时坏」——
-> 取决于当前 DNS 解析结果与链路状态，且用户侧无法自行修复。
-> 对一个把「给国内同行和招聘方看」当核心目标的站点，这意味着**一部分分享链接点开会是空白页**。
+> **GitHub Pages 在中国境内的可达性不稳定**，这不是「慢」，是「时好时坏」，
+> 取决于当时 DNS 解析与链路状态，用户侧无法自行修复。
+> 对一个把「给国内同行和招聘方看」当核心目标的站点，这正是主站不能放在它的原因。
 
-这不是否决 GitHub Pages 的理由（它作为作品集入口完全合格），而是**它不该是唯一的入口**。
-所以架构里加了一条近乎零成本的兜底：
+> ⚠ 已知代价，写在最显眼处：**OG 分享图是图片文件，只能构建期生成**。
+> 它不会随数据变 —— 分享卡片上的数字停在**最后一次构建**（容器那份 = 最后一次 `ship-image.sh`，
+> Pages 那份 = 最后一次 CI 构建），而不是最后一次采集。
+> 页面本身是实时的，**只有链接预览这张图是旧的**。
 
-| 入口 | 地址 | 用途 | 成本 |
-|---|---|---|---|
-| 主站 | GitHub Pages | 作品集入口、被搜索引擎收录、给海外看 | 0 |
-| 镜像 | `<已备案域名>/` | **对外分享时用这个链接** | 0（服务器已在跑，多托管一个静态文件） |
+| 入口 | 地址 | 用途 |
+|---|---|---|
+| 主站 | `https://reset.example.com` | 对外分享、小程序接口、日常访问 |
+| 备份 | GitHub Pages | 主站不可用时的副本；被搜索引擎收录、给海外看 |
 
-镜像站怎么来：境内服务器收到 `/api/ingest` 后，直接调用 `node scripts/build.mjs` 重建 `dist/`
-——构建脚本零依赖，本来就在仓库里，不需要额外同步通道。
+主站这一路：容器内 `GET /` 实时渲染；渲染失败退回 `dist/index.html`（宁可数据旧，也不白屏）。
+Pages 由 GitHub Actions 在**代码变更时**构建，与数据无关 —— 它不再是数据链路上的一站。
 
-**分享时的规则写死**：对外发的链接用境内域名。GitHub Pages 的地址放在简历和 GitHub 主页。
+### 3.6 反向代理：Nginx（复用服务器上已有的）
 
-### 3.6 反向代理：Caddy
-
-```caddyfile
-tibo.example.com {
-    reverse_proxy 127.0.0.1:8787
+```nginx
+server {
+    listen 443 ssl;
+    server_name reset.example.com;
+    ssl_certificate     /etc/nginx/ssl/reset.example.com/bundle.crt;
+    ssl_certificate_key /etc/nginx/ssl/reset.example.com/privkey.key;
+    location / {
+        proxy_pass http://127.0.0.1:8787;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 }
 ```
 
-就这 5 行。Caddy 自动申请并续期 Let's Encrypt 证书，而 nginx 需要额外维护 certbot 定时任务 ——
-对一个单人维护的项目，少一个会过期失败的东西比多 1% 的性能重要。
+这台服务器上**已经在跑 Nginx**（主域 `example.com` 的站点在用），加一个 `server` 块即可，
+不另起一套反代。完整步骤见 [`deploy.md`](./deploy.md) 第三节。
 
-后端保持监听 `127.0.0.1`，不直接暴露公网，由 Caddy 终结 TLS。
+**TLS 终止这一层绕不过去**：`server/index.mjs` 用 `node:http`，不做 TLS，而小程序强制要求
+https —— 所以「Nginx + 证书」是必需品，不是可选项。证书已单独申请（腾讯云 TrustAsia DV，
+只覆盖本子域），**有效期 90 天且无自动续期**，续期靠人工替换 —— 见 `deploy.md` 3.2。
 
-### 3.7 进程守护：systemd
+后端监听 `127.0.0.1:8787`，不直接暴露公网，由 Nginx 终结 TLS。
 
-```ini
-[Unit]
-Description=Tibo Reset Observatory
-After=network.target
+### 3.7 进程守护：`docker run --restart always`
 
-[Service]
-WorkingDirectory=/srv/tibo-reset
-ExecStart=/usr/bin/node server/index.mjs
-EnvironmentFile=/srv/tibo-reset/.env
-Restart=always
-RestartSec=5
-User=tibo
-
-[Install]
-WantedBy=multi-user.target
+```bash
+docker run -d --restart always --name tibo-reset \
+  -p 127.0.0.1:8787:8787 \
+  -v /srv/tibo-data:/app/data \
+  --env-file /srv/tibo.env \
+  tibo-reset:amd64
 ```
 
-不用 pm2：它是个需要 `npm install` 的依赖，而 systemd 是操作系统自带的。
-`Restart=always` 已经覆盖了本项目需要的全部守护能力。
+`tibo-reset:amd64` 里的 `:amd64` 是**架构后缀**，不是版本号 —— 本机是 arm64、服务器是
+x86_64，两种架构的镜像会共存于同一台机器，名字带后缀才不会拿错。运行时变量
+（`SITE_URL`、`INGEST_TOKEN`、以及将来的 `WX_*`）统一放 `/srv/tibo.env`，用 `--env-file`
+注入，重建容器时不必重新生成口令。
 
-**关键配置**：境内机器的 `.env` 里必须设 `COLLECT_INTERVAL_MIN=0` —— 关掉内置调度器。
-在境内跑采集必然超时（C1），开着它只会每 30 分钟产生一条无意义的错误记录，
-把真正的错误淹没掉。
+不用 systemd，也不用 pm2：**镜像本身就是部署单元**。`--restart always` 覆盖了本项目需要的
+全部守护能力（崩溃重启、开机自启），而 systemd 还得额外维护一个 unit 文件、并对 Node 路径
+做假设 —— 那份 unit 文件已随本次调整删除（D-025）。
+
+`server/entrypoint.sh` 会在数据卷为空时把镜像内的种子数据拷进去，所以上面这条命令**可以直接跑**，
+不需要预先手工初始化数据目录。
+
+**关键配置**：镜像里 `COLLECT_INTERVAL_MIN` 的默认值已经是 `0`（关掉内置调度器）。
+境内机器走的是云机房出口，跑采集必被 Cloudflare 挑战（C1）—— 开着它只会每轮产生一条
+无意义的错误记录，把真正的错误淹没掉。**别改这个默认值。**
 
 ### 3.8 告警：本阶段不建外部通道
 
@@ -291,7 +300,7 @@ A3 是 PRD 里最容易悄悄失效的一条。两个数字来源不同、更新
 
 **机制**：
 
-1. **同一份输入**：两边的 `data/*.json` 都来自同一次 Actions 采集，且推送是**全量覆盖**。
+1. **同一份输入**：两边的 `data/*.json` 都来自同一次采集（本机），且推送是**全量覆盖**。
 2. **同一份代码**：`predictAll()` / `detectSignals()` / `buildChartData()` 是同一批模块，
    两条路径都调用它们，不存在「页面版模型」与「API 版模型」。
 3. **可校验的时间戳**：
@@ -357,7 +366,7 @@ data/*.json
 ### 5.1 落地（M3）
 
 实现落在 `scripts/og-image.mjs`，由 `scripts/build.mjs` 在构建末尾调用，产出 `dist/og-image.png`。
-元信息由 `scripts/render.mjs` 的 `renderOgMeta()` 注入，补齐 6 条：
+元信息由 `src/lib/render.mjs` 的 `renderOgMeta()` 注入，补齐 6 条：
 `og:title` / `og:description` / `og:image` / `og:image:width` / `og:image:height` /
 `twitter:card`，以及 `og:url`。
 
@@ -371,7 +380,10 @@ data/*.json
 **分享域名的注入方式**：`og:url` / `og:image` 必须是绝对地址，域名由构建期环境变量
 `SITE_URL` 注入。**不配则这两条 meta 不输出**（`twitter:card` 同时退化为 `summary`）——
 宁可少两条 meta，也不输出一个平台抓不到的相对地址，那样只会得到一个没有图卡的分享。
-对外分享用境内镜像域名（见 3.5），GitHub Pages 作为作品集入口。
+对外分享用的就是主站域名 `https://reset.example.com`（见 3.5），GitHub Pages 退为异地备份。
+
+⚠ **分享图的陈旧性**：`og:image` 是构建期产物，数据变了它不会跟着变 ——
+分享卡片上的数字停在最后一次构建。这是「OG 图只能构建期出」的固有结果，见 3.5。
 
 ---
 
@@ -470,47 +482,64 @@ CI 会 `git add data`，不显式排除就会被推进公开仓库。
 | # | 事项 | 说明 |
 |---|---|---|
 | 1 | 仓库设为 **public** | 见 8.1 —— 这直接决定 Actions 额度够不够 |
-| 2 | 提交 `data/` 与 `dist/` | 采集产物要进仓库才能被 Pages 使用；不加这两项，整条链路不成立 |
+| 2 | 提交 `data/`（**不提交 `dist/`**）| `data/` 是产品本体，进仓库留档，同时是镜像的种子数据；`dist/` 是构建产物，CI 与镜像各自构建，见 `.gitignore` |
 | 3 | 补 `.dockerignore` | 现在没有，`COPY . .` 会把 `node_modules` 与 `.git` 一起拷进镜像 |
 | 4 | 增 `Dockerfile` 的 Node 版本 | `node:20-alpine` → `node:24-alpine` |
 | 5 | workflow 的 `node-version` | `'20'` → `'24'` |
-| 6 | 补 Pages 部署 workflow | 现在 `collect.yml` 只提交代码，没有 Pages 发布步骤 |
-| 7 | 初始化 git 仓库 | ✅ 已执行 —— `main` 分支，远端 `Jack-Kunlun/tibo-reset`。**remote 必须走个人 SSH 别名**，原因见附注第 9 条 |
+| 6 | 补 Pages 部署 workflow | ✅ 已执行 —— `collect.yml` 在**代码变更时**构建并发布 Pages（异地备份）；数据更新不再触发它 |
+| 7 | 初始化 git 仓库 | ✅ 已执行 —— `main` 分支，远端 `<你的 GitHub 用户名>/tibo-reset`。**remote 必须走个人 SSH 别名**，原因见附注第 9 条 |
 
 ### 7.2 境内服务器
 
+完整步骤见 [`deploy.md`](./deploy.md)。三条要点：
+
+- **不用 systemd、不用 Caddy**：`docker run --restart always` 就是守护，反代复用服务器上
+  已有的 Nginx（主域站点在用它）。数据卷单独挂一个目录，重建容器不丢数据。
+- **TLS 终止这一层绕不过去**：`server/index.mjs` 用 `node:http`，不做 TLS，而小程序强制
+  要求 https。所以 Nginx 的 server 块 + 证书必须有（证书已申请好，人工上传，见 `deploy.md` 3.2）。
+- 采集**不在这台机器上跑**（机房出口必被 Cloudflare 挑战），由本机采集后 POST 到
+  `/api/ingest`。所以这里**不配** `COLLECT_INTERVAL_MIN` —— 镜像默认已是 `0`。
+
+部署形态是**一个镜像文件**，服务器上只有 docker（不要 git、不要 node、不要 npm）：
+
 ```bash
-# 1. 代码
-git clone <repo> /srv/tibo-reset && cd /srv/tibo-reset
+# ① 【本机】构建 + 导出 + 传过去。默认 --platform linux/amd64 —— 本机 arm64、
+#    服务器 x86_64，这是最容易踩死的一步（架构错了的报错只有 exec format error，不提架构）
+scripts/ship-image.sh root@<服务器 IP>
 
-# 2. 配置（AppSecret 等只存在这里）
-cat > .env <<'EOF'
-PORT=8787
-COLLECT_INTERVAL_MIN=0      # 境内必须关闭内置采集（C1）
-ADMIN_TOKEN=<随机值>
-INGEST_TOKEN=<另一个随机值>
-SOURCE_ACCOUNT=thsottiaux
-WX_APPID=<小程序 AppID>
-WX_SECRET=<小程序 AppSecret>
+# ② 【服务器】核对 → 装进 docker → 起
+cd /srv
+sha256sum -c tibo-reset-amd64.tar.gz.sha256
+gunzip -c tibo-reset-amd64.tar.gz | docker load
+mkdir -p /srv/tibo-data        # 数据目录独立于容器与镜像：容器要写它，重建不碰它
+cat > /srv/tibo.env <<EOF
+SITE_URL=https://reset.example.com
+INGEST_TOKEN=$(openssl rand -hex 24)
 EOF
-chmod 600 .env
-
-# 3. 守护
-cp deploy/tibo-reset.service /etc/systemd/system/ && systemctl enable --now tibo-reset
-
-# 4. 反代
-cp deploy/Caddyfile /etc/caddy/Caddyfile && systemctl reload caddy
+chmod 600 /srv/tibo.env
+docker run -d --restart always --name tibo-reset \
+  -p 127.0.0.1:8787:8787 \
+  -v /srv/tibo-data:/app/data \
+  --env-file /srv/tibo.env \
+  tibo-reset:amd64
+# 然后按 deploy.md 第三节加 Nginx server 块并上传证书
 ```
+
+`INGEST_TOKEN` 要记进 `deploy.md` 第四节那份本机的 `~/.tibo-ingest.env`，两边必须一致。
+F9 的 `WX_APPID` / `WX_SECRET` 同理写进 `/srv/tibo.env`；不配则 F9 整体关闭并在启动日志里
+说明原因（不静默失败）。
 
 ### 7.3 GitHub Actions 侧配置
 
 | 类型 | 名称 | 用途 |
 |---|---|---|
-| Secret | `INGEST_URL` | `https://<已备案域名>/api/ingest` |
-| Secret | `INGEST_TOKEN` | 与服务器 `.env` 一致 |
-| Variable | `SITE_URL` | 对外分享用的域名（境内镜像），写进 `og:url` / `og:image`。**不配则不输出这两条 meta，A10 不成立** |
+| Variable | `SITE_URL` | `https://reset.example.com`，写进 `og:url` / `og:image`。**不配则不输出这两条 meta，A10 不成立** |
 
-> 本次只配这两个 Secret 加一个 Variable。外部告警通道不在范围内（见 3.8），无告警相关凭证。
+⚠ `INGEST_URL` / `INGEST_TOKEN` 两个 Secret **不再需要**（2026-09-22，D-025）：数据改由
+**本机直推**后端（`scripts/push-ingest.mjs`，凭据在 `~/.tibo-ingest.env`）。原先是 CI 构建后
+转发，不仅多绕一圈，还与「数据不触发构建」直接冲突 —— 那一步一删，数据链才真的只剩本机一条。
+
+> 外部告警通道不在范围内（见 3.8），无告警相关凭证。
 
 
 ### 7.4 小程序侧
@@ -518,7 +547,7 @@ cp deploy/Caddyfile /etc/caddy/Caddyfile && systemctl reload caddy
 | # | 事项 |
 |---|---|
 | 1 | 微信后台配置 `request` 合法域名 = 已备案域名（**未配之前所有请求走 fail 回调，静默失败不弹错**） |
-| 2 | `miniprogram/config.js`：`apiBase` 改为实际域名、`enabled: true` |
+| 2 | `miniprogram/config.js`：`apiBase` = `https://reset.example.com`、`enabled: true` ✅ 已改 |
 | 3 | 申请订阅消息模板（重置发生时通知），把模板 ID 填进 `config.js` 的 `subscribeTemplateId` |
 | 4 | 确认小程序类目 —— 影响能否使用长期订阅（预期是不能） |
 
@@ -534,10 +563,15 @@ cp deploy/Caddyfile /etc/caddy/Caddyfile && systemctl reload caddy
 | 仓库可见性 | 免费额度 | 本项目消耗 | 结论 |
 |---|---|---|---|
 | **public** | **不限量** | — | ✅ 用 public |
-| private | 2000 分钟/月 | 48 轮/天 × 约 1 分钟 ≈ **1440 分钟/月** | ⚠️ 占 72%，再叠加其他 workflow 会超 |
+| private | 2000 分钟/月 | CI 只在**代码变更时**触发（数据更新不再触发），一次构建约 1 分钟 → 每月通常不到 100 分钟 | 额度早已不是瓶颈 |
 
 **结论：仓库设为 public。** 这个项目的数据本来就全部来自公开推文，产物也是公开页面，
-不存在需要私有化的内容。私有的唯一后果是把 Action 额度卡在 72% 的位置上。
+不存在需要私有化的内容。
+
+> ⚠ 这一节的旧结论建立在一个已经不存在的假设上：原先数据每 30 分钟提交一次、每次都触发 CI 构建，
+> 私有仓库会吃掉 1440 分钟/月（72%）。2026-09-22 起数据更新不再触发构建（D-025），
+> 那个额度顾虑随之消失。此节保留是因为「public」这个结论仍然成立，
+> 但**理由已经变了** —— 不再是配额所迫，只是没有任何需要私有的内容。
 
 ### 8.2 现金成本
 
@@ -547,7 +581,7 @@ cp deploy/Caddyfile /etc/caddy/Caddyfile && systemctl reload caddy
 | 域名 | 已有备案域名，**0 新增** |
 | GitHub Actions | public 仓库，**0** |
 | GitHub Pages | **0** |
-| Let's Encrypt 证书 | **0** |
+| 域名证书（腾讯云 DV） | **0** |
 | **合计** | **0 元** |
 
 ### 8.3 维护成本
@@ -555,7 +589,7 @@ cp deploy/Caddyfile /etc/caddy/Caddyfile && systemctl reload caddy
 | 项 | 频率 | 说明 |
 |---|---|---|
 | X 页面结构变更导致采集失效 | 不可预期 | 最大的单点。X 改版就要改 `parseTweets()`；已设计的降级是保留旧数据 + 错误可见 |
-| 证书续期 | 自动 | Caddy 负责 |
+| 域名证书续期 | **每 90 天，人工** | 腾讯云 DV 免费证书，**没有 certbot 那套自动续期**。到期前在控制台重签、下载、按 `deploy.md` 3.2 替换。忘了就会 https 失效（小程序直接白屏） |
 | 服务器安全更新 | 季度 | 系统层面 |
 | 本机（跑采集那台机器）关机 / 休眠 | 不可预期 | **采集的单一入口**。停掉就停更，CI 帮不上忙（机房 IP 采不到）；见 9.3 |
 
@@ -577,8 +611,8 @@ cp deploy/Caddyfile /etc/caddy/Caddyfile && systemctl reload caddy
 
 ### 9.2 GitHub Pages 国内不可达（C4 的直接威胁）
 
-**已由架构缓解**：境内镜像站作为分享入口（3.5）。GitHub Pages 不可达时，
-受影响的是「作品集入口」而不是「引流入口」。
+**已从根本上绕开**：主站现在就在境内（见 3.5），对外分享的链接不经过 GitHub Pages。
+Pages 退为异地备份 —— 它不可达时，受影响的是「备份入口」，而不是「引流入口」。
 
 ### 9.3 本机是采集的单一入口
 
@@ -619,7 +653,7 @@ cp deploy/Caddyfile /etc/caddy/Caddyfile && systemctl reload caddy
 |---|---|---|
 | M3 定稿开发 | F8 OG 图生成脚本 + meta 补齐；F9 订阅链路（含 openid 换取）；`/api/ingest` 端点；Node 版本升到 24；`.dockerignore`；`collect.yml` 补 Pages 发布与 ingest 推送 | ✅ 已完成 |
 | M3 验收 | A3 一致性比对脚本进 CI；A10 分享展开实测 | ⏳ A3 已进 CI 并通过；A10 的「微信内实分享」待人工做一次 |
-| M4 上线 | 境内服务器部署（systemd + Caddy）；Actions Secrets 与 Variables 配置；小程序域名白名单与模板申请 | 待启动 |
+| M4 上线 | 境内服务器部署（`docker run` + Nginx 反代 + 子域证书）；CI 侧仅需 `SITE_URL` Variable；小程序域名白名单与模板申请 | 待启动 |
 
 **选型不改变 PRD 的功能范围**，只决定这些功能用什么实现。
 
@@ -633,8 +667,8 @@ cp deploy/Caddyfile /etc/caddy/Caddyfile && systemctl reload caddy
 | 2 | `COPY . .` 无 `.dockerignore`，会把 `node_modules`、`.git` 拷进镜像 | `Dockerfile` | 补 `.dockerignore` |
 | 3 | `collect.yml` 只提交代码，没有 Pages 发布步骤 | `.github/workflows/` | 补部署 workflow |
 | 4 | 文档提到的 `miniprogram/utils/paint.js` 不存在 | `docs/decisions.md` D-007 | 已改为实际的 `draw.js` |
-| 5 | 项目未 `git init` | 仓库根 | 已完成：初始化于 2026-09-21，`main` 分支，远端 `git@github.com-personal:Jack-Kunlun/tibo-reset.git` |
+| 5 | 项目未 `git init` | 仓库根 | 已完成：初始化于 2026-09-21，`main` 分支，远端 `git@github.com-personal:<你的 GitHub 用户名>/tibo-reset.git` |
 | 6 | F8 之后单阶段 `Dockerfile` **构不出来**：`og-image.mjs` 对 resvg 是静态 import，而镜像里没有 `node_modules`，`RUN node scripts/build.mjs` 直接 `ERR_MODULE_NOT_FOUND` | `Dockerfile` | 改两阶段构建（构建阶段 `npm ci` + 装 CJK 字体，运行阶段零依赖） |
 | 7 | `node:24-alpine` 无中文字体，OG 图会静默出成汉字空方框 | `Dockerfile` | 构建阶段换 debian 系基础镜像并装 `fonts-noto-cjk` |
 | 8 | `.dockerignore` 排除了 `package-lock.json`，与「必须提交 lock 文件」的约定冲突，`npm ci` 会失败 | `.dockerignore` | 移出排除列表 |
-| 9 | 本机 `~/.ssh/config` 是**双账号**结构：`github.com` 默认走公司 key（`sbt-zhengyunfeng`），个人号只能走别名 `github.com-personal`。而 git 全局身份也是公司号 —— 直接用 `git@github.com:Jack-Kunlun/...` 会以公司身份访问个人仓库（被拒），commit 作者栏还会写进公司邮箱，在公开仓库里永久可见 | `~/.ssh/config`、仓库 local config | remote 固定用 `git@github.com-personal:...`；仓库 local 身份设 `Jack-Kunlun <47732460+Jack-Kunlun@users.noreply.github.com>` —— 用 noreply 邮箱既能让 GitHub 正确归因，又不把真实邮箱写进公开历史 |
+| 9 | 本机 `~/.ssh/config` 是**双账号**结构：`github.com` 默认走公司 key（`<你的公司账号>`），个人号只能走别名 `github.com-personal`。而 git 全局身份也是公司号 —— 直接用 `git@github.com:<你的 GitHub 用户名>/...` 会以公司身份访问个人仓库（被拒），commit 作者栏还会写进公司邮箱，在公开仓库里永久可见 | `~/.ssh/config`、仓库 local config | remote 固定用 `git@github.com-personal:...`；仓库 local 身份设 `<你的 GitHub 用户名> <<你的 GitHub id>+<你的 GitHub 用户名>@users.noreply.github.com>` —— 用 noreply 邮箱既能让 GitHub 正确归因，又不把真实邮箱写进公开历史 |
