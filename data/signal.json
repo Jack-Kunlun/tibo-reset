@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-09-23T04:11:54.150Z",
-  "checkedTweets": 86,
+  "generatedAt": "2026-09-23T20:17:12.014Z",
+  "checkedTweets": 87,
   "lookbackDays": 60,
-  "windowFrom": "2026-07-25T04:11:54.150Z",
-  "windowTo": "2026-09-23T04:11:54.150Z",
+  "windowFrom": "2026-07-25T20:17:12.014Z",
+  "windowTo": "2026-09-23T20:17:12.014Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -12,56 +12,50 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.09.23",
-      "weekday": "周三",
-      "time": "12:11",
-      "text": "2026.09.23（周三）12:11",
+      "date": "2026.09.24",
+      "weekday": "周四",
+      "time": "04:17",
+      "text": "2026.09.24（周四）04:17",
       "offset": "UTC+8"
     },
     "b": {
       "label": "Tibo 当地时间",
       "zone": "America/Los_Angeles",
-      "date": "2026.09.22",
-      "weekday": "周二",
-      "time": "21:11",
-      "text": "2026.09.22（周二）21:11",
+      "date": "2026.09.23",
+      "weekday": "周三",
+      "time": "13:17",
+      "text": "2026.09.23（周三）13:17",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2102509629536346422",
+    "id": "2102814202117411196",
     "account": "thsottiaux",
-    "text": "Interesting results!",
-    "createdAt": "2026-09-22T21:25:33.000Z",
-    "url": "https://x.com/thsottiaux/status/2102509629536346422",
-    "reasons": [
-      "上下文：回复 @PawelHuryn「So I tested Opus 5.5 (max) on real w…」"
-    ],
+    "text": "Voice! I've gotten so used to just call ChatGPT and talk about all the work, check on emails, do some coding, manage my calendar and it works across the full ecosystem of plugins, including 3P developed plugins.",
+    "createdAt": "2026-09-23T17:35:48.000Z",
+    "url": "https://x.com/thsottiaux/status/2102814202117411196",
+    "reasons": [],
     "viaContext": false,
-    "inReplyTo": {
-      "account": "PawelHuryn",
-      "id": "",
-      "text": "So I tested Opus 5.5 (max) on real work. 2 repos. 105 planted bugs. Find and fix what you can. The results: GPT-6 Astra (max): 45 for $33.03 (n=3) Fable 5.1 (max): 43 for $77.55 Opus 5.5 (max): 43 for $60.49 Opus 5.0 (max): 27 for $51.33 Muse Spark 1.3 (max): 32.2 for $18.11"
-    },
+    "inReplyTo": null,
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.09.23",
-        "weekday": "周三",
-        "time": "05:25",
-        "text": "2026.09.23（周三）05:25",
+        "date": "2026.09.24",
+        "weekday": "周四",
+        "time": "01:35",
+        "text": "2026.09.24（周四）01:35",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.09.22",
-        "weekday": "周二",
-        "time": "14:25",
-        "text": "2026.09.22（周二）14:25",
+        "date": "2026.09.23",
+        "weekday": "周三",
+        "time": "10:35",
+        "text": "2026.09.23（周三）10:35",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -622,6 +616,42 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2102814202117411196",
+      "account": "thsottiaux",
+      "text": "Voice! I've gotten so used to just call ChatGPT and talk about all the work, check on emails, do some coding, manage my calendar and it works across the full ecosystem of plugins, including 3P developed plugins.",
+      "createdAt": "2026-09-23T17:35:48.000Z",
+      "url": "https://x.com/thsottiaux/status/2102814202117411196",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.24",
+          "weekday": "周四",
+          "time": "01:35",
+          "text": "2026.09.24（周四）01:35",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.23",
+          "weekday": "周三",
+          "time": "10:35",
+          "text": "2026.09.23（周三）10:35",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2102509629536346422",
       "account": "thsottiaux",
@@ -3598,12 +3628,12 @@
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 86,
+    "scanned": 87,
     "explicit": 0,
     "occurred": 3,
     "hint": 9,
-    "none": 72,
-    "rejected": 72
+    "none": 73,
+    "rejected": 73
   },
   "truncated": false
 }
