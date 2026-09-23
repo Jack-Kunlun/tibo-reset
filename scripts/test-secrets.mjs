@@ -197,6 +197,53 @@ check(
   `${absPathHits.replace(/\n/g, '、')} —— 换成 ~ 或相对路径`
 );
 
+/* ---- 小程序 config.js：查**暂存区**，不查工作区 ---- */
+
+// 这个文件是特例：真实域名必须留在**本机**，否则小程序真机连不上（接口拿不到数据会
+// 静默退回内置快照，排查起来很绕）。所以工作区里它长期带着真实域名、`git status`
+// 一直显示 modified —— 那是设计，不是疏漏。
+//
+// 于是判据只能在**暂存那一刻**成立：`git show :<path>` 读的是 index，也就是
+// 「这次要提交的那一份」。没暂存时它等于 HEAD。这样既不会误报工作区的正常状态，
+// 又能在 `git add` 之后、commit 之前把误提交拦住。
+//
+// 断言写成「必须是保留域」而不是「不能是某个真实域名」—— 后者等于把秘密抄进测试。
+function readIndex(rel) {
+  const r = spawnSync('git', ['show', `:${rel}`], { cwd: ROOT, encoding: 'utf8' });
+  return r.status === 0 ? r.stdout : null;
+}
+
+section('最小程序 config.js：入库的那一份不含真实域名');
+
+const cfg = readIndex('miniprogram/config.js');
+if (cfg === null) {
+  skip('config.js 暂存区断言', '读不到 index 里的 miniprogram/config.js');
+} else {
+  const apiBase = (cfg.match(/apiBase:\s*'([^']*)'/) || [])[1];
+  const enabled = (cfg.match(/enabled:\s*(true|false)/) || [])[1];
+  // RFC 2606 / RFC 6761 保留域，或留空
+  const isPlaceholder =
+    apiBase === '' ||
+    apiBase === undefined ||
+    /:\/\/([^/]*\.)?(example|invalid|test|localhost)(\.(com|org|net))?([:/]|$)/.test(apiBase);
+
+  // ⚠ 失败文案里**不回显** apiBase 的原文：这份输出常被贴到聊天、issue 里，
+  //   防线自己不该变成泄露源。外面只需要知道「是不是保留域」这一位信息。
+  const hint =
+    apiBase === undefined
+      ? '（没有 apiBase 行）'
+      : apiBase === ''
+        ? '（空）'
+        : `不是保留域（长度 ${apiBase.length}，应以 example / invalid / test / localhost 结尾）`;
+
+  check('入库的 apiBase 是保留域（真实域名只留在本机）', isPlaceholder, `index 里：${hint}`);
+  check(
+    '占位域名配套 enabled=false（否则 request 全走 fail 回调，静默失败）',
+    !isPlaceholder || enabled === 'false',
+    `apiBase ${hint} 而 enabled=${JSON.stringify(enabled)}`
+  );
+}
+
 /* ============ 结果 ============ */
 
 console.log(`\n${'─'.repeat(52)}`);
