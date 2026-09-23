@@ -244,6 +244,38 @@ if (cfg === null) {
   );
 }
 
+/* ---- 验收报告：生成的文档里不回显真实站点地址 ---- */
+
+// `docs/acceptance.md` 由 `node scripts/acceptance.mjs --write` 生成，它要记「当天用什么
+// SITE_URL 重建的 dist」。但域名本身不该进仓库（见 AGENTS.md 的文案红线），所以生成器
+// 写占位符 `https://<你的域名>`。
+//
+// ⚠ 这条盯的是**下一次 --write**：报告是生成物，手改它没有意义 —— 只要生成器还插真值，
+//   下一次运行就把域名写回来了。读的也是工作区（不是 index），所以它在「生成出来那一刻」
+//   就会红，挡在 commit 之前。断言同样只写「必须是占位/保留域」，不写真实值。
+section('验收报告：部署地址是占位值，不回显域名');
+
+const mdPath = resolve(ROOT, 'docs/acceptance.md');
+if (!existsSync(mdPath)) {
+  skip('验收报告的 SITE_URL 断言', 'docs/acceptance.md 不存在');
+} else {
+  const siteUrlValues = [...readFileSync(mdPath, 'utf8').matchAll(/SITE_URL=([^\s`）]+)/g)].map(
+    (m) => m[1]
+  );
+  // 占位写法（含 < >）或 RFC 2606 / 6761 保留域
+  const isPlaceholderValue = (v) =>
+    /[<>]/.test(v) ||
+    /^https?:\/\/([^/]*\.)?(example|invalid|test|localhost)(\.(com|org|net))?([:/]|$)/.test(v);
+
+  check(
+    `验收报告里的 SITE_URL 是占位值（共 ${siteUrlValues.length} 处）`,
+    siteUrlValues.length > 0 && siteUrlValues.every(isPlaceholderValue),
+    siteUrlValues.length === 0
+      ? '报告里找不到 SITE_URL —— 生成器的写法是不是变了？'
+      : `有 ${siteUrlValues.filter((v) => !isPlaceholderValue(v)).length} 处不是占位值（生成器该写占位符）`
+  );
+}
+
 /* ============ 结果 ============ */
 
 console.log(`\n${'─'.repeat(52)}`);

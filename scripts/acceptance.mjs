@@ -70,6 +70,11 @@ if (!SITE_URL) {
 }
 
 console.log(`\n【前置】以 SITE_URL=${SITE_URL} 重建 dist`);
+
+// 报告里**不回显真实站点地址**：docs/acceptance.md 会进公开仓库（见 AGENTS.md 的文案红线）。
+// 记录要说清的是「当天给了 SITE_URL、并用它重建了 dist」，不是域名本身 —— 而域名一旦
+// 落进报告，下一次 `--write` 就会把它再提交上去。终端里照旧打印真值（本机可见）。
+const SITE_URL_IN_REPORT = 'https://<你的域名>';
 {
   const r = await run(NODE, ['scripts/build.mjs'], { env: { SITE_URL } });
   if (r.code !== 0) {
@@ -298,7 +303,7 @@ console.log('\n【A10】分享卡片');
     'A10',
     '卡片物料齐备（微信内实际展开需人工确认）',
     failed.length === 0,
-    `断言 meta 齐备 + 读 PNG 头取尺寸（构建用 SITE_URL=${SITE_URL}）`,
+    `断言 meta 齐备 + 读 PNG 头取尺寸（构建用 SITE_URL=${SITE_URL_IN_REPORT}）`,
     failed.length ? `缺：${failed.join('、')}` : `meta ${Object.keys(meta).length} 项齐全 · 图 ${dims}`
   );
   record('A10', '在微信里分享一次、确认预览展开', 'manual', '人工：把链接发到微信（文件传输助手即可）看卡片', '需你手动做一次');
@@ -317,8 +322,8 @@ if (WRITE) {
     '# 验收记录（M3）',
     '',
     `- 生成时间：${new Date().toISOString()}（UTC）`,
-    `- 判定方式：\`SITE_URL=${SITE_URL} node scripts/acceptance.mjs --write\``,
-    `- 构建锚点：本次验收**先重建** dist（SITE_URL=${SITE_URL}），所有断言读的是本次产物`,
+    `- 判定方式：\`SITE_URL=${SITE_URL_IN_REPORT} node scripts/acceptance.mjs --write\``,
+    `- 构建锚点：本次验收**先重建** dist（SITE_URL=${SITE_URL_IN_REPORT}），所有断言读的是本次产物`,
     `- 结论：自动判定 **${auto.length - bad.length}/${auto.length} 通过**，另有 ${rows.length - auto.length} 项需人工确认`,
     '',
     '| # | 验收项 | 判定命令 / 依据 | 实测结果 | 结论 |',
