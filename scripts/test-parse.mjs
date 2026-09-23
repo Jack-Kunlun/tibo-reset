@@ -295,19 +295,30 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
   // 看见的一条（旧口径只取首屏 7 条，连这两条都没见过）。
   const records = [
     { type: 'reset', announced_at: '2026-09-12T08:09:17.000Z' },
-    { type: 'credit', announced_at: '2026-09-14T20:00:00.000Z' }, // 更晚，但不是重置
+    { type: 'credit', announced_at: '2026-09-14T20:00:00.000Z' }, // 发券型：同样算一次重置
     { type: 'reset', announced_at: '2026-09-08T01:56:57.501Z' },
   ];
   const floor = resetFloorMs(records);
   check(
-    '下界锚在「最近一次 reset」，不是最近一条记录',
-    floor === new Date('2026-09-11T08:09:17.000Z').getTime(),
+    '下界锚在最近一次重置（发券型同样算，D-028）',
+    floor === new Date('2026-09-13T20:00:00.000Z').getTime(),
     `实际 ${new Date(floor).toISOString()}`
   );
   check('无重置记录时不做裁剪（返回 0）', resetFloorMs([]) === 0 && resetFloorMs(null) === 0, '');
   check(
     '缓冲小时数可调（0 = 硬切在重置时刻）',
-    resetFloorMs(records, 0) === new Date('2026-09-12T08:09:17.000Z').getTime()
+    resetFloorMs(records, 0) === new Date('2026-09-14T20:00:00.000Z').getTime()
+  );
+  // 守卫「显式列类型」这个决定：将来上游新增别的类型时，不该被这里默默当成一次重置。
+  check(
+    '只有 reset / credit 推进下界，别的类型不算',
+    resetFloorMs(
+      [
+        { type: 'reset', announced_at: '2026-09-12T08:09:17.000Z' },
+        { type: 'maintenance', announced_at: '2026-09-20T00:00:00.000Z' },
+      ],
+      0
+    ) === new Date('2026-09-12T08:09:17.000Z').getTime()
   );
 
   const items = [
@@ -325,7 +336,14 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
     { id: 'blank-text', time: '2026-09-13T00:00:00.000Z', text: '   ' },
     { id: '2032988000000000000', time: '2026-05-27T15:04:28.000Z', text: '远早于下界的旧推文' },
   ];
-  const kept = normalizeTimelineItems(items, { handle: 'thsottiaux', sinceMs: floor });
+  const kept = normalizeTimelineItems(items, {
+    handle: 'thsottiaux',
+    // 这一段测的是 normalizeTimelineItems 本身（去重 / 排序 / 裁剪 / 边界包含），
+    // 所以下界在这里写死、不跟着上面 floor 的语义漂 —— 否则「发券型算不算重置」
+    // 这类口径变动会连带把这里弄红，而它其实与那个问题无关。
+    // 取值正好压在其中一条上，用来验「下界是含的」。
+    sinceMs: new Date('2026-09-12T03:20:36.000Z').getTime(),
+  });
   check('按 id 去重', kept.length === 2, `实际 ${kept.length}`);
   check(
     '按时间从新到旧',

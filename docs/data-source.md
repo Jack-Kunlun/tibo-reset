@@ -158,8 +158,9 @@ payload 里配对作者靠的是**物理顺序**：一条推文的作者 `screen
 | 未登录首屏 | ❌ 0 条 | 7 |
 | 登录态时间线 | ✅ 全部 5 条 | 16 |
 
-**采集下界 = `resets.json` 里最近一条 `type: "reset"` 往前推 24 小时。**
-（实现在 `src/lib/collect.mjs` 的 `resetFloorMs()`。）
+**采集下界 = `resets.json` 里最近一次重置往前推 24 小时。** 普通重置与**发券型
+（`type: "credit"`）同等算一次重置** —— 两者对用户表达的是同一件事「额度被补充了」，
+口径见 D-028。（实现在 `src/lib/collect.mjs` 的 `resetFloorMs()`。）
 
 为什么不硬切在重置那一刻：重置当天的前序预告常早于最终确认推文。09-12 那组就是
 —— 03:20 的「Hi Astra users. A reset and a quick update…」在前，08:09 的

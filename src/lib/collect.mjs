@@ -404,8 +404,20 @@ export async function fetchLiveTweetsViaBrowser(account = SOURCE_ACCOUNT, opts =
   };
 }
 
+/** 算一次「重置」的类型。发券型同样算 —— 口径理由见下。 */
+const RESET_LIKE_TYPES = new Set(['reset', 'credit']);
+
 /**
- * 本轮采集的时间下界：上一次**明确重置**再往前留一段缓冲。
+ * 本轮采集的时间下界：上一次**重置**再往前留一段缓冲。
+ *
+ * **发券型（credit）与普通重置同等算一次重置**（2026-09-23 定，见 decisions.md D-028）。
+ * 理由：对用户而言两者表达的是同一件事 —— 「额度被补充了」；产品文案也只表达这一件事。
+ * 定之前这里只认 `type === 'reset'`，而页面口径（`chart-data.js`）含 credit，
+ * 于是同一份 09-22 的数据在两处给出不同的「上一次重置」（原 KI-003）。
+ *
+ * 为什么显式列出两种类型、不写成「任何带 announced_at 的记录」：将来上游若新增
+ * 别的类型（故障声明、维护通知…），它该不该推进这个下界是**另一个问题**，
+ * 不该被这一行默默决定。
  *
  * 为什么不硬切在重置那一刻：重置当天的前序预告常早于最终确认推文。
  * 2026-09-12 那组正是如此 —— 03:20「Hi Astra users. A reset and a quick update…」
@@ -416,7 +428,7 @@ export async function fetchLiveTweetsViaBrowser(account = SOURCE_ACCOUNT, opts =
  */
 export function resetFloorMs(records, bufferHours = 24) {
   const latest = (records ?? [])
-    .filter((r) => r?.type === 'reset' && r.announced_at)
+    .filter((r) => RESET_LIKE_TYPES.has(r?.type) && r.announced_at)
     .sort((a, b) => new Date(b.announced_at) - new Date(a.announced_at))[0];
   if (!latest) return 0;
   return new Date(latest.announced_at).getTime() - bufferHours * 3_600_000;
