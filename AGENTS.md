@@ -463,7 +463,7 @@ SITE_URL=https://<你的域名> npm run accept  # A1–A10 全量验收（会先
 node scripts/test-signals.mjs       # 信号解析用例（含「已兑现／已过期的预告不再展示」的正反两向）
 node scripts/test-parse.mjs         # 推文解析：字段按对象就近配对（防时间戳错位）
 node scripts/test-shared.mjs        # 共享层：图元越界 / 同步一致性
-node scripts/test-miniprogram.mjs   # 小程序：图元不越界、页面可加载、时间/数值格式无机器串（ISO 串不得直通模板）
+node scripts/test-miniprogram.mjs   # 小程序：图元不越界、页面可加载、时间/数值格式无机器串（ISO 串不得直通模板）、复制失败必有提示（隐私接口被拒不静默）
 node scripts/test-og.mjs            # OG 卡：缺字体守卫 / 尺寸 / 安全区 / meta 三态
 node scripts/test-ingest.mjs        # POST /api/ingest 的鉴权与落盘
 node scripts/test-subscribe.mjs     # F9 订阅链路（token 缓存 / 永久失败码 / 水位线）
@@ -534,7 +534,10 @@ CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 ```bash
 node scripts/test-miniprogram.mjs   # 用小程序尺寸跑图元，断言坐标不出界、无 NaN
-node --check miniprogram/pages/index/index.js   # 逐文件语法检查
+# 逐文件语法检查：新增 .js 记得补进来
+node --check miniprogram/utils/clipboard.js
+node --check miniprogram/pages/index/index.js
+node --check miniprogram/pages/history/index.js
 ```
 
 截图终检需要在微信开发者工具里做，见 `docs/miniprogram.md`。

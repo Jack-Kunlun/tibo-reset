@@ -6,6 +6,7 @@
  */
 
 import { loadState } from '../../utils/api.js';
+import { copyText } from '../../utils/clipboard.js';
 import { fmtDate, fmtClock, fmtClockSec, beijingParts, trim1 } from '../../utils/format.js';
 
 const DAY = 86400000;
@@ -115,12 +116,8 @@ Page({
       .catch(() => wx.stopPullDownRefresh());
   },
 
+  // 同首页：复制原推链接，失败兜底在 utils/clipboard.js
   onCopy(e) {
-    const url = e.currentTarget.dataset.url;
-    if (!url) return;
-    wx.setClipboardData({
-      data: url,
-      success: () => wx.showToast({ title: '链接已复制', icon: 'none' }),
-    });
+    copyText(e.currentTarget.dataset.url);
   },
 });

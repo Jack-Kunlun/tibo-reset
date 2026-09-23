@@ -287,10 +287,23 @@ const cds = [
     /<div class="sig-cd" data-from="(\d+)"[\s\S]*?<span class="cd-anchor">([^<]*)<\/span>/g
   ),
 ];
+
+// 倒数块是**预告块专属**的：`render.mjs` 里只有 `forecastBlock` 会渲染
+// `windowCountdown()`，线索档（`hintBlock`）没有，静默态更没有。
+// 所以断言方向必须跟着页面当前档位走 —— 无条件要求「必须有 .sig-cd」，
+// 会在「暂无预告」这个**完全正常**的状态下误报。
+// （KI-004 撤下已兑现的预告之后，这条就一直红着：页面没毛病，是判据少了个前提。）
+//
+// 判据取**预告块本身**，而不是静默态标记 `sig-idle` —— 后者在「留档触顶」那条
+// 小提示上也在用（`render.mjs:187`），预告在场时同样会出现，拿它判静默会误伤。
+// 预告块的标志是 `data-level` 非 hint 的 `.sig` section（hintBlock 走 hint 档）。
+const forecastBlocks = (html.match(/<section class="sig" data-level="(?!hint")/g) || []).length;
 check(
-  `页面上的倒计时块可解析（${cds.length} 个）`,
-  cds.length > 0,
-  '没有 .sig-cd —— 有预告时这条倒数必须存在'
+  `倒计时块与页面档位一致（预告块 ${forecastBlocks} 个 / 倒数 ${cds.length} 个）`,
+  forecastBlocks > 0 ? cds.length > 0 : cds.length === 0,
+  forecastBlocks > 0
+    ? '有预告块却没有 .sig-cd —— 这条倒数必须存在'
+    : '没有预告块却出现了 .sig-cd —— 已兑现 / 已过期的预告漏出来了？'
 );
 for (const [, fromStr, anchor] of cds) {
   const from = Number(fromStr);

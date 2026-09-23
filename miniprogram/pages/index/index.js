@@ -9,6 +9,7 @@
 
 import config from '../../config.js';
 import { loadState, snapshotState } from '../../utils/api.js';
+import { copyText } from '../../utils/clipboard.js';
 import { buildGauge, buildSignal, buildMetrics, buildForecast } from '../../utils/view.js';
 import { survivalScene, stripScene } from '../../utils/scene.js';
 import { drawScene, setupCanvas } from '../../utils/draw.js';
@@ -343,15 +344,14 @@ Page({
   /**
    * 复制原推链接。优先用条目自己的 `data-url`（预告里每条推文各有一个链接），
    * 回退到横幅的主链接（线索档只有一条推文，链接挂在横幅上）。
+   *
+   * 个人主体小程序不能用 web-view，所以外链只能复制出去让用户在浏览器打开。
+   * `setClipboardData` 是隐私接口（微信归在「读取你的剪切板」条目下），
+   * 拒绝授权时不会走 success —— 兜底与文案统一在 utils/clipboard.js。
    */
   onCopySource(e) {
     const fromItem = e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.url;
     const url = fromItem || (this.data.signal && this.data.signal.url);
-    if (!url) return;
-    // 个人主体小程序不能用 web-view，所以外链只能复制出去让用户在浏览器打开
-    wx.setClipboardData({
-      data: url,
-      success: () => wx.showToast({ title: '链接已复制', icon: 'none' }),
-    });
+    copyText(url);
   },
 });

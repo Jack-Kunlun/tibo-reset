@@ -67,8 +67,18 @@ function makeWx(record) {
     setStorageSync: (k, v) => storage.set(k, v),
     getStorageSync: (k) => storage.get(k),
     removeStorageSync: (k) => storage.delete(k),
-    setClipboardData: () => {},
-    showToast: () => {},
+    // 复制相关：这里要记录调用，否则「失败必须有反馈」这条断言无从下手
+    setClipboardData(opts) {
+      record.clipboard.push(opts && opts.data);
+      if (record.clipboardFails) {
+        if (opts && opts.fail) opts.fail(record.clipboardErr);
+        return;
+      }
+      if (opts && opts.success) opts.success({});
+    },
+    showToast(opts) {
+      record.toasts.push(opts && opts.title);
+    },
     stopPullDownRefresh: () => {},
     showLoading: () => {},
     hideLoading: () => {},
@@ -127,6 +137,11 @@ const wxRecord = {
   subscribeVerdict: 'accept',
   onRequest: null,
   rendersAtFirstRequest: undefined,
+  // 复制路径：clipboard 记写入了什么，toasts 记弹了什么，后两个开关模拟失败
+  clipboard: [],
+  toasts: [],
+  clipboardFails: false,
+  clipboardErr: null,
 };
 globalThis.wx = makeWx(wxRecord);
 
@@ -760,6 +775,101 @@ console.log('\n【11】时间窗起点的格式化（真机曾显示 `2026-07-25
       Number.isNaN(toTs(undefined)) &&
       Number.isNaN(toTs(null)),
     String(toTs(1753412129011))
+  );
+}
+
+/* -------------- 12. 复制原推链接：隐私接口，失败不许静默 -------------- */
+
+console.log('\n【12】复制原推链接（隐私接口，失败必须有反馈）');
+
+{
+  const { copyFailText } = await import(resolve(ROOT, 'miniprogram/utils/clipboard.js'));
+
+  const URL_OK = 'https://x.com/i/status/1234567890';
+
+  const reset = () => {
+    wxRecord.clipboard.length = 0;
+    wxRecord.toasts.length = 0;
+    wxRecord.clipboardFails = false;
+    wxRecord.clipboardErr = null;
+  };
+
+  // 先确认这次改动没把正常复制弄坏
+  reset();
+  page.onCopySource({ currentTarget: { dataset: { url: URL_OK } } });
+  check('成功：URL 进了剪贴板', wxRecord.clipboard[0] === URL_OK, JSON.stringify(wxRecord.clipboard));
+  check('成功：提示「链接已复制」', wxRecord.toasts[0] === '链接已复制', JSON.stringify(wxRecord.toasts));
+
+  // 横幅兜底：预告里条目没带 url 时，回退到 signal.url（这条行为是原有的）
+  reset();
+  page.data.signal = Object.assign({}, page.data.signal, { url: URL_OK });
+  page.onCopySource({ currentTarget: { dataset: {} } });
+  check('条目无 url 时回退到横幅主链接', wxRecord.clipboard[0] === URL_OK, JSON.stringify(wxRecord.clipboard));
+
+  // 核心守位：这些形态此前会让点击变成「什么都不发生」——没有 toast、没有日志、
+  // 界面上也不显示 URL，用户既复制不到也看不到。errMsg 文案为示意，判定看 errno。
+  const FAILS = [
+    ['用户拒绝授权', { errno: 104, errMsg: 'setClipboardData:fail user deny' }],
+    ['隐私弹窗被拒', { errno: 103, errMsg: 'setClipboardData:fail user deny' }],
+    ['未声明剪贴板', { errno: 112, errMsg: 'setClipboardData:fail api scope is not declared in the privacy agreement' }],
+    ['未知失败', { errno: 1, errMsg: 'setClipboardData:fail' }],
+    ['回调没给字段', {}],
+    ['回调给 null', null],
+  ];
+  reset();
+  wxRecord.clipboardFails = true;
+  const silent = [];
+  for (const [name, err] of FAILS) {
+    wxRecord.toasts.length = 0;
+    wxRecord.clipboardErr = err;
+    page.onCopySource({ currentTarget: { dataset: { url: URL_OK } } });
+    if (!wxRecord.toasts[0]) silent.push(name);
+  }
+  check(`${FAILS.length} 种失败形态都留下了提示（无静默）`, silent.length === 0, silent.join(' | ') || 'clean');
+
+  // 文案要分对：能挽回的（用户拒绝）给指路，不能挽回的（没声明）别甩锅给用户
+  check(
+    '拒绝授权 → 告诉用户再点一次',
+    copyFailText({ errno: 104 }) === '需要同意隐私授权，请再点一次',
+    copyFailText({ errno: 104 })
+  );
+  check(
+    '未声明 → 不误导用户去点隐私弹窗',
+    copyFailText({ errno: 112 }) === '复制失败，请稍后重试',
+    copyFailText({ errno: 112 })
+  );
+  check(
+    'errno 缺失时用 errMsg 兜底分类',
+    copyFailText({ errMsg: 'setClipboardData:fail api scope is not declared in the privacy agreement' }) === '复制失败，请稍后重试' &&
+      copyFailText({ errMsg: 'setClipboardData:fail privacy deny' }) === '需要同意隐私授权，请再点一次',
+    'ok'
+  );
+
+  // 无 url：不该调接口、也不该弹提示（沿用原行为，别把空复制报成成功）
+  reset();
+  page.data.signal = Object.assign({}, page.data.signal, { url: '' });
+  page.onCopySource({ currentTarget: { dataset: {} } });
+  check(
+    '无 url 时不调剪贴板、不弹提示',
+    wxRecord.clipboard.length === 0 && wxRecord.toasts.length === 0,
+    `copy=${wxRecord.clipboard.length} toast=${wxRecord.toasts.length}`
+  );
+
+  // 两个页面必须共用同一份实现 —— 否则就是「只修了一处」的老坑。
+  // 用 `wx.setClipboardData(` 而不是裸词匹配：注释里提到接口名是正常的，
+  // 真正要挡住的是**又一次**手写调用。
+  const srcIndex = await readFile(resolve(ROOT, 'miniprogram/pages/index/index.js'), 'utf8');
+  const srcHistory = await readFile(resolve(ROOT, 'miniprogram/pages/history/index.js'), 'utf8');
+  const srcClip = await readFile(resolve(ROOT, 'miniprogram/utils/clipboard.js'), 'utf8');
+  const CALL = /wx\.setClipboardData\(/;
+  check(
+    '首页/历史页都改用公共复制函数，没有各写一份',
+    /copyText\(/.test(srcIndex) &&
+      /copyText\(/.test(srcHistory) &&
+      !CALL.test(srcIndex) &&
+      !CALL.test(srcHistory) &&
+      CALL.test(srcClip),
+    `index: copy=${/copyText\(/.test(srcIndex)} raw=${CALL.test(srcIndex)} / history: copy=${/copyText\(/.test(srcHistory)} raw=${CALL.test(srcHistory)}`
   );
 }
 
