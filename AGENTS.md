@@ -442,13 +442,16 @@ HTTP 200 / 213KB 完整页面 / 4 次重试全中；runner（AWS）403 挑战页
   git 历史是永久的：一旦推上去，删文件也删不掉，只能吊销重签。同一条规则适用于
   `data/subscriptions.json`（含 openid）。
   **检查手段**：`git status --short` 里不该出现证书目录；`git check-ignore -v <路径>` 能验证规则命中。
+  历史层面用 `node scripts/check-history-secrets.mjs`（`npm run check` 已含）。
+  ⚠ **「当前树干净」不等于「历史干净」**：脱敏是靠「再提交一次」做到的，而提交是追加的，
+  早先那些提交照旧留在公开历史里。判断有没有泄漏必须扫历史 —— 只看工作区会得出相反结论。
 
 ## 验证配方（本机可复现，勿凭感觉判断）
 
 ### 一次跑完
 
 ```bash
-npm run check                              # 12 个测试套件 + 构建 + A3 一致性（不依赖 Chrome）
+npm run check                              # 12 个测试套件 + 构建 + A3 一致性 + 全历史敏感信息（不依赖 Chrome）
 SITE_URL=https://<你的域名> npm run accept  # A1–A10 全量验收（会先自动重建 dist）
 ```
 
@@ -456,6 +459,11 @@ SITE_URL=https://<你的域名> npm run accept  # A1–A10 全量验收（会先
 不知道公开域名就没法判。加 `--write` 会把结果写成 `docs/acceptance.md`。
 
 `npm run check` 刻意不含 A7（窄屏溢出），因为那需要本机有 Chrome；CI 上也没有装。
+
+`check-history-secrets.mjs` **只在完整克隆里有意义，所以没放进 `npm test`**：CI 是
+`fetch-depth: 1` 的浅克隆，那样扫历史会「全绿但什么都没查」—— 正是本项目最忌讳的
+静默空转。脚本自己会识别浅克隆并**显式跳过**（打印 ⊘ 后退出码 0），要真扫得先
+`git fetch --unshallow`。
 
 ### 单个套件
 
@@ -473,6 +481,7 @@ node scripts/test-ship.mjs          # 发布脚本：目标架构是 amd64、服
 node scripts/test-history.mjs       # 历史每轮刷新（不能冻结）+ 长推文正文回填（截断在 ~280 字符）
 node scripts/check-consistency.mjs  # A3：页面数字 ↔ API
 node scripts/check-layout.mjs       # A7：窄屏横向溢出（需要 Chrome）
+node scripts/check-history-secrets.mjs  # 🔴 全历史扫敏感信息（只看已提交的，不是工作区；浅克隆会显式跳过）
 node scripts/diagnose.mjs           # 复现全部回测与校准数字
 ```
 

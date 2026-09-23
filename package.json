@@ -31,8 +31,9 @@
     "ship": "sh scripts/ship-image.sh",
     "check:consistency": "node scripts/check-consistency.mjs",
     "check:layout": "node scripts/check-layout.mjs",
+    "check:history-secrets": "node scripts/check-history-secrets.mjs",
     "accept": "node scripts/acceptance.mjs",
-    "check": "npm run test && node scripts/build.mjs && node scripts/check-consistency.mjs"
+    "check": "npm run test && node scripts/build.mjs && node scripts/check-consistency.mjs && node scripts/check-history-secrets.mjs"
   },
   "engines": {
     "node": ">=24"
