@@ -4,6 +4,47 @@
 >
 > 完整的技术选型（含部署清单、成本、风险）见 `tech-selection.md`，本文只留决策本身。
 
+## D-027 小程序首屏快照摘出构建产物：不入库，改独立生成 + 测试前置
+
+**背景**：`miniprogram/data/snapshot.js` 是构建产物，却一直入库，于是**每次构建
+`git status` 都多一行 modified**。旧规矩（`data-source.md` §5）靠 `data-changed.mjs`
+的判据挡住「垃圾提交」—— 挡的是提交，挡不住工作区噪声。而「长期 modified」这件事
+本身就是伤害：它训练人忽略 `git status`（`miniprogram/config.js` 至今如此，那是
+脱敏设计使然，但代价是同一个）。
+
+**先查清了一件事：它不可能稳定。** 两个原因各自独立，都得治才算根治：
+
+| 来源 | 实测 |
+|---|---|
+| 内嵌构建时刻：`generatedAt` 与由 `now` 派生的预测值、信号时间窗 | 受控实验（同数据、两个 `BUILD_NOW` 相隔 7 天）差 **120 行**，覆盖整个预测模型（`baseRate` / `exposure` / `rate` / `p` / `expectedRemaining` / `median` / `q50`…）与 `windowFrom` / `windowTo` |
+| 不确定性区间：`bootstrapCI` 1000 次重采样，默认 `Math.random`（`src/lib/predict.mjs:402`） | 同数据 + 同 `BUILD_NOW` 两次构建，`p.lo/mid/hi` 与 `medianDays.lo/mid/hi` 仍不同。全库**没有一处**给 `rng` 注入过实现 |
+
+所以「把它改成数据时刻」只解决前者 —— 收益是少一半噪声，代价是动用户可见数字
+（见下表）。**决策：不入库。**
+
+**决定**：
+
+| # | 决定 | 直接后果 |
+|---|---|---|
+| 1 | `.gitignore` 命中 + `git rm --cached`（**磁盘文件保留**） | 工作区不再有长期 modified 的产物。它与 `dist/` 同类：都是从入库数据生成的 |
+| 2 | 新增 `src/lib/snapshot.mjs`（组装）与 `scripts/build-snapshot.mjs`（独立生成），并挂到 `package.json` 的 `pretest` | 快照能脱离 `dist/` 单独重生成，实测 **0.09s**。全新克隆与 CI 都能直接跑 `npm test` |
+| 3 | **不动 CI 的「校验先于构建」顺序** | 那是 D-025 留下的不变量：test-shared 要比对 `miniprogram/utils/scene.js` 与 `src/lib/scene.js`，放到构建之后副本刚被同步、断言恒真。所以「给测试补一个完整构建」是**错的解法**，只能补快照这一份 |
+| 4 | `collect.yml` 的 `!miniprogram/data/**` 排除**保留** | 已没有对应入库文件，但留作以防万一的第二道锁：将来若有人把快照提交回来，少了它就会退化成「每采一次触发一次重建」（D-025 决定 1） |
+| 5 | `test-collect-warning.mjs` 新增 5 条断言 | 那条顺序不变量此前**没有任何断言守着** —— 而这次我差点就把它改坏了 |
+
+**被否掉的选项**：
+
+| 选项 | 否掉的理由 |
+|---|---|
+| 把 `generatedAt` / `now` 改成取自数据时间戳（原文里记的「根治」） | 只治两个原因之一；且会改变小程序端离线首屏的预测基准（`asOf` / `sinceDays` / 各档概率），与「静态兜底值取构建时刻」的既有决策冲突。动的是用户可见数字，不该顺手做 |
+| CI 把 `node scripts/build.mjs` 提到测试之前 | 会**静默废掉** test-shared 的一致性判定（构建后副本刚被覆盖，断言恒真）—— 一个看不出坏了的坏法 |
+| `git update-index --skip-worktree` 让它别再显示 modified | 本地开关、随克隆丢失，且会**掩盖**真实改动。与「宁可吵也不能静默」相反 |
+| 继续入库，靠 `data-changed.mjs` 判据挡提交 | 挡得住垃圾提交，挡不住工作区噪声；而这次要解决的正是后者 |
+| 让 `pretest` 跑完整 build | 等于上表第二条，还把字体（resvg）依赖压进测试 |
+
+**后续**：bootstrap 用 `Math.random` 导致 `/api/state` 的 `p.lo/hi` 每次缓存刷新都略有
+不同（页面与小程序都不渲染这两个字段，故不影响显示）。见 KI-008。
+
 ## D-026 增量更新只换容器；OG 分享图的滞后继续接受；apt 源做成可切换
 
 **背景**：一次采集漏检修复（见 KI-002）之后要判断线上要不要重新部署。逐文件比对
@@ -87,6 +128,10 @@
 - **`collect.yml` 的 `paths` 必须排除构建产物**：`miniprogram/data/snapshot.js` 与
   `miniprogram/utils/scene.js` 都是构建产物，本机每采集一次都会提交它们。不排除就等于
   每采一次触发一次重建 —— **这条是决定 1 的必要条件，漏了它整件事会被悄悄撤回**。
+
+  > ⚠ **2026-09-23 更正（见 D-027）**：`miniprogram/data/snapshot.js` 已改为**不入库**，
+  > 本机提交因此只剩 `scene.js` 一项。但 `!miniprogram/data/**` **仍要留着** —— 它现在的
+  > 身份是「万一有人把快照提交回来」的第二道锁，`test-collect-warning.mjs` 有断言守着。
 
 **载体**：`src/lib/render.mjs`、`src/lib/svg.mjs`（从 `scripts/` 挪入）、新建 `src/lib/page.mjs`、
 `server/index.mjs`（`GET /` 实时渲染 + `SITE_URL`）、`server/entrypoint.sh`、

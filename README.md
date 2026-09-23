@@ -307,6 +307,7 @@ src/index.html            页面模板（含 <!--__XXX__--> 占位符）
 
 scripts/collect.mjs       CLI：采集 + 落盘
 scripts/build.mjs         构建产物 → dist/（兜底页面 + OG 卡 + 小程序快照）
+scripts/build-snapshot.mjs  只生成小程序快照那一份（不入库，D-027；npm test 的前置）
 scripts/og-image.mjs      F8：SVG → 1200×630 PNG（@resvg/resvg-js）
 scripts/diagnose.mjs      模型诊断：配置对比 / 覆盖率 / 校准曲线 / 分阶段
 scripts/push-ingest.mjs   把采集结果 POST 到境内服务（Actions 侧调用）

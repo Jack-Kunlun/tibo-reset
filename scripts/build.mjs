@@ -16,6 +16,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { derive, logoDataUri, renderPage } from '../src/lib/page.mjs';
+import { resolveBuildNow, snapshotFrom, writeSnapshot, SNAPSHOT_REL } from '../src/lib/snapshot.mjs';
 import { buildOgImage } from './og-image.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -34,19 +35,9 @@ const [resets, tweets, statsFile, template] = await Promise.all([
   readFile(resolve(ROOT, 'src/index.html'), 'utf8'),
 ]);
 
-// 固定一个 now，让同一轮构建里所有派生结果共用同一时刻。
-// BUILD_NOW 可以把它钉死（ISO 串或毫秒数）—— 「同一份数据 + 同一个时刻 → 同一份产物」，
-// 这是可复现构建的前提，也是验收 A8（时间显示不随机器时区变化）能精确判等的基础。
-const now = pickNow(process.env.BUILD_NOW);
-
-function pickNow(raw) {
-  if (!raw) return Date.now();
-  const asNumber = Number(raw);
-  if (Number.isFinite(asNumber) && asNumber > 0) return asNumber;
-  const asDate = Date.parse(raw);
-  if (Number.isFinite(asDate)) return asDate;
-  throw new Error(`BUILD_NOW 无法解析：${raw}（应为 ISO 时间串或毫秒时间戳）`);
-}
+// 固定一个 now，让同一轮构建里所有派生结果共用同一时刻（解析逻辑在同名模块里，
+// `scripts/build-snapshot.mjs` 走的是同一个函数 —— 两条路必须锚在同一时刻上）。
+const now = resolveBuildNow(process.env.BUILD_NOW);
 
 if (process.env.BUILD_NOW) console.log(`▸ 构建时刻已固定为 ${new Date(now).toISOString()}（BUILD_NOW）`);
 
@@ -115,39 +106,18 @@ await copyFile(
 
 /* -------------------------- 小程序快照 -------------------------- */
 
-const snapshot = {
-  schema: 1,
-  generatedAt: new Date(now).toISOString(),
-  dataUpdatedAt: statsFile.generated_at ?? null,
-  account: ACCOUNT,
+// 组装与落盘都在 src/lib/snapshot.mjs。那份产物必须能**脱离本脚本单独重生成**：
+// 它不入库，而小程序代码在模块顶层就 import 它，所以测试前置与开发者工具都得先
+// 有它 —— 见该模块的注释（包括「为什么不能给测试前置塞一个完整构建」）。
+const snapshotJs = snapshotFrom({
   chart: chartData,
   prediction,
-  // rejected 不随快照下发：它是「未命中但值得留档」的排查材料，服务端 API 里照旧有，
-  // 小程序端一处都不读。但它**很占体积** —— 并上回复流之后被排除的推文从个位数涨到
-  // 50+ 条，实测这一项就占快照的一半（47KB / 92KB）。而快照是要跟着小程序包下发的
-  // （它的存在就是为了「域名没备案时也能出首屏」），不该被排查材料撑大。
-  // 计数照旧保留在 counts 里，「扫了多少、排除多少」仍然说得清。
-  //
-  // rejected 被清空，所以 truncated 必须**重算**：沿用原值会让快照自相矛盾 ——
-  // 保留数是 0 条、却标着「触顶」，将来谁去读就会渲染出「排除项保留了最近的
-  // 0 / 共 62 条」这种句子。快照里确实只带 hints，故截断状态只由 hints 决定。
-  // （小程序端目前两个字段都不读，这一行只是不让错值留在产物里。）
-  signals: {
-    ...signals,
-    rejected: [],
-    truncated: (signals.hints?.length ?? 0) < (signals.counts?.hint ?? 0),
-  },
-  stats: statsFile.stats ?? null,
-  collectErrors: statsFile.errors ?? [],
-};
-
-const snapshotJs =
-  '/** ⚠ 本文件由 scripts/build.mjs 生成，请勿直接修改。 */\n' +
-  '// 离线首屏数据快照：采集脚本 → 构建 → 小程序内置。\n' +
-  `export default ${JSON.stringify(snapshot, null, 2)};\n`;
-
-await mkdir(resolve(ROOT, 'miniprogram/data'), { recursive: true });
-await writeFile(resolve(ROOT, 'miniprogram/data/snapshot.js'), snapshotJs, 'utf8');
+  signals,
+  statsFile,
+  account: ACCOUNT,
+  now,
+});
+await writeSnapshot(snapshotJs);
 
 /* ------------------------ 共享模块同步 ------------------------ */
 
@@ -164,7 +134,7 @@ if (og) {
 }
 console.log('✓ dist/favicon.png            32×32    浏览器标签页图标');
 console.log('✓ dist/apple-touch-icon.png   180×180  iOS 添加到主屏');
-console.log(`✓ miniprogram/data/snapshot.js ${kb(snapshotJs)}  含预测与信号`);
+console.log(`✓ ${SNAPSHOT_REL} ${kb(snapshotJs)}  含预测与信号`);
 console.log(`✓ miniprogram/utils/scene.js  ${kb(sceneSrc)}  共享几何已同步`);
 console.log(
   `  信号：${signals.level}（已发生 ${signals.occurred?.length ?? 0} / 预告 ${signals.signals.length} / 线索 ${signals.hints.length} / 扫描 ${signals.checkedTweets} 条）`

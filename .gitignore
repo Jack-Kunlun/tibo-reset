@@ -7,9 +7,14 @@ pnpm-lock.yaml
 # 构建产物：dist 由 npm run build 生成
 dist/
 
-# 小程序快照由构建生成，纳入版本管理会污染 diff；
-# 但小程序需要它才能离线首屏，所以这里保留 —— 见 README「小程序数据快照」。
-# miniprogram/data/snapshot.js
+# 小程序首屏快照：由 scripts/build.mjs / build-snapshot.mjs 从 data/ 生成，**不入库**（D-027）。
+# 它**每次构建都不同**，有两个各自独立的原因 —— 两个都得治才能稳，所以别指望「改成数据时刻」：
+#   · 内嵌构建时刻：generatedAt 与由 now 派生的预测值、信号时间窗
+#   · 不确定性区间：1000 次 bootstrap，默认 Math.random（src/lib/predict.mjs 的 bootstrapCI）
+# 纳入版本管理只会得到一个长期 modified 的文件 —— 那等于训练人忽略 git status。
+# 但它**必须存在于磁盘上**：miniprogram/utils/api.js 在模块顶层 import 它，所以测试前置
+# （package.json 的 pretest）与微信开发者工具都要先跑 scripts/build-snapshot.mjs。
+miniprogram/data/snapshot.js
 
 # 运行期数据：保留（这是产品本体），只忽略临时文件
 data/*.tmp-*

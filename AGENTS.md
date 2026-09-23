@@ -41,7 +41,7 @@ src/lib/             共享逻辑（纯 JS/ESM）
 miniprogram/         微信小程序
   utils/scene.js       由 scripts/build.mjs 从 src/lib/scene.js 同步，勿手改
   utils/subscribe.js   F9 一次性订阅的客户端封装（一次授权 = 一次通知）
-  data/snapshot.js     由构建写入的数据快照（离线首屏用）
+  data/snapshot.js     由构建写入的数据快照（离线首屏用）；**不入库**，见 D-027
 *_nginx/             TLS 证书包（腾讯云 DV，**内含私钥** `.key`）
                      —— 已同时 gitignore + dockerignore，**绝不能提交、绝不能进镜像**
                        实际路径写在各人机器上，仓库里不该有这个目录的任何副本
@@ -76,8 +76,10 @@ miniprogram/         微信小程序
   词表分裂、时间戳口径上已经各吃过一次亏，每次都是静默不一致。
 - ⛔ **数据更新不得触发构建**。本机采完直接 `POST /api/ingest`，后端读到的就是最新数据，
   重建页面**没有任何产出**（D-025）。`collect.yml` 的 `paths` 因此刻意排除了
-  `miniprogram/data/**` 与 `miniprogram/utils/scene.js` —— 这两个都是**构建产物**，
-  本机每采集一次都会提交它们，不排除就等于每采一次触发一次重建。
+  `miniprogram/data/**` 与 `miniprogram/utils/scene.js` —— 这两个都是**构建产物**。
+  现在随本机提交的只剩 `utils/scene.js`（快照自 2026-09-23 起不入库，D-027），
+  `miniprogram/data/**` 那条留作**第二道锁**：万一有人把快照提交回来，少了它就会退化成
+  「每采一次触发一次重建」，而 `test-collect-warning.mjs` 有断言守着它。
 - `dist/index.html` 降级为**兜底**：实时渲染抛错时退回它（宁可数据旧也不白屏），
   所以构建仍然要做，只是产出只剩「兜底页面 + OG 图 + Pages 备份」。
 - 页面响应必须带 `Cache-Control: no-cache`。缓存住就等于把「数据一到即新」还回去了：
@@ -248,9 +250,11 @@ HTTP 200 / 213KB 完整页面 / 4 次重试全中；runner（AWS）403 挑战页
   调用方**：CI 那套兜底采集 2026-09-22 已移除（D-023）。本机手动重跑时可拿它避免白跑一轮。
 - 短路时**不写任何文件**。写了 `generated_at`（采集运行时刻）就会变，而那个字段与
   「数据有没有变」无关 —— 提交判据是 `scripts/data-changed.mjs`，见上文。
-- `miniprogram/data/snapshot.js` 由**本机**采集后构建并提交，CI 不碰它。它是构建产物，
-  内嵌了构建时刻（`generatedAt` / `now` 及其派生的全部预测值），每次构建都不同；
-  换个来源提交等于继续污染历史。（CI 现在**不提交任何东西** —— 它只在代码变更时
+- `miniprogram/data/snapshot.js` **不入库**（D-027，2026-09-23 起）：它是构建产物，且每次
+  构建都不同 —— 内嵌构建时刻（`generatedAt` / `now` 及其派生的全部预测值），不确定性
+  区间还走 `Math.random` 的 bootstrap。入库只会换来一个长期 modified 的文件，那等于
+  训练人忽略 `git status`。需要时用 `node scripts/build-snapshot.mjs` 生成
+  （`npm test` 的 `pretest` 会自动跑它）。（CI **不提交任何东西** —— 它只在代码变更时
   构建产物并发 Pages，见 D-025。）
 - 改 `parseTweets` 前后**必须**跑 `node scripts/test-parse.mjs`。它锁的是 RSC payload 的
   **结构契约**：`created_at_ms` 不只出现在推文上 —— 用户对象（UserCore）也带一个，
@@ -459,6 +463,12 @@ SITE_URL=https://<你的域名> npm run accept  # A1–A10 全量验收（会先
 不知道公开域名就没法判。加 `--write` 会把结果写成 `docs/acceptance.md`。
 
 `npm run check` 刻意不含 A7（窄屏溢出），因为那需要本机有 Chrome；CI 上也没有装。
+
+⚠ **全新克隆可以直接跑 `npm test`**：`miniprogram/data/snapshot.js` 不入库（D-027），
+但 `npm test` 的 `pretest` 会先把它生成出来（实测 0.09s）。只有要连兜底页面 / OG 卡
+一起重建才需要 `npm run build`。**别把完整构建塞进测试前置** —— CI 的「校验」必须跑在
+构建之前（test-shared 要比对 `scene.js` 的同步副本，之后跑就恒真了，见 `collect.yml`），
+`test-collect-warning.mjs` 有断言守着这个顺序。
 
 `check-history-secrets.mjs` **只在完整克隆里有意义，所以没放进 `npm test`**：CI 是
 `fetch-depth: 1` 的浅克隆，那样扫历史会「全绿但什么都没查」—— 正是本项目最忌讳的

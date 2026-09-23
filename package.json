@@ -15,6 +15,7 @@
     "og": "node scripts/og-image.mjs",
     "preview:mp": "node scripts/preview-miniprogram.mjs",
     "make:prototype": "node scripts/make-prototype.mjs",
+    "pretest": "node scripts/build-snapshot.mjs",
     "test": "node scripts/test-signals.mjs && node scripts/test-parse.mjs && node scripts/test-shared.mjs && node scripts/test-miniprogram.mjs && node scripts/test-ingest.mjs && node scripts/test-og.mjs && node scripts/test-subscribe.mjs && node scripts/test-collect-warning.mjs && node scripts/test-data-changed.mjs && node scripts/test-secrets.mjs && node scripts/test-ship.mjs && node scripts/test-history.mjs",
     "test:signals": "node scripts/test-signals.mjs",
     "test:parse": "node scripts/test-parse.mjs",

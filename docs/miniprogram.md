@@ -13,7 +13,7 @@ miniprogram/
   app.js                入口：只做一件事 —— 预热数据（不阻塞首屏）
   app.json              页面注册与导航栏配色（宣纸白 #FAF8F4）
   config.js             ★ 上线前要改的运行时配置（域名 / 开关 / 模板 ID）
-  data/snapshot.js      ★ 构建产物：离线首屏数据快照，勿手改
+  data/snapshot.js      ★ 构建产物：离线首屏数据快照，勿手改（**不入库**，见第二节第 2 步）
   utils/scene.js        ★ 构建产物：从 src/lib/scene.js 同步，勿手改
   utils/draw.js         图元 → canvas 2d（只负责「怎么画」，不做坐标计算）
   utils/view.js         数据 → 视图模型（纯函数、不碰 wx.*，可在 Node 里回归）
@@ -33,9 +33,12 @@ miniprogram/
 
 1. 导入仓库根目录，把 `project.config.json` 的 `appid` 换成你自己的
    —— 当前是占位值 `touristappid`，用它无法上传。
-2. `npm run build`。这一步会干两件小程序必须的事：
-   - 写 `miniprogram/data/snapshot.js`（离线首屏数据）
-   - 把 `src/lib/scene.js` 同步到 `miniprogram/utils/scene.js`（**不要手改后者**）
+2. 生成构建产物。⚠ **快照不入库**（D-027），全新克隆必须先跑一次，否则小程序加载不了页面
+   —— `miniprogram/utils/api.js` 在模块顶层 import 它。两条路径按需选：
+   - `node scripts/build-snapshot.mjs` —— **只**写 `miniprogram/data/snapshot.js`（离线首屏数据）。
+     `npm test` 的 `pretest` 会自动跑它，所以只跑测试的话不用手动执行。
+   - `npm run build` —— 额外产出兜底页面 + OG 卡，并把 `src/lib/scene.js` 同步到
+     `miniprogram/utils/scene.js`（**不要手改后者**）。
 3. 改 `miniprogram/config.js`：`apiBase` 填实际域名、`enabled` 置 `true`。
 4. 配微信后台的 `request` 合法域名（见第五节）。
 
@@ -47,7 +50,7 @@ miniprogram/
 
 | 来源 | 何时用 | 说明 |
 |---|---|---|
-| `data/snapshot.js` | 打开即用 | 构建期写死的快照，离线也可用。冷启动永远是完整的 |
+| `data/snapshot.js` | 打开即用 | 构建期写死的快照（**不入库**，需先生成，见第二节第 2 步），离线也可用。冷启动永远是完整的 |
 | `GET /api/state` | 联网且 `enabled: true` | 拿到后覆盖快照；本地缓存 30 分钟，超时不再当新鲜数据用 |
 
 `enabled` 默认 `false`，这是有意的：`request` 合法域名没配之前，微信会让所有请求

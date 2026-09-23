@@ -21,11 +21,13 @@
  *   6. workflow 里 CI **不再采集**（采集只在本机），但提交判据仍不是字节级
  */
 
+import { spawnSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { buildChartData } from '../src/lib/chart-data.js';
+import { SNAPSHOT_REL } from '../src/lib/snapshot.mjs';
 import { predictAll } from '../src/lib/predict.mjs';
 import { detectSignals } from '../src/lib/signals.mjs';
 import {
@@ -237,8 +239,12 @@ check('手动触发仍在（Pages 需要重发时用）', /^\s*workflow_dispatch
 
 // 下面几条合起来构成 D-025 的核心：数据由本机直推后端，**CI 与数据彻底解耦**。
 // 这里最容易出的错是「只排除了 data/**、漏掉构建产物」—— 本机采集后会把
-// miniprogram/data/snapshot.js 与 miniprogram/utils/scene.js 一起提交，
-// 漏掉任何一个，都等于「每采一次触发一次重建」，整个决定被悄悄撤回。
+// miniprogram/utils/scene.js 一起提交，漏掉它等于「每采一次触发一次重建」，
+// 整个决定被悄悄撤回。
+//
+// ⚠ `!miniprogram/data/**` 现在已**没有对应的入库文件**（快照按 D-027 摘出了
+// 版本管理），但它必须留着：那是一把以防万一的第二道锁 —— 将来若有人把快照
+// 重新提交回来，少了这条排除就会立刻退化成「每采一次重建一次」。
 const pathLines = [...ymlCode.matchAll(/^\s*- '([^']+)'/gm)].map((m) => m[1]);
 
 check(
@@ -279,6 +285,64 @@ check(
 check(
   '没有 step 把采集与构建塞进同一个 run 块',
   !steps.some((s) => /collect\.mjs/.test(s) && /build\.mjs/.test(s))
+);
+
+/* ================= 构建产物的归属与前置（D-027） ================= */
+
+// 小程序首屏快照**不入库**。它每次构建都不同，两个原因各自独立 ——
+// 内嵌构建时刻（generatedAt 及其派生的预测/时间窗）、以及 bootstrapCI 用
+// Math.random 出的不确定性区间。纳入版本管理只会换来一个长期 modified 的
+// 文件，而「长期 modified」等于训练人忽略 git status（config.js 至今如此）。
+// ⚠ 两条都要查，理由不同：`git check-ignore` 对**已被跟踪**的文件会返回「未命中」
+// （实测：`git add -f` 之后它就变成不命中），所以第一条理论上也覆盖了强制入库 ——
+// 但那层语义不显眼、还可能随 git 版本而变；显式再查一次 `ls-files` 的意义是让失败
+// 文案**说清是哪种错**（规则没了 vs 仍被跟踪），排查时少猜一轮。
+const ignored = spawnSync('git', ['check-ignore', '-q', SNAPSHOT_REL], { cwd: ROOT });
+const tracked = spawnSync('git', ['ls-files', '--error-unmatch', SNAPSHOT_REL], { cwd: ROOT });
+const notTracked = tracked.status !== 0;
+check(
+  `构建产物 ${SNAPSHOT_REL} 不入库（忽略规则命中，且不在索引里）`,
+  ignored.status === 0 && notTracked,
+  notTracked
+    ? '忽略规则没命中 —— .gitignore 里那行被删了或被写窄了'
+    : '它仍被 git 跟踪（`git add -f` 能绕开忽略规则）—— 用 `git rm --cached` 摘掉，磁盘上的文件留着'
+);
+check(
+  'push 触发仍排除 miniprogram/data/**（第二道锁：万一快照被重新提交回来）',
+  pathLines.includes('!miniprogram/data/**'),
+  `当前 paths：${pathLines.join(' ')}`
+);
+
+const pkg = JSON.parse(await readFile(resolve(ROOT, 'package.json'), 'utf8'));
+check(
+  '快照有独立生成入口，并挂在 npm test 的 pretest 上',
+  /build-snapshot\.mjs/.test(pkg.scripts.pretest ?? ''),
+  `pretest = ${pkg.scripts.pretest ?? '（未设置）'} —— 不挂的话全新克隆跑 npm test 会抛 MODULE_NOT_FOUND`
+);
+
+// 前置必须是「只生成这一份产物」。若它顺手重建 dist / 覆盖 scene.js，
+// 下面那条 CI 顺序断言的前提就没了 —— 而后果很隐蔽：test-shared 恒真。
+//
+// 判据刻意用**结构性**的（自己不碰文件系统、不 shell 出去），而不是「文本里
+// 别出现 dist」：这个脚本的注释里正大光明写着 dist 与 scene.js（拿它们解释
+// 「为什么不碰」），按词匹配会在**正确实现**上永远报红 —— 甚至日志文案里的
+// 一句「未重建 dist」就够把断言打红。落盘只由 snapshot.mjs 独占。
+const snapScript = (await readFile(resolve(ROOT, 'scripts/build-snapshot.mjs'), 'utf8'))
+  .replace(/\/\*[\s\S]*?\*\//g, '')
+  .replace(/^\s*\/\/.*$/gm, '');
+check(
+  '前置只产快照：不 import node:fs、不 shell 出去，落盘走 snapshot.mjs',
+  !/node:fs/.test(snapScript) && !/child_process/.test(snapScript) && /writeSnapshot\(/.test(snapScript),
+  '一旦它顺手重建，CI 的「校验先于构建」就不再安全'
+);
+
+// 守着 D-025 留下的那条顺序不变量：`npm run test` 必须跑在「构建页面」之前。
+const testStep = steps.find((s) => s.startsWith('      - name: 校验\n')) ?? null;
+check(
+  'CI 的「校验」仍跑在「构建页面」之前',
+  steps.indexOf(testStep) >= 0 && steps.indexOf(buildStep) >= 0 && steps.indexOf(testStep) < steps.indexOf(buildStep),
+  '反过来的话 test-shared 比对的 scene.js 副本刚被构建覆盖 —— 那条检查恒真、等于没有。'
+    + '要给测试补产物只能补快照这一份（pretest），不能补整个构建'
 );
 
 /* ======================== 结果 ======================== */

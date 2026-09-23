@@ -13,11 +13,26 @@
  *   3. 图表场景在所有目标宽度下都落在画布内（这是「图变成一片空白」的根因之一）
  */
 
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { SNAPSHOT_REL } from '../src/lib/snapshot.mjs';
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+
+/* ------------------------------ 前置 ------------------------------ */
+
+// 快照是构建产物、不入库（D-027），而 `miniprogram/utils/api.js` 在**模块顶层**
+// import 它 —— 缺了它这里只会抛一句 MODULE_NOT_FOUND，看的人会以为代码坏了。
+// 所以先把它换成一句能照做的提示（同 acceptance.mjs 对 SITE_URL 的做法）。
+if (!existsSync(resolve(ROOT, SNAPSHOT_REL))) {
+  console.error(`✗ 缺少构建产物 ${SNAPSHOT_REL}：小程序代码在模块顶层 import 它，没有它加载不了页面。`);
+  console.error('  生成：node scripts/build-snapshot.mjs');
+  console.error('  （npm test 的 pretest 会自动跑它；要连 dist 一起重建则用 npm run build）');
+  process.exit(1);
+}
 
 /* ------------------------------ 断言工具 ------------------------------ */
 
