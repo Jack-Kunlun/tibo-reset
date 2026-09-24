@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-09-24T04:19:40.857Z",
-  "checkedTweets": 90,
+  "generatedAt": "2026-09-24T12:22:28.989Z",
+  "checkedTweets": 92,
   "lookbackDays": 60,
-  "windowFrom": "2026-07-26T04:19:40.857Z",
-  "windowTo": "2026-09-24T04:19:40.857Z",
+  "windowFrom": "2026-07-26T12:22:28.989Z",
+  "windowTo": "2026-09-24T12:22:28.989Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -14,45 +14,42 @@
       "zone": "Asia/Shanghai",
       "date": "2026.09.24",
       "weekday": "周四",
-      "time": "12:19",
-      "text": "2026.09.24（周四）12:19",
+      "time": "20:22",
+      "text": "2026.09.24（周四）20:22",
       "offset": "UTC+8"
     },
     "b": {
       "label": "Tibo 当地时间",
       "zone": "America/Los_Angeles",
-      "date": "2026.09.23",
-      "weekday": "周三",
-      "time": "21:19",
-      "text": "2026.09.23（周三）21:19",
+      "date": "2026.09.24",
+      "weekday": "周四",
+      "time": "05:22",
+      "text": "2026.09.24（周四）05:22",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2102890573481050167",
+    "id": "2102996313780736363",
     "account": "thsottiaux",
-    "text": "Seeing the future",
-    "createdAt": "2026-09-23T22:39:17.000Z",
-    "url": "https://x.com/thsottiaux/status/2102890573481050167",
+    "text": "Can't wait for DevDay next Tuesday. Some really fun stuff, but also many many things that should change the way you work. It's been our most ambitious sprint and Astra has really made new things possible in such short amounts of time.",
+    "createdAt": "2026-09-24T05:39:27.000Z",
+    "url": "https://x.com/thsottiaux/status/2102996313780736363",
     "reasons": [
-      "上下文：回复 @_simonsmith「Just went for a long walk while usin…」"
+      "命中「新额度」类词 fresh/new/top up",
+      "含未来语气"
     ],
     "viaContext": false,
-    "inReplyTo": {
-      "account": "_simonsmith",
-      "id": "",
-      "text": "Just went for a long walk while using ChatGPT Voice with plugins on my phone, and I think it's a more consequential update than it might seem at first glance. On my walk, I talked through my calendar, email, and to-do list. I had ChatGPT read through my emails and triage them."
-    },
+    "inReplyTo": null,
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.09.24",
         "weekday": "周四",
-        "time": "06:39",
-        "text": "2026.09.24（周四）06:39",
+        "time": "13:39",
+        "text": "2026.09.24（周四）13:39",
         "offset": "UTC+8"
       },
       "b": {
@@ -60,17 +57,25 @@
         "zone": "America/Los_Angeles",
         "date": "2026.09.23",
         "weekday": "周三",
-        "time": "15:39",
-        "text": "2026.09.23（周三）15:39",
+        "time": "22:39",
+        "text": "2026.09.23（周三）22:39",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "none",
-    "rejected": "无额度相关词",
-    "intent": 0,
+    "level": "hint",
+    "rejected": "含时间表达「next tuesday」但没有额度相关词，不作为重置信号",
+    "intent": 1,
     "window": null,
-    "candidateWindow": null
+    "candidateWindow": {
+      "word": "next tuesday",
+      "precision": "day",
+      "from": "2026-09-29T07:00:00.000Z",
+      "to": "2026-09-30T06:59:00.000Z",
+      "dayNum": 20725,
+      "spec": 92,
+      "note": null
+    }
   },
   "signals": [],
   "occurred": [
@@ -198,6 +203,53 @@
     }
   ],
   "hints": [
+    {
+      "id": "2102996313780736363",
+      "account": "thsottiaux",
+      "text": "Can't wait for DevDay next Tuesday. Some really fun stuff, but also many many things that should change the way you work. It's been our most ambitious sprint and Astra has really made new things possible in such short amounts of time.",
+      "createdAt": "2026-09-24T05:39:27.000Z",
+      "url": "https://x.com/thsottiaux/status/2102996313780736363",
+      "reasons": [
+        "命中「新额度」类词 fresh/new/top up",
+        "含未来语气"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.24",
+          "weekday": "周四",
+          "time": "13:39",
+          "text": "2026.09.24（周四）13:39",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.23",
+          "weekday": "周三",
+          "time": "22:39",
+          "text": "2026.09.23（周三）22:39",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "含时间表达「next tuesday」但没有额度相关词，不作为重置信号",
+      "intent": 1,
+      "window": null,
+      "candidateWindow": {
+        "word": "next tuesday",
+        "precision": "day",
+        "from": "2026-09-29T07:00:00.000Z",
+        "to": "2026-09-30T06:59:00.000Z",
+        "dayNum": 20725,
+        "spec": 92,
+        "note": null
+      }
+    },
     {
       "id": "2101920928070562029",
       "account": "thsottiaux",
@@ -622,6 +674,48 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2102982591628648784",
+      "account": "thsottiaux",
+      "text": "good one",
+      "createdAt": "2026-09-24T04:44:56.000Z",
+      "url": "https://x.com/thsottiaux/status/2102982591628648784",
+      "reasons": [
+        "上下文：回复 @alexandr_wang「i am once again asking for you to do…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "alexandr_wang",
+        "id": "",
+        "text": "i am once again asking for you to download muse"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.24",
+          "weekday": "周四",
+          "time": "12:44",
+          "text": "2026.09.24（周四）12:44",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.23",
+          "weekday": "周三",
+          "time": "21:44",
+          "text": "2026.09.23（周三）21:44",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2102890573481050167",
       "account": "thsottiaux",
@@ -3760,12 +3854,12 @@
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 90,
+    "scanned": 92,
     "explicit": 0,
     "occurred": 3,
-    "hint": 9,
-    "none": 76,
-    "rejected": 76
+    "hint": 10,
+    "none": 77,
+    "rejected": 77
   },
   "truncated": false
 }
