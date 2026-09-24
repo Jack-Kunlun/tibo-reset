@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-09-23T20:17:12.014Z",
-  "checkedTweets": 87,
+  "generatedAt": "2026-09-24T04:19:40.857Z",
+  "checkedTweets": 90,
   "lookbackDays": 60,
-  "windowFrom": "2026-07-25T20:17:12.014Z",
-  "windowTo": "2026-09-23T20:17:12.014Z",
+  "windowFrom": "2026-07-26T04:19:40.857Z",
+  "windowTo": "2026-09-24T04:19:40.857Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -14,8 +14,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.09.24",
       "weekday": "周四",
-      "time": "04:17",
-      "text": "2026.09.24（周四）04:17",
+      "time": "12:19",
+      "text": "2026.09.24（周四）12:19",
       "offset": "UTC+8"
     },
     "b": {
@@ -23,30 +23,36 @@
       "zone": "America/Los_Angeles",
       "date": "2026.09.23",
       "weekday": "周三",
-      "time": "13:17",
-      "text": "2026.09.23（周三）13:17",
+      "time": "21:19",
+      "text": "2026.09.23（周三）21:19",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2102814202117411196",
+    "id": "2102890573481050167",
     "account": "thsottiaux",
-    "text": "Voice! I've gotten so used to just call ChatGPT and talk about all the work, check on emails, do some coding, manage my calendar and it works across the full ecosystem of plugins, including 3P developed plugins.",
-    "createdAt": "2026-09-23T17:35:48.000Z",
-    "url": "https://x.com/thsottiaux/status/2102814202117411196",
-    "reasons": [],
+    "text": "Seeing the future",
+    "createdAt": "2026-09-23T22:39:17.000Z",
+    "url": "https://x.com/thsottiaux/status/2102890573481050167",
+    "reasons": [
+      "上下文：回复 @_simonsmith「Just went for a long walk while usin…」"
+    ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "_simonsmith",
+      "id": "",
+      "text": "Just went for a long walk while using ChatGPT Voice with plugins on my phone, and I think it's a more consequential update than it might seem at first glance. On my walk, I talked through my calendar, email, and to-do list. I had ChatGPT read through my emails and triage them."
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.09.24",
         "weekday": "周四",
-        "time": "01:35",
-        "text": "2026.09.24（周四）01:35",
+        "time": "06:39",
+        "text": "2026.09.24（周四）06:39",
         "offset": "UTC+8"
       },
       "b": {
@@ -54,8 +60,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.09.23",
         "weekday": "周三",
-        "time": "10:35",
-        "text": "2026.09.23（周三）10:35",
+        "time": "15:39",
+        "text": "2026.09.23（周三）15:39",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -616,6 +622,132 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2102890573481050167",
+      "account": "thsottiaux",
+      "text": "Seeing the future",
+      "createdAt": "2026-09-23T22:39:17.000Z",
+      "url": "https://x.com/thsottiaux/status/2102890573481050167",
+      "reasons": [
+        "上下文：回复 @_simonsmith「Just went for a long walk while usin…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "_simonsmith",
+        "id": "",
+        "text": "Just went for a long walk while using ChatGPT Voice with plugins on my phone, and I think it's a more consequential update than it might seem at first glance. On my walk, I talked through my calendar, email, and to-do list. I had ChatGPT read through my emails and triage them."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.24",
+          "weekday": "周四",
+          "time": "06:39",
+          "text": "2026.09.24（周四）06:39",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.23",
+          "weekday": "周三",
+          "time": "15:39",
+          "text": "2026.09.23（周三）15:39",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2102884137749315973",
+      "account": "thsottiaux",
+      "text": "This is the way",
+      "createdAt": "2026-09-23T22:13:42.000Z",
+      "url": "https://x.com/thsottiaux/status/2102884137749315973",
+      "reasons": [
+        "上下文：回复 @trq212「we’re thinking of killing plan mode …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "trq212",
+        "id": "",
+        "text": "we’re thinking of killing plan mode and using the shift+tab hotkey to adjust effort levels I don’t think the models need plan mode anymore, but if you’re a plan mode diehard would love to get your feedback on why"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.24",
+          "weekday": "周四",
+          "time": "06:13",
+          "text": "2026.09.24（周四）06:13",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.23",
+          "weekday": "周三",
+          "time": "15:13",
+          "text": "2026.09.23（周三）15:13",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2102884039145521487",
+      "account": "thsottiaux",
+      "text": "A bit harder to do when you have 1B users, but we are working to reduce this to only a few hours or minutes in the future",
+      "createdAt": "2026-09-23T22:13:19.000Z",
+      "url": "https://x.com/thsottiaux/status/2102884039145521487",
+      "reasons": [
+        "上下文：回复 @scottstts「One thing I think OpenAI can learn f…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "scottstts",
+        "id": "",
+        "text": "One thing I think OpenAI can learn from anthropic is the coordinated launch. Every time a new Claude model is out, it’s instantly available everywhere, and a reset (if they give it) is there already, so users can start using it right away Yesterday I saw OpenAI announced the"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.24",
+          "weekday": "周四",
+          "time": "06:13",
+          "text": "2026.09.24（周四）06:13",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.23",
+          "weekday": "周三",
+          "time": "15:13",
+          "text": "2026.09.23（周三）15:13",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2102814202117411196",
       "account": "thsottiaux",
@@ -3628,12 +3760,12 @@
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 87,
+    "scanned": 90,
     "explicit": 0,
     "occurred": 3,
     "hint": 9,
-    "none": 73,
-    "rejected": 73
+    "none": 76,
+    "rejected": 76
   },
   "truncated": false
 }

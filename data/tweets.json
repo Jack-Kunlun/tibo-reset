@@ -1,6 +1,60 @@
 {
   "tweets": [
     {
+      "id": "2102890573481050167",
+      "text": "Seeing the future",
+      "created_at": "2026-09-23T22:39:17.000Z",
+      "url": "https://x.com/thsottiaux/status/2102890573481050167",
+      "inReplyTo": {
+        "account": "_simonsmith",
+        "id": "",
+        "text": "Just went for a long walk while using ChatGPT Voice with plugins on my phone, and I think it's a more consequential update than it might seem at first glance. On my walk, I talked through my calendar, email, and to-do list. I had ChatGPT read through my emails and triage them.",
+        "created_at": "2026-09-23T19:03:34.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-24T04:19:40.856Z"
+    },
+    {
+      "id": "2102884137749315973",
+      "text": "This is the way",
+      "created_at": "2026-09-23T22:13:42.000Z",
+      "url": "https://x.com/thsottiaux/status/2102884137749315973",
+      "inReplyTo": {
+        "account": "trq212",
+        "id": "",
+        "text": "we’re thinking of killing plan mode and using the shift+tab hotkey to adjust effort levels I don’t think the models need plan mode anymore, but if you’re a plan mode diehard would love to get your feedback on why",
+        "created_at": "2026-09-23T17:31:48.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-24T04:19:40.856Z"
+    },
+    {
+      "id": "2102884039145521487",
+      "text": "A bit harder to do when you have 1B users, but we are working to reduce this to only a few hours or minutes in the future",
+      "created_at": "2026-09-23T22:13:19.000Z",
+      "url": "https://x.com/thsottiaux/status/2102884039145521487",
+      "inReplyTo": {
+        "account": "scottstts",
+        "id": "",
+        "text": "One thing I think OpenAI can learn from anthropic is the coordinated launch. Every time a new Claude model is out, it’s instantly available everywhere, and a reset (if they give it) is there already, so users can start using it right away Yesterday I saw OpenAI announced the",
+        "created_at": "2026-09-23T10:27:59.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-24T04:19:40.856Z"
+    },
+    {
       "id": "2102814202117411196",
       "text": "Voice! I've gotten so used to just call ChatGPT and talk about all the work, check on emails, do some coding, manage my calendar and it works across the full ecosystem of plugins, including 3P developed plugins.",
       "created_at": "2026-09-23T17:35:48.000Z",
@@ -1438,7 +1492,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-09-23T20:17:12.013Z",
+  "updated_at": "2026-09-24T04:19:40.856Z",
   "source": "browser",
   "coverage_since": "2026-09-21T18:23:37.000Z"
 }
