@@ -326,8 +326,29 @@ docker exec edge-gateway nginx -s reload
 **不要 `docker compose up -d` 重建网关** —— 那会中断主站和另外几个子域，而这里只需要
 一次 reload。
 
-⚠ **已知局限**：追加进去的配置位于软链 `current/` 之下，主站项目下次发布切换 release
-时会一起消失（**只有这个子域受影响**，主站不受影响）。届时重跑一次注入步骤即可恢复。
+⚠ **已知局限（已治）**：追加进去的配置位于软链 `current/` 之下，主站项目下次发布切换 release
+时会一起消失（**只有这个子域受影响**，主站不受影响）。
+
+**2026-09-25 这个局限真的兑现了一次**：12:04 主站切 release → 追加块消失 → 网关回落主域
+server 块 → 子域**证书变成主域的、内容变成主站的**，本机 `push-ingest.mjs` 报 `fetch failed`
+（TLS 主机名不匹配，不是 token 或后端的问题）。
+
+治法是**把「接入」拆成两半**：PetCare 仓库只保留一句稳定的 `include`，观测台的 server 块
+放进 release 树之外的宿主目录。此后主站发版不再影响本子域，改配置也不必等主站发版：
+
+```
+PetCare 仓库: docker-compose.yml  只读挂载 /opt/petcare/extra-confs → /etc/nginx/extra-confs
+             docker/edge-nginx.conf 尾部一句 include /etc/nginx/extra-confs/*.conf;
+宿主:        /opt/petcare/extra-confs/tibo-reset.conf  ← 配置本体（本仓库 deploy/petcare-gateway/ 是源）
+```
+
+另有一个 systemd 定时器每 2 分钟守护一次（`deploy/petcare-gateway/gateway-guard.sh`）：
+只在该子域的配置确实不在位时才补（include 行丢了补 include、挂载也没了就退回整段注入），
+补完先 `nginx -t` 再 `reload`，全程不重建容器。机制、落点与排障命令见
+`deploy/petcare-gateway/README.md`。
+
+⚠ 首次部署时注入的那一段仍然有效；**下一次 petcare 发布**带上 include 与挂载之后，
+生效的就是 `/opt/petcare/extra-confs/tibo-reset.conf`（两份内容等价，不必手工删旧段）。
 
 ---
 
@@ -471,5 +492,7 @@ tar czf ~/tibo-data-$(date +%F).tgz -C /srv/tibo-data .
 | 本机推送报 503 | 容器没配 `INGEST_TOKEN`，写入入口是关闭的（这是刻意的，宁可关掉也不裸奔） |
 | 小程序白屏 | 微信后台的 request 合法域名没配，或域名没备案。**小程序端会静默走 fail 回调**，先查这里 |
 | 浏览器报证书不匹配 | 证书 SAN 只覆盖 `reset.example.com` —— 用别的域名（或 IP）访问必然不匹配，不是配置错。真装错了就按 3.2 重传 |
+| 子域打开是**主站的内容**、证书也是主域的 | 网关里本子域的 server 块不在位（详见 3.3）。先看 `systemctl status tibo-gateway-guard.service` 与 `/var/log/tibo-gateway-guard.log`；确认后可手工跑一次 `/opt/tibo/gateway-guard.sh` |
+| 本机推送报 `fetch failed`（不是 401/503） | 多半同上：TLS 主机名不匹配。用 `openssl s_client -connect reset.example.com:443 \| openssl x509 -noout -subject` 看主体是不是本子域 |
 | https 打不开但 http 是 301 | 443 的 server 块没生效或证书路径写错。`sudo nginx -t` 会直接指出；`ss -lntp \| grep 443` 看端口在听没 |
 | 证书快到期了 | **这是人工续期的证书，没有定时器可查**（见 3.2）。到期日 `2026-12-21`，去腾讯云控制台重签后按 3.2 替换，**不用重启容器** |

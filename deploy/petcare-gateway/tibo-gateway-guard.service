@@ -1,0 +1,10 @@
+[Unit]
+Description=观测台网关自愈：保证 reset.petcare-home.com 的 server 块生效
+Documentation=file:/opt/tibo/gateway-guard.sh
+Wants=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/tibo/gateway-guard.sh
+Nice=10

@@ -1,0 +1,10 @@
+[Unit]
+Description=每 2 分钟检查一次观测台网关配置
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=2min
+AccuracySec=15s
+
+[Install]
+WantedBy=timers.target
