@@ -69,12 +69,31 @@ systemctl list-timers tibo-gateway-guard.timer --no-pager
 # 上一次执行结果（exit 0 = 一切正常或已修复）
 systemctl status tibo-gateway-guard.service --no-pager
 
-# 出事时才会有内容
-tail -20 /var/log/tibo-gateway-guard.log
+# 出事时才会有内容；**文件不存在 = 从未出过事，属正常**，不是守护没跑
+tail -20 /var/log/tibo-gateway-guard.log 2>/dev/null || echo "无日志 = 一直幂等通过"
+
+# 守护有没有真的在跑，看这个 —— 不要靠日志文件是否存在来判断
+systemctl is-active tibo-gateway-guard.timer
 
 # 端到端：从**外部**看证书主体是不是本子域（服务器内部受 hairpin NAT 限制，不能用域名自测）
 echo | openssl s_client -connect reset.petcare-home.com:443 2>/dev/null | openssl x509 -noout -subject -dates
 ```
+
+## 激活扩展点（一次性，需要 PetCare 侧发布流程）
+
+扩展点是**上游的改动**，光有本目录的产物不会自己生效。但**不激活也不影响可用性** ——
+没激活时守护走「整段注入」兜底分支，主站发版后 2 分钟内自动恢复。
+
+要让「发版不碰子站」真正成立，需要按顺序做完这三步：
+
+| 步骤 | 在哪做 | 做什么 |
+|---|---|---|
+| 1 | PetCare 仓库 | 合并 `feat/edge-gateway-extra-confs`（= 一句 include + 只读挂载 + server-init 建目录） |
+| 2 | PetCare 发布流程 | 手动触发 `deploy.yml`，新 release 才带上 include 行与挂载定义 |
+| 3 | 服务器 | `docker compose up -d edge-gateway` 让挂载生效（**这一步会重建网关容器，主站与 admin 有短暂中断**） |
+
+判断激活成功：`grep -c extra-confs /opt/petcare/current/docker/edge-nginx.conf` 返回 1
+（未激活时为 0，此时靠追加段撑着）。
 
 ## 手工改配置的正确姿势
 
