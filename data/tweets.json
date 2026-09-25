@@ -1,6 +1,17 @@
 {
   "tweets": [
     {
+      "id": "2103375711797211460",
+      "text": "Been a bit quiet here because internal Slack has been hilarious lately and because we are all locked in on DevDay. Tuesday will be fun.",
+      "created_at": "2026-09-25T06:47:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2103375711797211460",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-25T12:30:00.628Z"
+    },
+    {
       "id": "2102996313780736363",
       "text": "Can't wait for DevDay next Tuesday. Some really fun stuff, but also many many things that should change the way you work. It's been our most ambitious sprint and Astra has really made new things possible in such short amounts of time.",
       "created_at": "2026-09-24T05:39:27.000Z",
@@ -71,10 +82,10 @@
       "created_at": "2026-09-23T22:13:19.000Z",
       "url": "https://x.com/thsottiaux/status/2102884039145521487",
       "inReplyTo": {
-        "account": "scottstts",
+        "account": "trq212",
         "id": "",
-        "text": "One thing I think OpenAI can learn from anthropic is the coordinated launch. Every time a new Claude model is out, it’s instantly available everywhere, and a reset (if they give it) is there already, so users can start using it right away Yesterday I saw OpenAI announced the",
-        "created_at": "2026-09-23T10:27:59.000Z",
+        "text": "we’re thinking of killing plan mode and using the shift+tab hotkey to adjust effort levels I don’t think the models need plan mode anymore, but if you’re a plan mode diehard would love to get your feedback on why",
+        "created_at": "2026-09-23T17:31:48.000Z",
         "url": ""
       },
       "kind": "other",
@@ -183,10 +194,10 @@
       "created_at": "2026-09-22T19:44:31.000Z",
       "url": "https://x.com/thsottiaux/status/2102484207163584745",
       "inReplyTo": {
-        "account": "amorriscode",
+        "account": "viticci",
         "id": "",
-        "text": "congrats on the launch!",
-        "created_at": "2026-09-22T18:30:00.000Z",
+        "text": "I want Grok Bot, but with GPT-6 models, and with Claude's taste, and with Muse's speed, and with GPT-Live voice is that too much to ask these days",
+        "created_at": "2026-09-22T18:20:53.000Z",
         "url": ""
       },
       "kind": "other",
@@ -201,10 +212,10 @@
       "created_at": "2026-09-22T18:34:01.000Z",
       "url": "https://x.com/thsottiaux/status/2102466463156285686",
       "inReplyTo": {
-        "account": "omarbnjl",
+        "account": "viticci",
         "id": "",
-        "text": "新的银行转弯重置，今晚我们要吃好多米饭啊",
-        "created_at": "2026-09-22T18:33:19.000Z",
+        "text": "I want Grok Bot, but with GPT-6 models, and with Claude's taste, and with Muse's speed, and with GPT-Live voice is that too much to ask these days",
+        "created_at": "2026-09-22T18:20:53.000Z",
         "url": ""
       },
       "kind": "other",
@@ -219,10 +230,10 @@
       "created_at": "2026-09-22T18:33:37.000Z",
       "url": "https://x.com/thsottiaux/status/2102466361398378912",
       "inReplyTo": {
-        "account": "TokenGremlin",
+        "account": "viticci",
         "id": "",
-        "text": "Sam Altman @sama and Tibo @thsottiaux , you are officially forbidden from posting a tweet saying, “it took a little longer than we would’ve liked, and we’ll launch everything next week at DevDay.”",
-        "created_at": "2026-09-22T17:35:07.000Z",
+        "text": "I want Grok Bot, but with GPT-6 models, and with Claude's taste, and with Muse's speed, and with GPT-Live voice is that too much to ask these days",
+        "created_at": "2026-09-22T18:20:53.000Z",
         "url": ""
       },
       "kind": "other",
@@ -1521,7 +1532,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-09-24T12:22:28.988Z",
+  "updated_at": "2026-09-25T12:30:00.629Z",
   "source": "browser",
   "coverage_since": "2026-09-21T18:23:37.000Z"
 }

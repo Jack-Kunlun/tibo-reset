@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-09-24T12:22:28.989Z",
-  "checkedTweets": 92,
+  "generatedAt": "2026-09-25T12:30:00.631Z",
+  "checkedTweets": 93,
   "lookbackDays": 60,
-  "windowFrom": "2026-07-26T12:22:28.989Z",
-  "windowTo": "2026-09-24T12:22:28.989Z",
+  "windowFrom": "2026-07-27T12:30:00.631Z",
+  "windowTo": "2026-09-25T12:30:00.631Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -12,32 +12,31 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.09.24",
-      "weekday": "周四",
-      "time": "20:22",
-      "text": "2026.09.24（周四）20:22",
+      "date": "2026.09.25",
+      "weekday": "周五",
+      "time": "20:30",
+      "text": "2026.09.25（周五）20:30",
       "offset": "UTC+8"
     },
     "b": {
       "label": "Tibo 当地时间",
       "zone": "America/Los_Angeles",
-      "date": "2026.09.24",
-      "weekday": "周四",
-      "time": "05:22",
-      "text": "2026.09.24（周四）05:22",
+      "date": "2026.09.25",
+      "weekday": "周五",
+      "time": "05:30",
+      "text": "2026.09.25（周五）05:30",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2102996313780736363",
+    "id": "2103375711797211460",
     "account": "thsottiaux",
-    "text": "Can't wait for DevDay next Tuesday. Some really fun stuff, but also many many things that should change the way you work. It's been our most ambitious sprint and Astra has really made new things possible in such short amounts of time.",
-    "createdAt": "2026-09-24T05:39:27.000Z",
-    "url": "https://x.com/thsottiaux/status/2102996313780736363",
+    "text": "Been a bit quiet here because internal Slack has been hilarious lately and because we are all locked in on DevDay. Tuesday will be fun.",
+    "createdAt": "2026-09-25T06:47:03.000Z",
+    "url": "https://x.com/thsottiaux/status/2103375711797211460",
     "reasons": [
-      "命中「新额度」类词 fresh/new/top up",
       "含未来语气"
     ],
     "viaContext": false,
@@ -46,34 +45,34 @@
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.09.24",
-        "weekday": "周四",
-        "time": "13:39",
-        "text": "2026.09.24（周四）13:39",
+        "date": "2026.09.25",
+        "weekday": "周五",
+        "time": "14:47",
+        "text": "2026.09.25（周五）14:47",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.09.23",
-        "weekday": "周三",
-        "time": "22:39",
-        "text": "2026.09.23（周三）22:39",
+        "date": "2026.09.24",
+        "weekday": "周四",
+        "time": "23:47",
+        "text": "2026.09.24（周四）23:47",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
     "level": "hint",
-    "rejected": "含时间表达「next tuesday」但没有额度相关词，不作为重置信号",
-    "intent": 1,
+    "rejected": "含时间表达「tuesday」但没有额度相关词，不作为重置信号",
+    "intent": 0,
     "window": null,
     "candidateWindow": {
-      "word": "next tuesday",
+      "word": "tuesday",
       "precision": "day",
       "from": "2026-09-29T07:00:00.000Z",
       "to": "2026-09-30T06:59:00.000Z",
       "dayNum": 20725,
-      "spec": 92,
+      "spec": 86,
       "note": null
     }
   },
@@ -203,6 +202,52 @@
     }
   ],
   "hints": [
+    {
+      "id": "2103375711797211460",
+      "account": "thsottiaux",
+      "text": "Been a bit quiet here because internal Slack has been hilarious lately and because we are all locked in on DevDay. Tuesday will be fun.",
+      "createdAt": "2026-09-25T06:47:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2103375711797211460",
+      "reasons": [
+        "含未来语气"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.25",
+          "weekday": "周五",
+          "time": "14:47",
+          "text": "2026.09.25（周五）14:47",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.24",
+          "weekday": "周四",
+          "time": "23:47",
+          "text": "2026.09.24（周四）23:47",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "含时间表达「tuesday」但没有额度相关词，不作为重置信号",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": {
+        "word": "tuesday",
+        "precision": "day",
+        "from": "2026-09-29T07:00:00.000Z",
+        "to": "2026-09-30T06:59:00.000Z",
+        "dayNum": 20725,
+        "spec": 86,
+        "note": null
+      }
+    },
     {
       "id": "2102996313780736363",
       "account": "thsottiaux",
@@ -807,13 +852,13 @@
       "createdAt": "2026-09-23T22:13:19.000Z",
       "url": "https://x.com/thsottiaux/status/2102884039145521487",
       "reasons": [
-        "上下文：回复 @scottstts「One thing I think OpenAI can learn f…」"
+        "上下文：回复 @trq212「we’re thinking of killing plan mode …」"
       ],
       "viaContext": false,
       "inReplyTo": {
-        "account": "scottstts",
+        "account": "trq212",
         "id": "",
-        "text": "One thing I think OpenAI can learn from anthropic is the coordinated launch. Every time a new Claude model is out, it’s instantly available everywhere, and a reset (if they give it) is there already, so users can start using it right away Yesterday I saw OpenAI announced the"
+        "text": "we’re thinking of killing plan mode and using the shift+tab hotkey to adjust effort levels I don’t think the models need plan mode anymore, but if you’re a plan mode diehard would love to get your feedback on why"
       },
       "createdZones": {
         "a": {
@@ -1092,13 +1137,13 @@
       "createdAt": "2026-09-22T19:44:31.000Z",
       "url": "https://x.com/thsottiaux/status/2102484207163584745",
       "reasons": [
-        "上下文：回复 @amorriscode「congrats on the launch!…」"
+        "上下文：回复 @viticci「I want Grok Bot, but with GPT-6 mode…」"
       ],
       "viaContext": false,
       "inReplyTo": {
-        "account": "amorriscode",
+        "account": "viticci",
         "id": "",
-        "text": "congrats on the launch!"
+        "text": "I want Grok Bot, but with GPT-6 models, and with Claude's taste, and with Muse's speed, and with GPT-Live voice is that too much to ask these days"
       },
       "createdZones": {
         "a": {
@@ -1134,13 +1179,13 @@
       "createdAt": "2026-09-22T18:34:01.000Z",
       "url": "https://x.com/thsottiaux/status/2102466463156285686",
       "reasons": [
-        "上下文：回复 @omarbnjl「新的银行转弯重置，今晚我们要吃好多米饭啊…」"
+        "上下文：回复 @viticci「I want Grok Bot, but with GPT-6 mode…」"
       ],
       "viaContext": false,
       "inReplyTo": {
-        "account": "omarbnjl",
+        "account": "viticci",
         "id": "",
-        "text": "新的银行转弯重置，今晚我们要吃好多米饭啊"
+        "text": "I want Grok Bot, but with GPT-6 models, and with Claude's taste, and with Muse's speed, and with GPT-Live voice is that too much to ask these days"
       },
       "createdZones": {
         "a": {
@@ -1176,13 +1221,13 @@
       "createdAt": "2026-09-22T18:33:37.000Z",
       "url": "https://x.com/thsottiaux/status/2102466361398378912",
       "reasons": [
-        "上下文：回复 @TokenGremlin「Sam Altman @sama and Tibo @thsottiau…」"
+        "上下文：回复 @viticci「I want Grok Bot, but with GPT-6 mode…」"
       ],
       "viaContext": false,
       "inReplyTo": {
-        "account": "TokenGremlin",
+        "account": "viticci",
         "id": "",
-        "text": "Sam Altman @sama and Tibo @thsottiaux , you are officially forbidden from posting a tweet saying, “it took a little longer than we would’ve liked, and we’ll launch everything next week at DevDay.”"
+        "text": "I want Grok Bot, but with GPT-6 models, and with Claude's taste, and with Muse's speed, and with GPT-Live voice is that too much to ask these days"
       },
       "createdZones": {
         "a": {
@@ -3854,10 +3899,10 @@
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 92,
+    "scanned": 93,
     "explicit": 0,
     "occurred": 3,
-    "hint": 10,
+    "hint": 11,
     "none": 77,
     "rejected": 77
   },
