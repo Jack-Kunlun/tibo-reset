@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-09-26T04:34:56.594Z",
-  "checkedTweets": 96,
+  "generatedAt": "2026-09-26T20:40:08.699Z",
+  "checkedTweets": 97,
   "lookbackDays": 60,
-  "windowFrom": "2026-07-28T04:34:56.594Z",
-  "windowTo": "2026-09-26T04:34:56.594Z",
+  "windowFrom": "2026-07-28T20:40:08.699Z",
+  "windowTo": "2026-09-26T20:40:08.699Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -12,33 +12,33 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.09.26",
-      "weekday": "周六",
-      "time": "12:34",
-      "text": "2026.09.26（周六）12:34",
+      "date": "2026.09.27",
+      "weekday": "周日",
+      "time": "04:40",
+      "text": "2026.09.27（周日）04:40",
       "offset": "UTC+8"
     },
     "b": {
       "label": "Tibo 当地时间",
       "zone": "America/Los_Angeles",
-      "date": "2026.09.25",
-      "weekday": "周五",
-      "time": "21:34",
-      "text": "2026.09.25（周五）21:34",
+      "date": "2026.09.26",
+      "weekday": "周六",
+      "time": "13:40",
+      "text": "2026.09.26（周六）13:40",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2103637477760311522",
+    "id": "2103911959544610829",
     "account": "thsottiaux",
-    "text": "o yes… we’re back in action and we’ll reset usage limits for all paid users across codex and ChatGPT work sorry about the brief disruption! (and yes we have a special spare codex when things are down to help us out)",
-    "createdAt": "2026-09-26T00:07:13.000Z",
-    "url": "https://x.com/thsottiaux/status/2103637477760311522",
+    "text": "Resets all propagated. That will be all. Have a fantastic weekend.",
+    "createdAt": "2026-09-26T18:17:54.000Z",
+    "url": "https://x.com/thsottiaux/status/2103911959544610829",
     "reasons": [
       "命中重置词 reset",
-      "命中额度词 limits/usage/credits"
+      "含未来语气"
     ],
     "viaContext": false,
     "inReplyTo": null,
@@ -46,28 +46,73 @@
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.09.26",
-        "weekday": "周六",
-        "time": "08:07",
-        "text": "2026.09.26（周六）08:07",
+        "date": "2026.09.27",
+        "weekday": "周日",
+        "time": "02:17",
+        "text": "2026.09.27（周日）02:17",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.09.25",
-        "weekday": "周五",
-        "time": "17:07",
-        "text": "2026.09.25（周五）17:07",
+        "date": "2026.09.26",
+        "weekday": "周六",
+        "time": "11:17",
+        "text": "2026.09.26（周六）11:17",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "hint",
-    "rejected": "有额度意图但没给出时间，只能作线索",
-    "intent": 5,
-    "window": null,
-    "candidateWindow": null
+    "level": "explicit",
+    "rejected": null,
+    "intent": 3,
+    "timeWord": "weekend",
+    "timeNote": null,
+    "precision": "week-part",
+    "candidateWindow": null,
+    "window": {
+      "from": "2026-09-26T07:00:00.000Z",
+      "to": "2026-09-28T06:59:00.000Z",
+      "dayNum": null,
+      "fromTs": 1790406000000,
+      "toTs": 1790578740000,
+      "userFrom": {
+        "y": "2026",
+        "m": "09",
+        "d": "26",
+        "hh": "15",
+        "mm": "00",
+        "weekdayCN": "周六"
+      },
+      "sourceZone": "2026.09.26（周六）00:00 → 2026.09.27（周日）23:59",
+      "userZone": "2026.09.26（周六）15:00 → 2026.09.28（周一）14:59",
+      "openText": "2026.09.26（周六）15:00",
+      "rangeNote": "",
+      "crossesUserDay": true,
+      "zones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.26",
+          "weekday": "周六",
+          "time": "15:00",
+          "text": "2026.09.26（周六）15:00",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.26",
+          "weekday": "周六",
+          "time": "00:00",
+          "text": "2026.09.26（周六）00:00",
+          "offset": "UTC-7"
+        },
+        "diffHours": 15,
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      }
+    },
+    "confidence": 0.69
   },
   "signals": [],
   "occurred": [
@@ -4003,7 +4048,7 @@
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 96,
+    "scanned": 97,
     "explicit": 0,
     "occurred": 3,
     "hint": 12,
