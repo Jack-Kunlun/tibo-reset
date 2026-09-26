@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-09-25T12:30:00.631Z",
-  "checkedTweets": 93,
+  "generatedAt": "2026-09-26T04:34:56.594Z",
+  "checkedTweets": 96,
   "lookbackDays": 60,
-  "windowFrom": "2026-07-27T12:30:00.631Z",
-  "windowTo": "2026-09-25T12:30:00.631Z",
+  "windowFrom": "2026-07-28T04:34:56.594Z",
+  "windowTo": "2026-09-26T04:34:56.594Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -12,10 +12,10 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.09.25",
-      "weekday": "周五",
-      "time": "20:30",
-      "text": "2026.09.25（周五）20:30",
+      "date": "2026.09.26",
+      "weekday": "周六",
+      "time": "12:34",
+      "text": "2026.09.26（周六）12:34",
       "offset": "UTC+8"
     },
     "b": {
@@ -23,21 +23,22 @@
       "zone": "America/Los_Angeles",
       "date": "2026.09.25",
       "weekday": "周五",
-      "time": "05:30",
-      "text": "2026.09.25（周五）05:30",
+      "time": "21:34",
+      "text": "2026.09.25（周五）21:34",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2103375711797211460",
+    "id": "2103637477760311522",
     "account": "thsottiaux",
-    "text": "Been a bit quiet here because internal Slack has been hilarious lately and because we are all locked in on DevDay. Tuesday will be fun.",
-    "createdAt": "2026-09-25T06:47:03.000Z",
-    "url": "https://x.com/thsottiaux/status/2103375711797211460",
+    "text": "o yes… we’re back in action and we’ll reset usage limits for all paid users across codex and ChatGPT work sorry about the brief disruption! (and yes we have a special spare codex when things are down to help us out)",
+    "createdAt": "2026-09-26T00:07:13.000Z",
+    "url": "https://x.com/thsottiaux/status/2103637477760311522",
     "reasons": [
-      "含未来语气"
+      "命中重置词 reset",
+      "命中额度词 limits/usage/credits"
     ],
     "viaContext": false,
     "inReplyTo": null,
@@ -45,36 +46,28 @@
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.09.25",
-        "weekday": "周五",
-        "time": "14:47",
-        "text": "2026.09.25（周五）14:47",
+        "date": "2026.09.26",
+        "weekday": "周六",
+        "time": "08:07",
+        "text": "2026.09.26（周六）08:07",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.09.24",
-        "weekday": "周四",
-        "time": "23:47",
-        "text": "2026.09.24（周四）23:47",
+        "date": "2026.09.25",
+        "weekday": "周五",
+        "time": "17:07",
+        "text": "2026.09.25（周五）17:07",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
     "level": "hint",
-    "rejected": "含时间表达「tuesday」但没有额度相关词，不作为重置信号",
-    "intent": 0,
+    "rejected": "有额度意图但没给出时间，只能作线索",
+    "intent": 5,
     "window": null,
-    "candidateWindow": {
-      "word": "tuesday",
-      "precision": "day",
-      "from": "2026-09-29T07:00:00.000Z",
-      "to": "2026-09-30T06:59:00.000Z",
-      "dayNum": 20725,
-      "spec": 86,
-      "note": null
-    }
+    "candidateWindow": null
   },
   "signals": [],
   "occurred": [
@@ -202,6 +195,45 @@
     }
   ],
   "hints": [
+    {
+      "id": "2103637477760311522",
+      "account": "thsottiaux",
+      "text": "o yes… we’re back in action and we’ll reset usage limits for all paid users across codex and ChatGPT work sorry about the brief disruption! (and yes we have a special spare codex when things are down to help us out)",
+      "createdAt": "2026-09-26T00:07:13.000Z",
+      "url": "https://x.com/thsottiaux/status/2103637477760311522",
+      "reasons": [
+        "命中重置词 reset",
+        "命中额度词 limits/usage/credits"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.26",
+          "weekday": "周六",
+          "time": "08:07",
+          "text": "2026.09.26（周六）08:07",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.25",
+          "weekday": "周五",
+          "time": "17:07",
+          "text": "2026.09.25（周五）17:07",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "有额度意图但没给出时间，只能作线索",
+      "intent": 5,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2103375711797211460",
       "account": "thsottiaux",
@@ -720,6 +752,78 @@
   ],
   "rejected": [
     {
+      "id": "2103622639386574979",
+      "account": "thsottiaux",
+      "text": "o no :(",
+      "createdAt": "2026-09-25T23:08:15.000Z",
+      "url": "https://x.com/thsottiaux/status/2103622639386574979",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.26",
+          "weekday": "周六",
+          "time": "07:08",
+          "text": "2026.09.26（周六）07:08",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.25",
+          "weekday": "周五",
+          "time": "16:08",
+          "text": "2026.09.25（周五）16:08",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2103620061156290622",
+      "account": "thsottiaux",
+      "text": "We are aware that codex is down and are working hard to bring back normal service.",
+      "createdAt": "2026-09-25T22:58:00.000Z",
+      "url": "https://x.com/thsottiaux/status/2103620061156290622",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.26",
+          "weekday": "周六",
+          "time": "06:58",
+          "text": "2026.09.26（周六）06:58",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.25",
+          "weekday": "周五",
+          "time": "15:58",
+          "text": "2026.09.25（周五）15:58",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
       "id": "2102982591628648784",
       "account": "thsottiaux",
       "text": "good one",
@@ -852,13 +956,13 @@
       "createdAt": "2026-09-23T22:13:19.000Z",
       "url": "https://x.com/thsottiaux/status/2102884039145521487",
       "reasons": [
-        "上下文：回复 @trq212「we’re thinking of killing plan mode …」"
+        "上下文：回复 @scottstts「One thing I think OpenAI can learn f…」"
       ],
       "viaContext": false,
       "inReplyTo": {
-        "account": "trq212",
+        "account": "scottstts",
         "id": "",
-        "text": "we’re thinking of killing plan mode and using the shift+tab hotkey to adjust effort levels I don’t think the models need plan mode anymore, but if you’re a plan mode diehard would love to get your feedback on why"
+        "text": "One thing I think OpenAI can learn from anthropic is the coordinated launch. Every time a new Claude model is out, it’s instantly available everywhere, and a reset (if they give it) is there already, so users can start using it right away Yesterday I saw OpenAI announced the"
       },
       "createdZones": {
         "a": {
@@ -3899,12 +4003,12 @@
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 93,
+    "scanned": 96,
     "explicit": 0,
     "occurred": 3,
-    "hint": 11,
-    "none": 77,
-    "rejected": 77
+    "hint": 12,
+    "none": 79,
+    "rejected": 79
   },
   "truncated": false
 }
