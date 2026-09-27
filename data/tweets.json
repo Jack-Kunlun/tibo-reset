@@ -1,6 +1,114 @@
 {
   "tweets": [
     {
+      "id": "2103963215885701493",
+      "text": "Sorry Gia. More resets coming next week",
+      "created_at": "2026-09-26T21:41:35.000Z",
+      "url": "https://x.com/thsottiaux/status/2103963215885701493",
+      "inReplyTo": {
+        "account": "giadotai",
+        "id": "",
+        "text": "The reset came right after my own reset, couldn’t be worse timing.",
+        "created_at": "2026-09-26T18:46:58.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-27T04:42:29.720Z"
+    },
+    {
+      "id": "2103962250885390436",
+      "text": "Are those Udon or just plain Noodles",
+      "created_at": "2026-09-26T21:37:44.000Z",
+      "url": "https://x.com/thsottiaux/status/2103962250885390436",
+      "inReplyTo": {
+        "account": "angelbrodin",
+        "id": "",
+        "text": "incredible things happening on our internal slack right now 🍜",
+        "created_at": "2026-09-25T19:39:56.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-27T04:42:29.720Z"
+    },
+    {
+      "id": "2103961852153913371",
+      "text": "Truth is, there isn’t an org chart",
+      "created_at": "2026-09-26T21:36:09.000Z",
+      "url": "https://x.com/thsottiaux/status/2103961852153913371",
+      "inReplyTo": {
+        "account": "jorilallo",
+        "id": "",
+        "text": "Ship the org chart",
+        "created_at": "2026-09-26T00:34:44.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-27T04:42:29.720Z"
+    },
+    {
+      "id": "2103954577817260036",
+      "text": "Plan mode was cool in 2025, might still be cool, but was particularly cool in 2025",
+      "created_at": "2026-09-26T21:07:15.000Z",
+      "url": "https://x.com/thsottiaux/status/2103954577817260036",
+      "inReplyTo": {
+        "account": "antigravity",
+        "id": "",
+        "text": "Antigravity 2.0 now features a dedicated planning mode, just like the Antigravity CLI. Type /plan and the agent steps back to think through the task, and conduct extensive research, before generating an implementation plan for your review. The agent will ask for your approval",
+        "created_at": "2026-09-25T22:24:46.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-27T04:42:29.720Z"
+    },
+    {
+      "id": "2103954313068642787",
+      "text": "👋",
+      "created_at": "2026-09-26T21:06:12.000Z",
+      "url": "https://x.com/thsottiaux/status/2103954313068642787",
+      "inReplyTo": {
+        "account": "kunchenguid",
+        "id": "",
+        "text": "aha! with the benefit of hindsight, i just figured out openai’s marketing team seriously cooked hard with their gpt 5.6 release let me reverse GTM what happened for you at that time, fable was already released and people were loving it. but openai knew astra was far from being",
+        "created_at": "2026-09-26T06:17:23.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-27T04:42:29.720Z"
+    },
+    {
+      "id": "2103953907278045548",
+      "text": "开发者日",
+      "created_at": "2026-09-26T21:04:35.000Z",
+      "url": "https://x.com/thsottiaux/status/2103953907278045548",
+      "inReplyTo": {
+        "account": "NicolasZu",
+        "id": "",
+        "text": "Huge fan of Codex here. Been there since GPT 5.0 and before the Codex app in September 2025. I pay for the $200 sub and I am so sad because right now - Astra chews all in a few days (and I try to optimize) - 6 Sol is disappointed: lazy and doesn’t *get it* like Sol 5.6 - Sol",
+        "created_at": "2026-09-26T16:55:12.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-27T04:42:29.720Z"
+    },
+    {
       "id": "2103911959544610829",
       "text": "Resets all propagated. That will be all. Have a fantastic weekend.",
       "created_at": "2026-09-26T18:17:54.000Z",
@@ -1576,7 +1684,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-09-26T20:40:08.698Z",
+  "updated_at": "2026-09-27T04:42:29.720Z",
   "source": "browser",
   "coverage_since": "2026-09-25T18:17:54.000Z"
 }

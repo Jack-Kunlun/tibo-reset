@@ -1,10 +1,10 @@
 {
-  "level": "occurred",
-  "generatedAt": "2026-09-26T20:40:08.699Z",
-  "checkedTweets": 97,
+  "level": "explicit",
+  "generatedAt": "2026-09-27T04:42:29.722Z",
+  "checkedTweets": 103,
   "lookbackDays": 60,
-  "windowFrom": "2026-07-28T20:40:08.699Z",
-  "windowTo": "2026-09-26T20:40:08.699Z",
+  "windowFrom": "2026-07-29T04:42:29.722Z",
+  "windowTo": "2026-09-27T04:42:29.722Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -14,8 +14,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.09.27",
       "weekday": "周日",
-      "time": "04:40",
-      "text": "2026.09.27（周日）04:40",
+      "time": "12:42",
+      "text": "2026.09.27（周日）12:42",
       "offset": "UTC+8"
     },
     "b": {
@@ -23,33 +23,39 @@
       "zone": "America/Los_Angeles",
       "date": "2026.09.26",
       "weekday": "周六",
-      "time": "13:40",
-      "text": "2026.09.26（周六）13:40",
+      "time": "21:42",
+      "text": "2026.09.26（周六）21:42",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2103911959544610829",
+    "id": "2103963215885701493",
     "account": "thsottiaux",
-    "text": "Resets all propagated. That will be all. Have a fantastic weekend.",
-    "createdAt": "2026-09-26T18:17:54.000Z",
-    "url": "https://x.com/thsottiaux/status/2103911959544610829",
+    "text": "Sorry Gia. More resets coming next week",
+    "createdAt": "2026-09-26T21:41:35.000Z",
+    "url": "https://x.com/thsottiaux/status/2103963215885701493",
     "reasons": [
       "命中重置词 reset",
-      "含未来语气"
+      "命中「新额度」类词 fresh/new/top up",
+      "含未来语气",
+      "上下文：回复 @giadotai「The reset came right after my own re…」"
     ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "giadotai",
+      "id": "",
+      "text": "The reset came right after my own reset, couldn’t be worse timing."
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.09.27",
         "weekday": "周日",
-        "time": "02:17",
-        "text": "2026.09.27（周日）02:17",
+        "time": "05:41",
+        "text": "2026.09.27（周日）05:41",
         "offset": "UTC+8"
       },
       "b": {
@@ -57,46 +63,90 @@
         "zone": "America/Los_Angeles",
         "date": "2026.09.26",
         "weekday": "周六",
-        "time": "11:17",
-        "text": "2026.09.26（周六）11:17",
+        "time": "14:41",
+        "text": "2026.09.26（周六）14:41",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
     "level": "explicit",
     "rejected": null,
-    "intent": 3,
-    "timeWord": "weekend",
+    "intent": 4,
+    "timeWord": "next week",
     "timeNote": null,
-    "precision": "week-part",
+    "precision": "week",
     "candidateWindow": null,
     "window": {
-      "from": "2026-09-26T07:00:00.000Z",
-      "to": "2026-09-28T06:59:00.000Z",
+      "from": "2026-09-28T07:00:00.000Z",
+      "to": "2026-10-05T06:59:00.000Z",
       "dayNum": null,
-      "fromTs": 1790406000000,
-      "toTs": 1790578740000,
+      "fromTs": 1790578800000,
+      "toTs": 1791183540000,
       "userFrom": {
         "y": "2026",
         "m": "09",
-        "d": "26",
+        "d": "28",
         "hh": "15",
         "mm": "00",
-        "weekdayCN": "周六"
+        "weekdayCN": "周一"
       },
-      "sourceZone": "2026.09.26（周六）00:00 → 2026.09.27（周日）23:59",
-      "userZone": "2026.09.26（周六）15:00 → 2026.09.28（周一）14:59",
-      "openText": "2026.09.26（周六）15:00",
+      "sourceZone": "2026.09.28（周一）00:00 → 2026.10.04（周日）23:59",
+      "userZone": "2026.09.28（周一）15:00 → 2026.10.05（周一）14:59",
+      "openText": "2026.09.28（周一）15:00",
       "rangeNote": "",
       "crossesUserDay": true,
       "zones": {
         "a": {
           "label": "北京时间",
           "zone": "Asia/Shanghai",
-          "date": "2026.09.26",
-          "weekday": "周六",
+          "date": "2026.09.28",
+          "weekday": "周一",
           "time": "15:00",
-          "text": "2026.09.26（周六）15:00",
+          "text": "2026.09.28（周一）15:00",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.28",
+          "weekday": "周一",
+          "time": "00:00",
+          "text": "2026.09.28（周一）00:00",
+          "offset": "UTC-7"
+        },
+        "diffHours": 15,
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      }
+    },
+    "confidence": 0.7699999999999999
+  },
+  "signals": [
+    {
+      "id": "2103963215885701493",
+      "account": "thsottiaux",
+      "text": "Sorry Gia. More resets coming next week",
+      "createdAt": "2026-09-26T21:41:35.000Z",
+      "url": "https://x.com/thsottiaux/status/2103963215885701493",
+      "reasons": [
+        "命中重置词 reset",
+        "命中「新额度」类词 fresh/new/top up",
+        "含未来语气",
+        "上下文：回复 @giadotai「The reset came right after my own re…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "giadotai",
+        "id": "",
+        "text": "The reset came right after my own reset, couldn’t be worse timing."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.27",
+          "weekday": "周日",
+          "time": "05:41",
+          "text": "2026.09.27（周日）05:41",
           "offset": "UTC+8"
         },
         "b": {
@@ -104,17 +154,64 @@
           "zone": "America/Los_Angeles",
           "date": "2026.09.26",
           "weekday": "周六",
-          "time": "00:00",
-          "text": "2026.09.26（周六）00:00",
+          "time": "14:41",
+          "text": "2026.09.26（周六）14:41",
           "offset": "UTC-7"
         },
-        "diffHours": 15,
         "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      }
-    },
-    "confidence": 0.69
-  },
-  "signals": [],
+      },
+      "level": "explicit",
+      "rejected": null,
+      "intent": 4,
+      "timeWord": "next week",
+      "timeNote": null,
+      "precision": "week",
+      "candidateWindow": null,
+      "window": {
+        "from": "2026-09-28T07:00:00.000Z",
+        "to": "2026-10-05T06:59:00.000Z",
+        "dayNum": null,
+        "fromTs": 1790578800000,
+        "toTs": 1791183540000,
+        "userFrom": {
+          "y": "2026",
+          "m": "09",
+          "d": "28",
+          "hh": "15",
+          "mm": "00",
+          "weekdayCN": "周一"
+        },
+        "sourceZone": "2026.09.28（周一）00:00 → 2026.10.04（周日）23:59",
+        "userZone": "2026.09.28（周一）15:00 → 2026.10.05（周一）14:59",
+        "openText": "2026.09.28（周一）15:00",
+        "rangeNote": "",
+        "crossesUserDay": true,
+        "zones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.09.28",
+            "weekday": "周一",
+            "time": "15:00",
+            "text": "2026.09.28（周一）15:00",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "Tibo 当地时间",
+            "zone": "America/Los_Angeles",
+            "date": "2026.09.28",
+            "weekday": "周一",
+            "time": "00:00",
+            "text": "2026.09.28（周一）00:00",
+            "offset": "UTC-7"
+          },
+          "diffHours": 15,
+          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+        }
+      },
+      "confidence": 0.7699999999999999
+    }
+  ],
   "occurred": [
     {
       "id": "2102463847714247142",
@@ -796,6 +893,217 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2103962250885390436",
+      "account": "thsottiaux",
+      "text": "Are those Udon or just plain Noodles",
+      "createdAt": "2026-09-26T21:37:44.000Z",
+      "url": "https://x.com/thsottiaux/status/2103962250885390436",
+      "reasons": [
+        "上下文：回复 @angelbrodin「incredible things happening on our i…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "angelbrodin",
+        "id": "",
+        "text": "incredible things happening on our internal slack right now 🍜"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.27",
+          "weekday": "周日",
+          "time": "05:37",
+          "text": "2026.09.27（周日）05:37",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.26",
+          "weekday": "周六",
+          "time": "14:37",
+          "text": "2026.09.26（周六）14:37",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2103961852153913371",
+      "account": "thsottiaux",
+      "text": "Truth is, there isn’t an org chart",
+      "createdAt": "2026-09-26T21:36:09.000Z",
+      "url": "https://x.com/thsottiaux/status/2103961852153913371",
+      "reasons": [
+        "上下文：回复 @jorilallo「Ship the org chart…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "jorilallo",
+        "id": "",
+        "text": "Ship the org chart"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.27",
+          "weekday": "周日",
+          "time": "05:36",
+          "text": "2026.09.27（周日）05:36",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.26",
+          "weekday": "周六",
+          "time": "14:36",
+          "text": "2026.09.26（周六）14:36",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2103954577817260036",
+      "account": "thsottiaux",
+      "text": "Plan mode was cool in 2025, might still be cool, but was particularly cool in 2025",
+      "createdAt": "2026-09-26T21:07:15.000Z",
+      "url": "https://x.com/thsottiaux/status/2103954577817260036",
+      "reasons": [
+        "含未来语气",
+        "上下文：回复 @antigravity「Antigravity 2.0 now features a dedic…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "antigravity",
+        "id": "",
+        "text": "Antigravity 2.0 now features a dedicated planning mode, just like the Antigravity CLI. Type /plan and the agent steps back to think through the task, and conduct extensive research, before generating an implementation plan for your review. The agent will ask for your approval"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.27",
+          "weekday": "周日",
+          "time": "05:07",
+          "text": "2026.09.27（周日）05:07",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.26",
+          "weekday": "周六",
+          "time": "14:07",
+          "text": "2026.09.26（周六）14:07",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2103954313068642787",
+      "account": "thsottiaux",
+      "text": "👋",
+      "createdAt": "2026-09-26T21:06:12.000Z",
+      "url": "https://x.com/thsottiaux/status/2103954313068642787",
+      "reasons": [
+        "上下文：回复 @kunchenguid「aha! with the benefit of hindsight, …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "kunchenguid",
+        "id": "",
+        "text": "aha! with the benefit of hindsight, i just figured out openai’s marketing team seriously cooked hard with their gpt 5.6 release let me reverse GTM what happened for you at that time, fable was already released and people were loving it. but openai knew astra was far from being"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.27",
+          "weekday": "周日",
+          "time": "05:06",
+          "text": "2026.09.27（周日）05:06",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.26",
+          "weekday": "周六",
+          "time": "14:06",
+          "text": "2026.09.26（周六）14:06",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2103953907278045548",
+      "account": "thsottiaux",
+      "text": "开发者日",
+      "createdAt": "2026-09-26T21:04:35.000Z",
+      "url": "https://x.com/thsottiaux/status/2103953907278045548",
+      "reasons": [
+        "上下文：回复 @NicolasZu「Huge fan of Codex here. Been there s…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "NicolasZu",
+        "id": "",
+        "text": "Huge fan of Codex here. Been there since GPT 5.0 and before the Codex app in September 2025. I pay for the $200 sub and I am so sad because right now - Astra chews all in a few days (and I try to optimize) - 6 Sol is disappointed: lazy and doesn’t *get it* like Sol 5.6 - Sol"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.27",
+          "weekday": "周日",
+          "time": "05:04",
+          "text": "2026.09.27（周日）05:04",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.26",
+          "weekday": "周六",
+          "time": "14:04",
+          "text": "2026.09.26（周六）14:04",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2103622639386574979",
       "account": "thsottiaux",
@@ -4046,14 +4354,117 @@
     }
   ],
   "hypothesis": null,
-  "forecasts": [],
+  "forecasts": [
+    {
+      "level": "explicit",
+      "day": null,
+      "precision": "week",
+      "window": {
+        "from": "2026-09-28T07:00:00.000Z",
+        "to": "2026-10-05T06:59:00.000Z",
+        "dayNum": null,
+        "fromTs": 1790578800000,
+        "toTs": 1791183540000,
+        "userFrom": {
+          "y": "2026",
+          "m": "09",
+          "d": "28",
+          "hh": "15",
+          "mm": "00",
+          "weekdayCN": "周一"
+        },
+        "sourceZone": "2026.09.28（周一）00:00 → 2026.10.04（周日）23:59",
+        "userZone": "2026.09.28（周一）15:00 → 2026.10.05（周一）14:59",
+        "openText": "2026.09.28（周一）15:00",
+        "rangeNote": "",
+        "crossesUserDay": true,
+        "zones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.09.28",
+            "weekday": "周一",
+            "time": "15:00",
+            "text": "2026.09.28（周一）15:00",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "Tibo 当地时间",
+            "zone": "America/Los_Angeles",
+            "date": "2026.09.28",
+            "weekday": "周一",
+            "time": "00:00",
+            "text": "2026.09.28（周一）00:00",
+            "offset": "UTC-7"
+          },
+          "diffHours": 15,
+          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+        },
+        "precision": "week"
+      },
+      "text": "Sorry Gia. More resets coming next week",
+      "url": "https://x.com/thsottiaux/status/2103963215885701493",
+      "reasons": [
+        "命中重置词 reset",
+        "命中「新额度」类词 fresh/new/top up",
+        "含未来语气",
+        "上下文：回复 @giadotai「The reset came right after my own re…」"
+      ],
+      "timeNote": "",
+      "createdAt": "2026-09-26T21:41:35.000Z",
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.27",
+          "weekday": "周日",
+          "time": "05:41",
+          "text": "2026.09.27（周日）05:41",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.26",
+          "weekday": "周六",
+          "time": "14:41",
+          "text": "2026.09.26（周六）14:41",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "sources": 1,
+      "evidence": [
+        {
+          "id": "2103963215885701493",
+          "createdAt": "2026-09-26T21:41:35.000Z",
+          "text": "Sorry Gia. More resets coming next week",
+          "url": "https://x.com/thsottiaux/status/2103963215885701493",
+          "via": "回复 @giadotai",
+          "weight": "hard",
+          "contributes": "承诺了这一天",
+          "timeWord": "next week",
+          "precision": "week",
+          "ambiguous": false,
+          "note": null,
+          "from": "2026-09-28T07:00:00.000Z",
+          "to": "2026-10-05T06:59:00.000Z"
+        }
+      ],
+      "counts": {
+        "hard": 1,
+        "soft": 0
+      },
+      "clockHints": []
+    }
+  ],
   "counts": {
-    "scanned": 97,
-    "explicit": 0,
+    "scanned": 103,
+    "explicit": 1,
     "occurred": 3,
     "hint": 12,
-    "none": 79,
-    "rejected": 79
+    "none": 84,
+    "rejected": 84
   },
   "truncated": false
 }
