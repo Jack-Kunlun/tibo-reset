@@ -1,6 +1,230 @@
 {
   "tweets": [
     {
+      "id": "2104467346945675347",
+      "text": "Taken by none other than the incredible @ah20im",
+      "created_at": "2026-09-28T07:04:49.000Z",
+      "url": "https://x.com/thsottiaux/status/2104467346945675347",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T05:17:34.017Z"
+    },
+    {
+      "id": "2104465709384491519",
+      "text": "Sunday vibes. See you at Fort Mason soon 🎮👩‍💻",
+      "created_at": "2026-09-28T06:58:18.000Z",
+      "url": "https://x.com/thsottiaux/status/2104465709384491519",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T05:17:34.017Z"
+    },
+    {
+      "id": "2104462923661988233",
+      "text": "007 even",
+      "created_at": "2026-09-28T06:47:14.000Z",
+      "url": "https://x.com/thsottiaux/status/2104462923661988233",
+      "inReplyTo": {
+        "account": "imjustnewatai",
+        "id": "",
+        "text": "Hearing some rumors that OpenAI is releasing o6 during devday 👀",
+        "created_at": "2026-09-28T04:08:49.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T05:17:34.017Z"
+    },
+    {
+      "id": "2104462713296683467",
+      "text": "开发者日",
+      "created_at": "2026-09-28T06:46:24.000Z",
+      "url": "https://x.com/thsottiaux/status/2104462713296683467",
+      "inReplyTo": {
+        "account": "mark_k",
+        "id": "",
+        "text": "I think GPT-6 Sol was born out of necessity. OpenAI is GPU-poor at the moment, with legit capacity issues for inference. GPT-6 Sol is likely a smaller model, basically what Terra used to be, to alleviate the capacity issues. Hence the lackluster performance.",
+        "created_at": "2026-09-27T22:43:53.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T05:17:34.017Z"
+    },
+    {
+      "id": "2104462572644888780",
+      "text": "Please don't die",
+      "created_at": "2026-09-28T06:45:50.000Z",
+      "url": "https://x.com/thsottiaux/status/2104462572644888780",
+      "inReplyTo": {
+        "account": "maria_rcks",
+        "id": "",
+        "text": "if they really call it 'o' im dying",
+        "created_at": "2026-09-27T21:06:50.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T05:17:34.017Z"
+    },
+    {
+      "id": "2104451970983768270",
+      "text": "olalala",
+      "created_at": "2026-09-28T06:03:43.000Z",
+      "url": "https://x.com/thsottiaux/status/2104451970983768270",
+      "inReplyTo": {
+        "account": "melvindvivas",
+        "id": "",
+        "text": "Hold on to your Codex Pro OpenAI is bringing back “o” models",
+        "created_at": "2026-09-27T23:33:38.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T05:17:34.017Z"
+    },
+    {
+      "id": "2104388401218932888",
+      "text": "Sup Arjun",
+      "created_at": "2026-09-28T01:51:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2104388401218932888",
+      "inReplyTo": {
+        "account": "ZainManji",
+        "id": "",
+        "text": "Yo Muse randomly called me Arjun today and then started gaslighting me and stereotyping me",
+        "created_at": "2026-09-27T23:17:31.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T05:17:34.017Z"
+    },
+    {
+      "id": "2104383749723128052",
+      "text": ". . . . . .",
+      "created_at": "2026-09-28T01:32:38.000Z",
+      "url": "https://x.com/thsottiaux/status/2104383749723128052",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T05:17:34.017Z"
+    },
+    {
+      "id": "2104313777013526880",
+      "text": "Hitting the gym, brb on Tuesday",
+      "created_at": "2026-09-27T20:54:35.000Z",
+      "url": "https://x.com/thsottiaux/status/2104313777013526880",
+      "inReplyTo": {
+        "account": "Vincent_AINotes",
+        "id": "",
+        "text": "这是哪个人才做的，太真实了😂",
+        "created_at": "2026-09-27T09:07:13.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T05:17:34.017Z"
+    },
+    {
+      "id": "2104313502697660428",
+      "text": "O really",
+      "created_at": "2026-09-27T20:53:29.000Z",
+      "url": "https://x.com/thsottiaux/status/2104313502697660428",
+      "inReplyTo": {
+        "account": "yacineMTB",
+        "id": "",
+        "text": "I cannot believe how smart astra is",
+        "created_at": "2026-09-27T01:23:56.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T05:17:34.017Z"
+    },
+    {
+      "id": "2104313314901958706",
+      "text": "🙈",
+      "created_at": "2026-09-27T20:52:45.000Z",
+      "url": "https://x.com/thsottiaux/status/2104313314901958706",
+      "inReplyTo": {
+        "account": "scottstts",
+        "id": "",
+        "text": "As a long term OpenAI fanboy, I’m just gonna say it, I’m bearish on devday, I don’t think they have a single solution to counter opus 5.5 and its insanely good usage As a normal user, I don’t care about yet another bot, or devices, or 750 tps. I want down to earth good model",
+        "created_at": "2026-09-27T07:51:03.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T05:17:34.017Z"
+    },
+    {
+      "id": "2104108167806550046",
+      "text": "Code freeze isn’t really a thing anymore before releases and in the future the code might even be generated online per request according to some constraints.",
+      "created_at": "2026-09-27T07:17:34.000Z",
+      "url": "https://x.com/thsottiaux/status/2104108167806550046",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T05:17:34.017Z"
+    },
+    {
+      "id": "2104101496606618082",
+      "text": "We’re perma locked in. No code red necessary.",
+      "created_at": "2026-09-27T06:51:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2104101496606618082",
+      "inReplyTo": {
+        "account": "yacineMTB",
+        "id": "",
+        "text": "they're telling me it's code Red at openai. whatever that means. i don't know. i'm using opus 5.5 so it doesn't matter to me",
+        "created_at": "2026-09-26T20:59:29.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T05:17:34.017Z"
+    },
+    {
+      "id": "2104100881100890402",
+      "text": "Tell me more. Didn’t see your message, was probably too small and for ants.",
+      "created_at": "2026-09-27T06:48:37.000Z",
+      "url": "https://x.com/thsottiaux/status/2104100881100890402",
+      "inReplyTo": {
+        "account": "anthdm",
+        "id": "",
+        "text": "For over six months, I’ve been trying to reach out to @thsottiaux . He ignored every message and piece of feedback. Instead of listening to experienced engineers shipping production code to hundreds of thousands of users, he listened to weekend warriors having no clue what they",
+        "created_at": "2026-09-26T09:12:56.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T05:17:34.017Z"
+    },
+    {
       "id": "2103963215885701493",
       "text": "Sorry Gia. More resets coming next week",
       "created_at": "2026-09-26T21:41:35.000Z",
@@ -1684,7 +1908,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-09-27T04:42:29.720Z",
+  "updated_at": "2026-09-29T05:17:34.018Z",
   "source": "browser",
   "coverage_since": "2026-09-25T18:17:54.000Z"
 }

@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-09-26T18:17:54.000Z",
     "last_text": "Resets all propagated. That will be all. Have a fantastic weekend.",
-    "days_since_last": 0.4337467824074074,
+    "days_since_last": 2.458102060185185,
     "avg_interval_days": 6.936921724965707,
     "median_interval_days": 3.375601851851852,
     "sd_interval_days": 11.207694253379096,
@@ -14,19 +14,19 @@
     "reset_count": 51,
     "hit_within_avg": 0.6851851851851852
   },
-  "generated_at": "2026-09-27T04:42:29.808Z",
+  "generated_at": "2026-09-29T05:17:34.150Z",
   "collect": {
-    "mode": "incremental",
+    "mode": "full",
     "source": "browser",
     "stoppedBy": "floor",
-    "newTweets": 6,
-    "knownCount": 97,
+    "newTweets": 14,
+    "knownCount": 103,
     "reply": {
-      "mode": "incremental",
+      "mode": "full",
       "stoppedBy": "floor",
-      "steps": 7,
-      "harvested": 8,
-      "withContext": 6,
+      "steps": 18,
+      "harvested": 20,
+      "withContext": 16,
       "authorsMissing": 0
     },
     "replyError": null
@@ -35,11 +35,11 @@
     "added": 0,
     "updated": 0,
     "upstreamCount": 55,
-    "refreshedAt": "2026-09-27T04:42:15.129Z",
+    "refreshedAt": "2026-09-29T05:17:01.243Z",
     "error": null,
     "changed": false,
     "patchedTexts": 0
   },
-  "last_full_at": "2026-09-25T12:30:00.699Z",
+  "last_full_at": "2026-09-29T05:17:34.150Z",
   "errors": []
 }
