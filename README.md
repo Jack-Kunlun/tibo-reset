@@ -296,6 +296,7 @@ X 官方 API 的 Basic 档要 $200/月，因此自建采集是整个项目能零
 
 ```
 src/lib/collect.mjs       采集 / 解析 / 分类 / 统计（CLI 与后端共用）
+src/lib/browser.mjs       登录态采集（CDP 驱动 Chrome）；含详情页取全文，见 KI-009
 src/lib/predict.mjs       风险模型、回测、覆盖率检验、校准、bootstrap
 src/lib/signals.mjs       重置信号识别（明确 / 线索 / 无）
 src/lib/chart-data.js     从记录构建统一的图表数据（双端共用）
@@ -311,6 +312,8 @@ scripts/build-snapshot.mjs  只生成小程序快照那一份（不入库，D-02
 scripts/og-image.mjs      F8：SVG → 1200×630 PNG（@resvg/resvg-js）
 scripts/diagnose.mjs      模型诊断：配置对比 / 覆盖率 / 校准曲线 / 分阶段
 scripts/push-ingest.mjs   把采集结果 POST 到境内服务（Actions 侧调用）
+scripts/backfill-fulltext.mjs  手工补齐库内历史遗留的被截断正文（幂等，KI-009）
+scripts/probe-fulltext.mjs     只读探针：详情页给出多长的正文、判据准不准
 
 scripts/ship-image.sh        出镜像：构建 → tar.gz + sha256 →（可选）scp 到服务器
 scripts/fetch-base-image.sh  本机拉不到 Docker Hub 时，把目标架构的基础镜像搬进本地
@@ -323,7 +326,8 @@ server/subscribe.mjs      F9：订阅名单持久化 + 「有新重置」判定
 server/wechat.mjs         F9：access_token / code 换 openid / 发订阅消息
 
 scripts/test-*.mjs        测试套件（signals / parse / shared / miniprogram / ingest / og /
-                          subscribe / collect-warning / data-changed / secrets / ship / history）
+                          subscribe / collect-warning / data-changed / secrets / ship /
+                          history / fulltext）
 scripts/check-consistency.mjs  A3：页面数字 ↔ API
 scripts/check-layout.mjs       A7：窄屏横向溢出
 scripts/acceptance.mjs         A1–A10 验收编排器
