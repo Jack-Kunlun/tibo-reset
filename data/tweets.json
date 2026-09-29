@@ -1,6 +1,72 @@
 {
   "tweets": [
     {
+      "id": "2104952602710638877",
+      "text": "Hello, this is Tibo, you’ve reached the wrong company. Let me redirect you to …",
+      "created_at": "2026-09-29T15:13:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2104952602710638877",
+      "inReplyTo": {
+        "account": "jukan05",
+        "id": "",
+        "text": "I don’t like this kind of utilitarianism. Please allocate compute unequally.",
+        "created_at": "2026-09-29T15:11:55.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T15:39:41.225Z"
+    },
+    {
+      "id": "2104951965184925941",
+      "text": "I’ll explain the new Pro 200 plan differently, before I start live tweeting from DevDay on things that are going out! Today we are going to ship a number of things that increase what you can do across the Plus and Pro plans. A lot of compute is online for this increase. As we",
+      "created_at": "2026-09-29T15:10:31.000Z",
+      "url": "https://x.com/thsottiaux/status/2104951965184925941",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T15:39:41.225Z",
+      "text_full": true
+    },
+    {
+      "id": "2104936468624105813",
+      "text": "👀",
+      "created_at": "2026-09-29T14:08:56.000Z",
+      "url": "https://x.com/thsottiaux/status/2104936468624105813",
+      "inReplyTo": {
+        "account": "imnotchalk",
+        "id": "",
+        "text": "altman will have to pull a miracle at dev day to keep me from cancelling codex 20x",
+        "created_at": "2026-09-28T21:25:01.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T15:39:41.225Z"
+    },
+    {
+      "id": "2104934849970913519",
+      "text": "And then I ran to Theo and whispered in his right ear “wake up Theo, it’s DevDay today”",
+      "created_at": "2026-09-29T14:02:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2104934849970913519",
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "I saw Tibo at a grocery store in San Francisco yesterday. I told him how cool it was to meet him in person, but I didn’t want to be a douche and bother him and ask him for resets or anything. He said, “Oh, like you’re doing now?” I was taken aback, and all I could say was",
+        "created_at": "2026-09-29T08:10:14.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T15:39:41.225Z"
+    },
+    {
       "id": "2104838506363408740",
       "text": "That was yesterday, today is DevDay. And it's all good news. I'm surprised we've kept it all under wraps.",
       "created_at": "2026-09-29T07:39:40.000Z",
@@ -1948,7 +2014,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-09-29T13:20:39.156Z",
+  "updated_at": "2026-09-29T15:42:55.891Z",
   "source": "browser",
-  "coverage_since": "2026-09-25T18:17:54.000Z"
+  "coverage_since": "2026-09-28T15:10:31.000Z"
 }

@@ -1,10 +1,10 @@
 {
-  "level": "explicit",
-  "generatedAt": "2026-09-29T13:20:39.158Z",
-  "checkedTweets": 120,
+  "level": "occurred",
+  "generatedAt": "2026-09-29T15:42:55.892Z",
+  "checkedTweets": 124,
   "lookbackDays": 60,
-  "windowFrom": "2026-07-31T13:20:39.158Z",
-  "windowTo": "2026-09-29T13:20:39.158Z",
+  "windowFrom": "2026-07-31T15:42:55.892Z",
+  "windowTo": "2026-09-29T15:42:55.892Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -14,8 +14,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.09.29",
       "weekday": "周二",
-      "time": "21:20",
-      "text": "2026.09.29（周二）21:20",
+      "time": "23:42",
+      "text": "2026.09.29（周二）23:42",
       "offset": "UTC+8"
     },
     "b": {
@@ -23,30 +23,36 @@
       "zone": "America/Los_Angeles",
       "date": "2026.09.29",
       "weekday": "周二",
-      "time": "06:20",
-      "text": "2026.09.29（周二）06:20",
+      "time": "08:42",
+      "text": "2026.09.29（周二）08:42",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2104838506363408740",
+    "id": "2104952602710638877",
     "account": "thsottiaux",
-    "text": "That was yesterday, today is DevDay. And it's all good news. I'm surprised we've kept it all under wraps.",
-    "createdAt": "2026-09-29T07:39:40.000Z",
-    "url": "https://x.com/thsottiaux/status/2104838506363408740",
-    "reasons": [],
+    "text": "Hello, this is Tibo, you’ve reached the wrong company. Let me redirect you to …",
+    "createdAt": "2026-09-29T15:13:03.000Z",
+    "url": "https://x.com/thsottiaux/status/2104952602710638877",
+    "reasons": [
+      "上下文：回复 @jukan05「I don’t like this kind of utilitaria…」"
+    ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "jukan05",
+      "id": "",
+      "text": "I don’t like this kind of utilitarianism. Please allocate compute unequally."
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.09.29",
         "weekday": "周二",
-        "time": "15:39",
-        "text": "2026.09.29（周二）15:39",
+        "time": "23:13",
+        "text": "2026.09.29（周二）23:13",
         "offset": "UTC+8"
       },
       "b": {
@@ -54,204 +60,19 @@
         "zone": "America/Los_Angeles",
         "date": "2026.09.29",
         "weekday": "周二",
-        "time": "00:39",
-        "text": "2026.09.29（周二）00:39",
+        "time": "08:13",
+        "text": "2026.09.29（周二）08:13",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "hint",
-    "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
+    "level": "none",
+    "rejected": "无额度相关词",
     "intent": 0,
     "window": null,
-    "candidateWindow": {
-      "word": "today",
-      "precision": "day",
-      "from": "2026-09-29T07:00:00.000Z",
-      "to": "2026-09-30T06:59:00.000Z",
-      "dayNum": 20725,
-      "spec": 72,
-      "note": null
-    }
+    "candidateWindow": null
   },
-  "signals": [
-    {
-      "id": "2104823812042940713",
-      "account": "thsottiaux",
-      "text": "Hi, Tomorrow we are re-opening the Pro $200 subscriptions to new subscribers, but together with it we are also changing how we calculate the usage for it. In effect, if you do the math, it will net out at half the dollar in API spend compared to the old Pro $200 plan. Now that",
-      "createdAt": "2026-09-29T06:41:17.000Z",
-      "url": "https://x.com/thsottiaux/status/2104823812042940713",
-      "reasons": [
-        "命中额度词 limits/usage/credits",
-        "命中「新额度」类词 fresh/new/top up",
-        "含未来语气",
-        "含发布/宣传语境（下调置信度）"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "14:41",
-          "text": "2026.09.29（周二）14:41",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.28",
-          "weekday": "周一",
-          "time": "23:41",
-          "text": "2026.09.28（周一）23:41",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "explicit",
-      "rejected": null,
-      "intent": 3,
-      "timeWord": "tomorrow",
-      "timeNote": null,
-      "precision": "day",
-      "candidateWindow": null,
-      "window": {
-        "from": "2026-09-29T07:00:00.000Z",
-        "to": "2026-09-30T06:59:00.000Z",
-        "dayNum": 20725,
-        "fromTs": 1790665200000,
-        "toTs": 1790751540000,
-        "userFrom": {
-          "y": "2026",
-          "m": "09",
-          "d": "29",
-          "hh": "15",
-          "mm": "00",
-          "weekdayCN": "周二"
-        },
-        "sourceZone": "2026.09.29（周二） 全天",
-        "userZone": "2026.09.29（周二）15:00 起",
-        "openText": "2026.09.29（周二）15:00",
-        "rangeNote": "窗口到北京 2026.09.30（周三）14:59 为止",
-        "crossesUserDay": true,
-        "zones": {
-          "a": {
-            "label": "北京时间",
-            "zone": "Asia/Shanghai",
-            "date": "2026.09.29",
-            "weekday": "周二",
-            "time": "15:00",
-            "text": "2026.09.29（周二）15:00",
-            "offset": "UTC+8"
-          },
-          "b": {
-            "label": "Tibo 当地时间",
-            "zone": "America/Los_Angeles",
-            "date": "2026.09.29",
-            "weekday": "周二",
-            "time": "00:00",
-            "text": "2026.09.29（周二）00:00",
-            "offset": "UTC-7"
-          },
-          "diffHours": 15,
-          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-        }
-      },
-      "confidence": 0.43999999999999995
-    },
-    {
-      "id": "2103963215885701493",
-      "account": "thsottiaux",
-      "text": "Sorry Gia. More resets coming next week",
-      "createdAt": "2026-09-26T21:41:35.000Z",
-      "url": "https://x.com/thsottiaux/status/2103963215885701493",
-      "reasons": [
-        "命中重置词 reset",
-        "命中「新额度」类词 fresh/new/top up",
-        "含未来语气",
-        "上下文：回复 @giadotai「The reset came right after my own re…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "giadotai",
-        "id": "",
-        "text": "The reset came right after my own reset, couldn’t be worse timing."
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.27",
-          "weekday": "周日",
-          "time": "05:41",
-          "text": "2026.09.27（周日）05:41",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.26",
-          "weekday": "周六",
-          "time": "14:41",
-          "text": "2026.09.26（周六）14:41",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "explicit",
-      "rejected": null,
-      "intent": 4,
-      "timeWord": "next week",
-      "timeNote": null,
-      "precision": "week",
-      "candidateWindow": null,
-      "window": {
-        "from": "2026-09-28T07:00:00.000Z",
-        "to": "2026-10-05T06:59:00.000Z",
-        "dayNum": null,
-        "fromTs": 1790578800000,
-        "toTs": 1791183540000,
-        "userFrom": {
-          "y": "2026",
-          "m": "09",
-          "d": "28",
-          "hh": "15",
-          "mm": "00",
-          "weekdayCN": "周一"
-        },
-        "sourceZone": "2026.09.28（周一）00:00 → 2026.10.04（周日）23:59",
-        "userZone": "2026.09.28（周一）15:00 → 2026.10.05（周一）14:59",
-        "openText": "2026.09.28（周一）15:00",
-        "rangeNote": "",
-        "crossesUserDay": true,
-        "zones": {
-          "a": {
-            "label": "北京时间",
-            "zone": "Asia/Shanghai",
-            "date": "2026.09.28",
-            "weekday": "周一",
-            "time": "15:00",
-            "text": "2026.09.28（周一）15:00",
-            "offset": "UTC+8"
-          },
-          "b": {
-            "label": "Tibo 当地时间",
-            "zone": "America/Los_Angeles",
-            "date": "2026.09.28",
-            "weekday": "周一",
-            "time": "00:00",
-            "text": "2026.09.28（周一）00:00",
-            "offset": "UTC-7"
-          },
-          "diffHours": 15,
-          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-        }
-      },
-      "confidence": 0.7699999999999999
-    }
-  ],
+  "signals": [],
   "occurred": [
     {
       "id": "2102463847714247142",
@@ -377,6 +198,104 @@
     }
   ],
   "hints": [
+    {
+      "id": "2104951965184925941",
+      "account": "thsottiaux",
+      "text": "I’ll explain the new Pro 200 plan differently, before I start live tweeting from DevDay on things that are going out! Today we are going to ship a number of things that increase what you can do across the Plus and Pro plans. A lot of compute is online for this increase. As we",
+      "createdAt": "2026-09-29T15:10:31.000Z",
+      "url": "https://x.com/thsottiaux/status/2104951965184925941",
+      "reasons": [
+        "命中「新额度」类词 fresh/new/top up",
+        "含未来语气",
+        "含发布/宣传语境（下调置信度）"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.29",
+          "weekday": "周二",
+          "time": "23:10",
+          "text": "2026.09.29（周二）23:10",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.29",
+          "weekday": "周二",
+          "time": "08:10",
+          "text": "2026.09.29（周二）08:10",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
+      "intent": 1,
+      "window": null,
+      "candidateWindow": {
+        "word": "today",
+        "precision": "day",
+        "from": "2026-09-29T07:00:00.000Z",
+        "to": "2026-09-30T06:59:00.000Z",
+        "dayNum": 20725,
+        "spec": 72,
+        "note": null
+      }
+    },
+    {
+      "id": "2104934849970913519",
+      "account": "thsottiaux",
+      "text": "And then I ran to Theo and whispered in his right ear “wake up Theo, it’s DevDay today”",
+      "createdAt": "2026-09-29T14:02:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2104934849970913519",
+      "reasons": [
+        "上下文：回复 @theo「I saw Tibo at a grocery store in San…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "I saw Tibo at a grocery store in San Francisco yesterday. I told him how cool it was to meet him in person, but I didn’t want to be a douche and bother him and ask him for resets or anything. He said, “Oh, like you’re doing now?” I was taken aback, and all I could say was"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.29",
+          "weekday": "周二",
+          "time": "22:02",
+          "text": "2026.09.29（周二）22:02",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.29",
+          "weekday": "周二",
+          "time": "07:02",
+          "text": "2026.09.29（周二）07:02",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": {
+        "word": "today",
+        "precision": "day",
+        "from": "2026-09-29T07:00:00.000Z",
+        "to": "2026-09-30T06:59:00.000Z",
+        "dayNum": 20725,
+        "spec": 72,
+        "note": null
+      }
+    },
     {
       "id": "2104838506363408740",
       "account": "thsottiaux",
@@ -1073,6 +992,90 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2104952602710638877",
+      "account": "thsottiaux",
+      "text": "Hello, this is Tibo, you’ve reached the wrong company. Let me redirect you to …",
+      "createdAt": "2026-09-29T15:13:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2104952602710638877",
+      "reasons": [
+        "上下文：回复 @jukan05「I don’t like this kind of utilitaria…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "jukan05",
+        "id": "",
+        "text": "I don’t like this kind of utilitarianism. Please allocate compute unequally."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.29",
+          "weekday": "周二",
+          "time": "23:13",
+          "text": "2026.09.29（周二）23:13",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.29",
+          "weekday": "周二",
+          "time": "08:13",
+          "text": "2026.09.29（周二）08:13",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2104936468624105813",
+      "account": "thsottiaux",
+      "text": "👀",
+      "createdAt": "2026-09-29T14:08:56.000Z",
+      "url": "https://x.com/thsottiaux/status/2104936468624105813",
+      "reasons": [
+        "上下文：回复 @imnotchalk「altman will have to pull a miracle a…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "imnotchalk",
+        "id": "",
+        "text": "altman will have to pull a miracle at dev day to keep me from cancelling codex 20x"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.29",
+          "weekday": "周二",
+          "time": "22:08",
+          "text": "2026.09.29（周二）22:08",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.29",
+          "weekday": "周二",
+          "time": "07:08",
+          "text": "2026.09.29（周二）07:08",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2104827790440935508",
       "account": "thsottiaux",
@@ -5062,411 +5065,15 @@
       "candidateWindow": null
     }
   ],
-  "hypothesis": {
-    "dayNum": 20725,
-    "day": "2026.09.29（周二）",
-    "precision": "day",
-    "window": {
-      "from": "2026-09-29T07:00:00.000Z",
-      "to": "2026-09-30T06:59:00.000Z",
-      "dayNum": 20725,
-      "fromTs": 1790665200000,
-      "toTs": 1790751540000,
-      "userFrom": {
-        "y": "2026",
-        "m": "09",
-        "d": "29",
-        "hh": "15",
-        "mm": "00",
-        "weekdayCN": "周二"
-      },
-      "sourceZone": "2026.09.29（周二） 全天",
-      "userZone": "2026.09.29（周二）15:00 起",
-      "openText": "2026.09.29（周二）15:00",
-      "rangeNote": "窗口到北京 2026.09.30（周三）14:59 为止",
-      "crossesUserDay": true,
-      "zones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "15:00",
-          "text": "2026.09.29（周二）15:00",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "00:00",
-          "text": "2026.09.29（周二）00:00",
-          "offset": "UTC-7"
-        },
-        "diffHours": 15,
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "precision": "day"
-    },
-    "counts": {
-      "hard": 1,
-      "soft": 4,
-      "clockHints": 0,
-      "clockAdopted": 0
-    },
-    "evidence": [
-      {
-        "id": "2104838506363408740",
-        "createdAt": "2026-09-29T07:39:40.000Z",
-        "text": "That was yesterday, today is DevDay. And it's all good news. I'm surprised we've kept it all under wraps.",
-        "url": "https://x.com/thsottiaux/status/2104838506363408740",
-        "via": "原创",
-        "weight": "soft",
-        "contributes": "提到这一天（无额度语境）",
-        "timeWord": "today",
-        "precision": "day",
-        "ambiguous": false,
-        "note": null,
-        "from": "2026-09-29T07:00:00.000Z",
-        "to": "2026-09-30T06:59:00.000Z"
-      },
-      {
-        "id": "2104823812042940713",
-        "createdAt": "2026-09-29T06:41:17.000Z",
-        "text": "Hi, Tomorrow we are re-opening the Pro $200 subscriptions to new subscribers, but together with it we are also changing how we calculate the usage for it. In effect, if you do the math, it will net out at half the dollar in API spend compared to the old Pro $200 plan. Now that",
-        "url": "https://x.com/thsottiaux/status/2104823812042940713",
-        "via": "原创",
-        "weight": "hard",
-        "contributes": "承诺了这一天",
-        "timeWord": "tomorrow",
-        "precision": "day",
-        "ambiguous": false,
-        "note": null,
-        "from": "2026-09-29T07:00:00.000Z",
-        "to": "2026-09-30T06:59:00.000Z"
-      },
-      {
-        "id": "2104313777013526880",
-        "createdAt": "2026-09-27T20:54:35.000Z",
-        "text": "Hitting the gym, brb on Tuesday",
-        "url": "https://x.com/thsottiaux/status/2104313777013526880",
-        "via": "回复 @Vincent_AINotes",
-        "weight": "soft",
-        "contributes": "提到这一天（无额度语境）",
-        "timeWord": "tuesday",
-        "precision": "day",
-        "ambiguous": false,
-        "note": null,
-        "from": "2026-09-29T07:00:00.000Z",
-        "to": "2026-09-30T06:59:00.000Z"
-      },
-      {
-        "id": "2103375711797211460",
-        "createdAt": "2026-09-25T06:47:03.000Z",
-        "text": "Been a bit quiet here because internal Slack has been hilarious lately and because we are all locked in on DevDay. Tuesday will be fun.",
-        "url": "https://x.com/thsottiaux/status/2103375711797211460",
-        "via": "原创",
-        "weight": "soft",
-        "contributes": "提到这一天（无额度语境）",
-        "timeWord": "tuesday",
-        "precision": "day",
-        "ambiguous": false,
-        "note": null,
-        "from": "2026-09-29T07:00:00.000Z",
-        "to": "2026-09-30T06:59:00.000Z"
-      },
-      {
-        "id": "2102996313780736363",
-        "createdAt": "2026-09-24T05:39:27.000Z",
-        "text": "Can't wait for DevDay next Tuesday. Some really fun stuff, but also many many things that should change the way you work. It's been our most ambitious sprint and Astra has really made new things possible in such short amounts of time.",
-        "url": "https://x.com/thsottiaux/status/2102996313780736363",
-        "via": "原创",
-        "weight": "soft",
-        "contributes": "提到这一天（无额度语境）",
-        "timeWord": "next tuesday",
-        "precision": "day",
-        "ambiguous": false,
-        "note": null,
-        "from": "2026-09-29T07:00:00.000Z",
-        "to": "2026-09-30T06:59:00.000Z"
-      }
-    ],
-    "clockHints": []
-  },
-  "forecasts": [
-    {
-      "level": "explicit",
-      "day": null,
-      "precision": "week",
-      "window": {
-        "from": "2026-09-28T07:00:00.000Z",
-        "to": "2026-10-05T06:59:00.000Z",
-        "dayNum": null,
-        "fromTs": 1790578800000,
-        "toTs": 1791183540000,
-        "userFrom": {
-          "y": "2026",
-          "m": "09",
-          "d": "28",
-          "hh": "15",
-          "mm": "00",
-          "weekdayCN": "周一"
-        },
-        "sourceZone": "2026.09.28（周一）00:00 → 2026.10.04（周日）23:59",
-        "userZone": "2026.09.28（周一）15:00 → 2026.10.05（周一）14:59",
-        "openText": "2026.09.28（周一）15:00",
-        "rangeNote": "",
-        "crossesUserDay": true,
-        "zones": {
-          "a": {
-            "label": "北京时间",
-            "zone": "Asia/Shanghai",
-            "date": "2026.09.28",
-            "weekday": "周一",
-            "time": "15:00",
-            "text": "2026.09.28（周一）15:00",
-            "offset": "UTC+8"
-          },
-          "b": {
-            "label": "Tibo 当地时间",
-            "zone": "America/Los_Angeles",
-            "date": "2026.09.28",
-            "weekday": "周一",
-            "time": "00:00",
-            "text": "2026.09.28（周一）00:00",
-            "offset": "UTC-7"
-          },
-          "diffHours": 15,
-          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-        },
-        "precision": "week"
-      },
-      "text": "Sorry Gia. More resets coming next week",
-      "url": "https://x.com/thsottiaux/status/2103963215885701493",
-      "reasons": [
-        "命中重置词 reset",
-        "命中「新额度」类词 fresh/new/top up",
-        "含未来语气",
-        "上下文：回复 @giadotai「The reset came right after my own re…」"
-      ],
-      "timeNote": "",
-      "createdAt": "2026-09-26T21:41:35.000Z",
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.27",
-          "weekday": "周日",
-          "time": "05:41",
-          "text": "2026.09.27（周日）05:41",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.26",
-          "weekday": "周六",
-          "time": "14:41",
-          "text": "2026.09.26（周六）14:41",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "sources": 1,
-      "evidence": [
-        {
-          "id": "2103963215885701493",
-          "createdAt": "2026-09-26T21:41:35.000Z",
-          "text": "Sorry Gia. More resets coming next week",
-          "url": "https://x.com/thsottiaux/status/2103963215885701493",
-          "via": "回复 @giadotai",
-          "weight": "hard",
-          "contributes": "承诺了这一天",
-          "timeWord": "next week",
-          "precision": "week",
-          "ambiguous": false,
-          "note": null,
-          "from": "2026-09-28T07:00:00.000Z",
-          "to": "2026-10-05T06:59:00.000Z"
-        }
-      ],
-      "counts": {
-        "hard": 1,
-        "soft": 0
-      },
-      "clockHints": []
-    },
-    {
-      "level": "explicit",
-      "day": "2026.09.29（周二）",
-      "precision": "day",
-      "window": {
-        "from": "2026-09-29T07:00:00.000Z",
-        "to": "2026-09-30T06:59:00.000Z",
-        "dayNum": 20725,
-        "fromTs": 1790665200000,
-        "toTs": 1790751540000,
-        "userFrom": {
-          "y": "2026",
-          "m": "09",
-          "d": "29",
-          "hh": "15",
-          "mm": "00",
-          "weekdayCN": "周二"
-        },
-        "sourceZone": "2026.09.29（周二） 全天",
-        "userZone": "2026.09.29（周二）15:00 起",
-        "openText": "2026.09.29（周二）15:00",
-        "rangeNote": "窗口到北京 2026.09.30（周三）14:59 为止",
-        "crossesUserDay": true,
-        "zones": {
-          "a": {
-            "label": "北京时间",
-            "zone": "Asia/Shanghai",
-            "date": "2026.09.29",
-            "weekday": "周二",
-            "time": "15:00",
-            "text": "2026.09.29（周二）15:00",
-            "offset": "UTC+8"
-          },
-          "b": {
-            "label": "Tibo 当地时间",
-            "zone": "America/Los_Angeles",
-            "date": "2026.09.29",
-            "weekday": "周二",
-            "time": "00:00",
-            "text": "2026.09.29（周二）00:00",
-            "offset": "UTC-7"
-          },
-          "diffHours": 15,
-          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-        },
-        "precision": "day"
-      },
-      "text": "Hi, Tomorrow we are re-opening the Pro $200 subscriptions to new subscribers, but together with it we are also changing how we calculate the usage for it. In effect, if you do the math, it will net out at half the dollar in API spend compared to the old Pro $200 plan. Now that",
-      "url": "https://x.com/thsottiaux/status/2104823812042940713",
-      "reasons": [
-        "命中额度词 limits/usage/credits",
-        "命中「新额度」类词 fresh/new/top up",
-        "含未来语气",
-        "含发布/宣传语境（下调置信度）"
-      ],
-      "timeNote": "",
-      "createdAt": "2026-09-29T06:41:17.000Z",
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "14:41",
-          "text": "2026.09.29（周二）14:41",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.28",
-          "weekday": "周一",
-          "time": "23:41",
-          "text": "2026.09.28（周一）23:41",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "sources": 1,
-      "evidence": [
-        {
-          "id": "2104838506363408740",
-          "createdAt": "2026-09-29T07:39:40.000Z",
-          "text": "That was yesterday, today is DevDay. And it's all good news. I'm surprised we've kept it all under wraps.",
-          "url": "https://x.com/thsottiaux/status/2104838506363408740",
-          "via": "原创",
-          "weight": "soft",
-          "contributes": "提到这一天（无额度语境）",
-          "timeWord": "today",
-          "precision": "day",
-          "ambiguous": false,
-          "note": null,
-          "from": "2026-09-29T07:00:00.000Z",
-          "to": "2026-09-30T06:59:00.000Z"
-        },
-        {
-          "id": "2104823812042940713",
-          "createdAt": "2026-09-29T06:41:17.000Z",
-          "text": "Hi, Tomorrow we are re-opening the Pro $200 subscriptions to new subscribers, but together with it we are also changing how we calculate the usage for it. In effect, if you do the math, it will net out at half the dollar in API spend compared to the old Pro $200 plan. Now that",
-          "url": "https://x.com/thsottiaux/status/2104823812042940713",
-          "via": "原创",
-          "weight": "hard",
-          "contributes": "承诺了这一天",
-          "timeWord": "tomorrow",
-          "precision": "day",
-          "ambiguous": false,
-          "note": null,
-          "from": "2026-09-29T07:00:00.000Z",
-          "to": "2026-09-30T06:59:00.000Z"
-        },
-        {
-          "id": "2104313777013526880",
-          "createdAt": "2026-09-27T20:54:35.000Z",
-          "text": "Hitting the gym, brb on Tuesday",
-          "url": "https://x.com/thsottiaux/status/2104313777013526880",
-          "via": "回复 @Vincent_AINotes",
-          "weight": "soft",
-          "contributes": "提到这一天（无额度语境）",
-          "timeWord": "tuesday",
-          "precision": "day",
-          "ambiguous": false,
-          "note": null,
-          "from": "2026-09-29T07:00:00.000Z",
-          "to": "2026-09-30T06:59:00.000Z"
-        },
-        {
-          "id": "2103375711797211460",
-          "createdAt": "2026-09-25T06:47:03.000Z",
-          "text": "Been a bit quiet here because internal Slack has been hilarious lately and because we are all locked in on DevDay. Tuesday will be fun.",
-          "url": "https://x.com/thsottiaux/status/2103375711797211460",
-          "via": "原创",
-          "weight": "soft",
-          "contributes": "提到这一天（无额度语境）",
-          "timeWord": "tuesday",
-          "precision": "day",
-          "ambiguous": false,
-          "note": null,
-          "from": "2026-09-29T07:00:00.000Z",
-          "to": "2026-09-30T06:59:00.000Z"
-        },
-        {
-          "id": "2102996313780736363",
-          "createdAt": "2026-09-24T05:39:27.000Z",
-          "text": "Can't wait for DevDay next Tuesday. Some really fun stuff, but also many many things that should change the way you work. It's been our most ambitious sprint and Astra has really made new things possible in such short amounts of time.",
-          "url": "https://x.com/thsottiaux/status/2102996313780736363",
-          "via": "原创",
-          "weight": "soft",
-          "contributes": "提到这一天（无额度语境）",
-          "timeWord": "next tuesday",
-          "precision": "day",
-          "ambiguous": false,
-          "note": null,
-          "from": "2026-09-29T07:00:00.000Z",
-          "to": "2026-09-30T06:59:00.000Z"
-        }
-      ],
-      "counts": {
-        "hard": 1,
-        "soft": 4
-      },
-      "clockHints": []
-    }
-  ],
+  "hypothesis": null,
+  "forecasts": [],
   "counts": {
-    "scanned": 120,
-    "explicit": 2,
+    "scanned": 124,
+    "explicit": 0,
     "occurred": 3,
-    "hint": 15,
-    "none": 97,
-    "rejected": 97
+    "hint": 17,
+    "none": 99,
+    "rejected": 99
   },
   "truncated": false
 }

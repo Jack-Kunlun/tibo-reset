@@ -1,6 +1,14 @@
 {
   "records": [
     {
+      "id": "2104951965184925941",
+      "announced_at": "2026-09-29T15:10:31.000Z",
+      "type": "credit",
+      "text": "I’ll explain the new Pro 200 plan differently, before I start live tweeting from DevDay on things that are going out! Today we are going to ship a number of things that increase what you can do across the Plus and Pro plans. A lot of compute is online for this increase. As we increase the floor, we are changing the relative difference between plans to be Plus = 1X Pro 100 = 5X Pro 200 = 10X and we are reopening subscriptions for Pro 200 (we had paused it). If you have an existing plan you will keep the 20X multiplier for a bit and also receive a lot of additional credits because we know changes are hard even if it means that everyone will get more in the end.",
+      "url": "https://x.com/thsottiaux/status/2104951965184925941",
+      "attribution": "x.com/thsottiaux"
+    },
+    {
       "id": "2103911959544610829",
       "announced_at": "2026-09-26T18:17:54.000Z",
       "type": "reset",
@@ -442,5 +450,5 @@
     }
   ],
   "bootstrapped_at": "2026-09-20T08:17:13.018Z",
-  "refreshed_at": "2026-09-29T13:20:18.107Z"
+  "refreshed_at": "2026-09-29T15:42:45.715Z"
 }
