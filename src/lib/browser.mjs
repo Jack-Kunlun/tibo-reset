@@ -53,6 +53,22 @@ export const BROWSER_UA =
 const PROXY = process.env.X_PROXY ?? '';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * 「疑似被截断」的长度门槛（字符）。
+ *
+ * X 对长推文在时间线 / 搜索页只渲染前约 280 字符，"Show more" 之后的节点
+ * **不在 DOM 里**，而收割取的是 `innerText` —— 长推文于是天然只采到前半段
+ * （KI-002 只修了「上游收录后的回填」，上游自己没收录时依然丢；见 KI-009）。
+ *
+ * 实测截断点落在 275–278 之间，取 240 是往下留了余量。判错方向的代价
+ * **不对称**，所以门槛只往下压、不往上抬：
+ *   · 假阳性（把完整推文当成截断）→ 多开一次详情页。详情页给出的正文若不更长，
+ *     回填逻辑（更长者胜）什么都不会替换，白花的只是一次请求；
+ *   · 假阴性（把截断推文当成完整）→ 后半段的语义永久丢掉，且**不报错不告警**，
+ *     只有把上游正文与本地正文逐字节对齐才看得见。
+ */
+export const TRUNCATED_MIN_LENGTH = Number(process.env.X_TRUNCATED_MIN_LENGTH ?? 240);
+
 function httpGet(url, timeoutMs = 3000) {
   return new Promise((resolve, reject) => {
     const req = http.get(url, (res) => {
@@ -195,7 +211,8 @@ export function harvestExpression(handle) {
     var author='';
     var un=a.querySelector('[data-testid="User-Name"]');
     if(un){var m2=(un.innerText||'').match(/@([A-Za-z0-9_]+)/);if(m2)author=m2[1];}
-    out.push({id:id,url:url,time:tm?tm.getAttribute('datetime'):'',text:t?t.innerText.replace(/\\s+/g,' '):'',author:author});
+    var more=!!a.querySelector('[data-testid="tweet-text-show-more-link"]');
+    out.push({id:id,url:url,time:tm?tm.getAttribute('datetime'):'',text:t?t.innerText.replace(/\\s+/g,' '):'',author:author,truncated:more});
   });return out;})()`;
 }
 
@@ -366,13 +383,24 @@ export async function collectTimeline(opts) {
  * `Target.createTarget` 发过去就是石沉大海 —— 实测报 `CDP 超时：Target.createTarget`。
  * 冷启动的钱（首次数十秒）只该付一次。
  *
+ * 全文补全（`fetchFullText`，默认开）也搭同一次会话 —— 它要逐条开详情页，
+ * 而详情页依赖同一个登录态。放在这里而不是放在采集方：**两条流重叠的推文
+ * 只该取一次全文**（原创流与 `/with_replies` 流收的是同一批帖子）。
+ *
  * @param {{handle:string, paths?:string[], sinceMs?:number,
  *          knownIds?:Iterable<string>|null, knownScreensToStop?:number,
  *          maxSteps?:number, port?:number, proxy?:string, settleMs?:number,
- *          stepRatio?:number, onProgress?:Function}} opts
- * @returns {Promise<{streams:Array<object|null>, errors:Array<{path:string,message:string}|null>}>}
+ *          stepRatio?:number, onProgress?:Function,
+ *          fetchFullText?:boolean, fullTextMinLength?:number,
+ *          fullTextMax?:number, fullTextGapMs?:number,
+ *          onFullTextProgress?:Function}} opts
+ * @returns {Promise<{streams:Array<object|null>, errors:Array<{path:string,message:string}|null>,
+ *          fullTexts:Map<string,string>, fullTextReport:object|null}>}
  *          `streams` 顺序与 `paths` 一致；某条流失败时该位置为 `null`，
  *          原因在同下标的 `errors` 里（互不牵连）。
+ *          `fullTexts` 是 id → 详情页给出的正文。**不在这里比较长度** ——
+ *          是否替换由下游的「更长者胜」（`patchTruncatedTexts`）决定，
+ *          职责分开：这里只负责「把详情页的正文如实取回来」。
  */
 export async function collectStreams(opts) {
   const {
@@ -387,6 +415,11 @@ export async function collectStreams(opts) {
     settleMs = 800,
     stepRatio = 0.85,
     onProgress = null,
+    fetchFullText = true,
+    fullTextMinLength = TRUNCATED_MIN_LENGTH,
+    fullTextMax = 12,
+    fullTextGapMs = 900,
+    onFullTextProgress = null,
   } = opts ?? {};
   if (!handle) throw new Error('缺少 handle');
   if (!paths.length) throw new Error('paths 为空');
@@ -429,7 +462,18 @@ export async function collectStreams(opts) {
         errors.push({ path: p, message: err.message });
       }
     }
-    return { streams, errors };
+
+    const { fullTexts, report: fullTextReport } = fetchFullText
+      ? await collectFullTexts(cdp, streams, {
+          handle,
+          minLength: fullTextMinLength,
+          max: fullTextMax,
+          gapMs: fullTextGapMs,
+          onProgress: onFullTextProgress,
+        })
+      : { fullTexts: new Map(), report: null };
+
+    return { streams, errors, fullTexts, fullTextReport };
   } finally {
     try {
       ws.close();
@@ -500,10 +544,16 @@ async function harvestStream(cdp, o) {
         if (!prev) {
           harvested.set(it.id, it);
           fresh++;
-        } else if (it.inReplyTo && !prev.inReplyTo) {
-          // 同一条可能在不同屏重复出现。带上下文的版本优先：先收进去那次
-          // 可能恰好落在屏幕边缘，前一条被卸载了，配对因此失败。
-          harvested.set(it.id, { ...prev, inReplyTo: it.inReplyTo });
+        } else {
+          // 同一条可能在不同屏重复出现。两处「后出现的不一定更好」的字段要**取并**：
+          //   · inReplyTo：先收进去那次可能恰好落在屏幕边缘，前一条被卸载了，配对因此失败；
+          //   · truncated：页面渲染时机不同，某一屏可能还没挂上「展开」入口 ——
+          //     漏掉它就等于放弃补全这条的正文（`||` 而不是覆盖，正是为此）。
+          const inReplyTo = prev.inReplyTo ?? it.inReplyTo ?? null;
+          const truncated = Boolean(prev.truncated || it.truncated);
+          if (inReplyTo !== prev.inReplyTo || truncated !== prev.truncated) {
+            harvested.set(it.id, { ...prev, inReplyTo, truncated });
+          }
         }
       }
       for (const it of raw ?? []) if (!it.author && it.text) authorless.add(it.text.slice(0, 40));
@@ -564,11 +614,217 @@ async function harvestStream(cdp, o) {
       // 收割 Map 与最终入库之间还隔着时间下界与空文本两道过滤，
       // 拿 Map 统计会给出「收下 52 条、其中 54 条带上下文」这种自相矛盾的数字。
       replyCount: tweets.filter((t) => t.inReplyTo).length,
+      // 页面上仍带「展开」入口的条目 id —— 它们的正文在 DOM 里是被截断的。
+      // 归一化会重建记录（只留 id/正文/时间/链接/上下文），所以这个标记**不落进
+      // tweets**，而是单独一条通道送出去：它只服务于「要不要去详情页取全文」，
+      // 不是推文的属性，不该混进落盘的数据里。
+      truncatedIds: [...harvested.values()].filter((it) => it.truncated && it.id).map((it) => it.id),
     };
   } finally {
     // 收完就关这个 tab，别把标签页留给下一条流（也避免它继续在后台加载）
     if (targetId) await cdp.send('Target.closeTarget', { targetId }).catch(() => {});
     cdp.sessionId = prevSession;
     cdp.onEvent = null;
+  }
+}
+
+/* --------------------------- 详情页：取完整正文 --------------------------- */
+
+/**
+ * 页面里跑：取焦点推文的完整正文，以及它是否**仍**挂着「展开」入口。
+ *
+ * 「焦点推文」的判据是 article 内含指向**本 id** 的链接 —— 详情页第一条 article 就是
+ * 主推文，但回复里也可能引用同一个 id（自引用），所以按链接认，而不是按位置认。
+ *
+ * 为什么只走 DOM、不去翻 RSC payload：payload 那一路**实现过又删掉了**。
+ * 实测（2026-09-29）详情页的 `document.documentElement.outerHTML` 里
+ * `client:` / `full_text` / base64 键**一个都不出现** —— 详情页是纯客户端渲染，
+ * payload 不在序列化出来的 DOM 里。留着一路恒为 0 的「备份」不是安全网，
+ * 是虚假的信心：真正的失效（DOM 选择器变了）它一样兜不住，还会让报告里
+ * 多出一个永远为 0 的数字。真需要结构化数据时正确的路是 CDP 的
+ * `Network.getResponseBody` 去接 TweetDetail 的响应，不是猜 DOM 里有没有 payload。
+ *
+ * 已知边界：实测最长的一条（1917 字符）在详情页完整渲染、无折叠；
+ * 极端长的「Long Post」是否仍会折叠，等真遇到再处理（`showMore` 会在报告里露出来）。
+ */
+export function detailProbeExpression(id) {
+  const idLit = JSON.stringify(String(id ?? ''));
+  return `(function(){var ID=${idLit};
+    var out={url:location.href,dom:'',showMore:false};
+    var arts=document.querySelectorAll('article');
+    for(var i=0;i<arts.length;i++){
+      var a=arts[i],hit=false;
+      a.querySelectorAll('a[href*="/status/"]').forEach(function(l){
+        var h=l.getAttribute('href')||'';
+        if(h.indexOf('/status/'+ID)>=0)hit=true;
+      });
+      if(!hit)continue;
+      var t=a.querySelector('[data-testid="tweetText"]');
+      if(t)out.dom=(t.innerText||'').replace(/\\s+/g,' ').trim();
+      out.showMore=!!a.querySelector('[data-testid="tweet-text-show-more-link"]');
+      break;
+    }
+    return out;})()`;
+}
+
+/**
+ * 在一个已连接的 CDP 会话里，逐条打开详情页取完整正文。
+ *
+ * 每条**单开一个 target 再关掉**，而不是复用同一个 tab 做导航：详情页是客户端
+ * 路由，同一个 tab 再 `Page.navigate` 常常只换 SPA 视图、不重新渲染，
+ * 于是取到的可能是**上一条**的正文 —— 会静默串号（不报错，只看长度也看不出来）。
+ * 单开的代价实测约 1–2 秒/条。
+ */
+async function harvestFullTexts(cdp, ids, opts = {}) {
+  const { handle, gapMs = 900, settleMs = 400, maxWaitMs = 12_000, onProgress = null } = opts;
+  const fullTexts = new Map();
+  const scanned = [];
+
+  for (const id of ids) {
+    const rec = { id, length: 0, showMore: false };
+    const prevSession = cdp.sessionId;
+    let targetId = null;
+    try {
+      ({ targetId } = await cdp.send('Target.createTarget', { url: 'about:blank' }));
+      const attached = await cdp.send('Target.attachToTarget', { targetId, flatten: true });
+      cdp.sessionId = attached.sessionId;
+      await cdp.send('Page.enable');
+      await cdp.send('Runtime.enable');
+      await cdp.send('Page.navigate', { url: `https://x.com/${handle}/status/${id}` });
+
+      // 轮询而不是等 Page.loadEventFired：正文是客户端渲染的，load 之后还要一会儿才挂上来，
+      // 而导航中途求值会抛「执行上下文被销毁」——两种情况都用同一个循环兜住。
+      let probe = null;
+      const deadline = Date.now() + maxWaitMs;
+      while (Date.now() < deadline) {
+        await sleep(settleMs);
+        try {
+          const p = await cdp.evalJs(detailProbeExpression(id));
+          if (p?.dom) {
+            probe = p;
+            break;
+          }
+        } catch {
+          /* 导航中求值会短暂失败，继续等 */
+        }
+      }
+      if (!probe) throw new Error('详情页未渲染出正文');
+
+      const text = String(probe.dom ?? '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      rec.length = text.length;
+      // 详情页**还**挂着展开入口 —— 正常应当是 false（详情页的意义就是完整渲染）。
+      // 记下来是因为它一旦为 true，就说明这个页面的正文也不是全文，
+      // 而那时只看长度是看不出来的（长度照样比时间线上那半句长）。
+      rec.showMore = Boolean(probe.showMore);
+      if (text) fullTexts.set(id, text);
+    } catch (err) {
+      rec.error = err.message;
+    } finally {
+      if (targetId) await cdp.send('Target.closeTarget', { targetId }).catch(() => {});
+      cdp.sessionId = prevSession;
+    }
+    scanned.push(rec);
+    if (onProgress) onProgress(rec);
+    if (gapMs) await sleep(gapMs); // 限流礼貌间隔
+  }
+
+  return { fullTexts, scanned };
+}
+
+/**
+ * 从各条流已收下的推文里挑出「疑似被截断」的候选（纯函数，单独抽出来是为了可测）。
+ *
+ * 判据是**两条取或**：
+ *   1. 页面上还挂着「展开」入口（`truncatedIds`，DOM 硬判据）；
+ *   2. 正文长度 ≥ `minLength`（长度启发式）——
+ *      它兜住「入口没挂上、但正文确实被切在半句」的情形（渲染时机不同就会这样）。
+ *
+ * 两条流（原创 / `/with_replies`）收的是同一批帖子，所以必须**跨流去重**，
+ * 否则同一条会被开两次详情页。
+ *
+ * 上游给了上限 `max`：全量回补一次可能翻出几十条长推文，逐条开详情页会把一轮
+ * 采集从 1 分钟拉到 10 分钟以上。取舍写进 `skipped`，不静默 ——
+ * 被截掉的不是「永远丢掉」（这些 id 下一轮已入库、通常不再进候选），
+ * 而是「这一轮先不做」，所以它至少要在日志里露出一行。
+ */
+export function pickFullTextCandidates(streams, opts = {}) {
+  const minLength = Number(opts.minLength ?? TRUNCATED_MIN_LENGTH);
+  const max = Number(opts.max ?? 12);
+  const candidates = [];
+  const seen = new Set();
+
+  for (const s of streams ?? []) {
+    const flagged = new Set(s?.truncatedIds ?? []);
+    for (const t of s?.tweets ?? []) {
+      if (!t?.id || seen.has(t.id)) continue;
+      if (!flagged.has(t.id) && String(t.text ?? '').length < minLength) continue;
+      seen.add(t.id);
+      candidates.push(t.id);
+    }
+  }
+
+  return { candidates, picked: candidates.slice(0, max), skipped: Math.max(0, candidates.length - max) };
+}
+
+/**
+ * 从各条流已收下的推文里挑出候选并去详情页取全文。
+ *
+ * 上游给了上限 `max`，理由与取法见 `pickFullTextCandidates`。
+ */
+async function collectFullTexts(cdp, streams, opts) {
+  const { handle, minLength, max, gapMs, onProgress } = opts;
+  const { candidates, picked, skipped } = pickFullTextCandidates(streams, { minLength, max });
+
+  if (!picked.length) {
+    return {
+      fullTexts: new Map(),
+      report: { candidates: 0, attempted: 0, fetched: 0, skipped: 0, scanned: [] },
+    };
+  }
+
+  const { fullTexts, scanned } = await harvestFullTexts(cdp, picked, { handle, gapMs, onProgress });
+  return {
+    fullTexts,
+    report: {
+      candidates: candidates.length,
+      attempted: picked.length,
+      fetched: fullTexts.size,
+      // 被上限截掉的条数。非 0 就意味着「有长推文这轮没补全」，要看得见。
+      skipped,
+      scanned,
+    },
+  };
+}
+
+/**
+ * 独立入口：给定一批推文 id，开一次浏览器把完整正文取回来。
+ *
+ * 与 `collectStreams` 内那条通道的区别只是「要不要顺带收时间线」——
+ * 手工补数据、跑探针时用它，不必为此伪造一次采集。
+ */
+export async function fetchTweetFullTexts(ids, opts = {}) {
+  const list = [...new Set((ids ?? []).map((s) => String(s ?? '').trim()).filter(Boolean))];
+  if (!list.length) return { fullTexts: new Map(), scanned: [] };
+
+  const handle = opts.handle ?? process.env.SOURCE_ACCOUNT ?? 'thsottiaux';
+  const { ver, close } = await withBrowser({ port: opts.port ?? CDP_PORT, proxy: opts.proxy ?? PROXY });
+  const ws = new WebSocket(ver.webSocketDebuggerUrl);
+  await new Promise((resolve, reject) => {
+    ws.addEventListener('open', resolve);
+    ws.addEventListener('error', () => reject(new Error('CDP WebSocket 连接失败')));
+  });
+  const cdp = new CdpSession(ws);
+  try {
+    return await harvestFullTexts(cdp, list, { ...opts, handle });
+  } finally {
+    try {
+      ws.close();
+    } catch {
+      /* ignore */
+    }
+    await close();
   }
 }

@@ -27,6 +27,12 @@
  *                                        # 隔多久强制全量回补一次（默认 72）
  *   node scripts/collect.mjs --max-steps=40
  *                                        # 时间线最多小步滚动多少下（默认 60）
+ *   node scripts/collect.mjs --no-full-text
+ *                                        # 不做详情页全文补全（默认做）。
+ *                                        # 它只对「疑似被截断」的长推文生效
+ *                                        # （页面上挂着「展开」入口，或正文 ≥240 字符）
+ *   node scripts/collect.mjs --full-text-max=30
+ *                                        # 单轮最多为多少条推文开详情页取全文（默认 12）
  */
 
 import { resolve, dirname } from 'node:path';
@@ -47,6 +53,7 @@ const radarLimit = Number(argVal('radar-limit') ?? 0);
 const sinceBufferHours = Number(argVal('since-buffer-hours') ?? 24);
 const fullScanHours = Number(argVal('full-scan-hours') ?? 0);
 const maxSteps = Number(argVal('max-steps') ?? 0);
+const fullTextMax = Number(argVal('full-text-max') ?? 0);
 
 const result = await runCollection({
   dataDir: resolve(ROOT, 'data'),
@@ -60,6 +67,10 @@ const result = await runCollection({
   full: argv.includes('--full') ? true : undefined,
   fullScanHours: Number.isFinite(fullScanHours) && fullScanHours > 0 ? fullScanHours : undefined,
   maxSteps: Number.isFinite(maxSteps) && maxSteps > 0 ? maxSteps : undefined,
+  // 详情页全文补全：默认开。它修的是「长推文在时间线上只渲染前 ~280 字符」
+  // 这条采集端硬边界（KI-009）—— 关掉就退回「只等上游收录」。
+  fullText: !argv.includes('--no-full-text'),
+  fullTextMax: Number.isFinite(fullTextMax) && fullTextMax > 0 ? fullTextMax : undefined,
   // 雷达默认**关**。
   //
   // 它当初存在的理由是「回复不进 profile 流，只能从别人推文的详情页里反着找」。
@@ -136,6 +147,23 @@ if (!result.skippedFresh) {
               (h.patchedTexts ? ` · 回填正文 ${h.patchedTexts} 条` : '')
             : `已是最新（上游 ${h.upstreamCount} 条，无变化）`)
     );
+  }
+  // 详情页全文补全单独报一行。它坏掉时正文会**悄悄**退回半句（页面上看不出来），
+  // 所以「这轮有没有候选、取到几条、失败的是哪些」必须看得见。
+  if (result.fullText) {
+    const f = result.fullText;
+    console.log(
+      '  正文补全  ' +
+        (f.attempted
+          ? `疑似截断 ${f.candidates} 条 → 取到全文 ${f.fetched} 条` +
+            (f.skipped ? ` · ⚠ 另有 ${f.skipped} 条超出单轮上限未取` : '')
+          : '无候选（本轮没有疑似截断的长推文）')
+    );
+    for (const s of f.scanned ?? []) {
+      if (s.error) console.log(`            ⚠ ${s.id} 取全文失败：${s.error}`);
+    }
+  } else if (result.source === 'html') {
+    console.log('  正文补全  ⚠ 未执行（降级走免登录首屏，没有登录态可用于详情页）');
   }
   if (result.tweetCount != null) {
     console.log(

@@ -330,10 +330,15 @@ export async function fetchLiveTweets(account = SOURCE_ACCOUNT) {
  *
  * @param {string} account
  * @param {{sinceMs?:number, knownIds?:Iterable<string>|null, maxSteps?:number,
- *          onProgress?:Function, withReplies?:boolean}} opts
+ *          onProgress?:Function, withReplies?:boolean, fetchFullText?:boolean,
+ *          fullTextMax?:number, fullTextMinLength?:number}} opts
  *        `knownIds` 里的视为已入库，采集器翻到「连续整屏都是已知」即停 ——
  *        这是增量的实现方式（X 没有按时间范围查询的入口，只能从最新往下翻）。
  *        传 null / 空集合 = 全量回溯到 `sinceMs` 下界。
+ *
+ *        `fetchFullText`（默认开）会在收完时间线后，对**疑似被截断**的推文逐条
+ *        开详情页取完整正文 —— 采集端的硬边界（长推文只渲染前 ~280 字符）
+ *        在这里被消掉，而不是等上游历史来补（上游收不收录不由我们决定）。
  */
 export async function fetchLiveTweetsViaBrowser(account = SOURCE_ACCOUNT, opts = {}) {
   const base = {
@@ -350,7 +355,13 @@ export async function fetchLiveTweetsViaBrowser(account = SOURCE_ACCOUNT, opts =
   // 两条流一次会话跑完 —— 每条流各起一次 Chrome 会撞上「前一个还没退干净」，
   // 实测报 CDP 超时（详见 browser.mjs 的 collectStreams）。
   const paths = opts.withReplies === false ? [''] : ['', '/with_replies'];
-  const { streams, errors } = await collectStreams({ ...base, paths });
+  const { streams, errors, fullTexts, fullTextReport } = await collectStreams({
+    ...base,
+    paths,
+    fetchFullText: opts.fetchFullText,
+    fullTextMax: opts.fullTextMax,
+    fullTextMinLength: opts.fullTextMinLength,
+  });
 
   const main = streams[0];
   if (!main) throw new Error(`浏览器采集失败：${errors[0]?.message ?? '未知原因'}`);
@@ -373,23 +384,34 @@ export async function fetchLiveTweetsViaBrowser(account = SOURCE_ACCOUNT, opts =
   for (const t of main.tweets) add(t, 'timeline-browser');
   for (const t of reply?.tweets ?? []) add(t, 'with-replies');
 
-  const tweets = [...byId.values()]
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .map(({ via, ...t }) => ({
-      ...t,
-      kind: classify(t.text),
-      account,
-      // 带 inReplyTo 的即「他回复别人的推文」。这个标记不是装饰：
-      // 页面、统计、以及「他的发言有多少来自回复」都要靠它。
-      role: t.inReplyTo ? 'reply' : 'post',
-      foundVia: t.inReplyTo ? 'with-replies' : via,
-    }));
+  // 详情页取到的完整正文**先并进来再分类**，顺序不能反：
+  // `kind` 是从正文里读出来的（`classify`），用半句分类、用全文入库，会留下
+  // 「库里明明写着 banked reset、kind 却是 other」这种自相矛盾的记录 ——
+  // 而下游（页面、统计、「他的发言里有多少条与额度有关」）读的正是 `kind`。
+  const { tweets: fullTweets } = patchTruncatedTexts(
+    [...byId.values()].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
+    fullTexts ?? new Map()
+  );
+
+  const tweets = fullTweets.map(({ via, ...t }) => ({
+    ...t,
+    kind: classify(t.text),
+    account,
+    // 带 inReplyTo 的即「他回复别人的推文」。这个标记不是装饰：
+    // 页面、统计、以及「他的发言有多少来自回复」都要靠它。
+    role: t.inReplyTo ? 'reply' : 'post',
+    foundVia: t.inReplyTo ? 'with-replies' : via,
+  }));
 
   return {
     tweets,
     mode: main.mode,
     stoppedBy: main.stoppedBy,
     steps: main.steps,
+    // 详情页全文补全的产物与执行情况。**正文回填有两条来源**（上游历史、详情页），
+    // 这里是后者：它不依赖上游收不收录，是 KI-009 的直接修法。
+    fullTexts: fullTexts ?? new Map(),
+    fullTextReport: fullTextReport ?? null,
     reply: reply
       ? {
           mode: reply.mode,
@@ -528,6 +550,44 @@ export function patchTruncatedTexts(tweets = [], textById = new Map()) {
   return { tweets: next, patched };
 }
 
+/**
+ * 把一批新采到的推文并进库内已有的。
+ *
+ * 已存在的**用新版本覆盖**，而不是跳过 —— 只有「只增不改」时，解析器修好了、
+ * 旧数据里的错值也回不来（2026-09-21 修掉的时间戳错位，就是靠这一步纠正过来的）。
+ * `first_seen` 例外：它是本地记账（我们最早看到这条的时刻），不是推文自身的属性。
+ *
+ * 正文多一条出口规则，为的是不让一次「更差的采集」把已有的好东西顶掉：
+ * 库里那条已标记 `text_full`（正文是从推文详情页或上游补全来的）时，新采到的
+ * **更短**正文不覆盖它。全量回补（默认每 72 小时一次）会把整条时间线重采一遍，
+ * 而重采到的正文又是页面上那半句 —— 没有这层保护，等于每三天把补好的全文
+ * 打回半句，且**不报错不告警**（KI-009 的同类静默失效）。新正文更长时照常覆盖。
+ */
+export function mergeTweetBatch(base = [], incoming = [], nowIso = new Date().toISOString()) {
+  const keyOf = (t) => t.id ?? String(t.text ?? '').slice(0, 40);
+  const merged = new Map((base ?? []).map((t) => [keyOf(t), t]));
+
+  for (const t of incoming ?? []) {
+    const key = keyOf(t);
+    const prev = merged.get(key);
+    if (!prev) {
+      merged.set(key, { ...t, first_seen: nowIso });
+      continue;
+    }
+    const keepPrevText =
+      prev.text_full === true && String(t.text ?? '').length < String(prev.text ?? '').length;
+    merged.set(key, {
+      ...prev,
+      ...t,
+      ...(keepPrevText ? { text: prev.text, text_full: true } : null),
+      first_seen: prev.first_seen ?? nowIso,
+    });
+  }
+
+  return [...merged.values()].sort(
+    (a, b) => new Date(b.created_at ?? 0) - new Date(a.created_at ?? 0)
+  );
+}
 /* ------------------------------- 回复雷达 ------------------------------- */
 
 /**
@@ -761,27 +821,14 @@ export async function runCollection(opts = {}) {
   let replyInfo = null;
   /** 回复流失败的原因（不影响整轮成败）。 */
   let replyError = null;
+  /** 本轮从推文详情页取到的完整正文（id → 全文）。与上游历史一起参与正文回填。 */
+  let detailText = new Map();
+  /** 详情页全文补全的执行情况：候选 / 尝试 / 取到 / 因上限截掉各多少条。 */
+  let fullTextReport = null;
 
-  // 把一批推文并进 live。已存在的**用新版本覆盖**，而不是跳过 ——
-  // 只有「只增不改」时，解析器修好了、旧数据里的错值也回不来（2026-09-21 修掉的
-  // 时间戳错位，就是靠这一步把已有推文的时间纠正过来的）。
-  // 唯一保留的是 first_seen：它是本地记账（我们最早看到这条的时刻），
-  // 不是推文自身的属性，不该被覆盖。
-  const mergeInto = (base, incoming) => {
-    const merged = new Map(base.map((t) => [t.id ?? t.text.slice(0, 40), t]));
-    const now = new Date().toISOString();
-    for (const t of incoming) {
-      const key = t.id ?? t.text.slice(0, 40);
-      const prev = merged.get(key);
-      merged.set(
-        key,
-        prev ? { ...prev, ...t, first_seen: prev.first_seen ?? now } : { ...t, first_seen: now }
-      );
-    }
-    return [...merged.values()].sort(
-      (a, b) => new Date(b.created_at ?? 0) - new Date(a.created_at ?? 0)
-    );
-  };
+  // mergeInto 就是 mergeTweetBatch（已提为导出纯函数，便于回归用例直接钉住
+  // 「补全过的正文不被更短的采集覆盖」这条规则）。
+  const mergeInto = mergeTweetBatch;
 
   if (opts.skipLive) {
     // 离线自检：不碰网络，只重算统计
@@ -821,6 +868,10 @@ export async function runCollection(opts = {}) {
           maxSteps: opts.maxSteps,
           // 回复流默认开；要退回「只收原创」显式传 false。
           withReplies: opts.withReplies,
+          // 正文补全默认开（KI-009）。要只收页面正文用 --no-full-text。
+          fetchFullText: opts.fullText === false ? false : undefined,
+          fullTextMax: opts.fullTextMax,
+          fullTextMinLength: opts.fullTextMinLength,
           proxy: await resolveProxy(),
           onProgress: opts.onProgress,
         });
@@ -831,6 +882,8 @@ export async function runCollection(opts = {}) {
         didFullScan = r.mode === 'full';
         replyInfo = r.reply;
         replyError = r.replyError;
+        detailText = r.fullTexts ?? new Map();
+        fullTextReport = r.fullTextReport ?? null;
         if (floor > 0) coverageSince = new Date(floor).toISOString();
       } catch (err) {
         browserError = err.message;
@@ -946,6 +999,11 @@ export async function runCollection(opts = {}) {
   //     a banked reset into all accounts…」在被切掉的后半段里；采到的 273 字符
   //     里 `banked` / `reset` 一个都没有，于是整条被当作无关推文排除。
   //     只补记录里出现过的 id，不引入新推文（那归实时采集管）。
+  //
+  //     ⚠ 正文补全**有两条来源**，这里是第二条。第一条在采集出口（`browser.mjs`
+  //     逐条开详情页取全文，见 KI-009），它已经应用到本轮采到的推文上了。
+  //     两条的关系是「谁长用谁」而不是「谁先谁后」——
+  //     上游偶有摘要化、详情页偶有渲染折叠，都可能一方比另一方短。
   let textPatched = 0;
   if (upstreamText.size) {
     const r = patchTruncatedTexts(live.tweets, upstreamText);
@@ -1014,6 +1072,9 @@ export async function runCollection(opts = {}) {
           // 只有这里能看出来。
           reply: replyInfo,
           replyError,
+          // 详情页全文补全的留档。它坏掉时（详情页结构变了、被限流）正文会**悄悄**
+          // 退回半句，页面上完全看不出来 —— 只有这里的数字能看出来。
+          fullText: fullTextReport,
         }
       // 走到这里但没采推文 = 推文数据够新（短路），只是历史 / 正文有了更新。
       // 把上一轮的形态带过来，否则 `source` 会显示为空 —— 那读起来像「这轮采集坏了」，
@@ -1041,6 +1102,10 @@ export async function runCollection(opts = {}) {
     newCount,
     // 历史刷新与正文回填的结果 —— 「为什么距上次重置变了」要答得出来。
     history: { ...historyReport, changed: historyChanged, patchedTexts: textPatched },
+    // 详情页全文补全的结果。与 history 那条**并列而不是层层嵌套**：
+    // 两者的来源与失效方式完全不同（一个是上游接口，一个是本机 Chrome），
+    // 混在一起会看不出「到底是哪一条坏了」。
+    fullText: fullTextReport,
     tweetCount: live.tweets.length,
     /** 库里带 inReplyTo 的条数 —— 「他的发言有多少来自回复」的分母。 */
     replyTweetCount: live.tweets.filter((t) => t.role === 'reply').length,
