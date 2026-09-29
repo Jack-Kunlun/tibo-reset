@@ -1,6 +1,282 @@
 {
   "tweets": [
     {
+      "id": "2105041299934187874",
+      "text": "Full recap of all the announcements",
+      "created_at": "2026-09-29T21:05:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2105041299934187874",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2105040722613412135",
+      "text": "I had a different one in mind, but not going to post",
+      "created_at": "2026-09-29T21:03:12.000Z",
+      "url": "https://x.com/thsottiaux/status/2105040722613412135",
+      "inReplyTo": {
+        "account": "alexandr_wang",
+        "id": "",
+        "text": "picture is worth 1000 words",
+        "created_at": "2026-09-29T19:14:43.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2105040569924002048",
+      "text": "The one thing we planned 3 months ago.",
+      "created_at": "2026-09-29T21:02:36.000Z",
+      "url": "https://x.com/thsottiaux/status/2105040569924002048",
+      "inReplyTo": {
+        "account": "LLMJunky",
+        "id": "",
+        "text": "Whomever thought of the Modretro deserves a raise. Incredibly cool. The console comes with a blank cartridge and you will literally build the game with Codex and load it onto the device. 😏",
+        "created_at": "2026-09-29T19:43:31.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2105040486314696737",
+      "text": "Hey, I've seen you somewhere!",
+      "created_at": "2026-09-29T21:02:16.000Z",
+      "url": "https://x.com/thsottiaux/status/2105040486314696737",
+      "inReplyTo": {
+        "account": "DeryaTR_",
+        "id": "",
+        "text": "This guy kind of looked like me, and he was holding something that looked like a blood cell. 😅 I just had to get a photo with these cool artistic “cells”! ☺️",
+        "created_at": "2026-09-29T20:01:49.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2105039816438227206",
+      "text": "Proud of this. Open is the way.",
+      "created_at": "2026-09-29T20:59:36.000Z",
+      "url": "https://x.com/thsottiaux/status/2105039816438227206",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2105039482013757749",
+      "text": "Plugin discovery on ChatGPT leads to massive adoption opportunity. Open ecosystems will win.",
+      "created_at": "2026-09-29T20:58:16.000Z",
+      "url": "https://x.com/thsottiaux/status/2105039482013757749",
+      "inReplyTo": {
+        "account": "DeryaTR_",
+        "id": "",
+        "text": "This guy kind of looked like me, and he was holding something that looked like a blood cell. 😅 I just had to get a photo with these cool artistic “cells”! ☺️",
+        "created_at": "2026-09-29T20:01:49.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2105028036240552179",
+      "text": "Read this on thread on ChatGPT Space if you only read one thing about it.",
+      "created_at": "2026-09-29T20:12:48.000Z",
+      "url": "https://x.com/thsottiaux/status/2105028036240552179",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2105013661534454145",
+      "text": "yw, keep on rocking",
+      "created_at": "2026-09-29T19:15:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2105013661534454145",
+      "inReplyTo": {
+        "account": "badlogicgames",
+        "id": "",
+        "text": "pi on stage",
+        "created_at": "2026-09-29T18:41:03.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2105007628460109953",
+      "text": "GPT-6.1 is a good model. And it’s unbelievably efficient. Included in all paid plans and on the API today.",
+      "created_at": "2026-09-29T18:51:42.000Z",
+      "url": "https://x.com/thsottiaux/status/2105007628460109953",
+      "inReplyTo": {
+        "account": "badlogicgames",
+        "id": "",
+        "text": "pi on stage",
+        "created_at": "2026-09-29T18:41:03.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2105006253986738615",
+      "text": "You can now use your ChatGPT subscription directly in over 16 partners products. No little rules, you can just use all your included usage right there. This includes things such as Devin, OpenCode, Notion, and many more. Sign in with ChatGPT and go.",
+      "created_at": "2026-09-29T18:46:14.000Z",
+      "url": "https://x.com/thsottiaux/status/2105006253986738615",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2104994835212226681",
+      "text": "Live demos suffered from rolling out all the updates at the same time, but were committed to keep doing these live in the future. Almost all the things we announced will be available today. Can’t see what you will do with it.",
+      "created_at": "2026-09-29T18:00:52.000Z",
+      "url": "https://x.com/thsottiaux/status/2104994835212226681",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2104992080095564111",
+      "text": "Little summary",
+      "created_at": "2026-09-29T17:49:55.000Z",
+      "url": "https://x.com/thsottiaux/status/2104992080095564111",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2104991765904375896",
+      "text": "We are opening up our platform and you can now build full native apps with plugin extensions, and ship them right in ChatGPT. We have over 1.2B weekly users and will surface relevant plugins right in the conversations.",
+      "created_at": "2026-09-29T17:48:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2104991765904375896",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2104989161774322009",
+      "text": "Dots are included in all Pro, Business Premium and Enterprise plans. This includes the Pro 100 plan. We’ll be looking to further expand access soon.",
+      "created_at": "2026-09-29T17:38:19.000Z",
+      "url": "https://x.com/thsottiaux/status/2104989161774322009",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2104988071188148495",
+      "text": "Token traffic on responses API has increased 100X compared to today last year. Meanwhile the team improved reliability with 99.9% uptime and improving performance significantly.",
+      "created_at": "2026-09-29T17:33:59.000Z",
+      "url": "https://x.com/thsottiaux/status/2104988071188148495",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2104987594719461796",
+      "text": "Launching a new Codex Cloud, much improved from last year. With configurable cloud environments, it’s impossible to go back to building on your laptop once you’ve taken the time to configure it. Agents API, the same tech powering all our cloud agents, including dots, is also now in preview and supports computer use. It allows you to build the same incredible products we are making available today.",
+      "created_at": "2026-09-29T17:32:06.000Z",
+      "url": "https://x.com/thsottiaux/status/2104987594719461796",
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2104986448269279399",
+      "text": "Decisions API, for lightning fast constrained decision making powered by Luna. Supports visual inputs, and tuned to be able to make decisions in less than a few hundreds of milliseconds end to end.",
+      "created_at": "2026-09-29T17:27:32.000Z",
+      "url": "https://x.com/thsottiaux/status/2104986448269279399",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2104986027953930613",
+      "text": "Introducing 6.1 Sol, near Astra intelligence at one fifth of the price of Astra and 95% cache read discount. It is an absolute workhorse. Combined with ultrafast for 8X speeded available today for Astra and coming soon for 6.1 Sol.",
+      "created_at": "2026-09-29T17:25:52.000Z",
+      "url": "https://x.com/thsottiaux/status/2104986027953930613",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2104983716049379472",
+      "text": "Announcing ChatGPT Space, a collection of new collaborative experiences right in ChatGPT. Edit rich notes with live visualizations together with others and your dots. Whether it’s a TODO list to delegate, a product plan or meeting notes. Working with others and your agents is seamless and they also be automatically kept up to date in the background. For developers, this is AGENTS.md taken one step further.",
+      "created_at": "2026-09-29T17:16:41.000Z",
+      "url": "https://x.com/thsottiaux/status/2104983716049379472",
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2104981170685616361",
+      "text": "Announcing dots. Dots work 24/7 for you, learn from your feedback, have their own computer, browser and can be connected to over 4k apps in our ecosystem. They’re powered by Astra our best model yet. Included in your Pro plan, without drawing down on any of your usage. You can even call a dot while it’s working. We’re getting you started with your primary dot today and soon you’ll be able to create entire teams of them.",
+      "created_at": "2026-09-29T17:06:34.000Z",
+      "url": "https://x.com/thsottiaux/status/2104981170685616361",
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
+      "id": "2104961497055240633",
+      "text": "10am PT, on the dot.",
+      "created_at": "2026-09-29T15:48:23.000Z",
+      "url": "https://x.com/thsottiaux/status/2104961497055240633",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T21:23:48.363Z"
+    },
+    {
       "id": "2104952602710638877",
       "text": "Hello, this is Tibo, you’ve reached the wrong company. Let me redirect you to …",
       "created_at": "2026-09-29T15:13:03.000Z",
@@ -20,10 +296,10 @@
     },
     {
       "id": "2104951965184925941",
-      "text": "I’ll explain the new Pro 200 plan differently, before I start live tweeting from DevDay on things that are going out! Today we are going to ship a number of things that increase what you can do across the Plus and Pro plans. A lot of compute is online for this increase. As we",
+      "text": "I’ll explain the new Pro 200 plan differently, before I start live tweeting from DevDay on things that are going out! Today we are going to ship a number of things that increase what you can do across the Plus and Pro plans. A lot of compute is online for this increase. As we increase the floor, we are changing the relative difference between plans to be Plus = 1X Pro 100 = 5X Pro 200 = 10X and we are reopening subscriptions for Pro 200 (we had paused it). If you have an existing plan you will keep the 20X multiplier for a bit and also receive a lot of additional credits because we know changes are hard even if it means that everyone will get more in the end.",
       "created_at": "2026-09-29T15:10:31.000Z",
       "url": "https://x.com/thsottiaux/status/2104951965184925941",
-      "kind": "other",
+      "kind": "credit",
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
@@ -2018,7 +2294,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-09-29T16:03:33.619Z",
+  "updated_at": "2026-09-29T21:23:48.363Z",
   "source": "browser",
   "coverage_since": "2026-09-28T15:10:31.000Z"
 }

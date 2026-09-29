@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-09-29T15:10:31.000Z",
     "last_text": "I’ll explain the new Pro 200 plan differently, before I start live tweeting from DevDay on things that are going out! Today we are going to ship a number of things that increase what you can do across the Plus and Pro plans. A lot of compute is online for this increase. As we increase the floor, we are changing the relative difference between plans to be Plus = 1X Pro 100 = 5X Pro 200 = 10X and we are reopening subscriptions for Pro 200 (we had paused it). If you have an existing plan you will keep the 20X multiplier for a bit and also receive a lot of additional credits because we know changes are hard even if it means that everyone will get more in the end.",
-    "days_since_last": 0.03976324074074074,
+    "days_since_last": 0.2592287384259259,
     "avg_interval_days": 6.862975378787879,
     "median_interval_days": 3.216273148148148,
     "sd_interval_days": 11.118625086882579,
@@ -14,29 +14,66 @@
     "reset_count": 51,
     "hit_within_avg": 0.6909090909090909
   },
-  "generated_at": "2026-09-29T16:07:46.595Z",
+  "generated_at": "2026-09-29T21:23:48.470Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
     "stoppedBy": "floor",
-    "newTweets": 0,
+    "newTweets": 21,
     "knownCount": 124,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "floor",
-      "steps": 1,
-      "harvested": 4,
-      "withContext": 4,
+      "steps": 11,
+      "harvested": 10,
+      "withContext": 10,
       "authorsMissing": 0
     },
     "replyError": null,
-    "carriedOver": true
+    "fullText": {
+      "candidates": 6,
+      "attempted": 6,
+      "fetched": 6,
+      "skipped": 0,
+      "scanned": [
+        {
+          "id": "2105006253986738615",
+          "length": 249,
+          "showMore": false
+        },
+        {
+          "id": "2104987594719461796",
+          "length": 400,
+          "showMore": false
+        },
+        {
+          "id": "2104983716049379472",
+          "length": 409,
+          "showMore": false
+        },
+        {
+          "id": "2104981170685616361",
+          "length": 423,
+          "showMore": false
+        },
+        {
+          "id": "2104951965184925941",
+          "length": 667,
+          "showMore": false
+        },
+        {
+          "id": "2104823812042940713",
+          "length": 1917,
+          "showMore": false
+        }
+      ]
+    }
   },
   "history": {
     "added": 0,
     "updated": 0,
-    "upstreamCount": 0,
-    "refreshedAt": null,
+    "upstreamCount": 55,
+    "refreshedAt": "2026-09-29T21:23:01.312Z",
     "error": null,
     "changed": false,
     "patchedTexts": 0
