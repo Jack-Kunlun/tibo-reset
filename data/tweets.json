@@ -1,6 +1,46 @@
 {
   "tweets": [
     {
+      "id": "2104838506363408740",
+      "text": "That was yesterday, today is DevDay. And it's all good news. I'm surprised we've kept it all under wraps.",
+      "created_at": "2026-09-29T07:39:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2104838506363408740",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T13:20:39.155Z"
+    },
+    {
+      "id": "2104827790440935508",
+      "text": "Agreed",
+      "created_at": "2026-09-29T06:57:05.000Z",
+      "url": "https://x.com/thsottiaux/status/2104827790440935508",
+      "inReplyTo": {
+        "account": "mecp",
+        "id": "",
+        "text": "Beat Opus 5.5 in the overall value for a dollar.. Then no need for these long posts justifying, what do you think @thsottiaux",
+        "created_at": "2026-09-29T06:54:30.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-29T13:20:39.155Z"
+    },
+    {
+      "id": "2104823812042940713",
+      "text": "Hi, Tomorrow we are re-opening the Pro $200 subscriptions to new subscribers, but together with it we are also changing how we calculate the usage for it. In effect, if you do the math, it will net out at half the dollar in API spend compared to the old Pro $200 plan. Now that",
+      "created_at": "2026-09-29T06:41:17.000Z",
+      "url": "https://x.com/thsottiaux/status/2104823812042940713",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-29T13:20:39.155Z"
+    },
+    {
       "id": "2104467346945675347",
       "text": "Taken by none other than the incredible @ah20im",
       "created_at": "2026-09-28T07:04:49.000Z",
@@ -1908,7 +1948,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-09-29T05:17:34.018Z",
+  "updated_at": "2026-09-29T13:20:39.156Z",
   "source": "browser",
   "coverage_since": "2026-09-25T18:17:54.000Z"
 }
