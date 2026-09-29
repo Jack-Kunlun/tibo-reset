@@ -13,7 +13,7 @@
 import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { analyzeTweet, detectSignals, latestEventMs, SOURCE_ZONE, USER_ZONE } from '../src/lib/signals.mjs';
+import { analyzeTweet, detectSignals, latestEventMs, hasOccurredPart, SOURCE_ZONE, USER_ZONE } from '../src/lib/signals.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -857,6 +857,63 @@ console.log('\n【7】过期的预告：兑现之后、或窗口走完之后，�
     new Date(latestEventMs(recs)).toISOString()
   );
   check('空记录 / null → 0（调用方据此跳过这道判据）', latestEventMs([]) === 0 && latestEventMs(null) === 0);
+}
+
+/* ==== 9. 已兑现预告的降级：事实不能被同一处的未来语气带走（KI-010）==== */
+
+console.log('\n【9】已兑现预告的降级');
+
+{
+  // 真实推文（2026-09-12 03:20，补全正文之后才看见末句）：
+  // 前半段宣告「刚刚重置过」，末句预告「今晚还会有一次」。
+  // 末句会把整条升级成 explicit，接着因为那条预告早已兑现，被
+  // 「已兑现的预告不再展示」**整条**剔除 —— 连「重置确实发生过」也一起丢了。
+  const FULL =
+    'Hi Astra users. A reset and a quick update on quality issues that have been posted around. ' +
+    'Working with some of you, we have found and fixed the following issues. ' +
+    'Always grateful for this incredible community. And of course, a reset is also landing by midnight today.';
+  const NOW = new Date('2026-09-29T12:00:00.000Z').getTime();
+  const mixed = { id: 'mixed', text: FULL, created_at: '2026-09-12T03:20:36.000Z' };
+
+  check('分句判据：这条里的「已发生」部分被认出来', hasOccurredPart(mixed) === true);
+
+  const sig = detectSignals([mixed], { now: NOW, lastResetAt: 0 });
+  const e = sig.occurred.find((x) => x.id === 'mixed');
+  check('事实部分留在 occurred（不被整条丢弃）', Boolean(e));
+  check('窗口被清空（留着会被下游继续当预告读）', e?.window === null);
+  check('occurredAt 补上（explicit 的分析不产出它）', e?.occurredAt === '2026-09-12T03:20:36.000Z', e?.occurredAt);
+  check('留痕 downgradedFrom=explicit', e?.downgradedFrom === 'explicit');
+  check('预告那部分确实撤走了', !sig.forecasts.some((x) => x.id === 'mixed'));
+  check('页首档位跟着走的是 occurred', sig.level === 'occurred', sig.level);
+
+  // 反例①（**实测踩过的误判**）：纯预告过期后必须整条撤走，不能凭空多出一条事实。
+  // 「I promised a reset for Tuesday」一个未来语气词都没有（`RE_FUTURE` 表里没有 "Tuesday"），
+  // 逐句跑 `hasOccurredReset` 会让它的名词化弱证据（"a reset"）直接成立 ——
+  // 所以判据必须是「逐句跑**完整**判定」。这一条就是那个坑的守卫。
+  const fore = {
+    id: 'fore',
+    text: 'We are almost Tuesday and I promised a reset for Tuesday. See you soon.',
+    created_at: '2026-09-12T03:20:36.000Z',
+  };
+  check('反例①：这条不被认成「有已发生部分」', hasOccurredPart(fore) === false);
+  const sig2 = detectSignals([fore], { now: NOW, lastResetAt: 0 });
+  check(
+    '反例①：预告过期后整条撤走，不降级成 occurred',
+    !sig2.occurred.some((x) => x.id === 'fore') && !sig2.hints.some((x) => x.id === 'fore')
+  );
+
+  // 反例②：**未过期**的预告不受影响 —— 降级只针对已兑现的那些，不能顺手改档。
+  // 判据用「有没有掉进别的通道」而不是 `forecasts`：forecasts 还要过证据链那一关
+  //（单条推文凑不出综合假设），拿它当判据会验不到「档位有没有被改」这件事。
+  const live1 = { id: 'live1', text: "We'll reset everyone's usage limits next Tuesday.", created_at: '2026-09-28T03:00:00.000Z' };
+  const sig3 = detectSignals([live1], { now: NOW, lastResetAt: 0 });
+  const elsewhere = sig3.occurred.some((x) => x.id === 'live1') || sig3.hints.some((x) => x.id === 'live1') || sig3.rejected.some((x) => x.id === 'live1');
+  check('反例②：未过期的预告不降级、也没被归到别的通道', !elsewhere);
+  check('反例②：页首档位仍是 explicit', sig3.level === 'explicit', sig3.level);
+
+  // 反例③：只有时间线索、没有额度语境 → 走 hint，不进这个降级逻辑。
+  const hintOnly = { id: 'hint1', text: 'The keynote is next Tuesday and it will be fun for everyone.', created_at: '2026-09-12T03:20:36.000Z' };
+  check('反例③：无额度语境的推文不会被认成事实', hasOccurredPart(hintOnly) === false);
 }
 
 /* ================================ 结果 ================================ */

@@ -191,6 +191,43 @@ export function hasOccurredReset(text) {
 }
 
 /**
+ * 这条推文里是否存在**一整句**构成「已发生」的陈述（供「已兑现预告」的降级用）。
+ *
+ * 为什么需要它：`hasOccurredReset` 把**整条推文**当成一个句子看时态 —— 只要正文
+ * 任何一处出现未来语气（`will` / `next` / `soon`…），它就整条返回 false。
+ * 可时态本来是**句子级**的属性：一条公告完全可以前半段说「刚才重置了一次」、
+ * 后半段说「今晚还会有一次」，那是两句话、各有各的时态。
+ *
+ * 实测（2026-09-29，补全正文之后才看见）：09-12 那条公告的前半段是
+ * 「A reset and a quick update on quality issues…」（已发生），末句是
+ * 「And of course, a reset is also landing by midnight today.」（预告）。
+ * 按整条判 → 未来语气胜出 → `occurredShape=false` → 它被升级成 explicit →
+ * 而那条预告（09-12）早已兑现，于是被「已兑现的预告不再展示」整条剔除 ——
+ * **连「重置确实发生过」也一起丢了**（页面上的已发生列表凭空少一条）。见 KI-010。
+ *
+ * ⚠ 判据是「逐句跑**完整**判定」，不是「逐句跑 `hasOccurredReset`」。
+ * 后者试过，会把预告误降级成事实：
+ *   「We are almost Tuesday and I promised a reset for Tuesday.」——
+ *   它一个未来语气词都没有（`RE_FUTURE` 表里没有 "Tuesday"），名词化弱证据
+ *  「a reset」于是直接成立；而整条判的时候，是**别处**的 `soon` 把它压住的。
+ *   拆句后那层压制没了，预告就被当成了事实（实测：全库多出 1 条误判）。
+ *   跑完整判定则会走到「句中有具体未来时间 → 不是已发生」那一关，正确否掉它。
+ *
+ * ⚠ 也刻意**不改** `hasOccurredReset` 本身：它服务的是「这条推文的**主旨**是不是
+ * 宣告已发生」，按整条判在那个语义下是对的，改它会牵动整条识别链。
+ *
+ * 代价：只对「被判 explicit 且预告已过期」的推文调用（通常 0–2 条），
+ * 逐句重跑一次分析可以忽略；换来的是一条本来会**静默消失**的事实。
+ */
+export function hasOccurredPart(tweet, opts = {}) {
+  const text = String(tweet?.text ?? '');
+  // 太短的碎片（"See you soon." 之类）不参与 —— 它们没有承载事实的空间，
+  // 却会因为一个孤立的 "reset" 命中而让整条降级。
+  const parts = text.split(/(?<=[.!?])\s+|\n+/).filter((s) => s.trim().length > 12);
+  return parts.some((s) => analyzeTweet({ ...tweet, text: s }, opts).level === 'occurred');
+}
+
+/**
  * 归类一条推文是否属于「额度事件」，并给出类型。
  *
  * 与 collect.mjs 里旧的 classify 的差别：旧版要求 reset 必须**同时**命中额度词，
@@ -1178,7 +1215,31 @@ export function detectSignals(tweets, opts = {}) {
     if (to < now) return true;
     return lastResetAt > 0 && lastResetAt >= from;
   };
-  const live = analyzed.filter((a) => !(a.level === 'explicit' && isExpiredForecast(a)));
+  const live = analyzed
+    .map((a) => {
+      if (a.level !== 'explicit' || !isExpiredForecast(a)) return a;
+      // 已兑现的预告撤走 —— 但如果这条推文里**还有一整句**在宣告「重置已经发生过」，
+      // 那件事不能跟着一起撤：它是发生过的事实，而「上次重置是什么时候」正是
+      // 观测台要回答的第一个问题。降级成 occurred，而不是整条丢掉。
+      //
+      // 判据是 `hasOccurredPart`（逐句跑完整判定）而不是 `hasOccurredReset(a.text)`：
+      // 后者对这类推文返回 false（正文里的未来语气会把整条的答案搅成「不是已发生」），
+      // 于是降级永远不会发生 —— 实测踩过这个坑，换成分句版才修得动。
+      if (!hasOccurredPart(a, { sourceZone, userZone, account })) return null;
+      return {
+        ...a,
+        level: 'occurred',
+        // 窗口清掉：occurred 的语义是「事情发生在发布那一刻」，留着一个未来的
+        // 时间窗会让下游（页面、综合假设）继续按「预告」读它。
+        window: null,
+        // explicit 的分析不产出 occurredAt（它当时只在说未来），补上；
+        // 下游（页面排序、日期展示、综合假设）读的是它。
+        occurredAt: a.createdAt ?? null,
+        downgradedFrom: 'explicit',
+        reasons: [...(a.reasons ?? []), '预告已兑现：撤回预告部分，保留「已发生」的陈述'],
+      };
+    })
+    .filter(Boolean);
 
   const explicit = live.filter((a) => a.level === 'explicit');
   const occurred = live.filter((a) => a.level === 'occurred');
