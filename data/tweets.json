@@ -97,14 +97,15 @@
     },
     {
       "id": "2104823812042940713",
-      "text": "Hi, Tomorrow we are re-opening the Pro $200 subscriptions to new subscribers, but together with it we are also changing how we calculate the usage for it. In effect, if you do the math, it will net out at half the dollar in API spend compared to the old Pro $200 plan. Now that",
+      "text": "Hi, Tomorrow we are re-opening the Pro $200 subscriptions to new subscribers, but together with it we are also changing how we calculate the usage for it. In effect, if you do the math, it will net out at half the dollar in API spend compared to the old Pro $200 plan. Now that it's said, let me explain why this is happening and why you will still get more work done than if you were on the Pro $200 subscription one month ago. (a) We didn't want to compromise in other ways and are committing to not reintroducing the 5h limit, so that you can fully use the weekly usage when you want. (b) On the subscription, we guarantee that over time you always get more work done and with an increasing level of quality. This means that you will continue to get more value per dollar spent as a result of models getting more efficient and us passing down the improvements in the form of API price reductions. (c) We don't want to put an incentive on ourselves to artificially inflate the API list prices to make it look like you are getting a lot (and workaround it through discounts, etc). Instead we want to continue to both rapidly reduce prices and increase capabilities of models on the API. This week we introduced GPT-6 Sol and GPT-6 Luna at 50% of their previous price. Over time, we see prices go low enough that it makes sense for most to buy usage as needed without there being a significant gap between what you get in a subscription and what you get in the API for a dollar spent. (d) Tomorrow, we are adding more things to the subscription that won't draw on the usage, I won't reveal what that is yet. I wanted to be transparent before all the big announcements tomorrow. Lots of new exciting things are coming to the subscriptions that will make it super compelling, but I wanted to make sure to share this change ahead of time so you can all understand it before we shower you with good news. Codexingly, Tibo",
       "created_at": "2026-09-29T06:41:17.000Z",
       "url": "https://x.com/thsottiaux/status/2104823812042940713",
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-09-29T13:20:39.155Z"
+      "first_seen": "2026-09-29T13:20:39.155Z",
+      "text_full": true
     },
     {
       "id": "2104467346945675347",
@@ -1204,7 +1205,7 @@
     },
     {
       "id": "2101157729037586694",
-      "text": "We were working on the keynote today with @romainhuet and @sama and most of the fun was trying to figure out how to explain it all to you because there is so much good stuff in there that it's a bit ridiculous all in quick succession. We'll have some things next week already to",
+      "text": "We were working on the keynote today with @romainhuet and @sama and most of the fun was trying to figure out how to explain it all to you because there is so much good stuff in there that it's a bit ridiculous all in quick succession. We'll have some things next week already to not keep you waiting so long, but very excited to show you all new things we've been working on and how it will all come together in the coming months.",
       "created_at": "2026-09-19T03:53:34.000Z",
       "kind": "other",
       "account": "thsottiaux",
@@ -1212,7 +1213,8 @@
       "role": "post",
       "foundVia": "timeline-browser",
       "inReplyTo": null,
-      "url": "https://x.com/thsottiaux/status/2101157729037586694"
+      "url": "https://x.com/thsottiaux/status/2101157729037586694",
+      "text_full": true
     },
     {
       "id": "2101156788011962700",
@@ -1961,7 +1963,7 @@
     },
     {
       "id": "2098612714704891959",
-      "text": "Hi Astra users. A reset and a quick update on quality issues that have been posted around. Working with some of you, we have found and fixed the following issues: - Some skills written for previous models were triggering too often or preventing the model from checking its work.",
+      "text": "Hi Astra users. A reset and a quick update on quality issues that have been posted around. Working with some of you, we have found and fixed the following issues: - Some skills written for previous models were triggering too often or preventing the model from checking its work. - An opt-in context management experiment that could cause early stops or replies to older messages. We've disabled it. Our rough estimate is that 4-5k users were affected by this experiment. - We've also removed some badly configured engines that resulted in a measured quality degradation for a long tail of traffic flowing through them. We’ve also made some more minor improvements and things should feel significantly better across the board. More consistent follow-through, better tracking of your latest message, and better checks on the work as it’s going through the motions. The examples posted and all the users who worked directly with us were incredibly useful in helping fix things quickly. Always grateful for this incredible community. And of course, a reset is also landing by midnight today.",
       "created_at": "2026-09-12T03:20:36.000Z",
       "url": "https://x.com/thsottiaux/status/2098612714704891959",
       "kind": "reset",
@@ -1969,7 +1971,8 @@
       "role": "post",
       "foundVia": "timeline-browser",
       "inReplyTo": null,
-      "first_seen": "2026-09-22T03:16:19.218Z"
+      "first_seen": "2026-09-22T03:16:19.218Z",
+      "text_full": true
     },
     {
       "id": "2098590070102245712",
@@ -1991,7 +1994,7 @@
     },
     {
       "id": "2098569976143806918",
-      "text": "Excited to welcome Aidan & @ Sasha from the Git AI team to OpenAI! They are building in the open and have developed an open-source tool that helps developers understand how coding agents contribute to their codebase. Together, we’ll make it easier for businesses to see where",
+      "text": "Excited to welcome Aidan & @ Sasha from the Git AI team to OpenAI! They are building in the open and have developed an open-source tool that helps developers understand how coding agents contribute to their codebase. Together, we’ll make it easier for businesses to see where Codex is making a difference when working through problems for individuals and teams. We’ll also keep Git AI open source and continue investing in it.",
       "created_at": "2026-09-12T00:30:46.000Z",
       "url": "https://x.com/thsottiaux/status/2098569976143806918",
       "kind": "other",
@@ -1999,7 +2002,8 @@
       "role": "post",
       "foundVia": "timeline-browser",
       "inReplyTo": null,
-      "first_seen": "2026-09-22T03:16:19.218Z"
+      "first_seen": "2026-09-22T03:16:19.218Z",
+      "text_full": true
     },
     {
       "id": "2098569538510180712",
@@ -2014,7 +2018,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-09-29T15:42:55.891Z",
+  "updated_at": "2026-09-29T16:03:33.619Z",
   "source": "browser",
   "coverage_since": "2026-09-28T15:10:31.000Z"
 }

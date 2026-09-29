@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-09-29T15:42:55.892Z",
+  "generatedAt": "2026-09-29T16:07:46.545Z",
   "checkedTweets": 124,
   "lookbackDays": 60,
-  "windowFrom": "2026-07-31T15:42:55.892Z",
-  "windowTo": "2026-09-29T15:42:55.892Z",
+  "windowFrom": "2026-07-31T16:07:46.545Z",
+  "windowTo": "2026-09-29T16:07:46.545Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -12,10 +12,10 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.09.29",
-      "weekday": "周二",
-      "time": "23:42",
-      "text": "2026.09.29（周二）23:42",
+      "date": "2026.09.30",
+      "weekday": "周三",
+      "time": "00:07",
+      "text": "2026.09.30（周三）00:07",
       "offset": "UTC+8"
     },
     "b": {
@@ -23,8 +23,8 @@
       "zone": "America/Los_Angeles",
       "date": "2026.09.29",
       "weekday": "周二",
-      "time": "08:42",
-      "text": "2026.09.29（周二）08:42",
+      "time": "09:07",
+      "text": "2026.09.29（周二）09:07",
       "offset": "UTC-7"
     },
     "diffHours": 15,
@@ -159,12 +159,15 @@
     {
       "id": "2098612714704891959",
       "account": "thsottiaux",
-      "text": "Hi Astra users. A reset and a quick update on quality issues that have been posted around. Working with some of you, we have found and fixed the following issues: - Some skills written for previous models were triggering too often or preventing the model from checking its work.",
+      "text": "Hi Astra users. A reset and a quick update on quality issues that have been posted around. Working with some of you, we have found and fixed the following issues: - Some skills written for previous models were triggering too often or preventing the model from checking its work. - An opt-in context management experiment that could cause early stops or replies to older messages. We've disabled it. Our rough estimate is that 4-5k users were affected by this experiment. - We've also removed some badly configured engines that resulted in a measured quality degradation for a long tail of traffic flowing through them. We’ve also made some more minor improvements and things should feel significantly better across the board. More consistent follow-through, better tracking of your latest message, and better checks on the work as it’s going through the motions. The examples posted and all the users who worked directly with us were incredibly useful in helping fix things quickly. Always grateful for this incredible community. And of course, a reset is also landing by midnight today.",
       "createdAt": "2026-09-12T03:20:36.000Z",
       "url": "https://x.com/thsottiaux/status/2098612714704891959",
       "reasons": [
         "命中重置词 reset",
-        "命中「A/the reset」名词化陈述"
+        "命中「新额度」类词 fresh/new/top up",
+        "命中「A/the reset」名词化陈述",
+        "含发布/宣传语境（下调置信度）",
+        "预告已兑现：撤回预告部分，保留「已发生」的陈述"
       ],
       "viaContext": false,
       "inReplyTo": null,
@@ -191,10 +194,15 @@
       },
       "level": "occurred",
       "rejected": null,
-      "intent": 3,
-      "occurredAt": "2026-09-12T03:20:36.000Z",
+      "intent": 4,
+      "timeWord": "today",
+      "timeNote": null,
+      "precision": "day",
+      "candidateWindow": null,
       "window": null,
-      "confidence": 0.6799999999999999
+      "confidence": 0.6199999999999999,
+      "occurredAt": "2026-09-12T03:20:36.000Z",
+      "downgradedFrom": "explicit"
     }
   ],
   "hints": [
@@ -665,10 +673,11 @@
     {
       "id": "2101157729037586694",
       "account": "thsottiaux",
-      "text": "We were working on the keynote today with @romainhuet and @sama and most of the fun was trying to figure out how to explain it all to you because there is so much good stuff in there that it's a bit ridiculous all in quick succession. We'll have some things next week already to",
+      "text": "We were working on the keynote today with @romainhuet and @sama and most of the fun was trying to figure out how to explain it all to you because there is so much good stuff in there that it's a bit ridiculous all in quick succession. We'll have some things next week already to not keep you waiting so long, but very excited to show you all new things we've been working on and how it will all come together in the coming months.",
       "createdAt": "2026-09-19T03:53:34.000Z",
       "url": "https://x.com/thsottiaux/status/2101157729037586694",
       "reasons": [
+        "命中「新额度」类词 fresh/new/top up",
         "含未来语气",
         "含发布/宣传语境（下调置信度）"
       ],
@@ -697,7 +706,7 @@
       },
       "level": "hint",
       "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
-      "intent": 0,
+      "intent": 1,
       "window": null,
       "candidateWindow": {
         "word": "today",
@@ -4995,7 +5004,7 @@
     {
       "id": "2098569976143806918",
       "account": "thsottiaux",
-      "text": "Excited to welcome Aidan & @ Sasha from the Git AI team to OpenAI! They are building in the open and have developed an open-source tool that helps developers understand how coding agents contribute to their codebase. Together, we’ll make it easier for businesses to see where",
+      "text": "Excited to welcome Aidan & @ Sasha from the Git AI team to OpenAI! They are building in the open and have developed an open-source tool that helps developers understand how coding agents contribute to their codebase. Together, we’ll make it easier for businesses to see where Codex is making a difference when working through problems for individuals and teams. We’ll also keep Git AI open source and continue investing in it.",
       "createdAt": "2026-09-12T00:30:46.000Z",
       "url": "https://x.com/thsottiaux/status/2098569976143806918",
       "reasons": [],
