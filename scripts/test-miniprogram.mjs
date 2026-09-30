@@ -1092,6 +1092,40 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
     navTags.length === 2 && navTags.every((t) => /singlePage/.test(t)),
     `${navTags.length} 个：${navTags.join(' | ')}`
   );
+
+  /* ---- 13f. 单页模式的底部让位（微信那条固定操作栏会压住最后一屏） ---- */
+
+  // 与 13e 同类：模板与样式在 Node 里渲染不了，但「有没有让位」可以查出来。
+  // 少了它 = 从朋友圈点开的人，页脚最后一行被微信固定的「前往小程序」操作栏
+  // 永久压住；而官方运营须知明确要求「应在单页模式中尽可能呈现完整的内容」。
+  const rootTags = [wxmlIndex, wxmlHistory].map(
+    (s) => (s.match(/<view class="wrap[^>]*>/) || [''])[0]
+  );
+  check(
+    '两页根容器在单页模式下都挂上底部让位类',
+    rootTags.length === 2 && rootTags.every((t) => /singlePage/.test(t) && /\bsp\b/.test(t)),
+    rootTags.join(' | ') || '（没找到根容器）'
+  );
+
+  const wxss = await readFile(resolve(ROOT, 'miniprogram/app.wxss'), 'utf8');
+  const spRule = (wxss.match(/\.wrap\.sp\s*\{[^}]*\}/) || [''])[0];
+  const spPad = Number((spRule.match(/padding-bottom:\s*(\d+)rpx/) || [])[1]);
+  // 门槛 200rpx = 操作栏约 100rpx + iPhone 底部安全区约 68rpx。低于它就会露出被压住的下沿。
+  check(
+    '单页模式下的底部留白 ≥ 200rpx（操作栏 + 安全区）',
+    Boolean(spRule) && spPad >= 200,
+    spRule ? `padding-bottom=${spPad}rpx` : '（app.wxss 里没有 .wrap.sp 规则）'
+  );
+
+  // 反例守卫：让位量必须**大于**常态留白。`.wrap.sp` 是**覆盖**、不是另一个元素 ——
+  // 它靠两个类的特异性压过 `.wrap`（与声明顺序无关）。两条断言分工：
+  // 上一条管「够不够高」，这条管「有没有真的抬起来」。
+  const basePad = Number((wxss.match(/\.wrap\s*\{[^}]*padding:[^}]*?(\d+)rpx\s*;/) || [])[1]);
+  check(
+    `让位量大于常态留白（常态 ${basePad}rpx）`,
+    Number.isFinite(basePad) && spPad > basePad,
+    `sp=${spPad}rpx vs 常态=${basePad}rpx`
+  );
 }
 
 /* ------------------------------ 结果 ------------------------------ */

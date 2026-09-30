@@ -1,6 +1,7 @@
 <!-- 历史记录：按时间倒序，每条可复制原推链接 -->
 
-<view class="wrap">
+<!-- `sp` = 单页模式（朋友圈点开）下的底部让位类，与首页同理，见 app.wxss 的 `.wrap.sp` -->
+<view class="wrap {{singlePage ? 'sp' : ''}}">
 
   <view class="top">
     <view class="brand">

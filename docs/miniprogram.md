@@ -25,15 +25,22 @@ miniprogram/
   pages/history/        重置历史
 ```
 
-微信开发者工具导入**仓库根目录**即可，`project.config.json` 里已声明
-`miniprogramRoot: "miniprogram/"`。
+微信开发者工具的**项目根**有两种可用选法，本机现用的是第二种：
+
+| 项目根 | `appid` 在哪 | 备注 |
+|---|---|---|
+| 仓库根 | `project.config.json`（入库，值为 `touristappid` 占位） | 已声明 `miniprogramRoot: "miniprogram/"`，能跑；占位 appid 不能上传，须先换成自己的 |
+| `miniprogram/` | `miniprogram/project.config.json`（**不入库**，见 `.gitignore`，内含真实 appid） | 本机开发者工具实际打开的根（日志实证），09-23 那次上传也是在这个根下做的 |
+
+⚠ **`appid` 与「编译模式」都存在各自根的 `project.config.json` 里**，换根时不会跟着走 ——
+第七节第 16 条那个 `1154` 编译模式，要建在**你实际用的那个根**下。
 
 ---
 
 ## 二、上手（四步）
 
-1. 导入仓库根目录，把 `project.config.json` 的 `appid` 换成你自己的
-   —— 当前是占位值 `touristappid`，用它无法上传。
+1. 导入项目根（见第一节末的两种选法），确认 `appid` 是你自己的
+   —— 仓库根那份是占位值 `touristappid`，用它无法上传。
 2. 生成构建产物。⚠ **快照不入库**（D-027），全新克隆必须先跑一次，否则小程序加载不了页面
    —— `miniprogram/utils/api.js` 在模块顶层 import 它。两条路径按需选：
    - `node scripts/build-snapshot.mjs` —— **只**写 `miniprogram/data/snapshot.js`（离线首屏数据）。
@@ -94,7 +101,7 @@ miniprogram/
 ## 六、本机能做的校验（不需要开发者工具）
 
 ```bash
-node scripts/test-miniprogram.mjs   # 160 项：图元坐标不越界、字号不低于可读下限、F9 链路、视觉模型、分享与单页模式
+node scripts/test-miniprogram.mjs   # 163 项：图元坐标不越界、字号不低于可读下限、F9 链路、视觉模型、分享与单页模式
 npm run preview:mp                  # 生成 dist/miniprogram-preview.html
 npm run preview:mp -- --demo-signal # 同上，但注入一条合成预告，点亮「信号明确态」
 node --check miniprogram/pages/index/index.js    # 逐文件语法检查
@@ -124,8 +131,8 @@ node --check miniprogram/pages/index/index.js    # 逐文件语法检查
 | 12 | 窗口块的值不许断在词中间 | `2026.09.22（周二） 全天` 这一串刚好卡在临界宽度上。默认规则允许在**汉字之间**断行，会断成「…（周二） 全 / 天」。`.wrow .v` 上的 `word-break:keep-all` 把断点限制到空格处，`overflow-wrap:break-word` 兜底防溢出。改窗口文案后要回来看这条 |
 | 13 | 右上角菜单有「转发」 | `onShareAppMessage` 已定义即出现（这是官方唯一判据，不定义则整个入口不存在） |
 | 14 | 转发卡片的标题 | 与页首状态一致：有明确预告时是「Tibo 预告：X 可能重置额度」，其余情况「距上次重置 N 天，还在等」。**标题里不得出现「未检测到」**（那是替没进来的人总结内容，见 D-031） |
-| 15 | 「分享到朋友圈」入口 | 后台具备该能力时出现；**不具备则不出现，不算缺陷**（与微信认证状态有关，代码侧判断不了） |
-| 16 | 单页模式（朋友圈点开后） | 顶栏是页面 JSON 配置的标题、底部有微信固定的「前往小程序」操作栏；且页面上**不出现**「复制原推链接」与页脚跳转链接，F9 提醒入口也不显示（剪贴板 / `navigator` / 登录在单页模式下都是被禁能力，见 D-031） |
+| 15 | 「分享到朋友圈」入口 | 出现 = 好；**不出现不算代码缺陷**。代码侧的两个前置条件（`onShareAppMessage` + `onShareTimeline`）已有自动断言（第六节）。真不出现时，按官方社区《为什么我的小程序无法分享?》给的顺序排查：①开发者工具「详情 → 项目设置」的「启用分享到朋友圈」②小程序后台「功能 → 推广 → 分享到朋友圈」是否已开通 ③微信认证与备案是否完成 ④「通知中心 / 违规记录」有无分享类处罚。②③④ 代码侧判断不了，也都不影响「发送给朋友」 |
+| 16 | 单页模式（朋友圈点开后） | **怎么进来**：开发者工具「编译模式」下拉 → 添加编译模式 → 启动页面 `pages/index/index`、进入场景值 **1154**，再从下拉切过去（历史页同理另建一个）。**看三处**：①顶栏是页面 JSON 配置的标题、底部是微信固定的「前往小程序」操作栏 ②页面上**不出现**「复制原推链接」与页脚跳转链接、F9 入口也不显示（剪贴板 / `navigator` / 登录都是单页模式下的被禁能力，见 D-031）③**滚到底时页脚最后一行没有被那条固定操作栏压住** —— 让位量是 `app.wxss` 的 `.wrap.sp`（240rpx = 操作栏约 100rpx + iPhone 底部安全区约 68rpx + 余量），真机被压就调大这一个数 |
 
 第 9 条是唯一无法在 Mac 上替代的一项，也是这张清单存在的理由。
 
