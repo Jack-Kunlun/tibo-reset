@@ -7,6 +7,15 @@ pnpm-lock.yaml
 # 构建产物：dist 由 npm run build 生成
 dist/
 
+# M1 评审原型页：由 scripts/make-prototype.mjs 生成，**不入库**（D-033）。
+# 与 D-027 同一条理由，成因也一样 —— 内嵌构建时刻，且预测值/信号时间窗都由 now 派生，
+# 每次跑都不同。纳入版本管理只会得到一个长期 modified 的文件，而那等于训练人忽略
+# git status（这正是 .gitignore 里反复出现的一句话）。
+# 但它**必须存在于磁盘上**：`docs/PRD.md` §11.2 的「M1 原型清单」就是拿这两个文件评审的，
+# 而新 clone 的仓库里没有它们 —— 先跑 `npm run make:prototype` 生成（见 KI-013）。
+# 注意 .dockerignore 里也排除了 prototype/ —— 镜像里不需要它。
+prototype/
+
 # 小程序首屏快照：由 scripts/build.mjs / build-snapshot.mjs 从 data/ 生成，**不入库**（D-027）。
 # 它**每次构建都不同**，有两个各自独立的原因 —— 两个都得治才能稳，所以别指望「改成数据时刻」：
 #   · 内嵌构建时刻：generatedAt 与由 now 派生的预测值、信号时间窗
