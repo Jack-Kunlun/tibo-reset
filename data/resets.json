@@ -1,6 +1,14 @@
 {
   "records": [
     {
+      "id": "observed-20260929T190000Z",
+      "announced_at": "2026-09-29T19:00:00.000Z",
+      "type": "credit",
+      "text": "@theo Shhhhhh",
+      "url": "https://x.com/thsottiaux/status/2105120226027450685",
+      "attribution": "codex-resets.com"
+    },
+    {
       "id": "2104951965184925941",
       "announced_at": "2026-09-29T15:10:31.000Z",
       "type": "credit",
@@ -450,5 +458,5 @@
     }
   ],
   "bootstrapped_at": "2026-09-20T08:17:13.018Z",
-  "refreshed_at": "2026-09-29T21:23:01.312Z"
+  "refreshed_at": "2026-09-30T05:46:23.256Z"
 }

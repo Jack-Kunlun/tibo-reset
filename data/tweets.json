@@ -1,6 +1,293 @@
 {
   "tweets": [
     {
+      "id": "2105141623315374507",
+      "text": "Outfluffed",
+      "created_at": "2026-09-30T03:44:09.000Z",
+      "url": "https://x.com/thsottiaux/status/2105141623315374507",
+      "inReplyTo": {
+        "account": "frantzfries",
+        "id": "",
+        "text": "Can't believe they outappled apple",
+        "created_at": "2026-09-29T17:09:06.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-30T05:47:20.931Z"
+    },
+    {
+      "id": "2105124771310739821",
+      "text": "The tokens must flow",
+      "created_at": "2026-09-30T02:37:11.000Z",
+      "url": "https://x.com/thsottiaux/status/2105124771310739821",
+      "inReplyTo": {
+        "account": "iruletheworldmo",
+        "id": "",
+        "text": "huge congratulations to the openai team on dev day. it was incredible, great event, great progress, great team. thanks to all involved and continue to build, we appreciate you.",
+        "created_at": "2026-09-29T20:56:11.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-30T05:47:20.931Z"
+    },
+    {
+      "id": "2105122693721010600",
+      "text": "That’s Dippin’",
+      "created_at": "2026-09-30T02:28:56.000Z",
+      "url": "https://x.com/thsottiaux/status/2105122693721010600",
+      "inReplyTo": {
+        "account": "The_Alex",
+        "id": "",
+        "text": "YOU CAN MAKE YOUR DOT YOUR PET!!!",
+        "created_at": "2026-09-29T23:11:10.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-30T05:47:20.931Z"
+    },
+    {
+      "id": "2105122298646888806",
+      "text": "Could barely believe it when Busra made this come to life. Pure talent",
+      "created_at": "2026-09-30T02:27:21.000Z",
+      "url": "https://x.com/thsottiaux/status/2105122298646888806",
+      "inReplyTo": {
+        "account": "cmd_shiftbusra",
+        "id": "",
+        "text": "so excited my first major project launched today, hope you all love dots ♥",
+        "created_at": "2026-09-29T17:14:28.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-30T05:47:20.931Z"
+    },
+    {
+      "id": "2105121970883076422",
+      "text": "always the damn wifi live demos or bust!",
+      "created_at": "2026-09-30T02:26:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2105121970883076422",
+      "inReplyTo": {
+        "account": "hollllyli",
+        "id": "",
+        "text": "damn wifi",
+        "created_at": "2026-09-29T23:13:27.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-30T05:47:20.931Z"
+    },
+    {
+      "id": "2105120499177230798",
+      "text": "👋",
+      "created_at": "2026-09-30T02:20:12.000Z",
+      "url": "https://x.com/thsottiaux/status/2105120499177230798",
+      "inReplyTo": {
+        "account": "OpenAI",
+        "id": "",
+        "text": "Ran into Reset guy @thsottiaux and engineer @MaxHudlberger 🔥",
+        "created_at": "2026-09-29T19:58:32.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-30T05:47:20.931Z"
+    },
+    {
+      "id": "2105120226027450685",
+      "text": "Shhhhhh",
+      "created_at": "2026-09-30T02:19:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2105120226027450685",
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "My resets carried over :')",
+        "created_at": "2026-09-29T19:28:46.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-30T05:47:20.931Z"
+    },
+    {
+      "id": "2105109005135962589",
+      "text": "Always fun working with you!",
+      "created_at": "2026-09-30T01:34:32.000Z",
+      "url": "https://x.com/thsottiaux/status/2105109005135962589",
+      "inReplyTo": {
+        "account": "danshipper",
+        "id": "",
+        "text": "im biased but im insanely proud of @every 's dev day coverage - two vibe checks - live feed - livestream - podcast with @sama (coming tomorrow!) insane amount of effort from the team:",
+        "created_at": "2026-09-29T22:47:28.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-30T05:47:20.931Z"
+    },
+    {
+      "id": "2105108807693246808",
+      "text": "All rolling out within 12 hours. Pretty insane operation!",
+      "created_at": "2026-09-30T01:33:45.000Z",
+      "url": "https://x.com/thsottiaux/status/2105108807693246808",
+      "inReplyTo": {
+        "account": "The_Alex",
+        "id": "",
+        "text": "My biggest gripe with OpenAI is when they say something is “available today” and it’s not immediately available. I get distributing to millions of users is probably tough to do all at once but man I wanna play with the new toys!!",
+        "created_at": "2026-09-29T19:14:13.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-30T05:47:20.931Z"
+    },
+    {
+      "id": "2105108212219572319",
+      "text": "No delays, all rolled out today. Just a question of how many of you adopt a dot.",
+      "created_at": "2026-09-30T01:31:23.000Z",
+      "url": "https://x.com/thsottiaux/status/2105108212219572319",
+      "inReplyTo": {
+        "account": "abdellahbrc",
+        "id": "",
+        "text": "why on earth would you announce just to delay ship it why not prepare it before hand",
+        "created_at": "2026-09-30T01:20:08.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-30T05:47:20.931Z"
+    },
+    {
+      "id": "2105106575866364103",
+      "text": "Why are you shilling OpenAI. Must be paid or something",
+      "created_at": "2026-09-30T01:24:53.000Z",
+      "url": "https://x.com/thsottiaux/status/2105106575866364103",
+      "inReplyTo": {
+        "account": "tenobrus",
+        "id": "",
+        "text": "just in case u thought i was an anthropic shill for going \"what's the big deal\" every time they announced some plan change, let me disabuse u i just don't really see the problem here. the whole point of these plans is they give a *fucking insane* amount of api spend w the",
+        "created_at": "2026-09-29T13:00:11.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-30T05:47:20.931Z"
+    },
+    {
+      "id": "2105106052874375281",
+      "text": "Sleeper hit",
+      "created_at": "2026-09-30T01:22:48.000Z",
+      "url": "https://x.com/thsottiaux/status/2105106052874375281",
+      "inReplyTo": {
+        "account": "NickADobos",
+        "id": "",
+        "text": "Whoa ChatGPT plugin extensions are way more thorough than I realized Holy shit they made ChatGPT into vscode. I get the sidebar redesign now. Genius. This is the new App Store.",
+        "created_at": "2026-09-29T23:18:07.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-30T05:47:20.931Z"
+    },
+    {
+      "id": "2105105086506840421",
+      "text": "We will have a few million dots online within days, working on all sorts of things across such a diverse and large community. Excited to learn from all of you on what you love and what doesn’t yet feel magical. Personally I felt a jump after 2-3 days of use after teaching it more about my preferences and things on my mind. It learns very quickly to be most useful and it can take on surprisingly ambitious tasks on its own. We’re learning from how you all use your primary dot before releasing the ability to create an entire team of them.",
+      "created_at": "2026-09-30T01:18:58.000Z",
+      "url": "https://x.com/thsottiaux/status/2105105086506840421",
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-30T05:47:20.931Z"
+    },
+    {
+      "id": "2105103752185458869",
+      "text": "Good coverage!!! Thank you for tuning in and re-sharing this nicely",
+      "created_at": "2026-09-30T01:13:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2105103752185458869",
+      "inReplyTo": {
+        "account": "kunchenguid",
+        "id": "",
+        "text": "ok here's my key takeaways from OpenAI DevDay keynote 1. dots grok bot, muse, and now dots - they may look similar, but they are not i think openai's dots is a significantly more cohesive implementation that spans across personal and business use, and also across single player",
+        "created_at": "2026-09-29T18:13:58.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-30T05:47:20.931Z"
+    },
+    {
+      "id": "2105102820706058498",
+      "text": "It was so nice to connect with so many of you in person at DevDay. Immaculate vibes from the crowd and fun to see so many build things throughout the day.",
+      "created_at": "2026-09-30T01:09:58.000Z",
+      "url": "https://x.com/thsottiaux/status/2105102820706058498",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-30T05:47:20.931Z"
+    },
+    {
+      "id": "2105102312167575701",
+      "text": "I got community noted, but the note is wrong 😅 Your primary dot is included in your plan and will be available 24/7. If you ask it to create a codex task for you, that one will be drawing usage as usual. But when your dot does work directly, that uses nothing and is all on top of your plans usage. In the future you will be able to increase the speed and allow your dot to have more bandwidth, this will be a paid feature, but the baseline functionality will always just be included in your plan.",
+      "created_at": "2026-09-30T01:07:56.000Z",
+      "url": "https://x.com/thsottiaux/status/2105102312167575701",
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-09-30T05:47:20.931Z"
+    },
+    {
+      "id": "2105097443847332188",
+      "text": "Transparency is important to me",
+      "created_at": "2026-09-30T00:48:36.000Z",
+      "url": "https://x.com/thsottiaux/status/2105097443847332188",
+      "inReplyTo": {
+        "account": "signulll",
+        "id": "",
+        "text": "can someone genuinely explain why you would announce something negative like cutting plan limits before your big highlight event esp when you’ve spent weeks promising a lot & the event itself doesn’t even fully land? even more confusing when your competitor currently has a",
+        "created_at": "2026-09-29T19:30:34.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-09-30T05:47:20.931Z"
+    },
+    {
       "id": "2105041299934187874",
       "text": "Full recap of all the announcements",
       "created_at": "2026-09-29T21:05:30.000Z",
@@ -2294,7 +2581,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-09-29T21:23:48.363Z",
+  "updated_at": "2026-09-30T05:47:20.931Z",
   "source": "browser",
-  "coverage_since": "2026-09-28T15:10:31.000Z"
+  "coverage_since": "2026-09-28T19:00:00.000Z"
 }

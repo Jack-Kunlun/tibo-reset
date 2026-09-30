@@ -1,32 +1,32 @@
 {
   "stats": {
-    "total": 56,
+    "total": 57,
     "first_at": "2025-09-17T04:02:52.000Z",
-    "last_at": "2026-09-29T15:10:31.000Z",
-    "last_text": "I’ll explain the new Pro 200 plan differently, before I start live tweeting from DevDay on things that are going out! Today we are going to ship a number of things that increase what you can do across the Plus and Pro plans. A lot of compute is online for this increase. As we increase the floor, we are changing the relative difference between plans to be Plus = 1X Pro 100 = 5X Pro 200 = 10X and we are reopening subscriptions for Pro 200 (we had paused it). If you have an existing plan you will keep the 20X multiplier for a bit and also receive a lot of additional credits because we know changes are hard even if it means that everyone will get more in the end.",
-    "days_since_last": 0.2592287384259259,
-    "avg_interval_days": 6.862975378787879,
+    "last_at": "2026-09-29T19:00:00.000Z",
+    "last_text": "@theo Shhhhhh",
+    "days_since_last": 0.44954782407407406,
+    "avg_interval_days": 6.743268022486772,
     "median_interval_days": 3.216273148148148,
-    "sd_interval_days": 11.118625086882579,
+    "sd_interval_days": 11.054609778436337,
     "longest_wait_days": 67.74240740740741,
-    "shortest_wait_days": 0.4963194444444444,
-    "credit_count": 5,
+    "shortest_wait_days": 0.15936342592592592,
+    "credit_count": 6,
     "reset_count": 51,
-    "hit_within_avg": 0.6909090909090909
+    "hit_within_avg": 0.6964285714285714
   },
-  "generated_at": "2026-09-29T21:23:48.470Z",
+  "generated_at": "2026-09-30T05:47:21.030Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
-    "stoppedBy": "floor",
-    "newTweets": 21,
-    "knownCount": 124,
+    "stoppedBy": "known",
+    "newTweets": 17,
+    "knownCount": 145,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "floor",
-      "steps": 11,
-      "harvested": 10,
-      "withContext": 10,
+      "steps": 28,
+      "harvested": 24,
+      "withContext": 24,
       "authorsMissing": 0
     },
     "replyError": null,
@@ -36,6 +36,16 @@
       "fetched": 6,
       "skipped": 0,
       "scanned": [
+        {
+          "id": "2105105086506840421",
+          "length": 541,
+          "showMore": false
+        },
+        {
+          "id": "2105102312167575701",
+          "length": 498,
+          "showMore": false
+        },
         {
           "id": "2105006253986738615",
           "length": 249,
@@ -55,27 +65,17 @@
           "id": "2104981170685616361",
           "length": 423,
           "showMore": false
-        },
-        {
-          "id": "2104951965184925941",
-          "length": 667,
-          "showMore": false
-        },
-        {
-          "id": "2104823812042940713",
-          "length": 1917,
-          "showMore": false
         }
       ]
     }
   },
   "history": {
-    "added": 0,
+    "added": 1,
     "updated": 0,
-    "upstreamCount": 55,
-    "refreshedAt": "2026-09-29T21:23:01.312Z",
+    "upstreamCount": 56,
+    "refreshedAt": "2026-09-30T05:46:23.256Z",
     "error": null,
-    "changed": false,
+    "changed": true,
     "patchedTexts": 0
   },
   "last_full_at": "2026-09-29T05:17:34.150Z",
