@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-09-29T19:00:00.000Z",
     "last_text": "@theo Shhhhhh",
-    "days_since_last": 0.44954782407407406,
+    "days_since_last": 0.775602175925926,
     "avg_interval_days": 6.743268022486772,
     "median_interval_days": 3.216273148148148,
     "sd_interval_days": 11.054609778436337,
@@ -14,26 +14,26 @@
     "reset_count": 51,
     "hit_within_avg": 0.6964285714285714
   },
-  "generated_at": "2026-09-30T05:47:21.030Z",
+  "generated_at": "2026-09-30T13:36:52.197Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
     "stoppedBy": "known",
-    "newTweets": 17,
-    "knownCount": 145,
+    "newTweets": 0,
+    "knownCount": 171,
     "reply": {
       "mode": "incremental",
-      "stoppedBy": "floor",
-      "steps": 28,
-      "harvested": 24,
-      "withContext": 24,
+      "stoppedBy": "known",
+      "steps": 1,
+      "harvested": 3,
+      "withContext": 3,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 6,
-      "attempted": 6,
-      "fetched": 6,
+      "candidates": 2,
+      "attempted": 2,
+      "fetched": 2,
       "skipped": 0,
       "scanned": [
         {
@@ -45,37 +45,17 @@
           "id": "2105102312167575701",
           "length": 498,
           "showMore": false
-        },
-        {
-          "id": "2105006253986738615",
-          "length": 249,
-          "showMore": false
-        },
-        {
-          "id": "2104987594719461796",
-          "length": 400,
-          "showMore": false
-        },
-        {
-          "id": "2104983716049379472",
-          "length": 409,
-          "showMore": false
-        },
-        {
-          "id": "2104981170685616361",
-          "length": 423,
-          "showMore": false
         }
       ]
     }
   },
   "history": {
-    "added": 1,
+    "added": 0,
     "updated": 0,
     "upstreamCount": 56,
-    "refreshedAt": "2026-09-30T05:46:23.256Z",
+    "refreshedAt": "2026-09-30T13:36:36.887Z",
     "error": null,
-    "changed": true,
+    "changed": false,
     "patchedTexts": 0
   },
   "last_full_at": "2026-09-29T05:17:34.150Z",

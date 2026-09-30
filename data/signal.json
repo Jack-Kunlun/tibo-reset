@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-09-30T05:47:20.932Z",
-  "checkedTweets": 162,
+  "generatedAt": "2026-09-30T13:36:52.028Z",
+  "checkedTweets": 171,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-01T05:47:20.932Z",
-  "windowTo": "2026-09-30T05:47:20.932Z",
+  "windowFrom": "2026-08-01T13:36:52.028Z",
+  "windowTo": "2026-09-30T13:36:52.028Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -14,36 +14,36 @@
       "zone": "Asia/Shanghai",
       "date": "2026.09.30",
       "weekday": "周三",
-      "time": "13:47",
-      "text": "2026.09.30（周三）13:47",
+      "time": "21:36",
+      "text": "2026.09.30（周三）21:36",
       "offset": "UTC+8"
     },
     "b": {
       "label": "Tibo 当地时间",
       "zone": "America/Los_Angeles",
-      "date": "2026.09.29",
-      "weekday": "周二",
-      "time": "22:47",
-      "text": "2026.09.29（周二）22:47",
+      "date": "2026.09.30",
+      "weekday": "周三",
+      "time": "06:36",
+      "text": "2026.09.30（周三）06:36",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2105141623315374507",
+    "id": "2105189201679630385",
     "account": "thsottiaux",
-    "text": "Outfluffed",
-    "createdAt": "2026-09-30T03:44:09.000Z",
-    "url": "https://x.com/thsottiaux/status/2105141623315374507",
+    "text": "Basically",
+    "createdAt": "2026-09-30T06:53:12.000Z",
+    "url": "https://x.com/thsottiaux/status/2105189201679630385",
     "reasons": [
-      "上下文：回复 @frantzfries「Can't believe they outappled apple…」"
+      "上下文：回复 @_ak_111「Bruh what? 😭 OpenAI says Dots usage…」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "frantzfries",
+      "account": "_ak_111",
       "id": "",
-      "text": "Can't believe they outappled apple"
+      "text": "Bruh what? 😭 OpenAI says Dots usage won’t count toward eligible plans’ usage allowances for the first month And Dots are powered by GPT-6 Astra 👀 Is OpenAI basically giving us unlimited Astra-powered Dots for launch?"
     },
     "createdZones": {
       "a": {
@@ -51,8 +51,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.09.30",
         "weekday": "周三",
-        "time": "11:44",
-        "text": "2026.09.30（周三）11:44",
+        "time": "14:53",
+        "text": "2026.09.30（周三）14:53",
         "offset": "UTC+8"
       },
       "b": {
@@ -60,8 +60,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.09.29",
         "weekday": "周二",
-        "time": "20:44",
-        "text": "2026.09.29（周二）20:44",
+        "time": "23:53",
+        "text": "2026.09.29（周二）23:53",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -582,7 +582,8 @@
       "reasons": [
         "命中额度词 limits/usage/credits",
         "含未来语气",
-        "含发布/宣传语境（下调置信度）"
+        "含发布/宣传语境（下调置信度）",
+        "窗口已过去：撤回窗口（原文留档，不再作为未来线索展示）"
       ],
       "viaContext": false,
       "inReplyTo": null,
@@ -614,49 +615,14 @@
       "timeNote": null,
       "precision": "day",
       "candidateWindow": null,
-      "window": {
+      "window": null,
+      "confidence": 0.36,
+      "windowExpired": {
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
-        "dayNum": 20725,
-        "fromTs": 1790665200000,
-        "toTs": 1790751540000,
-        "userFrom": {
-          "y": "2026",
-          "m": "09",
-          "d": "29",
-          "hh": "15",
-          "mm": "00",
-          "weekdayCN": "周二"
-        },
-        "sourceZone": "2026.09.29（周二） 全天",
-        "userZone": "2026.09.29（周二）15:00 起",
-        "openText": "2026.09.29（周二）15:00",
-        "rangeNote": "窗口到北京 2026.09.30（周三）14:59 为止",
-        "crossesUserDay": true,
-        "zones": {
-          "a": {
-            "label": "北京时间",
-            "zone": "Asia/Shanghai",
-            "date": "2026.09.29",
-            "weekday": "周二",
-            "time": "15:00",
-            "text": "2026.09.29（周二）15:00",
-            "offset": "UTC+8"
-          },
-          "b": {
-            "label": "Tibo 当地时间",
-            "zone": "America/Los_Angeles",
-            "date": "2026.09.29",
-            "weekday": "周二",
-            "time": "00:00",
-            "text": "2026.09.29（周二）00:00",
-            "offset": "UTC-7"
-          },
-          "diffHours": 15,
-          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-        }
-      },
-      "confidence": 0.36
+        "why": "past",
+        "checkedAt": "2026-09-30T13:36:52.028Z"
+      }
     },
     {
       "id": "2104961497055240633",
@@ -1450,19 +1416,394 @@
   ],
   "rejected": [
     {
+      "id": "2105189201679630385",
+      "account": "thsottiaux",
+      "text": "Basically",
+      "createdAt": "2026-09-30T06:53:12.000Z",
+      "url": "https://x.com/thsottiaux/status/2105189201679630385",
+      "reasons": [
+        "上下文：回复 @_ak_111「Bruh what? 😭 OpenAI says Dots usage…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "_ak_111",
+        "id": "",
+        "text": "Bruh what? 😭 OpenAI says Dots usage won’t count toward eligible plans’ usage allowances for the first month And Dots are powered by GPT-6 Astra 👀 Is OpenAI basically giving us unlimited Astra-powered Dots for launch?"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.30",
+          "weekday": "周三",
+          "time": "14:53",
+          "text": "2026.09.30（周三）14:53",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.29",
+          "weekday": "周二",
+          "time": "23:53",
+          "text": "2026.09.29（周二）23:53",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2105188957437002208",
+      "account": "thsottiaux",
+      "text": "Don’t ask",
+      "createdAt": "2026-09-30T06:52:14.000Z",
+      "url": "https://x.com/thsottiaux/status/2105188957437002208",
+      "reasons": [
+        "上下文：回复 @ChrisGPT「I called my Dot and it took a while …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "ChrisGPT",
+        "id": "",
+        "text": "I called my Dot and it took a while for her to pickup…? Who was she talking to??"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.30",
+          "weekday": "周三",
+          "time": "14:52",
+          "text": "2026.09.30（周三）14:52",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.29",
+          "weekday": "周二",
+          "time": "23:52",
+          "text": "2026.09.29（周二）23:52",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2105178959327756396",
+      "account": "thsottiaux",
+      "text": "What’s up dot",
+      "createdAt": "2026-09-30T06:12:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2105178959327756396",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.30",
+          "weekday": "周三",
+          "time": "14:12",
+          "text": "2026.09.30（周三）14:12",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.29",
+          "weekday": "周二",
+          "time": "23:12",
+          "text": "2026.09.29（周二）23:12",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2105176545304436942",
+      "account": "thsottiaux",
+      "text": "Rennie and Benny are unstoppable",
+      "createdAt": "2026-09-30T06:02:55.000Z",
+      "url": "https://x.com/thsottiaux/status/2105176545304436942",
+      "reasons": [
+        "上下文：回复 @rennsong「i’m now doing all of my engineering …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "rennsong",
+        "id": "",
+        "text": "i’m now doing all of my engineering work through my dot (benny) - it’s incredibly responsive, routes and delegates work across threads and cloud environments, and keeps track of all of my various tasks for me while proactively following up and pushing them forward. just now my"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.30",
+          "weekday": "周三",
+          "time": "14:02",
+          "text": "2026.09.30（周三）14:02",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.29",
+          "weekday": "周二",
+          "time": "23:02",
+          "text": "2026.09.29（周二）23:02",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2105176198469087516",
+      "account": "thsottiaux",
+      "text": "Glad you like it, I agree it’s better than the others out there. Also, if you could redirect to the right site instead of committing a felony, that would be extra nice.",
+      "createdAt": "2026-09-30T06:01:32.000Z",
+      "url": "https://x.com/thsottiaux/status/2105176198469087516",
+      "reasons": [
+        "命中「新额度」类词 fresh/new/top up",
+        "上下文：回复 @fildotai「so cool! try it here: https:// dot.c…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "fildotai",
+        "id": "",
+        "text": "so cool! try it here: https:// dot.com"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.30",
+          "weekday": "周三",
+          "time": "14:01",
+          "text": "2026.09.30（周三）14:01",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.29",
+          "weekday": "周二",
+          "time": "23:01",
+          "text": "2026.09.29（周二）23:01",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 1,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2105175197821399122",
+      "account": "thsottiaux",
+      "text": "Your mental model is wrong. Your dot might be busy, just like you sometimes are.",
+      "createdAt": "2026-09-30T05:57:34.000Z",
+      "url": "https://x.com/thsottiaux/status/2105175197821399122",
+      "reasons": [
+        "含发布/宣传语境（下调置信度）",
+        "上下文：回复 @neuroswish「why do dots have read receipts. like…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "neuroswish",
+        "id": "",
+        "text": "why do dots have read receipts. like why are they just straight up copying the imessage UI without any thought to whether any of these details even make sense it's an on-demand ai chatbot ofc it's going to read my message as soon as I send it. what tf else could it be doing"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.30",
+          "weekday": "周三",
+          "time": "13:57",
+          "text": "2026.09.30（周三）13:57",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.29",
+          "weekday": "周二",
+          "time": "22:57",
+          "text": "2026.09.29（周二）22:57",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2105174607439544669",
+      "account": "thsottiaux",
+      "text": "You get it. It’s a little dot that could.",
+      "createdAt": "2026-09-30T05:55:13.000Z",
+      "url": "https://x.com/thsottiaux/status/2105174607439544669",
+      "reasons": [
+        "上下文：回复 @morganlinton「Very cool, using my Dot to check on …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "morganlinton",
+        "id": "",
+        "text": "Very cool, using my Dot to check on my benchmark running on Claude Code, on my Computer, totally seamless. I could quickly see my Dot becoming a core way I interface with everything on my computer. The more I use it, the more I feel like the differentiator is going to be both"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.30",
+          "weekday": "周三",
+          "time": "13:55",
+          "text": "2026.09.30（周三）13:55",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.29",
+          "weekday": "周二",
+          "time": "22:55",
+          "text": "2026.09.29（周二）22:55",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2105173168281506088",
+      "account": "thsottiaux",
+      "text": "Yes, check email",
+      "createdAt": "2026-09-30T05:49:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2105173168281506088",
+      "reasons": [
+        "上下文：回复 @kr0der「i randomly saw that i have 62,393 cr…」",
+        "被回复的推文含额度语境（本条无延续语气，不借意图）"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "kr0der",
+        "id": "",
+        "text": "i randomly saw that i have 62,393 credits in Codex so i checked how much $ that would cost normally 25,000 credits is $1.5k AUD so this is about $3.7k AUD (~$2.5k USD) thanks OpenAI for the free credits (is this due to the $200 plan change?) and also the extra banked reset 🫡"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.30",
+          "weekday": "周三",
+          "time": "13:49",
+          "text": "2026.09.30（周三）13:49",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.29",
+          "weekday": "周二",
+          "time": "22:49",
+          "text": "2026.09.29（周二）22:49",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2105172665095069886",
+      "account": "thsottiaux",
+      "text": "Well said",
+      "createdAt": "2026-09-30T05:47:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2105172665095069886",
+      "reasons": [
+        "上下文：回复 @NicolasZu「As openAI. Here is how I would have …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "NicolasZu",
+        "id": "",
+        "text": "As openAI. Here is how I would have communicated. “We are about to announce a new model, near Astra performance at 1/10th the price and 3 times faster. Because of this, usage across the board will increase dramatically for all. We’ll use this as an opportunity to bring the"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.09.30",
+          "weekday": "周三",
+          "time": "13:47",
+          "text": "2026.09.30（周三）13:47",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.09.29",
+          "weekday": "周二",
+          "time": "22:47",
+          "text": "2026.09.29（周二）22:47",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
       "id": "2105141623315374507",
       "account": "thsottiaux",
       "text": "Outfluffed",
       "createdAt": "2026-09-30T03:44:09.000Z",
       "url": "https://x.com/thsottiaux/status/2105141623315374507",
       "reasons": [
-        "上下文：回复 @frantzfries「Can't believe they outappled apple…」"
+        "上下文：回复 @NicolasZu「As openAI. Here is how I would have …」"
       ],
       "viaContext": false,
       "inReplyTo": {
-        "account": "frantzfries",
+        "account": "NicolasZu",
         "id": "",
-        "text": "Can't believe they outappled apple"
+        "text": "As openAI. Here is how I would have communicated. “We are about to announce a new model, near Astra performance at 1/10th the price and 3 times faster. Because of this, usage across the board will increase dramatically for all. We’ll use this as an opportunity to bring the"
       },
       "createdZones": {
         "a": {
@@ -6657,12 +6998,12 @@
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 162,
+    "scanned": 171,
     "explicit": 0,
     "occurred": 3,
     "hint": 26,
-    "none": 127,
-    "rejected": 127
+    "none": 136,
+    "rejected": 136
   },
   "truncated": false
 }
