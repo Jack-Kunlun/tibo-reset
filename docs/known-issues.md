@@ -615,3 +615,102 @@ if (a.level !== 'explicit' || !isExpiredForecast(a)) return a;   // 修复前
 **教训三：恒绿的对照断言要一起写。** 「过期就撤」极易做过头成「一律不展示」，
 而这种错误在真实数据上**看不出来**（当前恰好没有未来线索，页面一样是空的）。
 所以每组都配了反向用例：窗口还在未来 + 期间无重置 → 必须保留。
+
+---
+
+### KI-012 完成句式只认单数：`Reset all propagated` 判对，`Resets …` 被静默丢掉
+
+**状态**：已修复（2026-09-30）。修法在 `src/lib/signals.mjs` 的两处词表；回归用例见
+`scripts/test-signals.mjs` 第 11 组。
+
+**发现方式**：修 KI-011 时顺手全库扫「形状像已完成」的推文 —— 不是用户报的，是扫出来的。
+
+**根因**：两个正则叠加，缺一不可。
+
+```js
+// ① RE_PAST 不认复数：主语是「Reset(s)」这个事件名词，单复数全看他当天怎么写
+/\breset\s+(?:all\s+)?(?:propagated|…)\b/          // 修复前
+// ② RE_FUTURE_PERFECT 的尾巴不要求任何词 —— 任何 `will be …` 都能否决整条
+/\b(?:will|shall|going\s+to|gonna)\s+(?:have|be)\b/   // 修复前
+```
+
+**受害推文**：`2103911959544610829`「**Resets** all propagated. That **will be** all.
+Have a fantastic weekend.」（09-27 02:17 北京）—— ①② 同时命中，两处都拦。
+对照组 `2098685367058612394`「**Reset** all propagated. Sweet dreams.」（09-12）一直判对，
+**只差一个 s**。
+
+**后果**：它既不是 `occurred`、又会作为「过期预告」被撤走 → 两条链路都不认它。页面被
+上游历史层兜住（「最近记录」标的仍是「普通重置」），只有信号层的「已发生」列表少一条 ——
+典型的**静默丢数据**，不改代码永远看不出来。
+
+**修法**：`RE_PAST` 的 `reset` 改 `resets?`；`RE_FUTURE_PERFECT` 要求 `have` / `be`
+之后必须落到 reset 上（可隔一个副词）：
+
+```js
+const RE_PAST = /\bresets?\s+(?:all\s+)?(?:propagated|…)\b|…|\bresets?\s+(?:has|have)\b/i;
+const RE_FUTURE_PERFECT =
+  /\b(?:will|shall|going\s+to|gonna)\s+(?:have|be)\s+(?:(?:been|now|also|then|fully|all|already)\s+)*reset(?:s|ting)?\b/i;
+```
+
+**影响面**（旧版 vs 新版逐条 diff 全库 171 条）：
+
+| 项 | 旧 | 新 |
+|---|---|---|
+| level 发生变化的推文 | — | **1 条**（就是它：`explicit` → `occurred`） |
+| `counts.occurred` | 3 | 4 |
+| 其余各档 | — | 不变 |
+
+**教训一：判据要按「形状」写，不按他某天恰好用的那个写法。** 单数/复数不会报错，
+只会少一条数据。凡是句子主语可能是「事件名词」的词表，都该写成 `s?`。
+
+**教训二：词表里「不要求任何词」是一个隐式的万能匹配。** `RE_FUTURE_PERFECT` 里
+`(?:have|be)` 后面不接内容，等于给所有 `will be …` 的句子（含「That will be all」
+这类收尾寒暄）发了一张否决票。收紧它之所以安全，是因为「未来语气」那层有 `RE_FUTURE`
+兜底 —— 先确认兜底存在，再收紧。
+
+**教训三：修完要逐条 diff 全库，不是只验那一条。** 只跑定点用例的话，「改动有没有
+波及别处」这件事没有任何证据。做法是把改动前的模块 copy 一份到同目录（保住相对 import），
+让新旧两份同时 import 进来对跑。
+
+---
+
+### KI-013 展示类脚本漏传 `lastResetAt`、漏给 `LOGO_URI`
+
+**状态**：已修复（2026-09-30）。回归用例见 `scripts/test-signals.mjs` 第 11 组
+（「每个调用点都传了 lastResetAt」）。
+
+**共同形状**：**生产路径给了，旁边的展示类脚本没给** —— 结果是「本地产物显示的状态」
+与「真实系统里的状态」不一致，而脚本本身不报错。
+
+| # | 位置 | 漏了什么 | 症状 |
+|---|---|---|---|
+| 1 | `scripts/preview-miniprogram.mjs` | `lastResetAt` | 已兑现的预告被显示成**仍然有效**的预告 |
+| 2 | `scripts/make-prototype.mjs` | `lastResetAt` | 同上（原型页是拿去评审的，等于给评审看一个真实系统不会出现的状态） |
+| 3 | `scripts/make-prototype.mjs` | `LOGO_URI` | 模板占位符留着 → `injectTokens` 抛错 → **一个页面都产不出** |
+
+**证据（第 1 条，同一份数据、同一时刻）**：
+
+```
+不传 lastResetAt → level=explicit, forecasts=1  (窗口 2026-09-28T07:00Z → 10-05T06:59Z)
+传   lastResetAt → level=occurred, forecasts=0
+```
+
+修前 `npm run preview:mp` 的产物正显示「明确信号 · 本周 · 9.28 起」，
+同一时刻快照里 `explicit: 0 / forecasts: 0`。
+
+**第 3 条是既有缺陷**，与本次信号修复无关 —— 用 HEAD 版本跑同样报
+`存在未替换的占位符：<!--__LOGO_URI__-->`。`renderAll` 不产出这个键，它由
+`renderPage` 事后补上（品牌标内联成 data URI）；直接调 `renderAll` 的调用方必须自己补。
+
+**教训：这类「参数漏传」缺陷，行为断言守不住 —— 要用文本扫描守调用点。**
+行为断言只能守住你已经知道要测的那条路径，**新写的调用点照样恒绿**。
+所以第 11 组直接扫 `src/lib` / `scripts` / `server` 下所有 `detectSignals(` 调用点，
+要求每个都带 `lastResetAt`（测试文件按 `test-` 前缀豁免）。
+
+这条扫描**当场就抓出两处我没预料到的漏传**（`make-prototype.mjs`、以及一处传空数组的
+测试）。配套还要有一条「扫描确实扫到了 ≥3 处调用点」的自证断言 —— 否则扫描本身写错时
+（比如正则不匹配），那条守卫会恒真。
+
+**副作用**：`scripts/test-collect-warning.mjs` 传的是空数组（无信号可判），
+按 `test-` 前缀整体豁免，不再逐个判断。
+
