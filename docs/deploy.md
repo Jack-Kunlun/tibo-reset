@@ -128,6 +128,7 @@ docker run -d --restart unless-stopped \
 | 选择 | 原因 |
 |---|---|
 | `--network edge_network` | **必须**。网关容器在这张网里，配置里是 `proxy_pass http://tibo-reset:8787`（按**容器名**找，不走宿主端口）。不在同一张网里，`nginx -t` 会直接报 `host not found in upstream "tibo-reset"` |
+| ↑ ⚠ **2026-09-30 更正** | 这张网的**实际名字不是** `edge_network` —— 线上容器在 `petcare_petcare-network`（网关容器同理，叫 `petcare-edge-gateway`）。本文件里的 `edge_network` / `edge-gateway` 是首次部署时的称呼，后来随主站 compose 项目改名了。**重建容器前先读一次** `docker inspect <旧容器> \| grep -A1 NetworkMode`，别照抄这里的名字 |
 | `--restart unless-stopped` | 沿用目标机现有约定（那台机器上其他容器都这么写）。语义上比 `always` 更合意：手工停掉的容器不该在重启后又自己起来 |
 | `--log-opt max-size=10m --log-opt max-file=3` | 长期跑会被 json-file 日志慢慢撑爆盘（默认无上限） |
 | `-p 127.0.0.1:8787:8787` | 只绑回环。公网入口只有 Nginx 的 443，容器端口不直接暴露 |
@@ -431,6 +432,43 @@ curl -s https://reset.example.com/ | grep -o 'id="gen"[^<]*<[^>]*>[^<]*' | head 
 **接口改不了它**。结果是页面上的数字早就翻新了，而分享到微信/群里时卡片上还是上一次
 构建时的数字 —— 实测踩到过：页面已是 0.29 天，卡片仍印着 10.1 天。
 「数据变了不用重新部署」成立，「想让分享卡片跟上」不成立。
+
+### 6.1 没有文件通道时的应急路径（已实测走通一次）
+
+上面那两条命令的前提是**本机能 scp 到服务器**。本机与服务器之间的 SSH 目前是
+`Permission denied (publickey,password)`（`authorized_keys` 为空，见第七节），
+而服务器**完全没有出网** —— 所以「58 MB 镜像」这条路是断的。
+
+但**只改代码**时不需要传镜像。实测走通的路径是：**把 diff 送进去 → 就地补上 → `docker commit` → 换容器**。
+
+| 步 | 在哪 | 做什么 |
+|---|---|---|
+| 1 | 本机 | `git diff <镜像基线> HEAD -- src/lib/x.mjs \| gzip -9 \| base64 -w1900` 切块 |
+| 2 | 本机 | 先确认**基线**：`git show <基线>:<文件>` 的 sha256 必须等于容器里那份的 sha256 |
+| 3 | 服务器 | 分块 `printf '%s' '<块>' >> /root/tibo-fix/p.b64`（**只转移 base64**，绕开引号/中文的转义问题） |
+| 4 | 服务器 | `base64 -d … > p.diff.gz` → `gunzip` → `sha256sum` 与**本机同一文件的哈希逐字节比对** |
+| 5 | 服务器 | `docker cp <容器>:/app/src/lib/x.mjs <工作区>/` → `patch -s -p1 -d <工作区> < p.diff` → 再比一次 sha256 |
+| 6 | 服务器 | `docker cp` 回容器，`docker exec <容器> sha256sum` 第三次比对 |
+| 7 | 服务器 | `docker stop` → `docker rename <旧> <旧>-prev` → `docker commit <旧> tibo-reset:amd64-<后缀>` |
+| 8 | 服务器 | `docker run -d …`（参数照抄 `docker inspect`，见下）→ `docker ps` 看 `(healthy)` |
+| 9 | 服务器 | `docker exec petcare-edge-gateway nginx -s reload`（容器名不变但 IP 变了，见下） |
+| 10 | 本机 | 拉 `/api/state` 确认新逻辑生效、`chart.count` 与推送前一致（数据卷没丢） |
+
+几处**实测踩到**的细节，下一次直接照做：
+
+| 坑 | 事实 |
+|---|---|
+| 网络名不是 `edge_network` | 线上容器实际在 `petcare_petcare-network`。**别照抄本文档第二节**，用 `docker inspect <容器>` 读 `NetworkMode` |
+| `tibo-reset-prev` 可能已存在 | 上一轮更新留下的回滚点还占着名字，`docker rename` 会 `Conflict`。先把旧的改名（如 `-prev-<日期>`）腾出名字 |
+| `docker rename` 失败时容器已经 stop 了 | `docker stop` 先成功、`rename` 后失败 → **站点处于宕机状态**，必须立刻继续（先 `docker commit`，再腾名字、再 run）。别停下来分析 |
+| 容器代号要换新 tag | 别覆盖 `tibo-reset:amd64` —— 那个 tag 是「本机构建的正式产物」的位置，被 commit 结果顶掉后，事后无从分辨线上跑的是手工补丁还是构建产物 |
+| **只改代码时该传哪些文件** | 先查依赖：`grep -rn "from '../src/lib/" server/*.mjs`。本次只有 `signals.mjs` 是服务端**请求期**真正执行的（`collect.mjs` / `browser.mjs` 只在采集路径用，而容器 `COLLECT_INTERVAL_MIN=0`）。**混着传一半文件**（新 `collect.mjs` + 旧 `browser.mjs`）反而会造出一条从没验过的组合 |
+| `dist/` **不在此路径的覆盖范围** | OG 分享图与兜底 HTML 只在构建期产出，`docker commit` 带不出新的。按 D-026 这属于**已接受的滞后**，等下次跑完整的镜像流程（需要 SSH）再刷新 |
+| 事后能自证 | `/api/state` 的返回就是新逻辑的产物；本次改用例里那条「窗口已撤回」的痕迹（`windowExpired.why="past"`）在线上直接看得到 |
+
+⚠ `docker commit` 会把容器的环境变量一起写进新镜像（含 `INGEST_TOKEN`）。所以第 8 步
+**照样要传 `--env-file /srv/tibo.env`**：显式传参让「凭据来自哪个文件」这件事留在命令里，
+而不是藏在镜像层里。
 
 ### 改代码的完整动作
 
