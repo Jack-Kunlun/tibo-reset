@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>等 TIBO 按按钮 · 额度重置观测台</title>
 <meta name="description" content="Codex 额度重置的观测台：距上次重置多久、还要等多久、以及 Tibo 有没有提前预告。" />
+<!-- 图标走独立文件、不用 data URI 内联：浏览器抓 favicon 的时机早于页面渲染，
+     且 Safari 对 data: 图标的支持长期不稳定。两个 png 由 scripts/build.mjs 拷进 dist/。 -->
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+<meta name="theme-color" content="#FAF8F4" />
 <meta property="og:type" content="website" />
 <meta property="og:locale" content="zh_CN" />
 <meta property="og:site_name" content="额度重置观测台" />
@@ -37,13 +42,21 @@
   /* ---------- 顶栏 ---------- */
   header.top{
     display:flex;align-items:center;justify-content:space-between;gap:16px;
-    padding:26px 0 22px;border-bottom:1px solid var(--line);
+    padding:20px 0 16px;border-bottom:1px solid var(--line);
   }
   .brand{display:flex;align-items:baseline;gap:12px}
+  /* 品牌标。源图是**不透明黑底**的方形图，这里只加圆角裁切与极轻投影，不做抠底 ——
+     图形本体是白色描边，抠掉黑底等于把线一起抹掉。圆角把「黑方块」变成「App 图标」。 */
+  .brand-logo{
+    width:32px;height:32px;flex:0 0 auto;display:block;align-self:center;
+    border-radius:9px;box-shadow:0 1px 3px rgba(31,30,27,.18);
+  }
   .brand h1{font-size:19px;margin:0;font-weight:650;letter-spacing:.02em}
   .brand .sub{font-size:12px;color:var(--mist);letter-spacing:.14em;text-transform:uppercase;font-family:var(--mono)}
   .pulse{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink2);
     background:var(--paper2);border:1px solid var(--line);padding:5px 12px;border-radius:99px;white-space:nowrap}
+  /* 「观测中」后面是每秒走的钟点。不用等宽数字的话，秒位一跳整块胶囊就左右晃。 */
+  .pulse #upd{font-variant-numeric:tabular-nums}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--bamboo);box-shadow:0 0 0 0 rgba(95,132,85,.5);animation:bp 2.4s infinite}
   @keyframes bp{0%{box-shadow:0 0 0 0 rgba(95,132,85,.45)}70%{box-shadow:0 0 0 8px rgba(95,132,85,0)}100%{box-shadow:0 0 0 0 rgba(95,132,85,0)}}
 
@@ -67,8 +80,13 @@
   .cwarn-l li{margin:2px 0}
 
   /* ---------- 信号横幅 ---------- */
+  /* 尺寸整体收过两轮：这不是审美问题，是首屏问题 —— 预告卡每高 1px，
+     下面的倒计时就往下 1px。第一轮（D-018）为放下 4 条依据推文收了 ~70px；
+     第二轮（D-019）为放下「距窗口开启」这条倒数条又收了 21px。实测 1280×720
+     视口下倒计时底部从 712px 回到 691px，重新拿到 29px 余量。
+     两轮的详细数字都记在 decisions.md 里。 */
   .sig{
-    margin-top:26px;padding:20px 22px;border-radius:14px;
+    margin-top:12px;padding:14px 20px;border-radius:14px;
     border:1px solid rgba(179,86,60,.34);border-left:4px solid var(--cinnabar);
     background:linear-gradient(180deg,rgba(179,86,60,.075),rgba(179,86,60,.02));
   }
@@ -76,20 +94,44 @@
     border-color:rgba(63,115,118,.32);border-left-color:var(--lan);
     background:linear-gradient(180deg,rgba(63,115,118,.07),rgba(63,115,118,.02));
   }
-  .sig-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  /* 多条预告并排时给彼此留出间距 */
+  .sig + .sig{margin-top:16px}
+  .sig-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}
   .sig-badge{font-size:11.5px;letter-spacing:.1em;padding:3px 11px;border-radius:99px;
     background:var(--cinnabar);color:#fff}
   .sig[data-level="hint"] .sig-badge{background:var(--lan)}
   .sig-title{font-size:16px;font-weight:650}
   .sig-precision{font-size:12px;color:var(--mist);margin-left:auto}
+  /* ---------- 距窗口开启 ---------- */
+  /* 挂在窗口块上方。注意页首那个跳动的数字是「距上一次重置」——**往回看**的；
+     往前看的这个此前只在小程序里有，网页端根本没有（见 decisions.md 的 D-019）。
+     标签里挂**北京时间的锚点**：只给一个跳动的数字、不写它数到哪一刻，
+     读的人没法核对，那正是「你这时间也不对啊」的来源。
+     卷轴样式直接复用页首那套（.grp / .reel / .reels 都是全局类），
+     同一种数字只该有一种动法。 */
+  .sig-cd{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+    margin:0 0 8px;padding:8px 14px;border-radius:10px;
+    background:var(--card);border:1px solid var(--line)}
+  .cd-cap{font-size:11.5px;letter-spacing:.1em;color:var(--mist);flex:0 0 auto}
+  .cd-anchor{font-family:var(--mono);font-size:11.5px;color:var(--ink2);flex:0 0 auto}
+  /* 数字排在最后一行、靠右 —— 与页首的大倒计时拉开主次：那个是主角，这个是注脚。 */
+  .cd-row{display:flex;align-items:baseline;margin-left:auto;
+    font-family:var(--mono);font-variant-numeric:tabular-nums;
+    font-size:26px;line-height:1;font-weight:300;letter-spacing:-.01em}
+  .cd-over{display:none;margin-left:auto;font-size:12.5px;color:var(--cinnabar);font-weight:600}
+  .sig-cd[data-over="1"] .cd-row{display:none}
+  .sig-cd[data-over="1"] .cd-over{display:block}
+  .cd-row .unit{font-size:.45em;line-height:1;color:var(--mist);
+    margin:0 9px 0 5px;letter-spacing:.06em;font-weight:400}
+  .cd-row .grp:last-child .unit{margin-right:0}
   .sig-win{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
-    border-radius:10px;overflow:hidden;margin-bottom:14px}
+    border-radius:10px;overflow:hidden;margin-bottom:9px}
   .sw{display:grid;grid-template-columns:104px 1fr auto;gap:12px;align-items:baseline;
-    background:var(--card);padding:12px 15px}
+    background:var(--card);padding:10px 14px}
   .sw-k{font-size:12px;color:var(--mist)}
   .sw-v{font-family:var(--mono);font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
   .sw-z{font-family:var(--mono);font-size:11.5px;color:var(--mist);white-space:nowrap}
-  .sw-foot{background:var(--card);padding:10px 15px;font-size:12px;color:var(--ink2)}
+  .sw-foot{background:var(--card);padding:8px 14px;font-size:12px;color:var(--ink2)}
   .sig-quote{margin:0 0 12px;padding:13px 16px;background:var(--card);border:1px solid var(--line);
     border-radius:10px;font-size:13.5px;color:var(--ink2);line-height:1.65}
   .sig-meta{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--mist)}
@@ -102,8 +144,55 @@
   .sig-idle-sub{margin-left:auto;font-size:11.5px}
   .sig-dot{width:7px;height:7px;border-radius:50%;background:var(--mist)}
 
+  /* ---------- 预告里的依据推文 ---------- */
+  /* 一条预告 = 一个时间窗口，**支撑它的推文挂在这条预告里面**，不另起一块。
+     旧版把同一个结论拆成「横幅 + 另有 N 条 + 折叠证据」三处，读的人得自己拼；
+     那行「另有 N 条不重复列出」陈述的还是「我做了去重」这个实现细节（见 D-018）。
+     宽屏默认展开 —— 证据是这条预告的可追溯性，不是可选项。但页首堆砌的亏吃过
+     （D-014），所以每条只占两行：元信息一行、原文一行（clamp 到两行），两列并排。
+     窄屏默认收起（见页面脚本）：单列铺开 4 条会把倒计时顶出第一屏，实测
+     390×844 下预告卡高 1152px。收起时「依据 N 条推文」那行仍然可见，
+     归属关系不丢，只是详情要点一下。脚本被禁用时保持展开 —— 退化成「都在」。 */
+  .sig-ev{margin:0 0 10px;border:1px solid var(--line);border-radius:10px;
+    background:var(--paper2);overflow:hidden}
+  .ev-head{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;
+    padding:9px 14px;font-size:12px;color:var(--ink2);cursor:pointer;
+    list-style:none;transition:background .15s ease}
+  .ev-head::-webkit-details-marker{display:none}
+  .ev-head::before{content:"▸";color:var(--mist);font-size:11px;flex:0 0 auto;
+    transition:transform .18s ease}
+  .sig-ev[open] .ev-head{border-bottom:1px solid var(--line)}
+  .sig-ev[open] .ev-head::before{transform:rotate(90deg)}
+  .ev-head:hover{background:rgba(63,115,118,.045)}
+  .ev-head b{color:var(--ink);font-weight:650}
+  .ev-hint{font-size:11.5px;color:var(--mist)}
+  .ev-list{list-style:none;margin:0;padding:9px 14px 11px;display:grid;gap:8px}
+  @media (min-width:760px){.ev-list{grid-template-columns:1fr 1fr;gap:8px 22px}}
+  .ev-item{padding-left:11px;border-left:2px solid var(--mist);min-width:0}
+  .ev-item[data-weight="hard"]{border-left-color:var(--lan)}
+  .ev-top{display:flex;gap:11px;align-items:baseline;flex-wrap:nowrap;
+    font-size:11.5px;color:var(--mist);min-width:0}
+  .ev-when{font-family:var(--mono);font-variant-numeric:tabular-nums;flex:0 0 auto}
+  .ev-tag{font-size:10.5px;letter-spacing:.08em;padding:1px 8px;border-radius:99px;
+    flex:0 0 auto;background:rgba(140,136,128,.16);color:var(--mist)}
+  .ev-tag[data-weight="hard"]{background:rgba(63,115,118,.14);color:var(--lan)}
+  /* 来源与时间词允许被压缩：它们短小但会长（「↩ @udiWertheimer」「coming in tuesday」），
+     一旦把这行顶断，「原推 ↗」就被甩到下一行，看起来像另一个条目的东西。
+     压成省略号比换行好 —— 完整值在 title 里，原推里也有。 */
+  .ev-via,.ev-word{flex:0 1 auto;min-width:0;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .ev-via{color:var(--ink2)}
+  .ev-word{font-family:var(--mono);color:var(--ink2)}
+  .ev-flag{font-size:10.5px;color:#8A6A28;flex:0 0 auto}
+  .ev-link{flex:0 0 auto;font-size:11.5px;color:var(--lan);text-decoration:none;
+    border-bottom:1px dotted currentColor;white-space:nowrap}
+  .ev-quote{margin:3px 0 0;font-size:12.5px;color:var(--ink2);line-height:1.5;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
   /* ---------- Hero ---------- */
-  .hero{padding:46px 0 8px;text-align:center}
+  /* padding 从 46px 收到 30px，理由同 .sig 那一段：倒计时是这一页的主角，
+     它必须在第一屏完整可见（实测口径：counter 的底部 ≤ 视口高度）。 */
+  .hero{padding:30px 0 8px;text-align:center}
   .hero .label{font-size:12px;letter-spacing:.2em;color:var(--mist);text-transform:uppercase;font-family:var(--mono)}
 
   /* 逐位卷动：每一位是一个 0–9 的竖条，靠 translateY 滚动。
@@ -113,7 +202,7 @@
     display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;
     font-family:var(--mono);font-variant-numeric:tabular-nums;
     font-size:clamp(38px,8.4vw,84px);line-height:1;font-weight:300;
-    letter-spacing:-.01em;margin:20px 0 8px;
+    letter-spacing:-.01em;margin:15px 0 8px;
   }
   .grp{display:inline-flex;align-items:baseline}
   .reels{display:inline-flex;align-items:baseline;position:relative;top:var(--reel-nudge)}
@@ -198,6 +287,10 @@
   .ph .pm{font-family:var(--mono);font-size:16px;color:var(--ink);text-align:right}
   .ph .pm small{font-size:.62em;color:var(--mist);margin-left:2px}
   .ph .pn{grid-column:2 / 4;font-size:11px;color:var(--mist)}
+  /* 预测区末尾的告警条：样式留用，当前**无产出方**。
+     原先这里放的是模型自评（样本量少 → 估计不稳、校准偏离、外推偏保守），
+     已按 AGENTS.md 文案红线第 2 条移除，改由表格里的数字承担披露（第 3 条）。
+     别看到样式还在就以为它有内容。 */
   .fc-warn{list-style:none;margin:16px 0 0;padding:0}
   .fc-warn li{font-size:12.5px;color:#8A6A28;background:rgba(179,86,60,.05);
     border:1px solid rgba(179,86,60,.22);border-radius:10px;padding:11px 15px;margin-bottom:9px}
@@ -240,10 +333,21 @@
     .fc{grid-template-columns:1fr}
     .fc-meta{grid-template-columns:1fr}
     .fc-main .v{font-size:42px}
-    .sw{grid-template-columns:1fr;gap:2px}
-    .sw-z{margin-bottom:4px}
+    .sw{grid-template-columns:1fr auto;gap:2px 10px;padding:9px 12px}
+    /* 窄屏把「时区」提到标签同一行、值独占整行：堆三行时窗口块要 311px，
+       而它是预告卡里最高的一块（实测 390×844）。 */
+    .sw-k{grid-column:1;grid-row:1}
+    .sw-z{grid-column:2;grid-row:1;text-align:right;margin-bottom:0}
+    .sw-v{grid-column:1/-1;grid-row:2;font-size:13.5px}
+    /* 窄屏下面窄，硬压成一行会把来源和时间词都截秃；这里允许换行，
+       链接紧跟在前一个元素后面（不再靠右），换行也不会看成另一条。 */
+    .ev-top{flex-wrap:wrap}
     .sig-precision{margin-left:0}
     .sig-idle-sub{margin-left:0}
+    /* 倒数条在窄屏必然换行（「距窗口开启」+ 锚点 + 数字挤不进一行）。
+       换行后数字独占一行，`margin-left:auto` 会把它推到最右、看起来像掉队，
+       所以窄屏改成整行居中。 */
+    .cd-row{margin-left:0;width:100%;justify-content:center}
     .counter .unit{margin:0 8px 0 6px}
   }
 </style>
@@ -259,34 +363,38 @@
 
   <header class="top">
     <div class="brand">
+      <img class="brand-logo" src="data:image/png;base64,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" alt="" width="32" height="32" />
       <h1>等 TIBO 按按钮</h1>
       <span class="sub">Reset Observatory</span>
     </div>
-    <span class="pulse"><span class="dot"></span>观测中 · <span id="upd">18:00</span></span>
+    <span class="pulse"><span class="dot"></span>观测中 · <span id="upd">23:06:22</span></span>
   </header>
 
   <!-- ============ 采集异常（有异常时才出现） ============ -->
+  
+
+  <!-- ============ 数据陈旧（超过两个采集周期没成功更新时才出现） ============ -->
   
 
   <!-- ============ 信号（有预告时才醒目） ============ -->
   
     <div class="sig-idle">
       <span class="sig-dot"></span>
-      <span>最近 <b>7</b> 条推文中没有检测到重置预告</span>
-      <span class="sig-idle-sub">已扫描 60 天内的公开发言</span>
+      <span>时间窗内 <b>172</b> 条推文中没有检测到重置预告，27 条线索</span>
+<span class="sig-idle-sub">时间窗自 2026.08.01 起 · 共扫 172 条</span>
     </div>
 
   <!-- ============ HERO ============ -->
-  <div class="hero" id="hero" data-last="2026-09-12T08:09:17.000Z" data-lastlabel="2026.09.12 16:09">
+  <div class="hero" id="hero" data-last="2026-09-29T19:00:00.000Z" data-lastlabel="2026.09.30 03:00">
     <div class="label">距上一次额度重置</div>
-    <div class="counter" id="counter"><span class="grp" data-g="d"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-9em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">天</span></span><span class="grp" data-g="h"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-0em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span><span class="reel"><span class="strip" style="transform:translateY(-1em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">时</span></span><span class="grp" data-g="m"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-4em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span><span class="reel"><span class="strip" style="transform:translateY(-4em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">分</span></span><span class="grp" data-g="s"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-0em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span><span class="reel"><span class="strip" style="transform:translateY(-0em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">秒</span></span></div>
-    <div class="since" id="since">上次重置 2026.09.12 16:09 · 已过 9 天</div>
-    <div class="verdict v-long"><b>明显偏久</b> · 历史上 17% 的间隔比现在更长</div>
+    <div class="counter" id="counter"><span class="grp" data-g="d"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-0em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">天</span></span><span class="grp" data-g="h"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-2em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span><span class="reel"><span class="strip" style="transform:translateY(-0em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">时</span></span><span class="grp" data-g="m"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-0em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span><span class="reel"><span class="strip" style="transform:translateY(-6em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">分</span></span><span class="grp" data-g="s"><span class="reels"><span class="reel"><span class="strip" style="transform:translateY(-2em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span><span class="reel"><span class="strip" style="transform:translateY(-2em)"><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i></span></span></span><span class="unit">秒</span></span></div>
+    <div class="since" id="since">上次重置 2026.09.30 03:00 · 已过 不足一天</div>
+    <div class="verdict v-calm"><b>仍在常规节奏内</b> · 历史上 96% 的间隔比现在更长</div>
   </div>
 
   <div class="metrics"><div class="metric">
     <div class="k">平均间隔</div>
-    <div class="v">6.9<small>天</small></div>
+    <div class="v">6.7<small>天</small></div>
     <div class="note">被极端值拉高</div>
   </div><div class="metric hi">
     <div class="k">中位间隔</div>
@@ -298,15 +406,15 @@
     <div class="note">极端长尾</div>
   </div><div class="metric">
     <div class="k">记录总数</div>
-    <div class="v">53</div>
+    <div class="v">57</div>
     <div class="note">2025.09.17 起</div>
   </div><div class="metric">
     <div class="k">普通重置</div>
-    <div class="v">50</div>
+    <div class="v">51</div>
     <div class="note">额度直给</div>
   </div><div class="metric">
     <div class="k">发券型</div>
-    <div class="v">3</div>
+    <div class="v">6</div>
     <div class="note">改成给券</div>
   </div></div>
 
@@ -317,34 +425,34 @@
     </div>
     
     <p class="fc-asof">
-      计算于 <b>2026.09.21 17:53</b> 北京时间（距上次重置 9.07 天）
+      计算于 <b>2026.09.30 23:06</b> 北京时间（距上次重置 0.84 天）
     </p>
 
     <div class="fc">
       <div class="fc-main">
         <div class="k">中位剩余等待</div>
-        <div class="v">1.3<small>天</small></div>
+        <div class="v">1.9<small>天</small></div>
         <div class="range">
-          约 32 小时 · 80% 区间 <b>0.1 – 6.9</b> 天
+          约 45 小时 · 80% 区间 <b>1.1 – 7.5</b> 天
         </div>
       </div>
       <div class="fc-bars">
         <div class="fc-bar">
       <span class="lb">24 小时内</span>
-      <span class="track"><i style="width:27.5%"></i></span>
-      <span class="pv">27.5%</span>
+      <span class="track"><i style="width:20.3%"></i></span>
+      <span class="pv">20.3%</span>
     </div><div class="fc-bar">
       <span class="lb">3 天内</span>
-      <span class="track"><i style="width:61.9%"></i></span>
-      <span class="pv">61.9%</span>
+      <span class="track"><i style="width:67.8%"></i></span>
+      <span class="pv">67.8%</span>
     </div><div class="fc-bar">
       <span class="lb">7 天内</span>
-      <span class="track"><i style="width:88.1%"></i></span>
-      <span class="pv">88.1%</span>
+      <span class="track"><i style="width:87.3%"></i></span>
+      <span class="pv">87.3%</span>
     </div><div class="fc-bar">
       <span class="lb">14 天内</span>
-      <span class="track"><i style="width:98.1%"></i></span>
-      <span class="pv">98.1%</span>
+      <span class="track"><i style="width:99.2%"></i></span>
+      <span class="pv">99.2%</span>
     </div><div class="fc-bar">
       <span class="lb">30 天内</span>
       <span class="track"><i style="width:100.0%"></i></span>
@@ -366,13 +474,13 @@
           </tr>
           <tr>
             <td>80% 分位覆盖率</td>
-            <td class="num good">86.7%</td>
+            <td class="num good">80.8%</td>
             <td>校准良好</td>
           </tr>
           <tr>
             <td>7 天区分度</td>
             <td class="num bad">≈ 无区分力</td>
-            <td>Brier 0.210 / 盲猜 0.205</td>
+            <td>Brier 0.205 / 盲猜 0.200</td>
           </tr>
         </table>
       </div>
@@ -381,26 +489,26 @@
         <h3>节奏在加速</h3>
         <div class="ph">
       <span class="pi">第 1 段</span>
-      <span class="pt">2025.09.17 → 2026.04.28</span>
-      <span class="pm">12.39<small>天</small></span>
-      <span class="pn">n=18 · 最大 68 天</span>
+      <span class="pt">2025.09.17 → 2026.05.17</span>
+      <span class="pm">12.71<small>天</small></span>
+      <span class="pn">n=19 · 最大 68 天</span>
     </div><div class="ph">
       <span class="pi">第 2 段</span>
-      <span class="pt">2026.04.28 → 2026.07.26</span>
-      <span class="pm">4.92<small>天</small></span>
-      <span class="pn">n=18 · 最大 19 天</span>
+      <span class="pt">2026.05.17 → 2026.07.29</span>
+      <span class="pm">3.86<small>天</small></span>
+      <span class="pn">n=19 · 最大 14 天</span>
     </div><div class="ph">
       <span class="pi">第 3 段</span>
-      <span class="pt">2026.07.26 → 2026.09.12</span>
-      <span class="pm">3.03<small>天</small></span>
-      <span class="pn">n=16 · 最大 8 天</span>
+      <span class="pt">2026.07.29 → 2026.09.30</span>
+      <span class="pm">3.48<small>天</small></span>
+      <span class="pn">n=18 · 最大 10 天</span>
     </div>
         <p class="fc-foot">
-          平均间隔从 12.4 天降到 3.0 天。
+          平均间隔从 12.7 天降到 3.5 天。
         </p>
       </div>
     </div>
-    <ul class="fc-warn"><li>训练样本仅 19 次事件，长尾估计不稳定</li><li>节奏处于明显加速期，任何历史外推都会偏保守（高估等待时间）</li></ul>
+    
   
   </section>
 
@@ -408,7 +516,7 @@
   <section>
     <div class="head">
       <h2>等待生存曲线</h2>
-      <span class="hint">n = 52 次历史间隔</span>
+      <span class="hint">n = 56 次历史间隔</span>
     </div>
     <p class="lede">
       纵轴是「到第 X 天为止，历史上百分之多少的重置已经发生」。曲线越陡，说明节奏越集中；
@@ -434,15 +542,15 @@
 <text x="639.71" y="292" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">10</text>
 <text x="874" y="292" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">14</text>
 <text x="464" y="314" fill="#8C8880" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="middle">距上次重置的天数</text>
-<path d="M 54 274 L 83.07 274 L 83.07 269.15 L 104.25 269.15 L 104.25 264.31 L 105.27 264.31 L 105.27 259.46 L 111.98 259.46 L 111.98 254.62 L 115 254.62 L 115 249.77 L 115.23 249.77 L 115.23 244.92 L 116.12 244.92 L 116.12 240.08 L 116.9 240.08 L 116.9 235.23 L 126.64 235.23 L 126.64 230.38 L 133.69 230.38 L 133.69 225.54 L 146.05 225.54 L 146.05 220.69 L 150.58 220.69 L 150.58 215.85 L 158.03 215.85 L 158.03 211 L 160.59 211 L 160.59 206.15 L 169.28 206.15 L 169.28 201.31 L 171.73 201.31 L 171.73 196.46 L 172.52 196.46 L 172.52 191.62 L 173.97 191.62 L 173.97 186.77 L 176.23 186.77 L 176.23 181.92 L 180.84 181.92 L 180.84 177.08 L 181.25 177.08 L 181.25 172.23 L 190.35 172.23 L 190.35 167.38 L 203.01 167.38 L 203.01 162.54 L 219.28 162.54 L 219.28 157.69 L 228.23 157.69 L 228.23 152.85 L 232.87 152.85 L 232.87 148 L 242.38 148 L 242.38 143.15 L 251.71 143.15 L 251.71 138.31 L 262.21 138.31 L 262.21 133.46 L 280.26 133.46 L 280.26 128.62 L 284.1 128.62 L 284.1 123.77 L 294.38 123.77 L 294.38 118.92 L 303.43 118.92 L 303.43 114.08 L 361.34 114.08 L 361.34 109.23 L 371.24 109.23 L 371.24 104.38 L 443.06 104.38 L 443.06 99.54 L 469.84 99.54 L 469.84 94.69 L 479.19 94.69 L 479.19 89.85 L 481.36 89.85 L 481.36 85 L 505.36 85 L 505.36 80.15 L 510.8 80.15 L 510.8 75.31 L 548.67 75.31 L 548.67 70.46 L 579.91 70.46 L 579.91 65.62 L 634.2 65.62 L 634.2 60.77 L 638.7 60.77 L 638.7 55.92 L 873.36 55.92 L 873.36 51.08 L 874 51.08 L 874 274 L 54 274 Z" fill="url(#g0)"/>
-<path d="M 54 274 L 83.07 274 L 83.07 269.15 L 104.25 269.15 L 104.25 264.31 L 105.27 264.31 L 105.27 259.46 L 111.98 259.46 L 111.98 254.62 L 115 254.62 L 115 249.77 L 115.23 249.77 L 115.23 244.92 L 116.12 244.92 L 116.12 240.08 L 116.9 240.08 L 116.9 235.23 L 126.64 235.23 L 126.64 230.38 L 133.69 230.38 L 133.69 225.54 L 146.05 225.54 L 146.05 220.69 L 150.58 220.69 L 150.58 215.85 L 158.03 215.85 L 158.03 211 L 160.59 211 L 160.59 206.15 L 169.28 206.15 L 169.28 201.31 L 171.73 201.31 L 171.73 196.46 L 172.52 196.46 L 172.52 191.62 L 173.97 191.62 L 173.97 186.77 L 176.23 186.77 L 176.23 181.92 L 180.84 181.92 L 180.84 177.08 L 181.25 177.08 L 181.25 172.23 L 190.35 172.23 L 190.35 167.38 L 203.01 167.38 L 203.01 162.54 L 219.28 162.54 L 219.28 157.69 L 228.23 157.69 L 228.23 152.85 L 232.87 152.85 L 232.87 148 L 242.38 148 L 242.38 143.15 L 251.71 143.15 L 251.71 138.31 L 262.21 138.31 L 262.21 133.46 L 280.26 133.46 L 280.26 128.62 L 284.1 128.62 L 284.1 123.77 L 294.38 123.77 L 294.38 118.92 L 303.43 118.92 L 303.43 114.08 L 361.34 114.08 L 361.34 109.23 L 371.24 109.23 L 371.24 104.38 L 443.06 104.38 L 443.06 99.54 L 469.84 99.54 L 469.84 94.69 L 479.19 94.69 L 479.19 89.85 L 481.36 89.85 L 481.36 85 L 505.36 85 L 505.36 80.15 L 510.8 80.15 L 510.8 75.31 L 548.67 75.31 L 548.67 70.46 L 579.91 70.46 L 579.91 65.62 L 634.2 65.62 L 634.2 60.77 L 638.7 60.77 L 638.7 55.92 L 873.36 55.92 L 873.36 51.08 L 874 51.08" fill="none" stroke="#3F7376" stroke-width="2" stroke-linejoin="round"/>
-<path d="M 874 51.08 L 874 22" fill="none" stroke="#B3563C" stroke-width="1.8" stroke-dasharray="4 4"/>
+<path d="M 54 274 L 63.33 274 L 63.33 269.5 L 83.07 269.5 L 83.07 265 L 104.25 265 L 104.25 260.5 L 105.27 260.5 L 105.27 256 L 111.98 256 L 111.98 251.5 L 115 251.5 L 115 247 L 115.23 247 L 115.23 242.5 L 116.12 242.5 L 116.12 238 L 116.9 238 L 116.9 233.5 L 126.64 233.5 L 126.64 229 L 133.69 229 L 133.69 224.5 L 146.05 224.5 L 146.05 220 L 150.58 220 L 150.58 215.5 L 158.03 215.5 L 158.03 211 L 160.59 211 L 160.59 206.5 L 169.28 206.5 L 169.28 202 L 171.73 202 L 171.73 197.5 L 172.52 197.5 L 172.52 193 L 173.97 193 L 173.97 188.5 L 176.23 188.5 L 176.23 184 L 180.84 184 L 180.84 179.5 L 181.25 179.5 L 181.25 175 L 190.35 175 L 190.35 170.5 L 203.01 170.5 L 203.01 166 L 219.28 166 L 219.28 161.5 L 222.09 161.5 L 222.09 157 L 228.23 157 L 228.23 152.5 L 232.87 152.5 L 232.87 148 L 242.38 148 L 242.38 143.5 L 251.71 143.5 L 251.71 139 L 262.21 139 L 262.21 134.5 L 280.26 134.5 L 280.26 130 L 284.1 130 L 284.1 125.5 L 288.05 125.5 L 288.05 121 L 294.38 121 L 294.38 116.5 L 303.43 116.5 L 303.43 112 L 361.34 112 L 361.34 107.5 L 371.24 107.5 L 371.24 103 L 443.06 103 L 443.06 98.5 L 469.84 98.5 L 469.84 94 L 479.19 94 L 479.19 89.5 L 481.36 89.5 L 481.36 85 L 505.36 85 L 505.36 80.5 L 510.8 80.5 L 510.8 76 L 548.67 76 L 548.67 71.5 L 579.91 71.5 L 579.91 67 L 634.2 67 L 634.2 62.5 L 638.7 62.5 L 638.7 58 L 664.7 58 L 664.7 53.5 L 873.36 53.5 L 873.36 49 L 874 49 L 874 274 L 54 274 Z" fill="url(#g0)"/>
+<path d="M 54 274 L 63.33 274 L 63.33 269.5 L 83.07 269.5 L 83.07 265 L 104.25 265 L 104.25 260.5 L 105.27 260.5 L 105.27 256 L 111.98 256 L 111.98 251.5 L 115 251.5 L 115 247 L 115.23 247 L 115.23 242.5 L 116.12 242.5 L 116.12 238 L 116.9 238 L 116.9 233.5 L 126.64 233.5 L 126.64 229 L 133.69 229 L 133.69 224.5 L 146.05 224.5 L 146.05 220 L 150.58 220 L 150.58 215.5 L 158.03 215.5 L 158.03 211 L 160.59 211 L 160.59 206.5 L 169.28 206.5 L 169.28 202 L 171.73 202 L 171.73 197.5 L 172.52 197.5 L 172.52 193 L 173.97 193 L 173.97 188.5 L 176.23 188.5 L 176.23 184 L 180.84 184 L 180.84 179.5 L 181.25 179.5 L 181.25 175 L 190.35 175 L 190.35 170.5 L 203.01 170.5 L 203.01 166 L 219.28 166 L 219.28 161.5 L 222.09 161.5 L 222.09 157 L 228.23 157 L 228.23 152.5 L 232.87 152.5 L 232.87 148 L 242.38 148 L 242.38 143.5 L 251.71 143.5 L 251.71 139 L 262.21 139 L 262.21 134.5 L 280.26 134.5 L 280.26 130 L 284.1 130 L 284.1 125.5 L 288.05 125.5 L 288.05 121 L 294.38 121 L 294.38 116.5 L 303.43 116.5 L 303.43 112 L 361.34 112 L 361.34 107.5 L 371.24 107.5 L 371.24 103 L 443.06 103 L 443.06 98.5 L 469.84 98.5 L 469.84 94 L 479.19 94 L 479.19 89.5 L 481.36 89.5 L 481.36 85 L 505.36 85 L 505.36 80.5 L 510.8 80.5 L 510.8 76 L 548.67 76 L 548.67 71.5 L 579.91 71.5 L 579.91 67 L 634.2 67 L 634.2 62.5 L 638.7 62.5 L 638.7 58 L 664.7 58 L 664.7 53.5 L 873.36 53.5 L 873.36 49 L 874 49" fill="none" stroke="#3F7376" stroke-width="2" stroke-linejoin="round"/>
+<path d="M 874 49 L 874 22" fill="none" stroke="#B3563C" stroke-width="1.8" stroke-dasharray="4 4"/>
 <text x="866" y="29.56" fill="#B3563C" font-size="11.5" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="end" font-weight="400">6 次长于 14 天（最长 67.7 天）</text>
 <line x1="237.62" y1="22" x2="237.62" y2="274" stroke="#8C8880" stroke-width="1" stroke-dasharray="2 5" opacity="0.7"/>
 <text x="237.62" y="14" fill="#8C8880" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="middle">中位 3.1 天</text>
-<line x1="585.37" y1="22" x2="585.37" y2="274" stroke="#1F1E1B" stroke-width="1" stroke-dasharray="3 4" opacity="0.45"/>
-<circle cx="585.37" cy="65.62" r="6" fill="#FAF8F4" stroke="#1F1E1B" stroke-width="2.5"/>
-<text x="597.37" y="51.62" fill="#4A4842" font-size="11.5" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' font-weight="600">现在 · 83%</text></svg></div>
+<line x1="103.07" y1="22" x2="103.07" y2="274" stroke="#1F1E1B" stroke-width="1" stroke-dasharray="3 4" opacity="0.45"/>
+<circle cx="103.07" cy="265" r="6" fill="#FAF8F4" stroke="#1F1E1B" stroke-width="2.5"/>
+<text x="115.07" y="251" fill="#4A4842" font-size="11.5" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' font-weight="600">现在 · 4%</text></svg></div>
     </div>
   </section>
 
@@ -489,52 +597,56 @@
 <text x="824" y="312" fill="#8C8880" font-size="11" font-family='ui-monospace,SFMono-Regular,Menlo,monospace' text-anchor="middle">14</text>
 <text x="439" y="334" fill="#8C8880" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="middle">间隔天数</text>
 <line x1="54" y1="170" x2="824" y2="170" stroke="#E4DFD5" stroke-width="1"/>
-<circle cx="81.3" cy="122" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="101.19" cy="134" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="102.15" cy="146" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="108.45" cy="158" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="111.28" cy="170" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="111.5" cy="182" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="112.33" cy="194" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="113.07" cy="206" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="122.21" cy="218" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="128.83" cy="122" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="140.44" cy="134" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="144.7" cy="146" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="151.69" cy="158" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="154.09" cy="170" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="162.25" cy="182" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="164.55" cy="194" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="165.29" cy="206" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="166.65" cy="218" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="168.78" cy="122" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="173.1" cy="134" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="173.49" cy="146" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="182.03" cy="158" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="193.93" cy="170" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="209.2" cy="182" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="217.61" cy="194" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="221.96" cy="206" r="4.8" fill="#3F7376" opacity="0.85"/>
-<circle cx="230.9" cy="218" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="239.66" cy="122" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="249.51" cy="134" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="266.47" cy="146" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="270.07" cy="158" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="279.73" cy="170" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="288.22" cy="182" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="342.6" cy="194" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="351.9" cy="206" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="419.34" cy="218" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="444.48" cy="122" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="453.26" cy="134" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="455.3" cy="146" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="477.83" cy="158" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="482.94" cy="170" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="518.51" cy="182" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="547.84" cy="194" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="598.82" cy="206" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="603.05" cy="218" r="4.8" fill="#8C8880" opacity="0.85"/>
-<circle cx="823.4" cy="122" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="62.76" cy="122" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="81.3" cy="134" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="101.19" cy="146" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="102.15" cy="158" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="108.45" cy="170" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="111.28" cy="182" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="111.5" cy="194" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="112.33" cy="206" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="113.07" cy="218" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="122.21" cy="122" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="128.83" cy="134" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="140.44" cy="146" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="144.7" cy="158" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="151.69" cy="170" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="154.09" cy="182" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="162.25" cy="194" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="164.55" cy="206" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="165.29" cy="218" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="166.65" cy="122" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="168.78" cy="134" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="173.1" cy="146" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="173.49" cy="158" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="182.03" cy="170" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="193.93" cy="182" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="209.2" cy="194" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="211.84" cy="206" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="217.61" cy="218" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="221.96" cy="122" r="4.8" fill="#3F7376" opacity="0.85"/>
+<circle cx="230.9" cy="134" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="239.66" cy="146" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="249.51" cy="158" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="266.47" cy="170" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="270.07" cy="182" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="273.78" cy="194" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="279.73" cy="206" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="288.22" cy="218" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="342.6" cy="122" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="351.9" cy="134" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="419.34" cy="146" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="444.48" cy="158" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="453.26" cy="170" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="455.3" cy="182" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="477.83" cy="194" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="482.94" cy="206" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="518.51" cy="218" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="547.84" cy="122" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="598.82" cy="134" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="603.05" cy="146" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="627.46" cy="158" r="4.8" fill="#8C8880" opacity="0.85"/>
+<circle cx="823.4" cy="170" r="4.8" fill="#8C8880" opacity="0.85"/>
 <line x1="844" y1="137.5" x2="844" y2="202.5" stroke="#B3563C" stroke-width="1" opacity="0.45"/>
 <circle cx="844" cy="137.5" r="4.8" fill="none" stroke="#B3563C" stroke-width="1.8"/>
 <circle cx="844" cy="150.5" r="4.8" fill="none" stroke="#B3563C" stroke-width="1.8"/>
@@ -545,9 +657,9 @@
 <text x="62" y="56" fill="#B3563C" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif'>另有 6 次超过 14 天（最长 67.7 天），单独排在右侧</text>
 <line x1="226.43" y1="46" x2="226.43" y2="294" stroke="#8C8880" stroke-width="1" stroke-dasharray="2 5" opacity="0.7"/>
 <text x="226.43" y="36" fill="#8C8880" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="middle">中位 3.1 天</text>
-<line x1="552.97" y1="42" x2="552.97" y2="302" stroke="#1F1E1B" stroke-width="1.5" stroke-dasharray="3 4"/>
-<circle cx="552.97" cy="42" r="3" fill="#1F1E1B"/>
-<text x="552.97" y="30" fill="#4A4842" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="middle" font-weight="600">现在 9.1 天</text></svg></div>
+<line x1="100.08" y1="42" x2="100.08" y2="302" stroke="#1F1E1B" stroke-width="1.5" stroke-dasharray="3 4"/>
+<circle cx="100.08" cy="42" r="3" fill="#1F1E1B"/>
+<text x="100.08" y="30" fill="#4A4842" font-size="11" font-family='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif' text-anchor="middle" font-weight="600">现在 0.8 天</text></svg></div>
       <div class="legend">
         <span><i style="background:#3F7376"></i>常规间隔</span>
         <span><i style="background:#8C8880"></i>偏长间隔</span>
@@ -564,6 +676,40 @@
       <span class="hint">原文可追溯</span>
     </div>
     <div class="card" style="padding:6px 20px"><ul class="tl"><li>
+      <div class="when"><b>2026.09.30</b>03:00 北京</div>
+      <div class="body">
+        <span class="tag c">发券型</span>
+        <p>@theo Shhhhhh</p>
+        <a href="https://x.com/thsottiaux/status/2105120226027450685" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li><li>
+      <div class="when"><b>2026.09.29</b>23:10 北京</div>
+      <div class="body">
+        <span class="tag c">发券型</span>
+        <p>I’ll explain the new Pro 200 plan differently, before I start live tweeting from DevDay on things that are going out! Today we are going to ship a number of things that increase what you can do across the Plus and Pro plans. A lot of compute is online for this increase. As we increase the floor, we are changing the relative difference between plans to be Plus = 1X Pro 100 = 5X Pro 200 = 10X and we are reopening subscriptions for Pro 200 (we had paused it). If you have an existing plan you will keep the 20X multiplier for a bit and also receive a lot of additional credits because we know changes are hard even if it means that everyone will get more in the end.</p>
+        <a href="https://x.com/thsottiaux/status/2104951965184925941" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li><li>
+      <div class="when"><b>2026.09.27</b>02:17 北京</div>
+      <div class="body">
+        <span class="tag r">普通重置</span>
+        <p>Resets all propagated. That will be all. Have a fantastic weekend.</p>
+        <a href="https://x.com/thsottiaux/status/2103911959544610829" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li><li>
+      <div class="when"><b>2026.09.23</b>02:23 北京</div>
+      <div class="body">
+        <span class="tag c">发券型</span>
+        <p>GPT-6 Sol and Luna are out. Not only are they a very significant improvement across the board, but also in writing and general "you know when you try it" quality. 
+
+We are also permanently reducing the API price by 50% making both of them viable for a ton of new usecases and making your usage go further too, even on the subscriptions.
+
+And one more thing. We are loading a banked reset into all accounts of our Plus, Pro and Business users. Let's go!
+
+https://t.co/00DRh1sRrO</p>
+        <a href="https://x.com/thsottiaux/status/2102463847714247142" target="_blank" rel="noopener">查看原推 ↗</a>
+      </div>
+    </li><li>
       <div class="when"><b>2026.09.12</b>16:09 北京</div>
       <div class="body">
         <span class="tag r">普通重置</span>
@@ -663,47 +809,13 @@ Happy Thursday</p>
 First of all, we have hit 20M active users for Codex some time this week. Second of all, this is cause for celebration and during the day we will credit every Codex and ChatGPT Work user with a BANKED reset that you can use at your own https://t.co/mooGnI0KJO</p>
         <a href="https://x.com/thsottiaux/status/2090766694897619318" target="_blank" rel="noopener">查看原推 ↗</a>
       </div>
-    </li><li>
-      <div class="when"><b>2026.08.13</b>09:01 北京</div>
-      <div class="body">
-        <span class="tag r">普通重置</span>
-        <p>Old news actually from a bunch of days ago, but crossed that 15M. Enjoy a nice reset everyone. Landing in the next hour or so, go /fast. https://t.co/TFRN2SrpCi</p>
-        <a href="https://x.com/thsottiaux/status/2087706104814023111" target="_blank" rel="noopener">查看原推 ↗</a>
-      </div>
-    </li><li>
-      <div class="when"><b>2026.08.11</b>08:27 北京</div>
-      <div class="body">
-        <span class="tag r">普通重置</span>
-        <p>Hi.
-
-It is done. https://t.co/JRYltKvT0v</p>
-        <a href="https://x.com/thsottiaux/status/2086972802457063486" target="_blank" rel="noopener">查看原推 ↗</a>
-      </div>
-    </li><li>
-      <div class="when"><b>2026.08.09</b>04:29 北京</div>
-      <div class="body">
-        <span class="tag r">普通重置</span>
-        <p>That's right, GPT-5.6 Sol is awesome and can be used pretty much anywhere, including in the CC harness. 
-
-To celebrate this, together with the fact that I'm not going anywhere... I have reset usage limits for all paid users of ChatGPT Work and Codex. 
-
-Have fun out there! https://t.co/2rtjtOxFt0</p>
-        <a href="https://x.com/thsottiaux/status/2086188036493344823" target="_blank" rel="noopener">查看原推 ↗</a>
-      </div>
-    </li><li>
-      <div class="when"><b>2026.08.01</b>11:32 北京</div>
-      <div class="body">
-        <span class="tag r">普通重置</span>
-        <p>To celebrate a week of efficiency and let you run 100'000 Luna threads this weekend... that's right... wait for it... I have reset usage limits for Codex and ChatGPT Work.
-
-Enjoy.</p>
-        <a href="https://x.com/thsottiaux/status/2083395449814229287" target="_blank" rel="noopener">查看原推 ↗</a>
-      </div>
     </li></ul></div>
   </section>
 
   <footer>
-    <div>数据：公开推文记录，每 30 分钟自动采集 · 最近一次采集 <span id="gen">2026.09.20 18:00</span> 北京</div>
+    <!-- 刻意不写采集频率：读者要知道的是「数据多新」，那个由后面的时刻回答。
+         频率是内部信息，写在这里只会变成一个需要跟着改、还可能说错的数字。 -->
+    <div>数据：公开推文记录，自动采集 · 最近一次采集 <span id="gen">2026.09.30 21:50</span> 北京</div>
     <div>由 <a href="#">山风岚自起</a> 建造</div>
   </footer>
 </div>
@@ -713,74 +825,74 @@ Enjoy.</p>
      校验：scripts/check-consistency.mjs -->
 <script type="application/json" id="data-digest">{
   "schema": 1,
-  "builtAt": "2026-09-21T09:53:17.306Z",
-  "dataUpdatedAt": "2026-09-20T10:00:57.170Z",
-  "lastResetAt": "2026-09-12T08:09:17.000Z",
-  "records": 53,
-  "sinceDays": 9.07222576388889,
-  "coverageRatio": 0.8269230769230769,
+  "builtAt": "2026-09-30T15:06:22.882Z",
+  "dataUpdatedAt": "2026-09-30T13:50:20.773Z",
+  "lastResetAt": "2026-09-29T19:00:00.000Z",
+  "records": 57,
+  "sinceDays": 0.837764837962963,
+  "coverageRatio": 0.03571428571428571,
   "intervals": {
-    "mean": 6.92636774394587,
+    "mean": 6.743268022486773,
     "median": 3.135060769675926,
     "longest": 67.74240740740741,
-    "shortest": 0.4963194444444444
+    "shortest": 0.15936342592592592
   },
   "remainingDays": {
-    "q25": 0.08944392119347866,
-    "q50": 1.3483683704514768,
-    "q90": 6.877172710897131
+    "q25": 1.084615963961903,
+    "q50": 1.8829950158289694,
+    "q90": 7.549909053535302
   },
   "horizons": [
     {
       "label": "24 小时内",
-      "p": 0.2753544424526253
+      "p": 0.20341851644452247
     },
     {
       "label": "3 天内",
-      "p": 0.6194805132429533
+      "p": 0.6775765506214151
     },
     {
       "label": "7 天内",
-      "p": 0.8806413739720214
+      "p": 0.8729856019638378
     },
     {
       "label": "14 天内",
-      "p": 0.9806440159318176
+      "p": 0.992363288041053
     },
     {
       "label": "30 天内",
-      "p": 0.9996972997045974
+      "p": 0.9999230339523146
     }
   ],
   "phases": [
     {
       "from": "2025-09-17T04:02:52.000Z",
-      "to": "2026-04-28T05:28:43.000Z",
-      "mean": 12.39220100308642,
-      "n": 18
+      "to": "2026-05-16T17:51:03.000Z",
+      "mean": 12.714480384990255,
+      "n": 19
     },
     {
-      "from": "2026-04-28T05:28:43.000Z",
-      "to": "2026-07-25T19:17:12.000Z",
-      "mean": 4.920851980452675,
-      "n": 18
+      "from": "2026-05-16T17:51:03.000Z",
+      "to": "2026-07-29T04:09:02.000Z",
+      "mean": 3.8646923732943472,
+      "n": 19
     },
     {
-      "from": "2026-07-25T19:17:12.000Z",
-      "to": "2026-09-12T08:09:17.000Z",
-      "mean": 3.0335105613425926,
-      "n": 16
+      "from": "2026-07-29T04:09:02.000Z",
+      "to": "2026-09-29T19:00:00.000Z",
+      "mean": 3.478818158436214,
+      "n": 18
     }
   ],
   "calibration": {
     "n": 120,
     "cov50": 0.5,
-    "cov80": 0.8666666666666667
+    "cov80": 0.8083333333333333
   },
   "skill": {
-    "brier": 0.20954700774582397,
-    "baseline": 0.20480607524118083,
-    "score": -0.023148397815153654
+    "brier": 0.20499802397501318,
+    "baseline": 0.20000059135020415,
+    "score": -0.024987089243443616
   }
 }</script>
 
@@ -788,18 +900,70 @@ Enjoy.</p>
      属于可选增强：脚本被禁用时数字依然正确，只是不再跳动。 -->
 <script>
 (function () {
-  var hero = document.getElementById('hero');
-  if (!hero || !hero.dataset.last) return;
-  var last = new Date(hero.dataset.last).getTime();
-  if (isNaN(last)) return;
-
   var DAY = 86400000;
   var REEL = '';
   for (var d = 0; d < 10; d++) REEL += '<i>' + d + '</i>';
   var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+
+  // ① 距上一次重置（页首）。往回看的那条。
+  var hero = document.getElementById('hero');
+  var last = hero && hero.dataset.last ? new Date(hero.dataset.last).getTime() : NaN;
   var counter = document.getElementById('counter');
   var since = document.getElementById('since');
-  var groups = counter.querySelectorAll('.grp');
+  var heroGroups = counter ? counter.querySelectorAll('.grp') : null;
+  var heroOk = Number.isFinite(last) && heroGroups && heroGroups.length === 4;
+
+  // ② 距窗口开启（预告卡内）。往前看的那条 —— 网页端此前根本没有它。
+  //    不写成独立的 IIFE：用一个 `if (hero) return` 开头的老写法，会让
+  //    页首一旦缺元素就连带把这块也关掉，两块倒计时不该互相牵连。
+  var cds = [];
+  var cdNodes = document.querySelectorAll('.sig-cd');
+  for (var n = 0; n < cdNodes.length; n++) {
+    var row = cdNodes[n].querySelector('.cd-row');
+    var from = Number(cdNodes[n].dataset.from);
+    if (!row || !isFinite(from)) continue;
+    cds.push({ el: cdNodes[n], row: row, from: from, groups: row.querySelectorAll('.grp') });
+  }
+
+  // ③ 右上角「观测中 · HH:MM:SS」—— 显示**当前北京时间**，跟着真实时钟走。
+  //    必须显式指定时区：浏览器可能在任何时区，读本机时钟会显示错的时间。
+  //    不取数据采集时刻：那是「数据多新」，页脚已写着「最近一次采集 ⋯」，
+  //    放这里既是重复，又因为「观测中」是现在进行时，会被读成「现在几点」——
+  //    看到两小时前的数字就以为页面停更了。
+  var upd = document.getElementById('upd');
+  var bjClock = null;
+  if (upd && typeof Intl !== 'undefined' && Intl.DateTimeFormat) {
+    try {
+      bjClock = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Shanghai',
+        hourCycle: 'h23',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+    } catch (e) {
+      // 极老的运行时可能不认 timeZone。宁可保留静态兜底值，也不显示错的时间。
+      bjClock = null;
+    }
+  }
+
+  // ④ 数据陈旧：数据超过两个采集周期没有**成功**更新时，把这件事说出来。
+  //    容器由服务端渲染（承载 data-at / data-stale-after），未超阈值时带 hidden，
+  //    构建那一刻就已陈旧的话服务端连 hidden 都不给 —— 脚本被禁用也看得见。
+  //    这里只负责两件事：后来才超阈值时去掉 hidden、把「距今多久」填上。
+  //    ⚠ 它与「数据采集异常」横幅**互斥**：errors 非空时服务端根本不输出这个容器，
+  //    所以找不到元素就什么都不做，而不是自己再造一条相似提示。
+  var cstale = document.getElementById('cstale');
+  var cstaleAge = document.getElementById('cstale-age');
+  var freshAt = cstale && cstale.dataset.at ? Date.parse(cstale.dataset.at) : NaN;
+  var staleAfterMs = cstale ? Number(cstale.dataset.staleAfter) * 60000 : NaN;
+  var freshOk = isFinite(freshAt) && isFinite(staleAfterMs) && staleAfterMs > 0;
+
+  // 距今多久。数据已经陈旧到这个程度，小时比分钟更有信息量；过了一天就换成天。
+  function fmtAge(ms) {
+    var h = ms / 3600000;
+    return h < 24 ? h.toFixed(1) + ' 小时' : (h / 24).toFixed(1) + ' 天';
+  }
 
   function setGroup(grp, str) {
     var box = grp.querySelector('.reels');
@@ -832,25 +996,93 @@ Enjoy.</p>
     }
   }
 
+  function parts(ms) {
+    return {
+      d: Math.floor(ms / DAY),
+      h: Math.floor((ms % DAY) / 3600000),
+      m: Math.floor((ms % 3600000) / 60000),
+      s: Math.floor((ms % 60000) / 1000),
+    };
+  }
+
   function tick() {
-    var ms = Date.now() - last;
-    if (ms < 0) return;
-    var d = Math.floor(ms / DAY);
-    var h = Math.floor((ms % DAY) / 3600000);
-    var mi = Math.floor((ms % 3600000) / 60000);
-    var s = Math.floor((ms % 60000) / 1000);
-    if (groups.length === 4) {
-      setGroup(groups[0], String(d));
-      setGroup(groups[1], pad(h));
-      setGroup(groups[2], pad(mi));
-      setGroup(groups[3], pad(s));
+    var now = Date.now();
+
+    // ③ 当前北京时间。与两块倒数共用同一次 tick，不额外开定时器。
+    if (bjClock) upd.textContent = bjClock.format(now);
+
+    // ④ 数据陈旧。年龄是分钟级变化，但仍然挂在同一次 tick 上，不另开定时器。
+    if (freshOk) {
+      var age = now - freshAt;
+      if (age > staleAfterMs) {
+        if (cstale.hidden) cstale.hidden = false;
+        if (cstaleAge) cstaleAge.textContent = '，距今 ' + fmtAge(age);
+      }
     }
-    since.textContent =
-      '上次重置 ' + hero.dataset.lastlabel + ' · 已过 ' + (d < 1 ? '不足一天' : d + ' 天');
+
+    if (heroOk) {
+      var ms = now - last;
+      if (ms >= 0) {
+        var p = parts(ms);
+        setGroup(heroGroups[0], String(p.d));
+        setGroup(heroGroups[1], pad(p.h));
+        setGroup(heroGroups[2], pad(p.m));
+        setGroup(heroGroups[3], pad(p.s));
+        since.textContent =
+          '上次重置 ' + hero.dataset.lastlabel + ' · 已过 ' + (p.d < 1 ? '不足一天' : p.d + ' 天');
+      }
+    }
+
+    for (var i = 0; i < cds.length; i++) {
+      var c = cds[i];
+      var left = c.from - now;
+      // 窗口开了就换成一行文字。继续数「负数」只会变成没有意义的读数；
+      // 而「已开启」这件事本身是有信息量的：重置随时可能落地。
+      if (left <= 0) {
+        if (c.el.dataset.over !== '1') c.el.dataset.over = '1';
+        continue;
+      }
+      if (c.el.dataset.over !== '0') c.el.dataset.over = '0';
+      if (c.groups.length !== 4) continue;
+      var q = parts(left);
+      setGroup(c.groups[0], String(q.d));
+      setGroup(c.groups[1], pad(q.h));
+      setGroup(c.groups[2], pad(q.m));
+      setGroup(c.groups[3], pad(q.s));
+    }
   }
 
   tick();
   setInterval(tick, 1000);
+})();
+
+/* 窄屏默认收起「依据 N 条推文」。
+   证据挂在这条预告里面是个**结构**问题，跟屏宽无关；能不能一眼看到 4 条是
+   排版问题 —— 窄屏单列铺开 4 条会把倒计时顶出第一屏（实测 390×844 下预告卡
+   高 1152px，倒计时落到 1238px）。所以窄屏折一下：摘要行「依据 4 条推文 ·
+   2 条承诺 · 2 条同日提及」照常可见，归属关系不丢，详情点一下。
+   ⚠ 这里只负责窄屏收起，**不负责展开** —— HTML 里本来就带 open，
+      脚本被禁用/报错时页面退化成「全部展开」，内容一条都不会少。 */
+(function () {
+  var boxes = document.querySelectorAll('details.sig-ev');
+  if (!boxes.length) return;
+  var mq = window.matchMedia('(max-width: 759px)');
+
+  function sync() {
+    for (var i = 0; i < boxes.length; i++) {
+      if (boxes[i].dataset.kept) continue; // 用户自己动过，就不跟屏宽抢了
+      boxes[i].open = !mq.matches;
+    }
+  }
+
+  for (var i = 0; i < boxes.length; i++) {
+    var sum = boxes[i].querySelector('summary');
+    if (sum) sum.addEventListener('click', function () { this.parentNode.dataset.kept = '1'; });
+  }
+
+  sync();
+  if (mq.addEventListener) mq.addEventListener('change', sync);
+  else if (mq.addListener) mq.addListener(sync);
 })();
 </script>
 </body>
