@@ -10,6 +10,7 @@
 import config from '../../config.js';
 import { loadState, snapshotState } from '../../utils/api.js';
 import { copyText } from '../../utils/clipboard.js';
+import { indexShareTitle, isSinglePage } from '../../utils/share.js';
 import { buildGauge, buildSignal, buildMetrics, buildForecast } from '../../utils/view.js';
 import { survivalScene, stripScene } from '../../utils/scene.js';
 import { drawScene, setupCanvas } from '../../utils/draw.js';
@@ -42,6 +43,8 @@ Page({
     account: 'thsottiaux',
     degraded: false,
     notice: '',
+    /** 分享到朋友圈的单页模式：禁用的组件/接口要在模板里让位（见 utils/share.js） */
+    singlePage: false,
     remind: {
       show: false,
       title: '重置发生时提醒我',
@@ -60,6 +63,9 @@ Page({
     this._timer = null;
     this._painting = false;
     this._reminding = false;
+    // 单页模式判断要**在 initRemind 之前**完成 —— 它决定 F9 入口显不显示
+    // （单页模式无登录态，wx.login 不可用，提醒链路整条走不通）。
+    this.setData({ singlePage: isSinglePage() });
     this.initRemind();
     // 首屏先铺内置快照，**不等网络** —— 接口回来再覆盖（见 utils/api.js 的三级降级）。
     //
@@ -269,7 +275,10 @@ Page({
       on = false; // 存储不可用就按未开启处理：提醒是增强，不该拖垮首屏
     }
     this.setRemind({
-      show: subscribeAvailable(),
+      // 单页模式下不给入口：`subscribeOnce` 第一步是 wx.login 换 code，
+      // 而单页模式没有登录态，点了必然失败 —— 宁可没有入口，
+      // 也不摆一个点下去只会弹错的按钮（同 subscribeTemplateId 为空时的处理）。
+      show: subscribeAvailable() && !this.data.singlePage,
       label: on ? DONE_LABEL : ACTION_LABEL,
       state: on ? 'on' : 'idle',
       // 上一次的结果提示不该跟着重来一遍
@@ -353,5 +362,50 @@ Page({
     const fromItem = e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.url;
     const url = fromItem || (this.data.signal && this.data.signal.url);
     copyText(url);
+  },
+
+  /* ------------------------------ 分享 ------------------------------ */
+
+  /**
+   * 发送给朋友。
+   *
+   * **定义了它，右上角菜单才出现「转发」**（官方文档原话），不定义则整个分享
+   * 入口都不存在。这也是「分享到朋友圈」的前置条件 —— 官方要求页面先支持
+   * 「发送给朋友」，才允许被分享到朋友圈。
+   *
+   * 不传 `imageUrl`，走微信的**默认截图**。这是刻意选的：
+   *   · 网页端的 `dist/og-image.png` 是 1200×630（比例 1.905），而小程序分享图
+   *     是 5:4（1.25）—— 比例差得远，直接复用会被裁成中间一条。
+   *   · 改用网络图要额外配 `downloadFile` 合法域名，等于再添一处「没配就静默
+   *     失败」的地方（和 request 域名同类问题，不弹错、最难查）。
+   *   · 默认截图截到的正是品牌区 + 当前状态，对这一页反而最贴切。
+   */
+  onShareAppMessage() {
+    return {
+      title: this.shareTitle(),
+      path: '/pages/index/index',
+    };
+  },
+
+  /**
+   * 分享到朋友圈（基础库 2.11.3+）。
+   *
+   * ⚠ **不支持自定义页面路径**（官方限制），所以这里只有 title —— 朋友圈点开的
+   *   必然是当前这一页，也正因为如此，页面必须自己适配单页模式（见 share.js）。
+   *
+   * ⚠ 这个入口能不能出现，还取决于小程序在后台是否具备该能力（与微信认证状态
+   *   有关，代码侧判断不了）。不具备时按钮不出现而已、不会报错，所以两处都写上
+   *   不亏：缺的那半边不影响「发送给朋友」。
+   *
+   * ⚠ 不要为此去调 `wx.showShareMenu({menus:[...]})`：那个 `menus` 参数官方标注
+   *   为 Beta 且**暂只 Android 支持**，定义了本函数才是跨平台生效的判据。
+   */
+  onShareTimeline() {
+    return { title: this.shareTitle() };
+  },
+
+  /** 两处分享共用同一份标题，避免同一页在「发好友」与「发朋友圈」里说法不一致 */
+  shareTitle() {
+    return indexShareTitle({ signal: this.data.signal, lastAt: this.lastAt });
   },
 });

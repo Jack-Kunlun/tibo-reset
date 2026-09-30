@@ -79,6 +79,11 @@ function makeWx(record) {
     },
     getWindowInfo: () => ({ pixelRatio: 3 }),
     getSystemInfoSync: () => ({ pixelRatio: 3 }),
+    // 单页模式判断用（utils/share.js）。两个接口**分开打桩**，因为语义不同：
+    // getEnterOptionsSync 反映「这一次」怎么进来，getLaunchOptionsSync 只反映冷启动
+    // 那一次。混用一个值就测不出「先自己打开、再从朋友圈点回来」这条最常见的路径。
+    getEnterOptionsSync: () => ({ scene: record.enterScene }),
+    getLaunchOptionsSync: () => ({ scene: record.launchScene }),
     setStorageSync: (k, v) => storage.set(k, v),
     getStorageSync: (k) => storage.get(k),
     removeStorageSync: (k) => storage.delete(k),
@@ -157,6 +162,10 @@ const wxRecord = {
   toasts: [],
   clipboardFails: false,
   clipboardErr: null,
+  // 进入场景值。undefined = 宿主没给（模拟老基础库）
+  enterScene: 1001,
+  /** 冷启动场景值。默认 1001（正常打开）—— 与 enterScene 分开才测得出语义差异 */
+  launchScene: 1001,
 };
 globalThis.wx = makeWx(wxRecord);
 
@@ -885,6 +894,203 @@ console.log('\n【12】复制原推链接（隐私接口，失败必须有反馈
       !CALL.test(srcHistory) &&
       CALL.test(srcClip),
     `index: copy=${/copyText\(/.test(srcIndex)} raw=${CALL.test(srcIndex)} / history: copy=${/copyText\(/.test(srcHistory)} raw=${CALL.test(srcHistory)}`
+  );
+}
+
+/* ------------- 13. 分享：标题口径 / 单页模式适配 / 页面真的接上了 ------------- */
+
+console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
+
+{
+  const { indexShareTitle, historyShareTitle, isSinglePage } = await import(
+    resolve(ROOT, 'miniprogram/utils/share.js')
+  );
+
+  const T0 = Date.parse('2026-09-30T12:00:00.000Z'); // 北京 20:00
+  const day = 86400000;
+
+  /* ---- 13a. 首页标题两态 ---- */
+
+  const fcTitle = indexShareTitle({
+    signal: { show: true, level: 'explicit', headline: { big: '周二', sub: '9.29 · 全天' } },
+    lastAt: T0 - 3 * day,
+    now: T0,
+  });
+  check('明确预告 → 预告句式且带上星期', fcTitle === 'Tibo 预告：周二可能重置额度', fcTitle);
+
+  // ⚠ 本节的核心反例。`view.js` 的 signalView 给**线索档也挂 headline**，
+  // 所以「有没有 headline」不足以区分预告与线索 —— 只看它就会把旁证说成承诺。
+  const hintTitle = indexShareTitle({
+    signal: { show: true, level: 'hint', headline: { big: '周二', sub: '9.29 · 全天' } },
+    lastAt: T0 - 3 * day,
+    now: T0,
+  });
+  check('线索档不得套用预告句式（hint 从来不是承诺）', !/预告/.test(hintTitle), hintTitle);
+  check('线索档退回「等了多久」', hintTitle === '距上次重置 3 天，还在等', hintTitle);
+
+  check(
+    '无预告 → 讲已等天数',
+    indexShareTitle({ signal: { show: false }, lastAt: T0 - 5 * day, now: T0 }) ===
+      '距上次重置 5 天，还在等',
+    indexShareTitle({ signal: { show: false }, lastAt: T0 - 5 * day, now: T0 })
+  );
+  check(
+    '不足一天 → 「不足一天」（与页首 sinceText 同一档说法）',
+    indexShareTitle({ signal: { show: false }, lastAt: T0 - 3600_000, now: T0 }) ===
+      '距上次重置 不足一天，还在等',
+    indexShareTitle({ signal: { show: false }, lastAt: T0 - 3600_000, now: T0 })
+  );
+  check(
+    '什么状态都没有 → 兜底标题（不是 undefined，也不写「没检测到」）',
+    indexShareTitle({}) === '等 TIBO 按按钮 · 额度重置观测台' &&
+      indexShareTitle() === '等 TIBO 按按钮 · 额度重置观测台',
+    indexShareTitle()
+  );
+  check(
+    'lastAt 非法值不产出生造的天数',
+    [0, null, undefined, NaN].every(
+      (v) =>
+        indexShareTitle({ signal: { show: false }, lastAt: v, now: T0 }) ===
+        '等 TIBO 按按钮 · 额度重置观测台'
+    )
+  );
+
+  // 微信分享卡片标题只有一行，超长会截断
+  const titles = [
+    fcTitle,
+    hintTitle,
+    indexShareTitle({ signal: { show: false }, lastAt: T0 - 12 * day, now: T0 }),
+    indexShareTitle({}),
+    historyShareTitle({ count: 29, mean: '8.4' }),
+  ];
+  check(
+    '所有标题控制在 22 字以内',
+    titles.every((t) => t.length <= 22),
+    titles.map((t) => `${t}(${t.length})`).join(' | ')
+  );
+
+  /* ---- 13b. 历史页标题 ---- */
+
+  check(
+    '历史页标题直接用页面那份已格式化的 mean（不重算，免得出两个数）',
+    historyShareTitle({ count: 29, mean: '8.4' }) === '29 次重置 · 平均间隔 8.4 天',
+    historyShareTitle({ count: 29, mean: '8.4' })
+  );
+  check(
+    '无记录 → 兜底标题',
+    historyShareTitle({ count: 0 }) === 'TIBO 额度重置历史' &&
+      historyShareTitle({}) === 'TIBO 额度重置历史'
+  );
+
+  /* ---- 13c. 单页模式判定 ---- */
+
+  wxRecord.enterScene = 1154;
+  check('scene 1154 → 单页模式', isSinglePage() === true);
+
+  wxRecord.enterScene = 1001;
+  check('scene 1001（正常打开）→ 不是单页模式', isSinglePage() === false);
+
+  // ⚠ 最有价值的一条：cold start 是正常打开（1001），本次是从朋友圈点回来（1154）。
+  // 只看 getLaunchOptionsSync 的话这里会判成「不是单页模式」，于是整页适配静默失效 ——
+  // 而这条路径（先自己看过、再从朋友圈点回来）恰恰是最常见的一种。
+  wxRecord.launchScene = 1001;
+  wxRecord.enterScene = 1154;
+  check('冷启动 1001 + 本次 1154 → 仍判为单页模式（不能只看冷启动值）', isSinglePage() === true);
+  wxRecord.enterScene = 1001;
+
+  wxRecord.enterScene = undefined;
+  check('宿主没给 scene → false（宁可多显示，不要少显示）', isSinglePage() === false);
+
+  // ⚠ 缺 getEnterOptionsSync 时必须退到 getLaunchOptionsSync，而不是直接判 false ——
+  // 后者在老基础库上等于整套适配静默失效，而这是查不出来的那种坏。
+  const savedEnter = wx.getEnterOptionsSync;
+  const savedLaunch = wx.getLaunchOptionsSync;
+  delete wx.getEnterOptionsSync;
+  wxRecord.launchScene = 1154;
+  check('无 getEnterOptionsSync 时退到 getLaunchOptionsSync', isSinglePage() === true);
+  delete wx.getLaunchOptionsSync;
+  check('两个接口都没有 → false，不抛异常', isSinglePage() === false);
+  wx.getEnterOptionsSync = savedEnter;
+  wx.getLaunchOptionsSync = savedLaunch;
+  wxRecord.launchScene = 1001;
+
+  wx.getEnterOptionsSync = () => {
+    throw new Error('boom');
+  };
+  check('接口抛异常 → false，不冒泡（不能把页面带崩）', isSinglePage() === false);
+  wx.getEnterOptionsSync = savedEnter;
+  wxRecord.enterScene = 1001;
+
+  /* ---- 13d. 页面真的接上了（纯函数对了但没被调用 = 没做） ---- */
+
+  page.data.signal = { show: true, level: 'explicit', headline: { big: '周三' } };
+  check(
+    '首页 shareTitle() 取的是 data.signal（字段接对了）',
+    page.shareTitle() === 'Tibo 预告：周三可能重置额度',
+    page.shareTitle()
+  );
+  page.data.signal = { show: false };
+  page.lastAt = Date.now() - 2 * day - 1000;
+  check(
+    '首页 shareTitle() 能兜到 lastAt 分支',
+    page.shareTitle() === '距上次重置 2 天，还在等',
+    page.shareTitle()
+  );
+
+  check('首页定义了 onShareAppMessage（不然右上角没有「转发」）', typeof page.onShareAppMessage === 'function');
+  check(
+    '首页转发 path 指向自己且以 / 开头',
+    page.onShareAppMessage().path === '/pages/index/index' && !!page.onShareAppMessage().title,
+    JSON.stringify(page.onShareAppMessage())
+  );
+  check('首页定义了 onShareTimeline（朋友圈入口的前置条件）', typeof page.onShareTimeline === 'function');
+  check(
+    '朋友圈分享不给 path（官方不支持自定义页面路径）',
+    !('path' in page.onShareTimeline()),
+    JSON.stringify(page.onShareTimeline())
+  );
+
+  // 历史页另加载一次模块（Page() 会被重新捕获）
+  let histPage = null;
+  globalThis.Page = (cfg) => {
+    histPage = cfg;
+  };
+  await import(resolve(ROOT, 'miniprogram/pages/history/index.js'));
+  check('历史页定义了 onShareAppMessage', !!histPage && typeof histPage.onShareAppMessage === 'function');
+  check('历史页定义了 onShareTimeline', !!histPage && typeof histPage.onShareTimeline === 'function');
+  check(
+    '历史页转发 path 指向自己',
+    histPage.onShareAppMessage().path === '/pages/history/index',
+    histPage.onShareAppMessage().path
+  );
+  check(
+    '历史页初始 data（无记录）取标题不炸也不出 undefined',
+    histPage.onShareAppMessage().title === 'TIBO 额度重置历史',
+    histPage.onShareAppMessage().title
+  );
+
+  /* ---- 13e. 模板层的单页模式守卫 ---- */
+
+  // 模板在 Node 里渲染不了，但「守卫有没有写」可以查。少了它 = 朋友圈点开的人
+  // 点了复制会弹「请前往小程序使用完整服务」—— 真机上不报错，也测不出来。
+  const wxmlIndex = await readFile(resolve(ROOT, 'miniprogram/pages/index/index.wxml'), 'utf8');
+  const wxmlHistory = await readFile(resolve(ROOT, 'miniprogram/pages/history/index.wxml'), 'utf8');
+
+  const tagWith = (src, attr) => src.match(new RegExp(`<[a-z-]+[^>]*${attr}[^>]*>`, 'g')) || [];
+
+  const copyTags = [...tagWith(wxmlIndex, 'onCopySource'), ...tagWith(wxmlHistory, 'onCopy')];
+  const unguarded = copyTags.filter((t) => !/singlePage/.test(t));
+  check(
+    `每个「复制原推链接」入口都有守卫（剪贴板在单页模式下被禁，共 ${copyTags.length} 处）`,
+    copyTags.length >= 3 && unguarded.length === 0,
+    unguarded.join(' | ') || `clean（${copyTags.length} 处）`
+  );
+
+  const navTags = [...(wxmlIndex.match(/<navigator[^>]*>/g) || []), ...(wxmlHistory.match(/<navigator[^>]*>/g) || [])];
+  check(
+    '两页的 navigator 都有守卫（单页模式下 navigator 组件被禁）',
+    navTags.length === 2 && navTags.every((t) => /singlePage/.test(t)),
+    `${navTags.length} 个：${navTags.join(' | ')}`
   );
 }
 

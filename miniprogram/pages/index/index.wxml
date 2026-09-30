@@ -89,8 +89,10 @@
             <text wx:if="{{item.word}}" class="ev-word">{{item.word}}</text>
           </view>
           <text class="ev-quote">{{item.text}}</text>
+          <!-- 单页模式（朋友圈打开）下剪贴板是被禁能力，点了只会弹
+               「请前往小程序使用完整服务」—— 让位，不摆一个点了弹错的入口 -->
           <text
-            wx:if="{{item.url}}"
+            wx:if="{{item.url && !singlePage}}"
             class="ev-link"
             data-url="{{item.url}}"
             bindtap="onCopySource"
@@ -105,7 +107,7 @@
       <text wx:if="{{signal.createdText}}">发布于 {{signal.createdText}}</text>
       <text wx:if="{{signal.timeNote}}" class="note">{{signal.timeNote}}</text>
       <text wx:if="{{signal.reason}}">判定依据：{{signal.reason}}</text>
-      <text wx:if="{{signal.url && !signal.evCount}}" class="link" bindtap="onCopySource">复制原推链接</text>
+      <text wx:if="{{signal.url && !signal.evCount && !singlePage}}" class="link" bindtap="onCopySource">复制原推链接</text>
     </view>
   </view>
 
@@ -251,7 +253,10 @@
   <view class="foot">
     <view>数据：公开推文记录 · 最近一次采集 {{genText}} 北京</view>
     <view>观测账号 x.com/{{account}}</view>
-    <navigator class="nav" url="/pages/history/index" open-type="navigate">查看完整历史记录 →</navigator>
+    <!-- 单页模式下 `navigator` 是被禁组件（点了不响应），且官方运营须知明确
+         「不得诱导或强制用户点击『打开小程序』」—— 所以直接不渲染。
+         底部本来就有微信固定的「前往小程序」操作栏，不缺口子。 -->
+    <navigator wx:if="{{!singlePage}}" class="nav" url="/pages/history/index" open-type="navigate">查看完整历史记录 →</navigator>
   </view>
 
 </view>

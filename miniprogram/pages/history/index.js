@@ -7,6 +7,7 @@
 
 import { loadState } from '../../utils/api.js';
 import { copyText } from '../../utils/clipboard.js';
+import { historyShareTitle, isSinglePage } from '../../utils/share.js';
 import { fmtDate, fmtClock, fmtClockSec, beijingParts, trim1 } from '../../utils/format.js';
 
 const DAY = 86400000;
@@ -46,11 +47,14 @@ Page({
     updText: '',
     degraded: false,
     notice: '',
+    /** 分享到朋友圈的单页模式：剪贴板与跳转都不可用（见 utils/share.js） */
+    singlePage: false,
   },
 
   onLoad() {
     this._clock = null;
     this._upd = null;
+    this.setData({ singlePage: isSinglePage() });
     this.load();
   },
 
@@ -119,5 +123,27 @@ Page({
   // 同首页：复制原推链接，失败兜底在 utils/clipboard.js
   onCopy(e) {
     copyText(e.currentTarget.dataset.url);
+  },
+
+  /* ------------------------------ 分享 ------------------------------ */
+
+  // 两处分享与首页同一套约定：不传 imageUrl（走默认截图）、定义本函数才有入口。
+  // 详见 pages/index/index.js 的注释。
+  onShareAppMessage() {
+    return {
+      title: this.shareTitle(),
+      path: '/pages/history/index',
+    };
+  },
+
+  // 朋友圈不支持自定义页面路径，只有 title
+  onShareTimeline() {
+    return { title: this.shareTitle() };
+  },
+
+  shareTitle() {
+    // mean 直接用 data 里那份已经 toFixed(1) 的字符串 —— 重算会让分享卡片
+    // 和页面上出现两个不一致的数（页面上 8.4、卡片里 8.44）。
+    return historyShareTitle({ count: this.data.count, mean: this.data.mean });
   },
 });

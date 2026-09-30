@@ -30,12 +30,14 @@
         <text wx:if="{{item.gapText}}" class="gap">{{item.gapText}}</text>
       </view>
       <view class="txt">{{item.text}}</view>
-      <view wx:if="{{item.url}}" class="lnk" data-url="{{item.url}}" bindtap="onCopy">复制原推链接</view>
+      <!-- 单页模式下剪贴板被禁（点了只会弹「请前往小程序使用完整服务」） -->
+      <view wx:if="{{item.url && !singlePage}}" class="lnk" data-url="{{item.url}}" bindtap="onCopy">复制原推链接</view>
     </view>
   </view>
 
   <view class="foot">
-    <navigator class="nav" url="/pages/index/index" open-type="navigate">← 回到观测台</navigator>
+    <!-- 单页模式下 navigator 被禁；且官方运营须知不允许在单页模式里诱导跳转 -->
+    <navigator wx:if="{{!singlePage}}" class="nav" url="/pages/index/index" open-type="navigate">← 回到观测台</navigator>
   </view>
 
 </view>
