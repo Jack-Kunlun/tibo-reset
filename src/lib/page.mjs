@@ -42,7 +42,7 @@ export function derive({ resets, tweets, statsFile, now, account }) {
   if (!chart) throw new Error('记录不足（至少需要 2 条带时间的记录），无法渲染页面');
 
   const prediction = predictAll(resets.records, { now });
-  // lastResetAt 让「已经兑现的预告」不再展示（见 signals.mjs 里 isExpiredForecast 的注释）。
+  // lastResetAt 让「已经兑现的预告」不再展示（见 signals.mjs 里 staleWindowReason 的注释）。
   // 口径是「最近一次额度事件」，**含发券型 credit** —— 预告兑现与否与那次发放叫什么名字无关。
   const signals = detectSignals(tweets.tweets, {
     now,

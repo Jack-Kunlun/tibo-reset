@@ -14,6 +14,7 @@ import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { analyzeTweet, detectSignals, latestEventMs, hasOccurredPart, SOURCE_ZONE, USER_ZONE } from '../src/lib/signals.mjs';
+import { renderSignal } from '../src/lib/render.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -776,7 +777,7 @@ console.log('\n【7】过期的预告：兑现之后、或窗口走完之后，�
    * 修复前：页面继续挂着「窗口已开启 · 随时可能重置」，倒计时归零定在那里 ——
    * 一条**已经兑现**的预告被展示成「随时会发生」，把读者的判断方向整个带反。
    * 根因是 analyzeTweet 里的「未来窗口」判定只跟**推文自己的发布时刻**比，
-   * 是静态的，不会随时间失效（见 signals.mjs 里 isExpiredForecast 的注释）。
+   * 是静态的，不会随时间失效（见 signals.mjs 里 staleWindowReason 的注释）。
    */
   const promised = [{ id: 'p1', text: 'I promised a reset for Tuesday.', created_at: '2026-09-21T22:31:00.000Z' }];
   const now = new Date('2026-09-23T01:49:00.000Z').getTime(); // 北京 09-23 09:49
@@ -914,6 +915,129 @@ console.log('\n【9】已兑现预告的降级');
   // 反例③：只有时间线索、没有额度语境 → 走 hint，不进这个降级逻辑。
   const hintOnly = { id: 'hint1', text: 'The keynote is next Tuesday and it will be fun for everyone.', created_at: '2026-09-12T03:20:36.000Z' };
   check('反例③：无额度语境的推文不会被认成事实', hasOccurredPart(hintOnly) === false);
+}
+
+/* ==== 10. 带窗口的线索也会过期：窗口过去/被兑现后撤回窗口（KI-011）==== */
+
+console.log('\n【10】带窗口的线索：窗口过去或被兑现后，撤回窗口');
+
+{
+  /* 真实场景（2026-09-30）：DevDay 那条发布会推文（09-29 17:06Z）带着「today」
+   * 这个时间词，额度意图只有 2 分 —— 不够 explicit，于是**带着窗口落进了 hint**
+   *（见 signals.mjs 里 `intent >= 3 ? 'explicit' : 'hint'`）。窗口是当地 09-29
+   * 全天（北京 09-29 15:00 → 09-30 14:59）。
+   *
+   * 而渲染层两个端都是 `.find((s) => s.window)` 挑线索，于是 09-30 下午页首仍然写着
+   * 「有一条与额度相关的时间线索 / 窗口到北京 2026.09.30（周三）14:59 为止」——
+   * 那个窗口 6 小时前就结束了，窗口里还真的落地了一次重置（北京 09-30 03:00）。
+   * 读的人看到的是「还在等」，事实是「早就到了」。
+   *
+   * 修复前：过期判据只挂在 explicit 上，线索档完全没走这道关。
+   */
+  const hint = {
+    id: 'h1',
+    text: 'Usage limits and credits are getting a nice refresh later today.',
+    created_at: '2026-09-29T17:06:34.000Z',
+  };
+  const during = new Date('2026-09-30T02:00:00.000Z').getTime(); // 窗口内（北京 09-30 10:00）
+  const after = new Date('2026-09-30T13:18:00.000Z').getTime(); // 窗口已结束（北京 09-30 21:18）
+
+  // 先把「这条样本确实是那个形态」钉住 —— 少了这一步，下面几条断言可能因为
+  // 样本根本没落在 hint 档而侥幸变绿（恒绿断言比没有断言更糟）。
+  const base = detectSignals([hint], { now: during });
+  const h0 = base.hints.find((x) => x.id === 'h1');
+  check(
+    '样本形态：intent=2 的推文带着窗口落在 hint 档',
+    h0?.level === 'hint' && !!h0?.window,
+    `level=${h0?.level} window=${!!h0?.window}`
+  );
+  check('窗口进行中：页首挑得到这条线索（对照）', base.hints.find((s) => s.window)?.id === 'h1');
+
+  const sig = detectSignals([hint], { now: after });
+  const h = sig.hints.find((x) => x.id === 'h1');
+  check('窗口过去后：窗口被撤回', h?.window === null, JSON.stringify(h?.window));
+  check('撤回原因留痕（past）', h?.windowExpired?.why === 'past', JSON.stringify(h?.windowExpired));
+  check(
+    '撤走的窗口留着原值，可事后复核',
+    h?.windowExpired?.from === '2026-09-29T17:06:34.000Z' && h?.windowExpired?.to === '2026-09-30T06:59:00.000Z',
+    JSON.stringify(h?.windowExpired)
+  );
+  check(
+    '撤回理由落进判定依据（不只改字段）',
+    (h?.reasons ?? []).some((r) => String(r).includes('窗口已过去')),
+    JSON.stringify(h?.reasons)
+  );
+  check(
+    '推文本身不丢（线索仍留档，不静默删数据）',
+    Boolean(h) && sig.counts.hint === base.counts.hint,
+    `hint=${sig.counts.hint}/${base.counts.hint}`
+  );
+  check('页首不再有可展示的线索窗口', !sig.hints.some((s) => s.window));
+
+  // 直接断言**用户看到的东西**。只断言数据层字段会漏掉「渲染层根本没用这个字段」
+  // 这类错误 —— 而这次的 bug 症状恰恰在渲染层。
+  const html = renderSignal(sig);
+  check('渲染层退回空态：不再出现窗口块（sig-win）', !html.includes('sig-win'), html.slice(0, 140));
+  check('渲染层给出空态文案（不是空白）', html.includes('没有检测到重置预告'));
+  check('对照：窗口进行中时渲染层**有**窗口块', renderSignal(base).includes('sig-win'));
+
+  /* 反例①：窗口还在未来、期间也没发生重置 → 必须保留。
+   * 「过期就撤」极易做过头成「一律不展示」，那种错误在真实数据上**看不出来**
+   *（当前恰好没有未来线索，页面一样是空的），只能靠这条用例守着。 */
+  const midWindow = new Date('2026-09-29T18:00:00.000Z').getTime();
+  const keep = detectSignals([hint], {
+    now: midWindow,
+    lastResetAt: new Date('2026-09-22T18:23:37.000Z').getTime(), // 窗口开始之前的一次重置
+  });
+  check('反例①：窗口在未来 + 期间无重置 → 窗口保留', !!keep.hints.find((x) => x.id === 'h1')?.window);
+
+  /* 反例②：窗口**还没走完**，但窗口开始之后已经发生过重置 → 同样是「线索兑现了」，
+   * 判据是 lastResetAt >= window.from，不是「窗口是否过去」。 */
+  const fulfilled = detectSignals([hint], {
+    now: during,
+    lastResetAt: new Date('2026-09-29T19:00:00.000Z').getTime(), // 窗口开始之后
+  });
+  const fh = fulfilled.hints.find((x) => x.id === 'h1');
+  check('反例②：窗口内已发生重置 → 窗口撤回', fh?.window === null);
+  check('反例②：原因记为 fulfilled（与 past 区分）', fh?.windowExpired?.why === 'fulfilled', JSON.stringify(fh?.windowExpired));
+}
+
+{
+  /* 反例③：**explicit 的处置不能被顺手改掉**。它是承诺，过期后要么整条撤走、
+   * 要么降级成 occurred；绝不能变成一条「没有窗口的线索」赖在页首。 */
+  const stale = { id: 'e1', text: "We'll reset everyone's usage limits next Tuesday.", created_at: '2026-09-17T17:57:59.000Z' };
+  const now = new Date('2026-09-30T13:18:00.000Z').getTime();
+  const sig = detectSignals([stale], { now, lastResetAt: new Date('2026-09-29T19:00:00.000Z').getTime() });
+  check('反例③：过期 explicit 没有变成「无窗口线索」', !sig.hints.some((x) => x.id === 'e1'));
+  check('反例③：它也没被算进 explicit', !sig.signals.some((x) => x.id === 'e1'));
+}
+
+{
+  // 真实语料回归：修完之后，「页首要展示的那条线索」不可能是一个已经过去的窗口。
+  // 这是这个 bug 的**充分判据** —— 不管将来是哪种推文带窗口，这条都成立。
+  const tweets = JSON.parse(await readFile(resolve(ROOT, 'data/tweets.json'), 'utf8')).tweets;
+  const records = JSON.parse(await readFile(resolve(ROOT, 'data/resets.json'), 'utf8')).records;
+  const NOW = new Date('2026-09-30T13:18:00.000Z').getTime();
+  const sig = detectSignals(tweets, { now: NOW, lastResetAt: latestEventMs(records) });
+
+  const stale = sig.hints.filter((s) => s.window && Date.parse(s.window.to) < NOW);
+  check('真实语料：没有「窗口已过去却还留着 window」的线索', stale.length === 0, stale.map((s) => s.id).join(','));
+
+  const picked = sig.hints.find((s) => s.window);
+  check(
+    '真实语料：页首若挑到线索，它的窗口一定还没过去',
+    !picked || Date.parse(picked.window.to) >= NOW,
+    picked ? `${picked.id} → ${picked.window.to}` : '（本轮没有可展示的线索）'
+  );
+
+  // 本次事故的那条推文：窗口必须已被撤回（若它还在窗内，说明判据退化了）
+  const culprit = sig.hints.find((s) => s.id === '2104981170685616361');
+  check('真实语料：本次事故那条推文的窗口已撤回', !culprit || culprit.window === null, culprit ? JSON.stringify(culprit.window) : '（已不在留档范围内）');
+  check(
+    '真实语料：渲染层不再出现窗口块',
+    !renderSignal(sig).includes('sig-win'),
+    renderSignal(sig).slice(0, 140)
+  );
 }
 
 /* ================================ 结果 ================================ */

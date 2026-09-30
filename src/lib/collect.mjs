@@ -1049,7 +1049,7 @@ export async function runCollection(opts = {}) {
     now: Date.now(),
     account: opts.account,
     sinceMs: opts.sinceMs ?? resetFloorMs(history.records, opts.resetBufferHours),
-    // 已兑现的预告不再作为「未来预告」落进 signal.json（见 signals.mjs 的 isExpiredForecast）
+    // 已兑现的预告不再作为「未来预告」落进 signal.json（见 signals.mjs 的 staleWindowReason）
     lastResetAt: latestEventMs(history.records),
   });
 

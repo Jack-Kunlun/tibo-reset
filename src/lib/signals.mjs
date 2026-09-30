@@ -1204,20 +1204,69 @@ export function detectSignals(tweets, opts = {}) {
    * ⚠ 连带效应是**有意**的：过滤发生在构造 hypothesis **之前**，所以「依据」里那些
    * 同日提及（"3am"、"coming in tuesday" 这类线索）会跟着一起撤走。一条预告只有一个去处 ——
    * 撤回它就要把它挂着的证据一起撤回，否则页面会既说「没有预告」、又列着 4 条依据。
+   *
+   * ⚠ **判据对「所有带 window 的信号」生效，不是只看 explicit。** 额度意图只有 2 分时
+   * 推文会带着窗口落到 `hint`（见下方 `intent >= 3 ? 'explicit' : 'hint'`），而渲染层
+   * 两个端都是 `.find((s) => s.window)` 挑线索。只过滤 explicit 的后果实测过一次
+   * （2026-09-30，KI-011）：09-29 那条 DevDay 发布会推文（时间词是「today」，窗口
+   * 等于他当天）在 09-30 之后**继续占着页首**，页面写着「有一条与额度相关的时间线索 /
+   * 窗口到北京 2026.09.30（周三）14:59 为止」—— 而那个窗口 6 小时前就结束了，
+   * 窗口里还真的落地了一次重置（北京 09-30 03:00）。读的人看到的是「还在等」，
+   * 事实是「早就到了」。这与 09-23 那次是同一类错误，只是载体从 explicit 换成了 hint。
+   *
+   * 两种档位的处置不同，理由是语义不同：
+   *   · explicit 是**承诺**，过期即作废 —— 但若同一条推文里另有「已发生」的整句，
+   *     降级成 occurred 保留那件事（否则「重置确实发生过」会跟着一起消失）。
+   *   · hint 从来不是承诺，过期只是「它不再指向未来」—— 所以**只撤窗口，保留推文**。
    */
   const lastResetAt = Number(opts.lastResetAt ?? 0);
-  const isExpiredForecast = (a) => {
-    const w = a.window;
-    if (!w) return false;
+  // 返回 'past' / 'fulfilled' / null。**不是布尔**：两种原因的处置不同
+  // （explicit 走降级/撤走，hint 走「只撤窗口」），调用方需要知道是哪一种，
+  // 撤回理由也要落进 reasons 里给人看。
+  const staleWindowReason = (a) => {
+    const w = a?.window;
+    if (!w) return null;
     const from = new Date(w.from).getTime();
     const to = new Date(w.to).getTime();
-    if (!Number.isFinite(from) || !Number.isFinite(to)) return false;
-    if (to < now) return true;
-    return lastResetAt > 0 && lastResetAt >= from;
+    if (!Number.isFinite(from) || !Number.isFinite(to)) return null;
+    if (to < now) return 'past';
+    return lastResetAt > 0 && lastResetAt >= from ? 'fulfilled' : null;
+  };
+  const STALE_REASON_TEXT = {
+    past: '窗口已过去：撤回窗口（原文留档，不再作为未来线索展示）',
+    fulfilled: '窗口内已发生过重置：撤回窗口（原文留档，不再作为未来线索展示）',
   };
   const live = analyzed
     .map((a) => {
-      if (a.level !== 'explicit' || !isExpiredForecast(a)) return a;
+      const why = staleWindowReason(a);
+      if (!why) return a;
+
+      if (a.level === 'hint') {
+        // 线索的窗口失效 → **只撤回窗口，不丢掉这条推文**。
+        // 撤 window 就够了：渲染层两个端（src/lib/render.mjs、miniprogram/utils/view.js）
+        // 都是 `.find((s) => s.window)`，窗口一撤就不再占页首；小程序那个窗口倒计时的
+        // 锚点读的是 `s.window.fromTs`，也会自然回落（见 pages/index/index.js）。
+        //
+        // 为什么不复用 candidateWindow 装撤下来的窗口：那个字段的语义是
+        // 「还没被采用的候选」，buildHypothesis 会把它当**可用证据**捞起来；
+        // 装一个已失效的窗口进去，等于让聚合逻辑把过期时间当证据用。
+        return {
+          ...a,
+          window: null,
+          // 撤走的窗口留档 —— 事后要能回答「当时系统看到的是哪个窗口、为什么撤」。
+          windowExpired: {
+            from: a.window.from,
+            to: a.window.to,
+            why,
+            checkedAt: new Date(now).toISOString(),
+          },
+          reasons: [...(a.reasons ?? []), STALE_REASON_TEXT[why]],
+        };
+      }
+
+      // window 只出现在 explicit 与 hint 两档（occurred / none 两处显式写死 window: null），
+      // 这里兜住第三种可能，避免将来加档位时静默走进 explicit 的处置分支。
+      if (a.level !== 'explicit') return a;
       // 已兑现的预告撤走 —— 但如果这条推文里**还有一整句**在宣告「重置已经发生过」，
       // 那件事不能跟着一起撤：它是发生过的事实，而「上次重置是什么时候」正是
       // 观测台要回答的第一个问题。降级成 occurred，而不是整条丢掉。
