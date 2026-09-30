@@ -6,13 +6,14 @@
  * 但**桌面那一侧没有任何对应校验** —— 网页端的图画出画布，同样是静默变成一片空白，
  * 只是没人盯着看就不会发现。本脚本补上另一半。
  *
- * 校验四件事：
+ * 校验五件事：
  *   1. `miniprogram/utils/scene.js` 与 `src/lib/scene.js` 内容一致。
  *      AGENTS.md 规定副本由构建同步、不得手改 —— 这里就是那条规矩的执行者。
  *      注意本脚本要**在 build 之前**跑：跑在之后的话，副本刚被覆盖，校验恒真、等于没有。
  *   2. 数据层形状正确（升序、长度自洽、无 NaN）
  *   3. 桌面宽度下图元全部落在画布内
  *   4. 图内文字不小于可读下限，且序列化后不出现 NaN / undefined
+ *   5. 「时长文案」的四处实现口径一致（见第 7 节 —— 这是同一类漂移的第二次守卫）
  */
 
 import { readFile } from 'node:fs/promises';
@@ -20,7 +21,8 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { buildChartData } from '../src/lib/chart-data.js';
-import { survivalScene, stripScene, sceneBounds } from '../src/lib/scene.js';
+import { spanOf } from '../src/lib/render.mjs';
+import { survivalScene, stripScene, sceneBounds, fmtSpanShort } from '../src/lib/scene.js';
 import { sceneToSvgTag } from '../src/lib/svg.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -232,6 +234,176 @@ for (const [name, scene] of Object.entries(singleScenes)) {
   const b = sceneBounds(scene);
   check(`单条间隔 · ${name} 不产生 NaN`, finite(b.minX) && finite(b.maxX), JSON.stringify(b));
 }
+
+/* ======================== 7. 时长口径对拍 ======================== */
+
+section('7. 时长口径（四处实现必须同口径）');
+
+// 同一段「时长文案」口径在本仓里有**四份**实现，彼此没有共享构建：
+//   1. src/lib/render.mjs          spanOf        —— 网页端，**权威口径**
+//   2. miniprogram/utils/format.js spanOf        —— 小程序端，手写副本
+//   3. src/index.html              spanFromMs    —— 页首那行「已过 …」，内联 <script>，每秒重算
+//   4. src/lib/scene.js            fmtSpanShort  —— 图内标签，短口径（只补到下一级就停）
+//
+// 前三份必须**逐字符同输出**，第四份必须**是前三份输出的前缀**。
+//
+// 为什么值得单开一节：漏改任何一处都**不会报错**，只会让同一份数据在同一个页面上
+// 出现两种读法（页首写「已过 21 小时」、图注写「1 天」），而且只在特定取值区间才显形。
+// 2026-09-30 就是这么漏的 —— 五套测试全绿，页面上却还挂着旧文案，因为那行字由
+// 内联脚本每秒覆写一遍，构建期写进去的静态值根本轮不到显示。
+
+const htmlSrc = await readFile(resolve(ROOT, 'src/index.html'), 'utf8');
+const formatSrc = await readFile(resolve(ROOT, 'miniprogram/utils/format.js'), 'utf8');
+
+/**
+ * 从源码里按大括号配对，抽出一个具名 `function` 的完整声明文本。
+ *
+ * 抽不到返回 null —— 调用方**必须当成失败**，不许静默跳过：函数被改名时
+ * 「抽取失败」和「口径一致」在朴素写法下都会走到同一条「没发现差异」的路径，
+ * 于是这条防线会因为一次重命名而永久失效，还长着一副全绿的脸色。
+ */
+function extractFn(src, name) {
+  const at = src.indexOf(`function ${name}(`);
+  if (at < 0) return null;
+  const open = src.indexOf('{', at);
+  if (open < 0) return null;
+  let depth = 0;
+  for (let i = open; i < src.length; i++) {
+    if (src[i] === '{') depth++;
+    else if (src[i] === '}') {
+      depth--;
+      if (depth === 0) return src.slice(at, i + 1);
+    }
+  }
+  return null;
+}
+
+const inlineBody = extractFn(htmlSrc, 'spanFromMs');
+const mpBody = extractFn(formatSrc, 'spanOf');
+
+check('抽得到 src/index.html 的 spanFromMs', !!inlineBody, '函数被改名或删除 —— 请同步更新本测试，别让它静默失效');
+check('抽得到 miniprogram/utils/format.js 的 spanOf', !!mpBody, '函数被改名或删除 —— 请同步更新本测试，别让它静默失效');
+
+const evalFn = (body, name) => (body ? new Function(`${body};return ${name};`)() : null);
+const inlineSpan = evalFn(inlineBody, 'spanFromMs');
+const mpSpan = evalFn(mpBody, 'spanOf');
+
+const SEC = 1 / 86_400;
+const MIN = 60 * SEC;
+const HOUR = 3600 * SEC;
+
+// 用例表：四个分支各自的边界，加上本项目真实出现过的取值
+const DAYS = [
+  0,
+  30 * SEC,
+  59 * SEC,
+  60 * SEC,
+  61 * SEC,
+  10 * MIN,
+  59 * MIN + 20 * SEC,
+  60 * MIN,
+  1 * HOUR,
+  1 * HOUR + 30 * MIN,
+  20 * HOUR + 41 * MIN, // 真实值：页面上的「距上次重置」
+  23 * HOUR + 59 * MIN + 59 * SEC,
+  1,
+  1 + 20 * HOUR,
+  6.7, // 真实值：中位间隔
+  67.7, // 真实值：最长等待
+  0.2, // 用户点名的那个「0.2 天」
+  0.86,
+  0.8645, // 真实值（页面上曾显示 0.86 天）
+  1.9,
+  86399.6 * SEC, // 23:59:59.6 —— floor 与 round 在这里分道扬镳，见下
+];
+
+/* --- 7.1 权威实现的手算锚点 ---------------------------------------- */
+//
+// ⚠ 这段是**必须写死**的：下面 7.2/7.3 走的是「两份实现互相比」，
+//   万一有人把同一个错误同时抄进三份拷贝，互比会一致通过。
+//   这几个值来自人工推算，是三份拷贝一起漂移时的唯一兜底。
+
+const ANCHORS = [
+  [0, '0 秒'],
+  [60 * SEC, '1 分'],
+  [61 * SEC, '1 分 1 秒'],
+  [1 * HOUR, '1 小时'],
+  [1 * HOUR + 30 * MIN, '1 小时 30 分'],
+  [23 * HOUR + 59 * MIN + 59 * SEC, '23 小时 59 分'],
+  [1, '1 天'],
+  [1 + 20 * HOUR, '1 天 20 小时'],
+  [0.2, '4 小时 48 分'],
+  [0.8645, '20 小时 44 分'],
+];
+
+const anchorBad = ANCHORS.filter(([d, want]) => spanOf(d).text !== want).map(
+  ([d, want]) => `${d} 天 期望「${want}」实得「${spanOf(d).text}」`
+);
+check(`spanOf 的 ${ANCHORS.length} 个手算锚点全部命中`, anchorBad.length === 0, anchorBad.join('；'));
+
+/* --- 7.2 逐例互比 --------------------------------------------------- */
+
+/** 把 impl 与权威 spanOf 在同一张表上比一遍，返回不一致的描述 */
+const diffAgainst = (cases, toText) =>
+  cases
+    .map((d) => [d, toText(d), spanOf(d).text])
+    .filter(([, got, want]) => got !== want)
+    .map(([d, got, want]) => `${d} 天：「${got}」≠「${want}」`);
+
+const brief = (list) =>
+  list.length ? list.slice(0, 3).join('；') + (list.length > 3 ? ` …共 ${list.length} 处` : '') : '';
+
+const inlineDiff = inlineSpan ? diffAgainst(DAYS, (d) => inlineSpan(d * 86_400_000)) : ['未抽到 spanFromMs'];
+check(
+  `src/index.html 的 spanFromMs 与 spanOf 逐例一致（${DAYS.length} 例）`,
+  inlineDiff.length === 0,
+  brief(inlineDiff)
+);
+
+const mpDiff = mpSpan ? diffAgainst(DAYS, (d) => mpSpan(d).text) : ['未抽到 format.js 的 spanOf'];
+check(
+  `miniprogram/utils/format.js 的 spanOf 与网页端逐例一致（${DAYS.length} 例）`,
+  mpDiff.length === 0,
+  brief(mpDiff)
+);
+
+// 第四份是**短口径**：只补到下一级就停（「6 天 17 小时」「20 小时」「41 分」）。
+// 所以它不必等于权威输出，但必须是权威输出的**前缀** —— 否则图注和正文对不上号。
+const shortDiff = DAYS.map((d) => [d, fmtSpanShort(d), spanOf(d).text]).filter(
+  ([, s, full]) => !full.startsWith(s)
+);
+check(
+  `src/lib/scene.js 的 fmtSpanShort 是 spanOf 输出的前缀（${DAYS.length} 例）`,
+  shortDiff.length === 0,
+  brief(shortDiff.map(([d, s, full]) => `${d} 天：「${s}」不是「${full}」的前缀`))
+);
+
+/* --- 7.3 需求本身的断言 --------------------------------------------- */
+
+// 用户的原话：「不要使用 0.2 天这种，更改为小时，分，秒」。
+// 上面各条是「四处实现互相对齐」，这条是「对齐到的那个口径确实是时分秒」。
+const decimalBad = DAYS.flatMap((d) => {
+  const outs = [spanOf(d).text, fmtSpanShort(d)];
+  if (inlineSpan) outs.push(inlineSpan(d * 86_400_000));
+  if (mpSpan) outs.push(mpSpan(d).text);
+  return outs.filter((s) => /\d+\.\d+\s*天/.test(s)).map((s) => `${d} 天 → 「${s}」`);
+});
+check('口径表内任何一处输出都不含小数天', decimalBad.length === 0, brief(decimalBad));
+
+/* --- 7.4 证明 7.1 那条边界用例不是摆设 ------------------------------- */
+//
+// 86399.6 秒这条用例的价值全在「先 round 到秒」这个选择上。若有人把 spanOf 的
+// Math.round 改成 Math.floor，7.1 的锚点会红；但若只把那条例子的取值调小、
+// 或把 round 与 floor 的差别抹平，这条用例就会变成恒真 —— 这里锁死它。
+const floorText = (() => {
+  const t = Math.floor(86_399.6);
+  return `${Math.floor(t / 3600)} 小时 ${Math.floor((t % 3600) / 60)} 分`;
+})();
+check(
+  '86399.6 秒这条用例真的踩在 floor/round 分歧点上（不是恒真）',
+  floorText !== spanOf(86_399.6 * SEC).text,
+  `floor 口径给「${floorText}」，round 口径给「${spanOf(86_399.6 * SEC).text}」—— 两者相同说明该用例已失效`
+);
 
 /* ======================== 结果 ======================== */
 

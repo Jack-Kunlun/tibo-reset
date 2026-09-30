@@ -100,6 +100,45 @@ export function elapsed(fromTs, now = Date.now()) {
 }
 
 /**
+ * 把一段时长（单位：天，可含小数）拆成「主数字 + 单位串」。
+ *
+ * 与网页端 `src/lib/render.mjs` 的 `spanOf` **同口径**：保留最高的非零单位当主数字，
+ * 再给下一级补精度（≥1 天 → `6` + `天 17 小时`；<1 天 → `20` + `小时 41 分`）。
+ * 两份实现是刻意分开的 —— 小程序与网页是两套运行时，没有共享构建；
+ * 但**口径必须一致**，否则同一份数据两边显示会不一样。
+ *
+ * 为什么不一律换成小时/秒：6.7 天 = 160.8 小时，读者得先心算才知道量级。
+ * ⚠ 入参要传**原始浮点天数**，不要先 toFixed 再传（会凭空造出舍入误差）。
+ */
+export function spanOf(days) {
+  if (!Number.isFinite(days) || days < 0) return { big: '—', unit: '', text: '—' };
+  const total = Math.round(days * 86400);
+  const D = Math.floor(total / 86400);
+  const H = Math.floor((total % 86400) / 3600);
+  const M = Math.floor((total % 3600) / 60);
+  const S = total % 60;
+  let big;
+  let unit;
+  if (D >= 1) {
+    big = String(D);
+    unit = H > 0 ? `天 ${H} 小时` : '天';
+  } else if (H >= 1) {
+    big = String(H);
+    unit = M > 0 ? `小时 ${M} 分` : '小时';
+  } else if (M >= 1) {
+    big = String(M);
+    unit = S > 0 ? `分 ${S} 秒` : '分';
+  } else {
+    big = String(S);
+    unit = '秒';
+  }
+  return { big, unit, text: `${big} ${unit}` };
+}
+
+/** 一句话里用的完整串。要拆成大字 + 小字时直接用 `spanOf`。 */
+export const fmtSpan = (days) => spanOf(days).text;
+
+/**
  * 把时间差转成「数字卷轴」需要的结构。
  *
  * 每一组是一串独立的数字位，这样页面上可以逐位做滚动动画。

@@ -30,6 +30,31 @@ export const PALETTE = {
   cinnabar: '#B3563C',
 };
 
+/* ------------------------------- 时长格式化 ------------------------------- */
+
+/**
+ * 把一段时长（单位：天，可含小数）渲染成短串：**主单位 + 天/小时，不到分**。
+ *
+ * 口径与网页端 `render.mjs` 的 `spanOf` 一致（≥1 天 → `X 天 Y 小时`；<1 天 → `X 小时`），
+ * 差别只在这里**刻意砍掉「分」**：本函数唯一的消费者是图上那个跟着游标走的标注，
+ * 而它以游标为中心居中 —— `现在 20 小时 41 分` 比 `现在 0.9 天` 宽了近一倍，
+ * 窄布局（341px）下会压到画布边缘；何况图上本来也不需要分的精度，横轴单位就是「天」。
+ *
+ * ⚠ 为什么实现在这个文件里、而不是 import 一个公共模块：本文件会被 build.mjs
+ *   **逐字复制**到 miniprogram/utils/scene.js（那条链路没有任何依赖解析），
+ *   所以它必须保持零 import 的自包含状态。要改就改这份，小程序侧那份是产物。
+ */
+export function fmtSpanShort(days) {
+  if (!Number.isFinite(days) || days < 0) return '—';
+  const total = Math.round(days * 86_400);
+  const D = Math.floor(total / 86_400);
+  const H = Math.floor((total % 86_400) / 3600);
+  if (D >= 1) return H > 0 ? `${D} 天 ${H} 小时` : `${D} 天`;
+  if (H >= 1) return `${H} 小时`;
+  const M = Math.floor((total % 3600) / 60);
+  return M >= 1 ? `${M} 分` : `${total % 60} 秒`;
+}
+
 /* ------------------------------- 图元构造 ------------------------------- */
 
 const line = (x1, y1, x2, y2, o = {}) => ({ k: 'line', x1, y1, x2, y2, ...o });
@@ -211,7 +236,7 @@ export function survivalScene(data, opts = {}) {
         Y(0.97),
         L0.compact
           ? `>14 天 ×${cappedCount}`
-          : `${cappedCount} 次长于 14 天（最长 ${(data.longest ?? 0).toFixed(1)} 天）`,
+          : `${cappedCount} 次长于 14 天（最长 ${fmtSpanShort(data.longest ?? 0)}）`,
         {
           anchor: 'end',
           fill: PALETTE.cinnabar,
@@ -232,7 +257,7 @@ export function survivalScene(data, opts = {}) {
       })
     );
     el.push(
-      text(X(data.median), P.T - 8, `中位 ${(data.median ?? 0).toFixed(1)} 天`, {
+      text(X(data.median), P.T - 8, `中位 ${fmtSpanShort(data.median ?? 0)}`, {
         anchor: 'middle',
         fill: PALETTE.mist,
         size: axisFont,
@@ -346,7 +371,7 @@ export function stripScene(data, opts = {}) {
         })
       );
       el.push(
-        text(colX + 8, bottom + 18, `最长 ${(data?.longest ?? 0).toFixed(1)} 天`, {
+        text(colX + 8, bottom + 18, `最长 ${fmtSpanShort(data?.longest ?? 0)}`, {
           anchor: 'end',
           fill: PALETTE.cinnabar,
           size: axisFont,
@@ -357,7 +382,7 @@ export function stripScene(data, opts = {}) {
         text(
           P.L + 8,
           P.T + 10,
-          `另有 ${capped.length} 次超过 14 天（最长 ${(data?.longest ?? 0).toFixed(1)} 天），单独排在右侧`,
+          `另有 ${capped.length} 次超过 14 天（最长 ${fmtSpanShort(data?.longest ?? 0)}），单独排在右侧`,
           { anchor: 'start', fill: PALETTE.cinnabar, size: axisFont }
         )
       );
@@ -373,7 +398,7 @@ export function stripScene(data, opts = {}) {
     })
   );
   el.push(
-    text(X(median), P.T - (L0.compact ? 10 : 10), `中位 ${median.toFixed(1)} 天`, {
+    text(X(median), P.T - (L0.compact ? 10 : 10), `中位 ${fmtSpanShort(median)}`, {
       anchor: 'middle',
       fill: PALETTE.mist,
       size: axisFont,
@@ -390,7 +415,7 @@ export function stripScene(data, opts = {}) {
   );
   el.push(circle(curX, P.T - 4, 3, { fill: PALETTE.ink }));
   el.push(
-    text(curX, P.T - (L0.compact ? 24 : 16), `现在 ${(data?.sinceDays ?? 0).toFixed(1)} 天`, {
+    text(curX, P.T - (L0.compact ? 24 : 16), `现在 ${fmtSpanShort(data?.sinceDays ?? 0)}`, {
       anchor: 'middle',
       fill: PALETTE.ink2,
       size: axisFont,

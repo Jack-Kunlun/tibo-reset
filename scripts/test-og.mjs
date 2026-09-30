@@ -85,10 +85,11 @@ if (!og) {
   check('SVG 含站名', og.svg.includes('等 TIBO 按按钮'));
   check(
     '三个核心数字都画进图里',
-    og.svg.includes(`>${numbers.elapsed}<`) &&
-      og.svg.includes(`>${numbers.remaining}<`) &&
+    og.svg.includes(`>${numbers.elapsed.big}<`) &&
+      og.svg.includes(`>${numbers.elapsed.unit}<`) &&
+      og.svg.includes(`>${numbers.remaining.big}<`) &&
       og.svg.includes(`>${numbers.count}<`),
-    `${numbers.elapsed} / ${numbers.remaining} / ${numbers.count}`
+    `${numbers.elapsed.text} / ${numbers.remaining.text} / ${numbers.count}`
   );
   check('SVG 无 NaN / undefined / Infinity', !/NaN|undefined|Infinity/.test(og.svg));
   check(
@@ -98,9 +99,17 @@ if (!og) {
   );
   check(
     'og:description 与图上的数字一致',
-    og.description.includes(numbers.elapsed) &&
-      og.description.includes(numbers.remaining) &&
-      og.description.includes(numbers.count)
+    og.description.includes(numbers.elapsed.text) &&
+      og.description.includes(numbers.remaining.text) &&
+      og.description.includes(numbers.count),
+    og.description.slice(0, 80)
+  );
+  // 这条是 2026-10-01 那轮「时长一律按时/分展示」的守门断言：
+  // 只要有人把某处改回 `toFixed(1) + '天'`，卡片上就会重新冒出「0.9 天」。
+  check(
+    '卡片正文不再出现小数天（图与 og:description 都不许有）',
+    !/\d+\.\d+\s*天/.test(og.svg) && !/\d+\.\d+\s*天/.test(og.description),
+    (og.svg.match(/\d+\.\d+\s*天/) ?? og.description.match(/\d+\.\d+\s*天/) ?? ['无'])[0]
   );
 }
 

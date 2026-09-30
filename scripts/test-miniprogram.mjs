@@ -261,8 +261,20 @@ check(
   d.forecast.bars.every((b) => Number(b.w) >= 1 && Number(b.w) <= 100),
   JSON.stringify(d.forecast.bars.map((b) => b.w))
 );
-check('中位剩余为数值', /^[0-9.]+$/.test(d.forecast.q50), d.forecast.q50);
-check('80% 区间格式正确', /^[0-9.]+ – [0-9.]+$/.test(d.forecast.rangeText), d.forecast.rangeText);
+check('中位剩余主数字为纯数字', /^[0-9]+$/.test(d.forecast.q50), d.forecast.q50);
+check(
+  '中位剩余带时长单位（不再是光秃秃的「天」）',
+  /^(天|小时|分|秒)( \d+ (小时|分|秒))?$/.test(d.forecast.q50Unit),
+  d.forecast.q50Unit
+);
+check(
+  '80% 区间两端都按时长格式渲染',
+  d.forecast.rangeText.split(' – ').length === 2 &&
+    d.forecast.rangeText
+      .split(' – ')
+      .every((s) => /^\d+ (天|小时|分|秒)( \d+ (小时|分|秒))?$/.test(s)),
+  d.forecast.rangeText
+);
 check('回测表 3 行', d.forecast.cal.rows.length === 3, `实际 ${d.forecast.cal.rows.length}`);
 check('阶段表非空', d.forecast.phases.length >= 2, `实际 ${d.forecast.phases.length}`);
 check(
@@ -935,10 +947,16 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
     indexShareTitle({ signal: { show: false }, lastAt: T0 - 5 * day, now: T0 })
   );
   check(
-    '不足一天 → 「不足一天」（与页首 sinceText 同一档说法）',
+    '不足一天 → 落到小时档（不再写「不足一天」这种零信息量的说法）',
     indexShareTitle({ signal: { show: false }, lastAt: T0 - 3600_000, now: T0 }) ===
-      '距上次重置 不足一天，还在等',
+      '距上次重置 1 小时，还在等',
     indexShareTitle({ signal: { show: false }, lastAt: T0 - 3600_000, now: T0 })
+  );
+  check(
+    '不足一小时 → 落到分钟档',
+    indexShareTitle({ signal: { show: false }, lastAt: T0 - 600_000, now: T0 }) ===
+      '距上次重置 10 分，还在等',
+    indexShareTitle({ signal: { show: false }, lastAt: T0 - 600_000, now: T0 })
   );
   check(
     '什么状态都没有 → 兜底标题（不是 undefined，也不写「没检测到」）',

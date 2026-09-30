@@ -31,6 +31,7 @@ import { fileURLToPath } from 'node:url';
 
 import { buildChartData, partsIn } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
+import { spanOf } from '../src/lib/render.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DAY = 86_400_000;
@@ -149,14 +150,28 @@ console.log('\n【② 摘要与页面可见文字一致】');
 
 // 只删注释 / 脚本 / 样式标签与其余标签，不做结构解析 ——
 // 结构一变就误报的判据，迟早会被人关掉。
+// ⚠ 标签换成空格后会留下连续空白（`20<small>小时</small>` → `20  小时`），
+//   而下面的断言比的是「一句话」。所以最后压一次空白 —— 不压的话，同一个数字
+//   在页面上**正常**渲染反而会被判成「不一致」。
 const visible = html
   .replace(/<!--[\s\S]*?-->/g, ' ')
   .replace(/<script[\s\S]*?<\/script>/gi, ' ')
   .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-  .replace(/<[^>]+>/g, ' ');
+  .replace(/<[^>]+>/g, ' ')
+  .replace(/\s+/g, ' ');
 
-check('可见文字含中位剩余等待', visible.includes(d1(digest.remainingDays.q50)), d1(digest.remainingDays.q50));
-check('可见文字含距上次重置天数', visible.includes(d1(digest.sinceDays)), d1(digest.sinceDays));
+// 这两项在页面上是「主数字 + 单位」两段（`20` + `小时 41 分`），页面上早已不是
+// digest 里那个浮点天数 —— 所以比 spanOf 出来的整串，而不是 `0.9`。
+check(
+  '可见文字含中位剩余等待',
+  visible.includes(spanOf(digest.remainingDays.q50).text),
+  spanOf(digest.remainingDays.q50).text
+);
+check(
+  '可见文字含距上次重置时长',
+  visible.includes(spanOf(digest.sinceDays).text),
+  spanOf(digest.sinceDays).text
+);
 check('可见文字含记录总数', visible.includes(String(digest.records)), String(digest.records));
 check(
   '可见文字含 50% 覆盖率',
@@ -243,15 +258,17 @@ if (!api) {
   const gapMin = (apiAsOf - builtAtMs) / 60_000;
   console.log(`   锚点间距：${gapMin >= 0 ? '' : '−'}${Math.abs(gapMin).toFixed(1)} 分钟（页面 ${digest.builtAt} / API ${api.prediction.asOf}）`);
 
+  // 名字里带上页面上真正显示的那串（用 spanOf 还原）。否则报告写着「显示值 0.9 天」，
+  // 而用户实际看到的是「21 小时 26 分」—— 报告本身就在误导人。
   check(
-    `距上次重置（显示值 ${d1(digest.sinceDays)} 天）`,
+    `距上次重置（页面显示「${spanOf(digest.sinceDays).text}」）`,
     d1(digest.sinceDays) === d1(api.prediction.sinceDays),
-    `页面 ${d1(digest.sinceDays)} vs API ${d1(api.prediction.sinceDays)}`
+    `页面 ${d1(digest.sinceDays)} vs API ${d1(api.prediction.sinceDays)}（按 0.1 天精度比）`
   );
   check(
-    `中位剩余等待（显示值 ${d1(digest.remainingDays.q50)} 天）`,
+    `中位剩余等待（页面显示「${spanOf(digest.remainingDays.q50).text}」）`,
     d1(digest.remainingDays.q50) === d1(api.prediction.prediction.q50),
-    `页面 ${d1(digest.remainingDays.q50)} vs API ${d1(api.prediction.prediction.q50)}`
+    `页面 ${d1(digest.remainingDays.q50)} vs API ${d1(api.prediction.prediction.q50)}（按 0.1 天精度比）`
   );
   check(
     '80% 区间显示值一致',

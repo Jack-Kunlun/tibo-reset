@@ -10,6 +10,7 @@
  */
 
 import { elapsed } from './format.js';
+import { fmtSpanShort } from './scene.js';
 
 /** 冷启动、或拿不到任何状态时的兜底标题。与导航栏标题同源。 */
 const FALLBACK_TITLE = '等 TIBO 按按钮 · 额度重置观测台';
@@ -42,9 +43,10 @@ export function indexShareTitle({ signal, lastAt, now = Date.now() } = {}) {
 
   if (Number.isFinite(lastAt) && lastAt > 0) {
     const el = elapsed(lastAt, now);
-    // 与页首 `sinceText` 同一档说法（「已过不足一天」/「已过 N 天」），
-    // 否则同一件事在分享卡片和页面上会是两种措辞。
-    return `距上次重置 ${el.d < 1 ? '不足一天' : el.d + ' 天'}，还在等`;
+    // 与页首 `sinceText` 同一个时长口径（都按时/分展示），但这里取**短档**：
+    // 分享卡片标题只有一行、超长会被截断 —— 「距上次重置 20 小时 41 分，还在等」
+    // 比原来那句「不足一天」长了 6 个字，很容易被切掉后半句。
+    return `距上次重置 ${fmtSpanShort(el.ms / 86400000)}，还在等`;
   }
   return FALLBACK_TITLE;
 }

@@ -26,8 +26,8 @@ import { Resvg } from '@resvg/resvg-js';
 
 import { buildChartData, fmtDateIn, fmtDateTimeIn } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
-import { PALETTE, estimateTextWidth, survivalScene } from '../src/lib/scene.js';
-import { verdictOf } from '../src/lib/render.mjs';
+import { PALETTE, estimateTextWidth, fmtSpanShort, survivalScene } from '../src/lib/scene.js';
+import { spanOf, verdictOf } from '../src/lib/render.mjs';
 import { renderSceneSvg } from '../src/lib/svg.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -120,17 +120,28 @@ function logoHref() {
 const esc = (s) =>
   String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-/** 卡片上出现的全部数字，同时用于 og:description —— 图与文字不能各算各的 */
+/** og:description 里「没有预测」时的占位 */
+const NO_SPAN = { big: '—', unit: '', text: '—' };
+
+/**
+ * 卡片上出现的全部数字，同时用于 og:description —— 图与文字不能各算各的。
+ *
+ * 时长字段刻意给了两档精度，因为它们要落进宽度固定的 1200×630 卡片：
+ *   · `elapsed` / `remaining` 是**主数字**（大字 + 单位小字），走 `spanOf` 的完整档；
+ *   · `*Short` 只出现在**副标题**里（「历史中位间隔 6 天 17 小时 · 80% 区间 …」），
+ *     那行本来就长，再用完整档会顶出列宽，所以走 `fmtSpanShort`。
+ *   ⚠ 两档都不能再退回 `toFixed(1) + '天'` —— 「0.9 天」这种读数读者得自己心算。
+ */
 export function ogNumbers(model, prediction) {
   const p = prediction?.prediction;
-  const elapsed = (model.now - new Date(model.lastAt).getTime()) / DAY;
+  const elapsedDays = (model.now - new Date(model.lastAt).getTime()) / DAY;
   return {
-    elapsed: elapsed.toFixed(1),
-    remaining: p ? p.q50.toFixed(1) : '—',
-    lo: p ? p.q25.toFixed(1) : '—',
-    hi: p ? p.q90.toFixed(1) : '—',
+    elapsed: spanOf(elapsedDays),
+    remaining: p ? spanOf(p.q50) : NO_SPAN,
+    loShort: p ? fmtSpanShort(p.q25) : '—',
+    hiShort: p ? fmtSpanShort(p.q90) : '—',
     count: String(model.count),
-    medianInterval: model.median.toFixed(1),
+    medianIntervalShort: fmtSpanShort(model.median),
     firstDate: fmtDateIn(model.firstAt, CJK),
     last: fmtDateTimeIn(model.lastAt, CJK),
     updated: fmtDateTimeIn(model.generatedAt, CJK),
@@ -270,8 +281,8 @@ ${pill.html}
 
 <line x1="${M}" y1="${LY.divider}" x2="${OG_W - M}" y2="${LY.divider}" stroke="${PALETTE.line}" stroke-width="1"/>
 
-${statCol(M, '距上次重置', n.elapsed, '天', `自 ${n.last} 起`)}
-${statCol(M + 334, '中位剩余等待', n.remaining, '天', `历史中位间隔 ${n.medianInterval} 天 · 80% 区间 ${n.lo}–${n.hi} 天`)}
+${statCol(M, '距上次重置', n.elapsed.big, n.elapsed.unit, `自 ${n.last} 起`)}
+${statCol(M + 334, '中位剩余等待', n.remaining.big, n.remaining.unit, `历史中位间隔 ${n.medianIntervalShort} · 80% 区间 ${n.loShort}–${n.hiShort}`)}
 ${statCol(M + 668, '历史记录', n.count, '次', `${n.firstDate} 起`)}
 <g transform="translate(${M},${LY.chart}) scale(${SCENE_SCALE.toFixed(4)})">
 ${body}
@@ -317,8 +328,8 @@ export async function buildOgImage({ model, prediction, siteUrl, fontDirs }) {
     pageUrl: base || null,
     imageUrl: base ? `${base}/og-image.png` : null,
     description:
-      `距上次重置 ${numbers.elapsed} 天，中位剩余等待 ${numbers.remaining} 天` +
-      `（80% 区间 ${numbers.lo}–${numbers.hi} 天）。` +
+      `距上次重置 ${numbers.elapsed.text}，中位剩余等待 ${numbers.remaining.text}` +
+      `（80% 区间 ${numbers.loShort}–${numbers.hiShort}）。` +
       `基于 ${numbers.count} 次历史重置记录自动生成。`,
   };
 }

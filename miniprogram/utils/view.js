@@ -7,7 +7,8 @@
  * 横幅长什么样」这种平时根本触发不到的路径。
  */
 
-import { fmtDate, fmtClock, fmtDay, pct1, toTs, trim1 } from './format.js';
+import { fmtDate, fmtClock, fmtDay, fmtSpan, pct1, spanOf, toTs, trim1 } from './format.js';
+import { fmtSpanShort } from './scene.js';
 
 const PRECISION_TEXT = {
   day: '全天',
@@ -251,10 +252,16 @@ function signalView(top, level) {
 
 export function buildMetrics(chart) {
   if (!chart) return [];
+  // 三项间隔统计走 spanOf：大字给主单位数值、小字给「天 17 小时」这样的单位串。
+  // 与网页端 renderMetrics 同口径 —— 原来写死 `toFixed(1) + '天'`，一落到
+  // 「0.9 天」就变成要读者自己换算的小数，而那恰恰是最常出现的情形。
+  const mean = spanOf(chart.mean);
+  const median = spanOf(chart.median);
+  const longest = spanOf(chart.longest);
   return [
-    { k: '平均间隔', v: chart.mean.toFixed(1), u: '天', note: '被极端值拉高' },
-    { k: '中位间隔', v: chart.median.toFixed(1), u: '天', note: '一半情况比这更快', hi: true },
-    { k: '最长等待', v: chart.longest.toFixed(1), u: '天', note: '极端长尾' },
+    { k: '平均间隔', v: mean.big, u: mean.unit, note: '被极端值拉高' },
+    { k: '中位间隔', v: median.big, u: median.unit, note: '一半情况比这更快', hi: true },
+    { k: '最长等待', v: longest.big, u: longest.unit, note: '极端长尾' },
     { k: '记录总数', v: String(chart.count), note: `${fmtDay(chart.firstAt)} 起` },
     { k: '普通重置', v: String(chart.count - chart.creditCount), note: '额度直给' },
     { k: '发券型', v: String(chart.creditCount), note: '改成给券' },
@@ -293,7 +300,9 @@ export function buildForecast(pred) {
 
   const p = pred.prediction;
   const cal = pred.calibration;
-  const hours = Math.round(p.q50 * 24);
+  // 时长字段两档精度（与网页端 og-image.mjs 同样的理由）：
+  // 主数字用 `spanOf` 的完整档（大字 + 单位小字）；挤在同一行里的区间与阶段表用短档。
+  const q50 = spanOf(p.q50);
   const sk = pred.skill.score;
   const nearZero = Math.abs(sk) < 0.05;
   const skillShort = nearZero
@@ -306,9 +315,9 @@ export function buildForecast(pred) {
   const cov80Ok = Math.abs(cal.cov80 - 0.8) < 0.1;
 
   return {
-    q50: trim1(p.q50),
-    hoursText: hours >= 1 ? `约 ${hours} 小时` : '',
-    rangeText: `${trim1(p.q25)} – ${trim1(p.q90)}`,
+    q50: q50.big,
+    q50Unit: q50.unit,
+    rangeText: `${fmtSpanShort(p.q25)} – ${fmtSpanShort(p.q90)}`,
     bars: p.horizons.map((h) => ({
       label: h.label,
       w: Math.max(1, Math.min(100, h.p * 100)).toFixed(1),
@@ -341,12 +350,12 @@ export function buildForecast(pred) {
       i: i + 1,
       from: fmtDay(ph.from),
       to: fmtDay(ph.to),
-      mean: ph.mean.toFixed(2),
+      mean: spanOf(ph.mean).text,
       n: ph.n,
-      max: ph.max.toFixed(0),
+      max: fmtSpanShort(ph.max),
     })),
     phaseSummary: pred.phases.length
-      ? `平均间隔从 ${pred.phases[0].mean.toFixed(1)} 天降到 ${pred.phases[pred.phases.length - 1].mean.toFixed(1)} 天。`
+      ? `平均间隔从 ${fmtSpan(pred.phases[0].mean)} 降到 ${fmtSpan(pred.phases[pred.phases.length - 1].mean)}。`
       : '',
   };
 }

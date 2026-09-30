@@ -49,6 +49,57 @@ const attr = (s) => esc(s).replace(/"/g, '&quot;');
 
 const pct1 = (x) => (x * 100).toFixed(1) + '%';
 
+/* --------------------------- 时长格式化 --------------------------- */
+
+/**
+ * 把一段时长（单位：天，可含小数）拆成「主数字 + 单位串」。
+ *
+ * 口径（2026-09-30 定）：**保留最高的非零单位当主数字，再给下一级做精度**
+ *   ≥ 1 天    → `6` + `天 17 小时`
+ *   < 1 天    → `20` + `小时 41 分`
+ *   < 1 小时  → `41` + `分 20 秒`
+ *
+ * 为什么不一律换成小时 / 秒：6.7 天 = 160.8 小时，最长等待 67.7 天 = 585 万秒 ——
+ * 读者得先心算才知道量级，那不是「更直观」，是「更难懂」。所以用「天/小时/分」
+ * 里最高的那个非零单位当锚点，下一级只用来补精度。
+ *
+ * ⚠ 入参必须是**原始浮点天数**，不要先 `toFixed` 再传进来：先四舍五入会凭空造误差
+ *   （0.8645 天 = 20 小时 44 分，先 `toFixed(1)` 就变成 20 小时 38 分）。
+ */
+export function spanOf(days) {
+  if (!Number.isFinite(days) || days < 0) return { big: '—', unit: '', text: '—' };
+  const total = Math.round(days * 86_400);
+  const D = Math.floor(total / 86_400);
+  const H = Math.floor((total % 86_400) / 3600);
+  const M = Math.floor((total % 3600) / 60);
+  const S = total % 60;
+  let big;
+  let unit;
+  if (D >= 1) {
+    big = String(D);
+    unit = H > 0 ? `天 ${H} 小时` : '天';
+  } else if (H >= 1) {
+    big = String(H);
+    unit = M > 0 ? `小时 ${M} 分` : '小时';
+  } else if (M >= 1) {
+    big = String(M);
+    unit = S > 0 ? `分 ${S} 秒` : '分';
+  } else {
+    big = String(S);
+    unit = '秒';
+  }
+  return { big, unit, text: `${big} ${unit}` };
+}
+
+/** 一句话里用的完整串（`big unit`）。要拆成大字 + 小字时直接用 `spanOf`。 */
+export const fmtSpan = (days) => spanOf(days).text;
+
+/**
+ * 短版（只到主单位，不到「分」）的实现在 `scene.js` 里 —— 因为那份文件会被
+ * 逐字同步到小程序端，必须自包含，所以它自带一个。这里不再重复一份，
+ * 免得将来只改了一边。网页端要用就 `import { fmtSpanShort } from './scene.js'`。
+ */
+
 /* --------------------------- 倒计时 / 判定 --------------------------- */
 
 const REEL_ITEMS = Array.from({ length: 10 }, (_, i) => `<i>${i}</i>`).join('');
@@ -84,8 +135,9 @@ export function renderCounter(m) {
 
 export function renderSince(m) {
   const ms = m.now - new Date(m.lastAt).getTime();
-  const d = Math.floor(ms / DAY);
-  return `上次重置 ${fmtDateTime(m.lastAt)} · 已过 ${d < 1 ? '不足一天' : d + ' 天'}`;
+  // 口径与页首倒计时一致：不足一天时给到「小时 + 分」，不再只写「不足一天」——
+  // 「不足一天」在「已过 20 小时」和「已过 10 分」两种情形下是同一句话，信息量为零。
+  return `上次重置 ${fmtDateTime(m.lastAt)} · 已过 ${fmtSpan(ms / DAY)}`;
 }
 
 /**
@@ -108,10 +160,16 @@ export function renderVerdict(m) {
 /* ------------------------------ 指标条 ------------------------------ */
 
 export function renderMetrics(m) {
+  // 三项间隔统计都走 spanOf：大字给主单位数值、小字给「天 17 小时」这样的单位串。
+  // 之前写死 `toFixed(1) + '天'`，在「6.7 天」这种量级上没问题，但一落到
+  // 「0.9 天」就变成读者要自己换算的小数 —— 而 0.9 天恰恰是最常出现的情形。
+  const mean = spanOf(m.mean);
+  const median = spanOf(m.median);
+  const longest = spanOf(m.longest);
   const items = [
-    { k: '平均间隔', v: m.mean.toFixed(1), u: '天', note: '被极端值拉高' },
-    { k: '中位间隔', v: m.median.toFixed(1), u: '天', note: '一半情况比这更快', hi: true },
-    { k: '最长等待', v: m.longest.toFixed(1), u: '天', note: '极端长尾' },
+    { k: '平均间隔', v: mean.big, u: mean.unit, note: '被极端值拉高' },
+    { k: '中位间隔', v: median.big, u: median.unit, note: '一半情况比这更快', hi: true },
+    { k: '最长等待', v: longest.big, u: longest.unit, note: '极端长尾' },
     { k: '记录总数', v: m.count, note: `${fmtDate(m.firstAt)} 起` },
     { k: '普通重置', v: m.count - m.creditCount, note: '额度直给' },
     { k: '发券型', v: m.creditCount, note: '改成给券' },
@@ -481,7 +539,10 @@ export function renderForecast(pred) {
 
   const p = pred.prediction;
   const cal = pred.calibration;
-  const hours = Math.round(p.q50 * 24);
+  // q50 直接走 spanOf 决定给「天」还是「小时 + 分」。原来另外算一个
+  // `Math.round(q50 * 24)` 当补充说明，在 q50 > 1 天时会写出「约 40 小时」这种
+  // 没人拿来思考的数字 —— 主数字既然已经分档，那个补充就是纯冗余。
+  const q50 = spanOf(p.q50);
 
   const bars = p.horizons
     .map(
@@ -494,14 +555,15 @@ export function renderForecast(pred) {
     .join('');
 
   const phaseRows = pred.phases
-    .map(
-      (ph, i) => `<div class="ph">
+    .map((ph, i) => {
+      const sp = spanOf(ph.mean);
+      return `<div class="ph">
       <span class="pi">第 ${i + 1} 段</span>
       <span class="pt">${fmtDate(ph.from)} → ${fmtDate(ph.to)}</span>
-      <span class="pm">${ph.mean.toFixed(2)}<small>天</small></span>
-      <span class="pn">n=${ph.n} · 最大 ${ph.max.toFixed(0)} 天</span>
-    </div>`
-    )
+      <span class="pm">${sp.big}<small>${sp.unit}</small></span>
+      <span class="pn">n=${ph.n} · 最大 ${fmtSpan(ph.max)}</span>
+    </div>`;
+    })
     .join('');
 
   const sk = pred.skill.score;
@@ -518,15 +580,15 @@ export function renderForecast(pred) {
 
   return `
     <p class="fc-asof">
-      计算于 <b>${fmtDateTime(pred.asOf)}</b> 北京时间（距上次重置 ${pred.sinceDays.toFixed(2)} 天）
+      计算于 <b>${fmtDateTime(pred.asOf)}</b> 北京时间（距上次重置 ${fmtSpan(pred.sinceDays)}）
     </p>
 
     <div class="fc">
       <div class="fc-main">
         <div class="k">中位剩余等待</div>
-        <div class="v">${p.q50.toFixed(1)}<small>天</small></div>
+        <div class="v">${q50.big}<small>${q50.unit}</small></div>
         <div class="range">
-          ${hours >= 1 ? `约 ${hours} 小时 · ` : ''}80% 区间 <b>${p.q25.toFixed(1)} – ${p.q90.toFixed(1)}</b> 天
+          80% 区间 <b>${fmtSpan(p.q25)} – ${fmtSpan(p.q90)}</b>
         </div>
       </div>
       <div class="fc-bars">
@@ -562,7 +624,7 @@ export function renderForecast(pred) {
         <h3>节奏在加速</h3>
         ${phaseRows}
         <p class="fc-foot">
-          平均间隔从 ${pred.phases[0].mean.toFixed(1)} 天降到 ${pred.phases[pred.phases.length - 1].mean.toFixed(1)} 天。
+          平均间隔从 ${fmtSpan(pred.phases[0].mean)} 降到 ${fmtSpan(pred.phases[pred.phases.length - 1].mean)}。
         </p>
       </div>
     </div>

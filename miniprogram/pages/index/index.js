@@ -14,7 +14,7 @@ import { indexShareTitle, isSinglePage } from '../../utils/share.js';
 import { buildGauge, buildSignal, buildMetrics, buildForecast } from '../../utils/view.js';
 import { survivalScene, stripScene } from '../../utils/scene.js';
 import { drawScene, setupCanvas } from '../../utils/draw.js';
-import { countdown, countdownGroups, elapsed, reelGroups, verdict as makeVerdict, fmtDateTime, fmtClock, fmtClockSec } from '../../utils/format.js';
+import { countdown, countdownGroups, elapsed, fmtSpan, reelGroups, verdict as makeVerdict, fmtDateTime, fmtClock, fmtClockSec } from '../../utils/format.js';
 import {
   ACTION_LABEL,
   DONE_LABEL,
@@ -153,7 +153,9 @@ Page({
 
   sinceText(lastAt) {
     const el = elapsed(lastAt);
-    return el.d < 1 ? '已过不足一天' : `已过 ${el.d} 天`;
+    // 不足一天时给到「小时 + 分」，不再只写「已过不足一天」——
+    // 那句话在「已过 20 小时」和「已过 10 分钟」两种情形下一模一样，信息量为零。
+    return `已过 ${fmtSpan(el.ms / 86400000)}`;
   },
 
   /* ------------------------------ 滚动计时 ------------------------------ */

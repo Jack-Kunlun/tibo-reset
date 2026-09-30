@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 import { buildChartData } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
 import { detectSignals, latestEventMs } from '../src/lib/signals.mjs';
-import { countdown, countdownGroups, elapsed, reelGroups, fmtDateTime, fmtClockSec, verdict as makeVerdict } from '../miniprogram/utils/format.js';
+import { countdown, countdownGroups, elapsed, fmtSpan, reelGroups, fmtDateTime, fmtClockSec, verdict as makeVerdict } from '../miniprogram/utils/format.js';
 import { buildGauge, buildSignal, buildMetrics, buildForecast } from '../miniprogram/utils/view.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -187,10 +187,8 @@ const forecastHtml = forecast
   ? `<div class="fc">
       <div class="fc-main">
         <div class="k">中位剩余等待</div>
-        <div class="v">${forecast.q50}<span class="u">天</span></div>
-        <div class="range">${forecast.hoursText ? forecast.hoursText + ' · ' : ''}80% 区间 <span class="b">${esc(
-          forecast.rangeText
-        )}</span> 天</div>
+        <div class="v">${forecast.q50}<span class="u">${esc(forecast.q50Unit)}</span></div>
+        <div class="range">80% 区间 <span class="b">${esc(forecast.rangeText)}</span></div>
       </div>
       <div class="fc-bars">
         ${forecast.bars
@@ -223,7 +221,7 @@ const forecastHtml = forecast
             (p) =>
               `<div class="ph"><span class="pi">第 ${p.i} 段</span><span class="pt">${esc(p.from)} → ${esc(
                 p.to
-              )}</span><span class="pm">${p.mean} 天</span><span class="pn">n=${p.n} · 最大 ${p.max} 天</span></div>`
+              )}</span><span class="pm">${p.mean}</span><span class="pn">n=${p.n} · 最大 ${p.max}</span></div>`
           )
           .join('')}
         <div class="bfoot">${esc(forecast.phaseSummary)}</div>
@@ -270,7 +268,7 @@ ${normalize}
   <div class="hero">
     <div class="label">距上一次额度重置</div>
     <div class="counter">${counterHtml}</div>
-    <div class="since">上次重置 ${esc(fmtDateTime(lastAt))} · 已过 ${elapsed(lastAt).d} 天</div>
+    <div class="since">上次重置 ${esc(fmtDateTime(lastAt))} · 已过 ${fmtSpan(elapsed(lastAt).ms / 86400000)}</div>
     <div class="verdict v-${v.cls}"><span class="b">${esc(v.text)}</span><span class="sep"> · </span><span>${esc(
       v.tail
     )}</span></div>

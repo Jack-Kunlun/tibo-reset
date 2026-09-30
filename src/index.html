@@ -551,6 +551,29 @@
     };
   }
 
+  /**
+   * 时长文案：与 `src/lib/render.mjs` 的 `spanOf` **同口径**。
+   *
+   * 这是同一套口径的第三份实现 —— 内联在 <script> 里，没法 import 模块。
+   * 三处（render.mjs / miniprogram/utils/format.js / 这里）要一起改；
+   * `scripts/test-shared.mjs` 会把本函数抽出来与 spanOf 对拍，漂了就报红。
+   *
+   * ⚠ 刻意**不复用上面 parts() 的结果**：parts 先 floor 到秒再拆，而 spanOf 是
+   *   先 round 到秒。差这一秒在 23:59:59.6 这种临界点上会让静态值显示「1 天」、
+   *   而脚本一接管就跳成「23 小时 59 分」—— 同一个数字在一秒内换了副面孔。
+   */
+  function spanFromMs(ms) {
+    var t = Math.round(ms / 1000);
+    var D = Math.floor(t / 86400);
+    var H = Math.floor((t % 86400) / 3600);
+    var M = Math.floor((t % 3600) / 60);
+    var S = t % 60;
+    if (D >= 1) return H > 0 ? D + ' 天 ' + H + ' 小时' : D + ' 天';
+    if (H >= 1) return M > 0 ? H + ' 小时 ' + M + ' 分' : H + ' 小时';
+    if (M >= 1) return S > 0 ? M + ' 分 ' + S + ' 秒' : M + ' 分';
+    return S + ' 秒';
+  }
+
   function tick() {
     var now = Date.now();
 
@@ -575,7 +598,7 @@
         setGroup(heroGroups[2], pad(p.m));
         setGroup(heroGroups[3], pad(p.s));
         since.textContent =
-          '上次重置 ' + hero.dataset.lastlabel + ' · 已过 ' + (p.d < 1 ? '不足一天' : p.d + ' 天');
+          '上次重置 ' + hero.dataset.lastlabel + ' · 已过 ' + spanFromMs(ms);
       }
     }
 
