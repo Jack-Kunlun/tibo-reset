@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 
 import { buildChartData } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
-import { detectSignals } from '../src/lib/signals.mjs';
+import { detectSignals, latestEventMs } from '../src/lib/signals.mjs';
 import { countdown, countdownGroups, elapsed, reelGroups, fmtDateTime, fmtClockSec, verdict as makeVerdict } from '../miniprogram/utils/format.js';
 import { buildGauge, buildSignal, buildMetrics, buildForecast } from '../miniprogram/utils/view.js';
 
@@ -55,7 +55,17 @@ const tweetPool = DEMO_SIGNAL ? [DEMO_TWEET, ...tweets.tweets] : tweets.tweets;
 
 const chart = buildChartData(resets.records, now);
 const prediction = predictAll(resets.records, { now });
-const signals = detectSignals(tweetPool, { now, account: 'thsottiaux' });
+// ⚠ `lastResetAt` 不能省。它不只是给「窗口已过去」用的 —— 少了它，
+// `staleWindowReason` 里 `fulfilled`（窗口内已发生过重置）这一支永不触发，
+// 于是**已兑现的预告会被当成仍然有效的预告**显示出来。
+// 三条生产路径（page.mjs / collect.mjs / server）都传了，只有这里漏了 ——
+// 后果不是线上出错，而是本地预览显示的状态与真实状态不一致，
+// 而它的定位恰恰是「上传前用最低成本发现问题」。口径必须与 page.mjs 完全一致。
+const signals = detectSignals(tweetPool, {
+  now,
+  account: 'thsottiaux',
+  lastResetAt: latestEventMs(resets.records),
+});
 
 const lastAt = new Date(chart.lastAt).getTime();
 const counter = reelGroups(elapsed(lastAt));

@@ -125,8 +125,14 @@ const RE_SCOPE = /\b(limits?|usage|allowance|allowances|quota|quotas|rate limits
 const RE_GENEROUS = /\b(fresh|new|another|top(?:ped)?[ -]?up|refill|replenish|more|extra|unlimited|bank(?:ed|s)?)\b/i;
 // 未来语气
 const RE_FUTURE = /\b(will|we'll|i'll|gonna|going to|plan to|planning to|will be|soon|next|later|tomorrow|in \d+)\b/i;
-// 已完成的过去式
-const RE_PAST = /\breset\s+(?:all\s+)?(?:propagated|complete[ds]?|done|rolled|finished|is\s+live|live|deployed|landed)\b|\b(?:has|have|had|is|are|was|were|been)\s+(?:now\s+)?(?:been\s+)?reset\b|\breset\s+has\b/i;
+// 已完成的过去式。
+// ⚠ `resets?` 的复数分支是**必须**的，不是顺手写的：句子主语是「Reset(s)」这个
+// 事件名词时，单复数完全取决于他当天怎么写。实测两条同义公告——
+//   「Reset all propagated. Sweet dreams.」   → 单数，一直判对
+//   「Resets all propagated. That will be all.」→ 复数，被漏掉（见 KI-012）
+// 只差一个 s，信号层就静默丢掉一次真重置：它既不是 occurred、又会被「过期预告」
+// 规则撤走，最后两条链路都不认它。
+const RE_PAST = /\bresets?\s+(?:all\s+)?(?:propagated|complete[ds]?|done|rolled|finished|is\s+live|live|deployed|landed)\b|\b(?:has|have|had|is|are|was|were|been)\s+(?:now\s+)?(?:been\s+)?reset\b|\bresets?\s+(?:has|have)\b/i;
 // 与额度无关的发布/宣传语境
 const RE_LAUNCH = /\b(launch(?:ing|ed)?|keynote|ship(?:ping|ped)?|releas(?:e|ing|ed)|announc(?:e|ing|ed|ement)|blog|demo|podcast|feature|model|styleguide|api|mcp|codex app|chatgpt app|super ?app)\b/i;
 
@@ -161,8 +167,21 @@ const RE_ANNOUNCE =
 /** 假设 / 条件 / 否定语境 —— 命中时「名词化的 reset」不能当既成事实。 */
 const RE_HYPOTHETICAL = /\b(?:if|unless|whether|would|could|might|should|suppose|imagine|unless)\b|\bwon'?t\s+reset\b/i;
 
-/** 将来完成时：「will have reset … by tomorrow」不是已完成。 */
-const RE_FUTURE_PERFECT = /\b(?:will|shall|going\s+to|gonna)\s+(?:have|be)\b/i;
+/**
+ * 将来完成时：「will have reset … by tomorrow」不是已完成。
+ *
+ * ⚠ 收紧过一次（KI-012）。旧写法是 `(?:will|shall|going to|gonna)\s+(?:have|be)`
+ * —— **`have` / `be` 后面不要求任何东西**，于是任何收尾寒暄都能命中：
+ *   「Resets all propagated. **That will be all**.」
+ * 后半句「就这些了」被当成将来完成时 → 直接 `return false` → 整条被判成预告。
+ * 一个句式词表配这么松的尾巴，等于给所有 `will be …` 的句子发了张「否决票」。
+ *
+ * 现在要求 `have` / `be` 之后必须真的落到 reset 上（可隔一个副词），
+ * 这才是「将来完成时」在讲重置。放宽的那一侧有 `RE_FUTURE` 兜底
+ * （`will` / `next` / `soon` … 都在表里），所以收紧不会让未来语气漏成既成事实。
+ */
+const RE_FUTURE_PERFECT =
+  /\b(?:will|shall|going\s+to|gonna)\s+(?:have|be)\s+(?:(?:been|now|also|then|fully|all|already)\s+)*reset(?:s|ting)?\b/i;
 
 /**
  * 一条推文是否在陈述「额度重置**已经发生**」。

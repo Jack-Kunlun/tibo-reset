@@ -17,8 +17,9 @@ import { fileURLToPath } from 'node:url';
 
 import { buildChartData } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
-import { detectSignals } from '../src/lib/signals.mjs';
+import { detectSignals, latestEventMs } from '../src/lib/signals.mjs';
 import { renderAll } from '../src/lib/render.mjs';
+import { logoDataUri } from '../src/lib/page.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = async (p) => JSON.parse(await readFile(resolve(ROOT, p), 'utf8'));
@@ -78,6 +79,9 @@ if (!chartData) throw new Error('记录不足，无法构建原型');
 
 const prediction = predictAll(resets.records, { now });
 
+// 品牌标只读一次盘，两个 case 共用
+const logoUri = await logoDataUri();
+
 await mkdir(resolve(ROOT, 'prototype'), { recursive: true });
 
 const banner = (title, note) => `
@@ -89,9 +93,20 @@ const banner = (title, note) => `
 </div>`;
 
 for (const c of cases) {
-  const signals = detectSignals(c.tweets, { now, account: 'thsottiaux' });
+  // `lastResetAt` 与 page.mjs / collect.mjs 同口径：原型页是拿去评审的，
+  // 状态必须与线上一致，否则评审看到的是一个真实系统里不会出现的状态。
+  const signals = detectSignals(c.tweets, {
+    now,
+    account: 'thsottiaux',
+    lastResetAt: latestEventMs(resets.records),
+  });
   const model = { ...chartData, generatedAt: statsFile.generated_at ?? new Date(now).toISOString() };
   const parts = renderAll(model, prediction, signals);
+  // `renderAll` 不产出 LOGO_URI —— 那是 `renderPage` 事后补上的（品牌标内联成
+  // data URI，见 page.mjs）。这里直接调 renderAll 就必须自己补，否则
+  // 模板里那个占位符留着 → injectTokens 抛错 → **整个脚本一个页面都产不出**。
+  // 实测：这条一直在报错，与本次的信号修复无关（用 HEAD 版本跑同样报）。
+  parts.LOGO_URI = logoUri;
 
   let html = template;
   for (const [key, value] of Object.entries(parts)) {

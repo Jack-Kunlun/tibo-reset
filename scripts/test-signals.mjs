@@ -10,7 +10,7 @@
  * 运行：node scripts/test-signals.mjs
  */
 
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { analyzeTweet, detectSignals, latestEventMs, hasOccurredPart, SOURCE_ZONE, USER_ZONE } from '../src/lib/signals.mjs';
@@ -1037,6 +1037,123 @@ console.log('\n【10】带窗口的线索：窗口过去或被兑现后，撤回
     '真实语料：渲染层不再出现窗口块',
     !renderSignal(sig).includes('sig-win'),
     renderSignal(sig).slice(0, 140)
+  );
+}
+
+/* ============ 11. 「一个 s」与「一个参数」：两处静默丢失 ============ */
+
+console.log('\n【11】完成句式的单复数 + lastResetAt 不可省');
+
+{
+  /* 判据一：同义的公告，单复数不同必须同判。
+   * 他的公告主语是「Reset(s)」这个事件名词，单复数全看他当天怎么写 ——
+   * 「Reset all propagated」一直判对，「Resets all propagated」被漏掉。 */
+  const singles = [
+    ['Reset all propagated. Sweet dreams.', '单数'],
+    ['Resets all propagated. That will be all.', '复数'],
+  ];
+  for (const [text, label] of singles) {
+    const a = run(text, '2026-09-27T02:17:54.000Z');
+    check(`${label}：判为 occurred`, a.level === 'occurred', `${text} → ${a.level}`);
+  }
+
+  /* 判据二：收紧将来完成时之后，真·将来仍要被拦。
+   * RE_FUTURE_PERFECT 原本的尾巴 `(?:have|be)` **后面不要求任何词**，
+   * 于是「That will be all」这种收尾寒暄也能否决一整条已完成句。 */
+  const futureCases = [
+    ['We will have reset everyone by tomorrow morning.', '将来完成时'],
+    ['The usage limits will be reset tomorrow.', '被动将来'],
+    ['The limits will be all reset by tomorrow.', '副词夹在中间的将来完成时'],
+    ["We'll reset everyone's limits next Tuesday.", '真预告'],
+    ['That will be all.', '纯寒暄（无 reset 词，走早退）'],
+    ['Everything will be all good.', '寒暄 + all，但无 reset 词'],
+  ];
+  for (const [text, label] of futureCases) {
+    const a = run(text, '2026-09-27T02:17:54.000Z');
+    check(`${label}：不被当成已完成`, a.level !== 'occurred', `${text} → ${a.level}`);
+  }
+}
+
+{
+  /* 判据三：真实语料里，形如「Resets all propagated」的推文必须落进 occurred。
+   * 这条是**形状级**的：不管将来他换哪种措辞，只要命中完成句式就不该被丢掉。 */
+  const tweets = JSON.parse(await readFile(resolve(ROOT, 'data/tweets.json'), 'utf8')).tweets;
+  const records = JSON.parse(await readFile(resolve(ROOT, 'data/resets.json'), 'utf8')).records;
+  const NOW = new Date('2026-09-30T15:00:00.000Z').getTime();
+  const sig = detectSignals(tweets, { now: NOW, lastResetAt: latestEventMs(records) });
+
+  const doneShape = tweets.filter((t) => /\bresets?\s+(?:all\s+)?(?:propagated|complete[ds]?|done|rolled|finished)\b/i.test(t.text || ''));
+  check(
+    '真实语料：完成句式的推文都判为 occurred',
+    doneShape.every((t) => (sig.occurred || []).some((x) => x.id === t.id)),
+    doneShape.map((t) => `${t.id}:${t.text.slice(0, 34)}`).join(' | ')
+  );
+
+  const culprit = sig.occurred.find((x) => x.id === '2103911959544610829');
+  check('真实语料：09-27 那条复数公告已在 occurred 里', Boolean(culprit), `occurred=${(sig.occurred || []).length} 条`);
+  check(
+    '真实语料：它不在 explicit 里（这才是「一个 s」的后果）',
+    !(sig.signals || []).some((x) => x.id === '2103911959544610829')
+  );
+}
+
+{
+  /* 判据四：`detectSignals` 的调用点不许漏传 `lastResetAt`。
+   *
+   * 为什么用**文本扫描**而不是行为断言：这是「参数漏传」类缺陷，行为断言只能守住
+   * 你已经知道要测的那一条路径，漏传的那个新调用点照样恒绿。实测过一次 ——
+   * `scripts/preview-miniprogram.mjs` 漏了它，于是 fulfilled 判据永不触发，
+   * 本地预览把「已兑现的预告」显示成仍然有效的预告（页面写着 9.28 起，而那一刻
+   * 快照里 explicit=0 / forecasts=0）。它的定位恰恰是「上传前发现问题」，
+   * 显示的却是别的状态 —— 这种坏法只有扫描调用点才拦得住。
+   *
+   * 豁免的是**测试文件**（按 `test-` 前缀判定）：它们的产物不面向用户，
+   * 且常用空输入或缺省参数来构造场景，本身不构成「显示错状态」。
+   * 生产与展示路径一律不在豁免内 —— 包括 `make-prototype.mjs` 这类
+   * 「生成给人看的页面」的脚本（它当时也漏了，是同一条扫描查出来的）。 */
+  const isTestFile = (rel) => /\/test-[^/]*\.mjs$/.test(rel);
+  const callSites = [];
+  for (const dir of ['src/lib', 'scripts', 'server']) {
+    let files = [];
+    try {
+      files = await readdir(resolve(ROOT, dir));
+    } catch {
+      continue; // 目录不存在就跳过，不让断言因此恒红
+    }
+    for (const f of files) {
+      if (!f.endsWith('.mjs')) continue;
+      if (f.startsWith('.')) continue; // 临时/隐藏文件不算（例如本地对照用的拷贝）
+      const rel = `${dir}/${f}`;
+      if (isTestFile(rel)) continue;
+      const lines = (await readFile(resolve(ROOT, rel), 'utf8')).split('\n');
+      lines.forEach((ln, i) => {
+        if (!/\bdetectSignals\s*\(/.test(ln)) return;
+        if (/function|export\s|\bimport\b/.test(ln)) return; // 定义行与 import 行不算调用
+        const chunk = lines.slice(i, i + 8).join('\n');
+        callSites.push({ rel, line: i + 1, ok: /lastResetAt/.test(chunk) });
+      });
+    }
+  }
+  // 先守住扫描本身：一个调用点都没扫到的话，下面那条等于恒真
+  check('扫描到了 detectSignals 的调用点（≥3 处）', callSites.length >= 3, `扫到 ${callSites.length} 处`);
+  const missing = callSites.filter((c) => !c.ok);
+  check(
+    '每个调用点都传了 lastResetAt（漏一个 = 静默错状态）',
+    missing.length === 0,
+    missing.map((c) => `${c.rel}:${c.line}`).join(', ') || callSites.map((c) => `${c.rel}:${c.line}`).join(' ')
+  );
+
+  /* 判据五：这个参数不是装饰 —— 不传确实会得出**不同**的状态。
+   * 否则上面那条守卫会退化成「形式主义」（参数传了但没用）。 */
+  const tweets = JSON.parse(await readFile(resolve(ROOT, 'data/tweets.json'), 'utf8')).tweets;
+  const records = JSON.parse(await readFile(resolve(ROOT, 'data/resets.json'), 'utf8')).records;
+  const NOW = new Date('2026-09-30T15:00:00.000Z').getTime();
+  const without = detectSignals(tweets, { now: NOW, account: 'thsottiaux' });
+  const withIt = detectSignals(tweets, { now: NOW, account: 'thsottiaux', lastResetAt: latestEventMs(records) });
+  check(
+    '传/不传 lastResetAt 会得出不同的 level（不传 → 把已兑现的预告当预告）',
+    without.level !== withIt.level,
+    `不传=${without.level}(forecasts=${(without.forecasts || []).length}) / 传=${withIt.level}(forecasts=${(withIt.forecasts || []).length})`
   );
 }
 
