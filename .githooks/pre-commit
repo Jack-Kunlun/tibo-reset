@@ -1,0 +1,54 @@
+#!/bin/sh
+# 提交前的密钥 / 脱敏防线：跑 scripts/test-secrets.mjs，红了就不许提交。
+#
+# 【为什么需要它】
+# 那条防线（证书私钥 / openid 名单 / 本机的真实域名）只有几行 ignore 规则加几条断言，
+# 没有任何代码依赖它。而断言**只有在有人跑的时候才存在** —— 本机采集的定时任务只做
+# `git add` + `commit` + `push`，从不跑 `npm run check`。于是：
+#
+#     $ git add --dry-run data miniprogram
+#     add 'miniprogram/config.js'        # ← 一把就带上，不报错、不提示
+#
+# `miniprogram/config.js` 是本机在制品（里面是真实域名，仓库里那份是占位域名），
+# 而本仓库是**公开**的。它必须永不入库，只能靠「add 得精确 + 提交前核对」。
+# 把核对放进 hook，就不用指望每个执行者都记得住 —— 这是这个文件存在的全部理由。
+#
+# 【为什么放在 .githooks/ 而不是 .git/hooks/】
+# `.git/` 不进版本库，放那儿只有本机有效、别人 clone 不到，规则无法随仓库走。
+# 指到仓库内目录才能随代码分发：
+#
+#     git config core.hooksPath .githooks      # 每个 clone 各做一次
+#
+# 【真要绕过】
+# `git commit --no-verify` 可以跳过 —— 但请先想清楚为什么，别用它压掉真实告警。
+
+# 找不到 node 时**明说跳过**，不要静默放行 —— 静默通过比没有防线更糟
+if ! command -v node >/dev/null 2>&1; then
+  echo "" >&2
+  echo "⚠ pre-commit: 找不到 node，密钥防线（scripts/test-secrets.mjs）本次未执行。" >&2
+  echo "  这是「没查」，不是「查过了」。装好 node 后请补跑 \`npm run check\`。" >&2
+  echo "" >&2
+  exit 0
+fi
+
+if ! node scripts/test-secrets.mjs; then
+  cat >&2 <<'EOF'
+
+✗ pre-commit 拦下了这次提交：上面的密钥 / 脱敏防线没过。
+
+  最常见的原因：`git add <目录>` 把不该提交的文件卷了进来。本仓库长期挂着一个
+  在制品 `miniprogram/config.js`（本机填了真实域名），它必须留在本机、永不入库
+  —— 本仓库是公开的，git 历史是永久的。
+
+  先看这次暂存了什么：
+      git diff --cached --name-only
+
+  确认是否被卷进来，若是则摘掉再提交（工作区那份会保留）：
+      git restore --staged miniprogram/config.js
+
+  提交命令请写成「精确到要提交的路径」，例如：
+      git add data && git commit -m "chore(data): 本机采集的数据"
+
+EOF
+  exit 1
+fi

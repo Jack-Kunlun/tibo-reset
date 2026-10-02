@@ -456,6 +456,15 @@ HTTP 200 / 213KB 完整页面 / 4 次重试全中；runner（AWS）403 挑战页
   已在 `.gitignore` 与 `.dockerignore` 各有一条规则 —— **不要 `git add -f` 绕过它**。
   git 历史是永久的：一旦推上去，删文件也删不掉，只能吊销重签。同一条规则适用于
   `data/subscriptions.json`（含 openid）。
+- ⛔ **不要用目录级 `git add <目录>`**（尤其别照抄 `git add data miniprogram`）。
+  本仓库工作区**长期挂着在制品** `miniprogram/config.js`（本机真实域名），整目录 add 会
+  把它一起暂存 —— 实测 `git add --dry-run data miniprogram` 的输出就是
+  `add 'miniprogram/config.js'`，不报错、不提示。2026-09-23 因此把在制的文件移动卷进提交
+  （一半重构进了索引、引用改动没进），**弄坏过 HEAD**。**写成精确路径**：`git add data`。
+  **机制**：仓库根的 `.githooks/pre-commit` 会在提交前跑 `scripts/test-secrets.mjs` 拦住它。
+  `.git/` 不进版本库，所以规则放在仓库内的 `.githooks/` 才能随代码分发 ——
+  **每个 clone 需执行一次** `git config core.hooksPath .githooks` 才生效（缺 node 时 hook
+  会明说「本次未执行」而不是静默放行）。真要绕过用 `git commit --no-verify`。
   **检查手段**：`git status --short` 里不该出现证书目录；`git check-ignore -v <路径>` 能验证规则命中。
   历史层面用 `node scripts/check-history-secrets.mjs`（`npm run check` 已含）。
   ⚠ **「当前树干净」不等于「历史干净」**：脱敏是靠「再提交一次」做到的，而提交是追加的，

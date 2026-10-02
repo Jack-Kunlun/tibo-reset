@@ -361,7 +361,7 @@ base64 键**一个都不出现** —— 详情页是纯客户端渲染，payload
   node scripts/collect.mjs        # CDP 驱动已登录的 Chrome，增量收割（72h 自动全量）
   node scripts/build.mjs          # 构建产物（兜底页面 + OG 卡 + 小程序快照）
   node scripts/push-ingest.mjs    # 数据**直推后端** → 页面刷新即新
-  git add data miniprogram && git commit && git push    # 留档
+  git add data && git commit && git push                 # 留档（只加 data/，见下）
         │
         ▼
 后端容器（机房出口 · reset.example.com）
@@ -370,6 +370,15 @@ base64 键**一个都不出现** —— 详情页是纯客户端渲染，payload
 GitHub Actions（机房出口 · **只有改代码才触发**）
   push 代码 → 构建产物 → 发布 Pages（异地备份入口，不是主入口）
 ```
+
+⚠ **提交命令必须是 `git add data`，不要写 `git add data miniprogram`。**
+`miniprogram/` 下长期挂着本机在制品 `miniprogram/config.js`（里面是真实域名，仓库里那份
+是占位域名），整目录 add 会**不声不响地把它一起暂存** —— 实测 `git add --dry-run data miniprogram`
+的输出就是 `add 'miniprogram/config.js'`，不报错、不提示。而本仓库是**公开**的，
+这个文件必须永不入库。
+
+2026-09-23 踩过一次：当时还把在制的文件移动一并卷进提交（一半的重构进了索引、引用改动没进），
+**HEAD 被弄坏**。现在由 `.githooks/pre-commit` 兜底拦（见 AGENTS.md「提交规范」）。
 
 ### 定时任务
 
@@ -578,7 +587,7 @@ CI 每 30 分钟自己构建一次，不排除它就会变成「48 条提交/天
 ```bash
 npm run collect        # 采集（默认增量）
 npm run build          # 构建
-git add data miniprogram && git commit -m "chore(data): ..." && git push
+git add data && git commit -m "chore(data): ..." && git push
 ```
 
 采集结束会打印**覆盖范围**：
