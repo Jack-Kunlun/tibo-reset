@@ -1,10 +1,10 @@
 {
   "level": "explicit",
-  "generatedAt": "2026-10-02T10:10:04.232Z",
-  "checkedTweets": 202,
+  "generatedAt": "2026-10-02T16:00:16.133Z",
+  "checkedTweets": 203,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-03T10:10:04.232Z",
-  "windowTo": "2026-10-02T10:10:04.232Z",
+  "windowFrom": "2026-08-03T16:00:16.133Z",
+  "windowTo": "2026-10-02T16:00:16.133Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -12,10 +12,10 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.10.02",
-      "weekday": "周五",
-      "time": "18:10",
-      "text": "2026.10.02（周五）18:10",
+      "date": "2026.10.03",
+      "weekday": "周六",
+      "time": "00:00",
+      "text": "2026.10.03（周六）00:00",
       "offset": "UTC+8"
     },
     "b": {
@@ -23,41 +23,45 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.02",
       "weekday": "周五",
-      "time": "03:10",
-      "text": "2026.10.02（周五）03:10",
+      "time": "09:00",
+      "text": "2026.10.02（周五）09:00",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2105899634032025682",
+    "id": "2106046594277954010",
     "account": "thsottiaux",
-    "text": "Down to 6110 unread from the over 9000 unread emails just earlier. Will get to inbox zero with clean filters within the next 48 hours. Dot has accepted the challenge.",
-    "createdAt": "2026-10-02T05:56:13.000Z",
-    "url": "https://x.com/thsottiaux/status/2105899634032025682",
+    "text": "Team is working on most of these, stay tuned!",
+    "createdAt": "2026-10-02T15:40:11.000Z",
+    "url": "https://x.com/thsottiaux/status/2106046594277954010",
     "reasons": [
-      "含未来语气"
+      "上下文：回复 @koltregaskes「Some feedback on ChatGPT Dots: - Dot…」"
     ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "koltregaskes",
+      "id": "",
+      "text": "Some feedback on ChatGPT Dots: - Dots cannot see schedules; their \"tasks\" are separate - There are no transcripts from voice mode calls - I like that I can move around the site without breaking the voice call - Cannot access local work mode sessions - You can connect other"
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.10.02",
         "weekday": "周五",
-        "time": "13:56",
-        "text": "2026.10.02（周五）13:56",
+        "time": "23:40",
+        "text": "2026.10.02（周五）23:40",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.10.01",
-        "weekday": "周四",
-        "time": "22:56",
-        "text": "2026.10.01（周四）22:56",
+        "date": "2026.10.02",
+        "weekday": "周五",
+        "time": "08:40",
+        "text": "2026.10.02（周五）08:40",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -881,7 +885,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-02T10:10:04.232Z"
+        "checkedAt": "2026-10-02T16:00:16.133Z"
       }
     },
     {
@@ -1675,6 +1679,48 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2106046594277954010",
+      "account": "thsottiaux",
+      "text": "Team is working on most of these, stay tuned!",
+      "createdAt": "2026-10-02T15:40:11.000Z",
+      "url": "https://x.com/thsottiaux/status/2106046594277954010",
+      "reasons": [
+        "上下文：回复 @koltregaskes「Some feedback on ChatGPT Dots: - Dot…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "koltregaskes",
+        "id": "",
+        "text": "Some feedback on ChatGPT Dots: - Dots cannot see schedules; their \"tasks\" are separate - There are no transcripts from voice mode calls - I like that I can move around the site without breaking the voice call - Cannot access local work mode sessions - You can connect other"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.02",
+          "weekday": "周五",
+          "time": "23:40",
+          "text": "2026.10.02（周五）23:40",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.02",
+          "weekday": "周五",
+          "time": "08:40",
+          "text": "2026.10.02（周五）08:40",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2105899634032025682",
       "account": "thsottiaux",
@@ -8556,12 +8602,12 @@
     }
   ],
   "counts": {
-    "scanned": 202,
+    "scanned": 203,
     "explicit": 1,
     "occurred": 5,
     "hint": 28,
-    "none": 163,
-    "rejected": 163
+    "none": 164,
+    "rejected": 164
   },
   "truncated": false
 }

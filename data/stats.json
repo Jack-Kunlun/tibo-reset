@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-09-29T19:00:00.000Z",
     "last_text": "@theo Shhhhhh",
-    "days_since_last": 2.631993425925926,
+    "days_since_last": 2.875186712962963,
     "avg_interval_days": 6.743268022486772,
     "median_interval_days": 3.216273148148148,
     "sd_interval_days": 11.054609778436337,
@@ -14,56 +14,35 @@
     "reset_count": 51,
     "hit_within_avg": 0.6964285714285714
   },
-  "generated_at": "2026-10-02T10:10:04.411Z",
+  "generated_at": "2026-10-02T16:00:16.300Z",
   "collect": {
-    "mode": "full",
+    "mode": "incremental",
     "source": "browser",
-    "stoppedBy": "no-more",
-    "newTweets": 31,
-    "knownCount": 171,
+    "stoppedBy": "known",
+    "newTweets": 1,
+    "knownCount": 202,
     "reply": {
-      "mode": "full",
-      "stoppedBy": "floor",
-      "steps": 54,
-      "harvested": 53,
-      "withContext": 51,
+      "mode": "incremental",
+      "stoppedBy": "known",
+      "steps": 6,
+      "harvested": 11,
+      "withContext": 11,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 4,
-      "attempted": 4,
-      "fetched": 4,
+      "candidates": 0,
+      "attempted": 0,
+      "fetched": 0,
       "skipped": 0,
-      "scanned": [
-        {
-          "id": "2105464274747527543",
-          "length": 314,
-          "showMore": false
-        },
-        {
-          "id": "2105344469923221941",
-          "length": 327,
-          "showMore": false
-        },
-        {
-          "id": "2105105086506840421",
-          "length": 541,
-          "showMore": false
-        },
-        {
-          "id": "2105102312167575701",
-          "length": 498,
-          "showMore": false
-        }
-      ]
+      "scanned": []
     }
   },
   "history": {
     "added": 0,
     "updated": 0,
     "upstreamCount": 56,
-    "refreshedAt": "2026-10-02T10:08:42.917Z",
+    "refreshedAt": "2026-10-02T15:59:57.142Z",
     "error": null,
     "changed": false,
     "patchedTexts": 0
