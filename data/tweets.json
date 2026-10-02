@@ -1,6 +1,489 @@
 {
   "tweets": [
     {
+      "id": "2105899634032025682",
+      "text": "Down to 6110 unread from the over 9000 unread emails just earlier. Will get to inbox zero with clean filters within the next 48 hours. Dot has accepted the challenge.",
+      "created_at": "2026-10-02T05:56:13.000Z",
+      "url": "https://x.com/thsottiaux/status/2105899634032025682",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105863620433453166",
+      "text": "Wrong strategy?",
+      "created_at": "2026-10-02T03:33:06.000Z",
+      "url": "https://x.com/thsottiaux/status/2105863620433453166",
+      "inReplyTo": {
+        "account": "hugospdx",
+        "id": "",
+        "text": "OpenAI’s strategy now is basically: model gets slow, everyone complains, Tibo drops a reset.",
+        "created_at": "2026-10-02T02:18:26.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105863294267560169",
+      "text": "Please bask",
+      "created_at": "2026-10-02T03:31:49.000Z",
+      "url": "https://x.com/thsottiaux/status/2105863294267560169",
+      "inReplyTo": {
+        "account": "dextune",
+        "id": "",
+        "text": "Thanks for the reset, Tibo! But tell me you’re not about to start capping my Dots usage… right? Let me bask in this luxury just a little longer. Pretty please?",
+        "created_at": "2026-10-02T03:31:31.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105862010521219406",
+      "text": "You can ask your dot to \"create a pet and set it as your avatar\". It can be based on an idea, an image or pretty much anything. Here is my dot",
+      "created_at": "2026-10-02T03:26:42.000Z",
+      "url": "https://x.com/thsottiaux/status/2105862010521219406",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105844753522938214",
+      "text": "Sir Dot Claw",
+      "created_at": "2026-10-02T02:18:08.000Z",
+      "url": "https://x.com/thsottiaux/status/2105844753522938214",
+      "inReplyTo": {
+        "account": "ziwenxu_",
+        "id": "",
+        "text": "As a founder, which personal assistant are you using right now? 1. Dot 2. Muse 3. Grok bot 4. Hermes 5. Openclaw?",
+        "created_at": "2026-10-01T14:16:47.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105843926221660585",
+      "text": "Global reset landing tomorrow 10am PST for all paid ChatGPT accounts. Apologies for the slow start with GPT-6.1 Sol, it's now back to running at expected speeds after the massive load spike in the first two days.",
+      "created_at": "2026-10-02T02:14:51.000Z",
+      "url": "https://x.com/thsottiaux/status/2105843926221660585",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105843550936302055",
+      "text": "Codex Manhattan Project 👀",
+      "created_at": "2026-10-02T02:13:21.000Z",
+      "url": "https://x.com/thsottiaux/status/2105843550936302055",
+      "inReplyTo": {
+        "account": "_simonsmith",
+        "id": "",
+        "text": "The Codex Manhattan Project gave us such a clean, usable piece of software. I'd love a similar push for Dots. A different entry point to the capabilities, taking inspiration from everything Muse does well. Then, let me switch between \"ChatGPT,\" \"Codex,\" and \"Dot\" mode.",
+        "created_at": "2026-10-01T20:25:59.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105828364879876207",
+      "text": "And it will get better every day",
+      "created_at": "2026-10-02T01:13:01.000Z",
+      "url": "https://x.com/thsottiaux/status/2105828364879876207",
+      "inReplyTo": {
+        "account": "QuinnyPig",
+        "id": "",
+        "text": "I went from \"skeptical\" to \"okay this is neat\" to \"true believer\" surprisingly quickly for OpenAI's new Dots. Of *course* I have a pile of grievances with its current state, but that's me.",
+        "created_at": "2026-10-01T21:32:07.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105727933579137159",
+      "text": "Good thread on details of Sign in with ChatGPT and how the subscription can be used in my partner products",
+      "created_at": "2026-10-01T18:33:56.000Z",
+      "url": "https://x.com/thsottiaux/status/2105727933579137159",
+      "inReplyTo": {
+        "account": "vigyso",
+        "id": "",
+        "text": "I am going to try and answer a bunch of questions that people have raised about Sign in with ChatGPT in the next couple of days. Before that, I want to let you all in to why we shipped Sign in with ChatGPT (SIWC) in the first place. Clarify our intentions here before getting to",
+        "created_at": "2026-10-01T17:20:58.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105718931235508277",
+      "text": "He gets it",
+      "created_at": "2026-10-01T17:58:10.000Z",
+      "url": "https://x.com/thsottiaux/status/2105718931235508277",
+      "inReplyTo": {
+        "account": "midotalks",
+        "id": "",
+        "text": "Dot is extremely underrated and I think it's hard for most people to understand why Dot is NOT better than Codex and it is NOT better than Claude code. It is different. Dot is the frontier's interpretation of OpenClaw/Hermes and it is a MUCH better product (more below)",
+        "created_at": "2026-10-01T15:40:57.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105718728658993153",
+      "text": "Damn WiFi",
+      "created_at": "2026-10-01T17:57:21.000Z",
+      "url": "https://x.com/thsottiaux/status/2105718728658993153",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105689875655897093",
+      "text": "We’re going to fix this but it’s a bit funny as your dot literally has to decide whether to pick up or not and sometimes it might just be busy with something else 👀",
+      "created_at": "2026-10-01T16:02:42.000Z",
+      "url": "https://x.com/thsottiaux/status/2105689875655897093",
+      "inReplyTo": {
+        "account": "The_Alex",
+        "id": "",
+        "text": "I called my dot tonight and HE DID NOT PICK UP what on earth could he possibly have been doing",
+        "created_at": "2026-10-01T05:48:22.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105689002905153761",
+      "text": "Love it thank you",
+      "created_at": "2026-10-01T15:59:14.000Z",
+      "url": "https://x.com/thsottiaux/status/2105689002905153761",
+      "inReplyTo": {
+        "account": "rileybrown",
+        "id": "",
+        "text": "Spent 24 hours using my Dot (Bluey) - The voice experience is the highlight. Truly remarkable. (As you approach 30min+ I’ve run into problems) Here’s an unfiltered list of feature requests and thoughts - make a better view for seeing codex threads it spins up. I think paying",
+        "created_at": "2026-10-01T14:45:25.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105672058269212820",
+      "text": "Because usage on your primary dot is virtually unlimited at the moment, I can’t really give a reset. I need to come up with something new fast.",
+      "created_at": "2026-10-01T14:51:54.000Z",
+      "url": "https://x.com/thsottiaux/status/2105672058269212820",
+      "kind": "reset",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105670256094326849",
+      "text": "We built dots to help get real work done. Lots to come that will improve them further over the days and weeks.",
+      "created_at": "2026-10-01T14:44:45.000Z",
+      "url": "https://x.com/thsottiaux/status/2105670256094326849",
+      "inReplyTo": {
+        "account": "_simonsmith",
+        "id": "",
+        "text": "I had tried Dots in a personal account, and was disappointed relative to Muse. But now we have it in ChatGPT Enterprise, and it feels different. Feels designed for work, for teams, for enterprises. Feels more at home here.",
+        "created_at": "2026-10-01T14:19:11.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105522533139452359",
+      "text": "I was going to say, last year. But no… it was this year.",
+      "created_at": "2026-10-01T04:57:45.000Z",
+      "url": "https://x.com/thsottiaux/status/2105522533139452359",
+      "inReplyTo": {
+        "account": "jxnlco",
+        "id": "",
+        "text": "Your reminder that the codex app came out in February",
+        "created_at": "2026-10-01T04:52:34.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105519686280790252",
+      "text": "For the Pro 200 shenanigans",
+      "created_at": "2026-10-01T04:46:26.000Z",
+      "url": "https://x.com/thsottiaux/status/2105519686280790252",
+      "inReplyTo": {
+        "account": "imjustnewatai",
+        "id": "",
+        "text": "I’m so confused why did OpenAI just send me 62,496 credits for free????",
+        "created_at": "2026-09-30T05:39:06.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105519215092584786",
+      "text": "One more thing, you can now build and deploy MCP servers right through ChatGPT. And restrict its access to anyone you want or share it with the world.",
+      "created_at": "2026-10-01T04:44:34.000Z",
+      "url": "https://x.com/thsottiaux/status/2105519215092584786",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105489877727064272",
+      "text": "Thanks for playing",
+      "created_at": "2026-10-01T02:47:59.000Z",
+      "url": "https://x.com/thsottiaux/status/2105489877727064272",
+      "inReplyTo": {
+        "account": "_bgian",
+        "id": "",
+        "text": "i like my dot, well done @OpenAI",
+        "created_at": "2026-09-30T19:51:43.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105464274747527543",
+      "text": "GPT-6.1 Sol is our most demanded model pretty much ever both across both the API and subscriptions. Within ChatGPT & Codex, we were under heavy load, but have brough more capacity online and the speed should get much better in the coming hours, reaching almost twice the speed compared to what we served yesterday.",
+      "created_at": "2026-10-01T01:06:15.000Z",
+      "url": "https://x.com/thsottiaux/status/2105464274747527543",
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105456105954648292",
+      "text": "Hi, what can I do for you today",
+      "created_at": "2026-10-01T00:33:47.000Z",
+      "url": "https://x.com/thsottiaux/status/2105456105954648292",
+      "inReplyTo": {
+        "account": "OdraivK",
+        "id": "",
+        "text": "Dang, my dot is now posting on X.",
+        "created_at": "2026-09-30T20:49:41.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105395200248156556",
+      "text": "Asked my dot to paint me. After sending me something cartoonish, I asked it to try a bit harder and to find a recent picture of me on the internet. It did better. Below video is me clicking through my dot's computer.",
+      "created_at": "2026-09-30T20:31:46.000Z",
+      "url": "https://x.com/thsottiaux/status/2105395200248156556",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105394405238886517",
+      "text": "Agree, except with the cursing, be nice to your dot!",
+      "created_at": "2026-09-30T20:28:37.000Z",
+      "url": "https://x.com/thsottiaux/status/2105394405238886517",
+      "inReplyTo": {
+        "account": "AbdoKerdawy",
+        "id": "",
+        "text": "I thought Dot calls were basically ChatGPT Voice with a cute avatar and a VM. Then I somehow stayed on one for 30 minutes 😳 It already knows the context, what we’re working on, and how I like things done. You just call and continue. This feels less like “voice mode” and",
+        "created_at": "2026-09-30T19:02:12.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105348026416140781",
+      "text": "Hi! What would you like to see us ship for dots and space in the next two weeks? Or how can we improve things in other parts of the product.",
+      "created_at": "2026-09-30T17:24:19.000Z",
+      "url": "https://x.com/thsottiaux/status/2105348026416140781",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105344482149613853",
+      "text": "You can enroll here: https:// chatgpt.com/cyber",
+      "created_at": "2026-09-30T17:10:14.000Z",
+      "url": "https://x.com/thsottiaux/status/2105344482149613853",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105344469923221941",
+      "text": "For individual Daybreak Blue users, starting tomorrow (10/1), you'll need an eligible hardware key when using cyber-forward capabilities. Enterprise users are unaffected. Hardware keys are a needed protection to help guarantee that you are behind the account and part of our strategy to disproportionately accelerate defenders.",
+      "created_at": "2026-09-30T17:10:11.000Z",
+      "url": "https://x.com/thsottiaux/status/2105344469923221941",
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105310973532012793",
+      "text": "Careful, sending the dot police",
+      "created_at": "2026-09-30T14:57:05.000Z",
+      "url": "https://x.com/thsottiaux/status/2105310973532012793",
+      "inReplyTo": {
+        "account": "weswinder",
+        "id": "",
+        "text": "he’s referring to https:// dot.com btw",
+        "created_at": "2026-09-30T13:07:13.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105309464492691524",
+      "text": "Technically correct",
+      "created_at": "2026-09-30T14:51:05.000Z",
+      "url": "https://x.com/thsottiaux/status/2105309464492691524",
+      "inReplyTo": {
+        "account": "thekitze",
+        "id": "",
+        "text": "ngmi company",
+        "created_at": "2026-09-29T19:26:05.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105308913176658267",
+      "text": "Did you really think we were going to name it o?",
+      "created_at": "2026-09-30T14:48:54.000Z",
+      "url": "https://x.com/thsottiaux/status/2105308913176658267",
+      "inReplyTo": {
+        "account": "zwb44",
+        "id": "",
+        "text": "is anyone else confused what happened to “o”? did openai rename it to “dots” last second after seeing the reception?",
+        "created_at": "2026-09-29T23:14:28.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105308727947755599",
+      "text": "We’re fixing this",
+      "created_at": "2026-09-30T14:48:10.000Z",
+      "url": "https://x.com/thsottiaux/status/2105308727947755599",
+      "inReplyTo": {
+        "account": "themikebwebb",
+        "id": "",
+        "text": "been loving dot. it would be great if dot and @bot would not send me a push notification for their replies while i have the app open. i'm here. i see the reply. i don't need a tap on my wrist.",
+        "created_at": "2026-09-30T14:20:06.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
+      "id": "2105305239398285514",
+      "text": "I watched it live while reading through the oncall channel my dot had just flagged to me. Prod went down 5 mins before the demo. Memorable for sure.",
+      "created_at": "2026-09-30T14:34:18.000Z",
+      "url": "https://x.com/thsottiaux/status/2105305239398285514",
+      "inReplyTo": {
+        "account": "charlielamb",
+        "id": "",
+        "text": "anyone else watch that @OpenAI voice call demo completely bomb lmao",
+        "created_at": "2026-09-29T17:16:21.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-02T10:10:04.231Z"
+    },
+    {
       "id": "2105189201679630385",
       "text": "Basically",
       "created_at": "2026-09-30T06:53:12.000Z",
@@ -161,10 +644,10 @@
       "created_at": "2026-09-30T03:44:09.000Z",
       "url": "https://x.com/thsottiaux/status/2105141623315374507",
       "inReplyTo": {
-        "account": "NicolasZu",
+        "account": "frantzfries",
         "id": "",
-        "text": "As openAI. Here is how I would have communicated. “We are about to announce a new model, near Astra performance at 1/10th the price and 3 times faster. Because of this, usage across the board will increase dramatically for all. We’ll use this as an opportunity to bring the",
-        "created_at": "2026-09-30T02:24:28.000Z",
+        "text": "Can't believe they outappled apple",
+        "created_at": "2026-09-29T17:09:06.000Z",
         "url": ""
       },
       "kind": "other",
@@ -251,7 +734,7 @@
       "created_at": "2026-09-30T02:20:12.000Z",
       "url": "https://x.com/thsottiaux/status/2105120499177230798",
       "inReplyTo": {
-        "account": "OpenAI",
+        "account": "nnennahacks",
         "id": "",
         "text": "Ran into Reset guy @thsottiaux and engineer @MaxHudlberger 🔥",
         "created_at": "2026-09-29T19:58:32.000Z",
@@ -532,8 +1015,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-09-29T21:23:48.363Z"
     },
     {
@@ -579,8 +1062,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-09-29T21:23:48.363Z"
     },
     {
@@ -2736,7 +3219,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-09-30T13:50:20.651Z",
+  "updated_at": "2026-10-02T10:10:04.231Z",
   "source": "browser",
   "coverage_since": "2026-09-28T19:00:00.000Z"
 }
