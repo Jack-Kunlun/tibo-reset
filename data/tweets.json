@@ -1,6 +1,18 @@
 {
   "tweets": [
     {
+      "id": "2106131810921136451",
+      "text": "Reset all propagated. Enjoy. https://t.co/GaVJhbptR0",
+      "created_at": "2026-10-02T21:18:48.000Z",
+      "url": "https://x.com/thsottiaux/status/2106131810921136451",
+      "kind": "reset",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-02T22:16:51.041Z",
+      "text_full": true
+    },
+    {
       "id": "2106046594277954010",
       "text": "Team is working on most of these, stay tuned!",
       "created_at": "2026-10-02T15:40:11.000Z",
@@ -3237,7 +3249,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-02T16:00:16.127Z",
+  "updated_at": "2026-10-02T22:16:51.042Z",
   "source": "browser",
-  "coverage_since": "2026-09-28T19:00:00.000Z"
+  "coverage_since": "2026-10-01T21:18:48.000Z"
 }
