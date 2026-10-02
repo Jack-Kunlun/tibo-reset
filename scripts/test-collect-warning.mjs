@@ -17,7 +17,8 @@
  *   2. 有异常时输出提示，条目逐条列出，空值被过滤
  *   3. 文案只承诺它确实知道的事：错误文本转义、时间按北京时间、非法时间宁可不渲染
  *   4. 两道提示在 `renderAll` 里都接进了页面，且**互斥**
- *   5. 陈旧判据：锚点是 `tweets.json` 的 `updated_at`、阈值由本机周期**推导**
+ *   5. 陈旧判据：锚点是 `tweets.json` 的 `updated_at`、阈值由本机周期**推导**、
+ *      且文档里的周期与常量一致（只守仓库内两处，调度真值在仓库外，测不到）
  *   6. workflow 里 CI **不再采集**（采集只在本机），但提交判据仍不是字节级
  */
 
@@ -214,6 +215,24 @@ const renderSrc = await readFile(resolve(ROOT, 'src/lib/render.mjs'), 'utf8');
 check(
   '阈值在源码里是**引用**周期算出来的，不是字面量（否则「改一处」会退化成两处）',
   /STALE_AFTER_MINUTES\s*=\s*LOCAL_COLLECT_INTERVAL_MINUTES\b/.test(renderSrc)
+);
+
+// 周期的数字在仓库里有**两个载体**：常量本身，以及 docs/data-source.md §5 的表格。
+// 它们能各自漂移（历史上就漂过：常量和文档一起停在 120，真值却是 480）。
+// ⚠ 这条只守**仓库内两处**的一致，**守不住调度真值** —— 真值在
+// `~/.workbuddy/logs/automation.log` 里，那个文件不在仓库、CI 上也不存在。
+// 所以别把它读成「采集频率被测试保证了」，它保证的只是「文档没在撒谎」。
+const dsSrc = await readFile(resolve(ROOT, 'docs/data-source.md'), 'utf8');
+const docInterval = dsSrc.match(/\|\s*本机采集周期\s*\|\s*\*\*(\d+)\s*分钟\*\*/)?.[1];
+const docStale = dsSrc.match(/\|\s*页面陈旧阈值\s*\|\s*\*\*(\d+)\s*分钟\*\*/)?.[1];
+check(
+  `docs/data-source.md 的周期与常量一致（文档 ${docInterval ?? '未找到'} vs 常量 ${LOCAL_COLLECT_INTERVAL_MINUTES}）`,
+  docInterval === String(LOCAL_COLLECT_INTERVAL_MINUTES),
+  '文档那行是给人读的唯一出处 —— 一改一漏，读者就按旧数字理解页面行为'
+);
+check(
+  `docs/data-source.md 的阈值与推导值一致（文档 ${docStale ?? '未找到'} vs 推导 ${STALE_AFTER_MINUTES}）`,
+  docStale === String(STALE_AFTER_MINUTES)
 );
 
 /* ==================== 7. workflow：CI 不再采集，也不再碰数据 ==================== */
