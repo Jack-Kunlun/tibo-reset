@@ -1,6 +1,64 @@
 {
   "tweets": [
     {
+      "id": "2106239912932692085",
+      "text": "Yeah no, that was my bad for not propagating it at 10am quite perfectly. This is something that will be better planned next time, apologies.",
+      "created_at": "2026-10-03T04:28:21.000Z",
+      "url": "https://x.com/thsottiaux/status/2106239912932692085",
+      "inReplyTo": {
+        "account": "_architected",
+        "id": "",
+        "text": "i've started hating this reset bullshit so fucking much. - so i have a reset coming on Sunday anyway, with about 30% left. - they announce that the reset will happen on Friday @ 10 am. - ok, i don't want to lose my 30%, so i spin up Astra and use it for some big refactoring work",
+        "created_at": "2026-10-02T18:06:52.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-03T04:40:13.136Z"
+    },
+    {
+      "id": "2106239435461579088",
+      "text": "All fixed. Surprising number of Pro 500 users on here.",
+      "created_at": "2026-10-03T04:26:28.000Z",
+      "url": "https://x.com/thsottiaux/status/2106239435461579088",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-03T04:40:13.136Z"
+    },
+    {
+      "id": "2106233145163141249",
+      "text": "Seeing some reports that the Pro 500 didn’t get the reset as expected earlier. Investigating and will make up for it",
+      "created_at": "2026-10-03T04:01:28.000Z",
+      "url": "https://x.com/thsottiaux/status/2106233145163141249",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-03T04:40:13.136Z"
+    },
+    {
+      "id": "2106227571088392653",
+      "text": "Pretty bad for the GPUs. We’re going to need more compute",
+      "created_at": "2026-10-03T03:39:19.000Z",
+      "url": "https://x.com/thsottiaux/status/2106227571088392653",
+      "inReplyTo": {
+        "account": "atelicinvest",
+        "id": "",
+        "text": "Man how bad is the adoption",
+        "created_at": "2026-10-02T18:53:46.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-03T04:40:13.136Z"
+    },
+    {
       "id": "2106226725428572371",
       "text": "Pretty sure there are more dots than bots already in this little world. Cool thing is that we’re improving them everyday and they learn directly from your feedback.",
       "created_at": "2026-10-03T03:35:57.000Z",
@@ -84,7 +142,7 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
+      "role": "reply",
       "foundVia": "with-replies",
       "first_seen": "2026-10-02T10:10:04.231Z"
     },
@@ -3278,7 +3336,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-03T03:36:32.944Z",
+  "updated_at": "2026-10-03T04:40:13.136Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }
