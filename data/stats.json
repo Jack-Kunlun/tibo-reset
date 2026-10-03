@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-02T21:18:48.000Z",
     "last_text": "Reset all propagated. Enjoy. https://t.co/GaVJhbptR0",
-    "days_since_last": 0.04031299768518518,
+    "days_since_last": 0.2623257638888889,
     "avg_interval_days": 6.679287686809616,
     "median_interval_days": 3.096388888888889,
     "sd_interval_days": 10.96766591511672,
@@ -14,19 +14,19 @@
     "reset_count": 52,
     "hit_within_avg": 0.7017543859649122
   },
-  "generated_at": "2026-10-02T22:16:51.147Z",
+  "generated_at": "2026-10-03T03:36:33.048Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
     "stoppedBy": "floor",
-    "newTweets": 1,
-    "knownCount": 203,
+    "newTweets": 2,
+    "knownCount": 204,
     "reply": {
       "mode": "incremental",
-      "stoppedBy": "known",
-      "steps": 1,
-      "harvested": 3,
-      "withContext": 3,
+      "stoppedBy": "floor",
+      "steps": 4,
+      "harvested": 7,
+      "withContext": 6,
       "authorsMissing": 0
     },
     "replyError": null,
@@ -39,13 +39,13 @@
     }
   },
   "history": {
-    "added": 1,
+    "added": 0,
     "updated": 0,
     "upstreamCount": 57,
-    "refreshedAt": "2026-10-02T22:16:39.959Z",
+    "refreshedAt": "2026-10-03T03:36:18.425Z",
     "error": null,
-    "changed": true,
-    "patchedTexts": 1
+    "changed": false,
+    "patchedTexts": 0
   },
   "last_full_at": "2026-10-02T10:10:04.411Z",
   "errors": []

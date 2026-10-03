@@ -1,6 +1,35 @@
 {
   "tweets": [
     {
+      "id": "2106226725428572371",
+      "text": "Pretty sure there are more dots than bots already in this little world. Cool thing is that we’re improving them everyday and they learn directly from your feedback.",
+      "created_at": "2026-10-03T03:35:57.000Z",
+      "url": "https://x.com/thsottiaux/status/2106226725428572371",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-03T03:36:32.944Z"
+    },
+    {
+      "id": "2106224612271112207",
+      "text": "Good dot",
+      "created_at": "2026-10-03T03:27:33.000Z",
+      "url": "https://x.com/thsottiaux/status/2106224612271112207",
+      "inReplyTo": {
+        "account": "charliermarsh",
+        "id": "",
+        "text": "This is crazy. My Dot proactively messaged me to point out that a bunch of our CI jobs would start failing on Monday due to GitHub's macos-14 runner retirement.",
+        "created_at": "2026-10-02T20:51:53.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-03T03:36:32.944Z"
+    },
+    {
       "id": "2106131810921136451",
       "text": "Reset all propagated. Enjoy. https://t.co/GaVJhbptR0",
       "created_at": "2026-10-02T21:18:48.000Z",
@@ -55,7 +84,7 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
+      "role": "post",
       "foundVia": "with-replies",
       "first_seen": "2026-10-02T10:10:04.231Z"
     },
@@ -3249,7 +3278,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-02T22:16:51.042Z",
+  "updated_at": "2026-10-03T03:36:32.944Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }
