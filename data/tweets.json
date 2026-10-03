@@ -1,6 +1,89 @@
 {
   "tweets": [
     {
+      "id": "2106257453679808676",
+      "text": "Hey now. You don’t know what we’re releasing next week",
+      "created_at": "2026-10-03T05:38:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2106257453679808676",
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "I thought you had 6 months?",
+        "created_at": "2026-10-03T05:36:22.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-03T05:43:48.912Z"
+    },
+    {
+      "id": "2106255580772061332",
+      "text": "The 3-day old dots are shaking and quaking",
+      "created_at": "2026-10-03T05:30:37.000Z",
+      "url": "https://x.com/thsottiaux/status/2106255580772061332",
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "I smell fear",
+        "created_at": "2026-10-03T04:30:22.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-03T05:43:48.912Z"
+    },
+    {
+      "id": "2106253534132089110",
+      "text": "Unlimited atm",
+      "created_at": "2026-10-03T05:22:29.000Z",
+      "url": "https://x.com/thsottiaux/status/2106253534132089110",
+      "inReplyTo": {
+        "account": "Shekswess",
+        "id": "",
+        "text": "Okay so I tested dot and man this is awesome. Whats actually the usage on Pro 100$ of dot ? Unlimited ?",
+        "created_at": "2026-10-02T23:51:26.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-03T05:43:48.912Z"
+    },
+    {
+      "id": "2106252868307271752",
+      "text": "Fortunately our future models will be much better at code deletion and simplification. Just in time",
+      "created_at": "2026-10-03T05:19:50.000Z",
+      "url": "https://x.com/thsottiaux/status/2106252868307271752",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-03T05:43:48.912Z"
+    },
+    {
+      "id": "2106250124863389920",
+      "text": "You’re hired",
+      "created_at": "2026-10-03T05:08:56.000Z",
+      "url": "https://x.com/thsottiaux/status/2106250124863389920",
+      "inReplyTo": {
+        "account": "rileybrown",
+        "id": "",
+        "text": "woah woah hold on let's talk about this. what if... hear me out.... what if we added an ADDITIONAL left side bar, and a new an improved bottom bar?",
+        "created_at": "2026-10-02T19:11:34.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-03T05:43:48.912Z"
+    },
+    {
       "id": "2106239912932692085",
       "text": "Yeah no, that was my bad for not propagating it at 10am quite perfectly. This is something that will be better planned next time, apologies.",
       "created_at": "2026-10-03T04:28:21.000Z",
@@ -3336,7 +3419,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-03T04:40:13.136Z",
+  "updated_at": "2026-10-03T05:43:48.913Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }

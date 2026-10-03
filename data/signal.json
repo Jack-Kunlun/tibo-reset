@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-10-03T04:40:13.138Z",
-  "checkedTweets": 210,
+  "generatedAt": "2026-10-03T05:43:48.913Z",
+  "checkedTweets": 215,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-04T04:40:13.138Z",
-  "windowTo": "2026-10-03T04:40:13.138Z",
+  "windowFrom": "2026-08-04T05:43:48.913Z",
+  "windowTo": "2026-10-03T05:43:48.913Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -14,8 +14,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.03",
       "weekday": "周六",
-      "time": "12:40",
-      "text": "2026.10.03（周六）12:40",
+      "time": "13:43",
+      "text": "2026.10.03（周六）13:43",
       "offset": "UTC+8"
     },
     "b": {
@@ -23,28 +23,29 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.02",
       "weekday": "周五",
-      "time": "21:40",
-      "text": "2026.10.02（周五）21:40",
+      "time": "22:43",
+      "text": "2026.10.02（周五）22:43",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2106239912932692085",
+    "id": "2106257453679808676",
     "account": "thsottiaux",
-    "text": "Yeah no, that was my bad for not propagating it at 10am quite perfectly. This is something that will be better planned next time, apologies.",
-    "createdAt": "2026-10-03T04:28:21.000Z",
-    "url": "https://x.com/thsottiaux/status/2106239912932692085",
+    "text": "Hey now. You don’t know what we’re releasing next week",
+    "createdAt": "2026-10-03T05:38:03.000Z",
+    "url": "https://x.com/thsottiaux/status/2106257453679808676",
     "reasons": [
       "含未来语气",
-      "上下文：回复 @_architected「i've started hating this reset bulls…」"
+      "含发布/宣传语境（下调置信度）",
+      "上下文：回复 @poteto「I thought you had 6 months?…」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "_architected",
+      "account": "poteto",
       "id": "",
-      "text": "i've started hating this reset bullshit so fucking much. - so i have a reset coming on Sunday anyway, with about 30% left. - they announce that the reset will happen on Friday @ 10 am. - ok, i don't want to lose my 30%, so i spin up Astra and use it for some big refactoring work"
+      "text": "I thought you had 6 months?"
     },
     "createdZones": {
       "a": {
@@ -52,8 +53,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.03",
         "weekday": "周六",
-        "time": "12:28",
-        "text": "2026.10.03（周六）12:28",
+        "time": "13:38",
+        "text": "2026.10.03（周六）13:38",
         "offset": "UTC+8"
       },
       "b": {
@@ -61,23 +62,23 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.02",
         "weekday": "周五",
-        "time": "21:28",
-        "text": "2026.10.02（周五）21:28",
+        "time": "22:38",
+        "text": "2026.10.02（周五）22:38",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
     "level": "hint",
-    "rejected": "含时间表达「10am」但没有额度相关词，不作为重置信号",
+    "rejected": "含时间表达「next week」但没有额度相关词，不作为重置信号",
     "intent": 0,
     "window": null,
     "candidateWindow": {
-      "word": "10am",
-      "precision": "instant",
-      "from": "2026-10-03T17:00:00.000Z",
-      "to": "2026-10-03T17:59:00.000Z",
-      "dayNum": 20729,
-      "spec": 96,
+      "word": "next week",
+      "precision": "week",
+      "from": "2026-10-05T07:00:00.000Z",
+      "to": "2026-10-12T06:59:00.000Z",
+      "dayNum": null,
+      "spec": 40,
       "note": null
     }
   },
@@ -338,6 +339,58 @@
     }
   ],
   "hints": [
+    {
+      "id": "2106257453679808676",
+      "account": "thsottiaux",
+      "text": "Hey now. You don’t know what we’re releasing next week",
+      "createdAt": "2026-10-03T05:38:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2106257453679808676",
+      "reasons": [
+        "含未来语气",
+        "含发布/宣传语境（下调置信度）",
+        "上下文：回复 @poteto「I thought you had 6 months?…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "I thought you had 6 months?"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.03",
+          "weekday": "周六",
+          "time": "13:38",
+          "text": "2026.10.03（周六）13:38",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.02",
+          "weekday": "周五",
+          "time": "22:38",
+          "text": "2026.10.02（周五）22:38",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "含时间表达「next week」但没有额度相关词，不作为重置信号",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": {
+        "word": "next week",
+        "precision": "week",
+        "from": "2026-10-05T07:00:00.000Z",
+        "to": "2026-10-12T06:59:00.000Z",
+        "dayNum": null,
+        "spec": 40,
+        "note": null
+      }
+    },
     {
       "id": "2106239912932692085",
       "account": "thsottiaux",
@@ -940,7 +993,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-03T04:40:13.138Z"
+        "checkedAt": "2026-10-03T05:43:48.913Z"
       }
     },
     {
@@ -1734,6 +1787,171 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2106255580772061332",
+      "account": "thsottiaux",
+      "text": "The 3-day old dots are shaking and quaking",
+      "createdAt": "2026-10-03T05:30:37.000Z",
+      "url": "https://x.com/thsottiaux/status/2106255580772061332",
+      "reasons": [
+        "上下文：回复 @poteto「I smell fear…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "I smell fear"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.03",
+          "weekday": "周六",
+          "time": "13:30",
+          "text": "2026.10.03（周六）13:30",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.02",
+          "weekday": "周五",
+          "time": "22:30",
+          "text": "2026.10.02（周五）22:30",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2106253534132089110",
+      "account": "thsottiaux",
+      "text": "Unlimited atm",
+      "createdAt": "2026-10-03T05:22:29.000Z",
+      "url": "https://x.com/thsottiaux/status/2106253534132089110",
+      "reasons": [
+        "命中「新额度」类词 fresh/new/top up",
+        "上下文：回复 @Shekswess「Okay so I tested dot and man this is…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "Shekswess",
+        "id": "",
+        "text": "Okay so I tested dot and man this is awesome. Whats actually the usage on Pro 100$ of dot ? Unlimited ?"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.03",
+          "weekday": "周六",
+          "time": "13:22",
+          "text": "2026.10.03（周六）13:22",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.02",
+          "weekday": "周五",
+          "time": "22:22",
+          "text": "2026.10.02（周五）22:22",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 1,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2106252868307271752",
+      "account": "thsottiaux",
+      "text": "Fortunately our future models will be much better at code deletion and simplification. Just in time",
+      "createdAt": "2026-10-03T05:19:50.000Z",
+      "url": "https://x.com/thsottiaux/status/2106252868307271752",
+      "reasons": [
+        "含未来语气"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.03",
+          "weekday": "周六",
+          "time": "13:19",
+          "text": "2026.10.03（周六）13:19",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.02",
+          "weekday": "周五",
+          "time": "22:19",
+          "text": "2026.10.02（周五）22:19",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2106250124863389920",
+      "account": "thsottiaux",
+      "text": "You’re hired",
+      "createdAt": "2026-10-03T05:08:56.000Z",
+      "url": "https://x.com/thsottiaux/status/2106250124863389920",
+      "reasons": [
+        "上下文：回复 @rileybrown「woah woah hold on let's talk about t…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "rileybrown",
+        "id": "",
+        "text": "woah woah hold on let's talk about this. what if... hear me out.... what if we added an ADDITIONAL left side bar, and a new an improved bottom bar?"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.03",
+          "weekday": "周六",
+          "time": "13:08",
+          "text": "2026.10.03（周六）13:08",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.02",
+          "weekday": "周五",
+          "time": "22:08",
+          "text": "2026.10.02（周五）22:08",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2106239435461579088",
       "account": "thsottiaux",
@@ -8623,12 +8841,12 @@
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 210,
+    "scanned": 215,
     "explicit": 0,
     "occurred": 6,
-    "hint": 30,
-    "none": 168,
-    "rejected": 168
+    "hint": 31,
+    "none": 172,
+    "rejected": 172
   },
   "truncated": false
 }
