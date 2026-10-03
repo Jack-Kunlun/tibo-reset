@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-10-03T05:43:48.913Z",
-  "checkedTweets": 215,
+  "generatedAt": "2026-10-03T18:15:28.834Z",
+  "checkedTweets": 216,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-04T05:43:48.913Z",
-  "windowTo": "2026-10-03T05:43:48.913Z",
+  "windowFrom": "2026-08-04T18:15:28.834Z",
+  "windowTo": "2026-10-03T18:15:28.834Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -12,75 +12,59 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.10.03",
-      "weekday": "周六",
-      "time": "13:43",
-      "text": "2026.10.03（周六）13:43",
+      "date": "2026.10.04",
+      "weekday": "周日",
+      "time": "02:15",
+      "text": "2026.10.04（周日）02:15",
       "offset": "UTC+8"
     },
     "b": {
       "label": "Tibo 当地时间",
       "zone": "America/Los_Angeles",
-      "date": "2026.10.02",
-      "weekday": "周五",
-      "time": "22:43",
-      "text": "2026.10.02（周五）22:43",
+      "date": "2026.10.03",
+      "weekday": "周六",
+      "time": "11:15",
+      "text": "2026.10.03（周六）11:15",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2106257453679808676",
+    "id": "2106439068557144179",
     "account": "thsottiaux",
-    "text": "Hey now. You don’t know what we’re releasing next week",
-    "createdAt": "2026-10-03T05:38:03.000Z",
-    "url": "https://x.com/thsottiaux/status/2106257453679808676",
-    "reasons": [
-      "含未来语气",
-      "含发布/宣传语境（下调置信度）",
-      "上下文：回复 @poteto「I thought you had 6 months?…」"
-    ],
+    "text": "What’s one thing that’s missing in codex that you wish we had?",
+    "createdAt": "2026-10-03T17:39:44.000Z",
+    "url": "https://x.com/thsottiaux/status/2106439068557144179",
+    "reasons": [],
     "viaContext": false,
-    "inReplyTo": {
-      "account": "poteto",
-      "id": "",
-      "text": "I thought you had 6 months?"
-    },
+    "inReplyTo": null,
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.10.03",
-        "weekday": "周六",
-        "time": "13:38",
-        "text": "2026.10.03（周六）13:38",
+        "date": "2026.10.04",
+        "weekday": "周日",
+        "time": "01:39",
+        "text": "2026.10.04（周日）01:39",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.10.02",
-        "weekday": "周五",
-        "time": "22:38",
-        "text": "2026.10.02（周五）22:38",
+        "date": "2026.10.03",
+        "weekday": "周六",
+        "time": "10:39",
+        "text": "2026.10.03（周六）10:39",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "hint",
-    "rejected": "含时间表达「next week」但没有额度相关词，不作为重置信号",
+    "level": "none",
+    "rejected": "无额度相关词",
     "intent": 0,
     "window": null,
-    "candidateWindow": {
-      "word": "next week",
-      "precision": "week",
-      "from": "2026-10-05T07:00:00.000Z",
-      "to": "2026-10-12T06:59:00.000Z",
-      "dayNum": null,
-      "spec": 40,
-      "note": null
-    }
+    "candidateWindow": null
   },
   "signals": [],
   "occurred": [
@@ -993,7 +977,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-03T05:43:48.913Z"
+        "checkedAt": "2026-10-03T18:15:28.834Z"
       }
     },
     {
@@ -1787,6 +1771,42 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2106439068557144179",
+      "account": "thsottiaux",
+      "text": "What’s one thing that’s missing in codex that you wish we had?",
+      "createdAt": "2026-10-03T17:39:44.000Z",
+      "url": "https://x.com/thsottiaux/status/2106439068557144179",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.04",
+          "weekday": "周日",
+          "time": "01:39",
+          "text": "2026.10.04（周日）01:39",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.03",
+          "weekday": "周六",
+          "time": "10:39",
+          "text": "2026.10.03（周六）10:39",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2106255580772061332",
       "account": "thsottiaux",
@@ -8841,12 +8861,12 @@
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 215,
+    "scanned": 216,
     "explicit": 0,
     "occurred": 6,
     "hint": 31,
-    "none": 172,
-    "rejected": 172
+    "none": 173,
+    "rejected": 173
   },
   "truncated": false
 }
