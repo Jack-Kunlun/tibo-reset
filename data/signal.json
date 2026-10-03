@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-10-03T18:15:28.834Z",
-  "checkedTweets": 216,
+  "generatedAt": "2026-10-03T22:25:12.034Z",
+  "checkedTweets": 219,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-04T18:15:28.834Z",
-  "windowTo": "2026-10-03T18:15:28.834Z",
+  "windowFrom": "2026-08-04T22:25:12.034Z",
+  "windowTo": "2026-10-03T22:25:12.034Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -14,8 +14,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.04",
       "weekday": "周日",
-      "time": "02:15",
-      "text": "2026.10.04（周日）02:15",
+      "time": "06:25",
+      "text": "2026.10.04（周日）06:25",
       "offset": "UTC+8"
     },
     "b": {
@@ -23,20 +23,22 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.03",
       "weekday": "周六",
-      "time": "11:15",
-      "text": "2026.10.03（周六）11:15",
+      "time": "15:25",
+      "text": "2026.10.03（周六）15:25",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2106439068557144179",
+    "id": "2106501204285239560",
     "account": "thsottiaux",
-    "text": "What’s one thing that’s missing in codex that you wish we had?",
-    "createdAt": "2026-10-03T17:39:44.000Z",
-    "url": "https://x.com/thsottiaux/status/2106439068557144179",
-    "reasons": [],
+    "text": "If we were to add one more sidebar, what should be in it",
+    "createdAt": "2026-10-03T21:46:38.000Z",
+    "url": "https://x.com/thsottiaux/status/2106501204285239560",
+    "reasons": [
+      "命中「新额度」类词 fresh/new/top up"
+    ],
     "viaContext": false,
     "inReplyTo": null,
     "createdZones": {
@@ -45,8 +47,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.04",
         "weekday": "周日",
-        "time": "01:39",
-        "text": "2026.10.04（周日）01:39",
+        "time": "05:46",
+        "text": "2026.10.04（周日）05:46",
         "offset": "UTC+8"
       },
       "b": {
@@ -54,15 +56,15 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.03",
         "weekday": "周六",
-        "time": "10:39",
-        "text": "2026.10.03（周六）10:39",
+        "time": "14:46",
+        "text": "2026.10.03（周六）14:46",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
     "level": "none",
     "rejected": "无额度相关词",
-    "intent": 0,
+    "intent": 1,
     "window": null,
     "candidateWindow": null
   },
@@ -977,7 +979,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-03T18:15:28.834Z"
+        "checkedAt": "2026-10-03T22:25:12.034Z"
       }
     },
     {
@@ -1771,6 +1773,128 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2106501204285239560",
+      "account": "thsottiaux",
+      "text": "If we were to add one more sidebar, what should be in it",
+      "createdAt": "2026-10-03T21:46:38.000Z",
+      "url": "https://x.com/thsottiaux/status/2106501204285239560",
+      "reasons": [
+        "命中「新额度」类词 fresh/new/top up"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.04",
+          "weekday": "周日",
+          "time": "05:46",
+          "text": "2026.10.04（周日）05:46",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.03",
+          "weekday": "周六",
+          "time": "14:46",
+          "text": "2026.10.03（周六）14:46",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 1,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2106500823253754004",
+      "account": "thsottiaux",
+      "text": "wait",
+      "createdAt": "2026-10-03T21:45:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2106500823253754004",
+      "reasons": [
+        "上下文：回复 @maria_rcks「wait...…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "maria_rcks",
+        "id": "",
+        "text": "wait..."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.04",
+          "weekday": "周日",
+          "time": "05:45",
+          "text": "2026.10.04（周日）05:45",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.03",
+          "weekday": "周六",
+          "time": "14:45",
+          "text": "2026.10.03（周六）14:45",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2106499926956060984",
+      "account": "thsottiaux",
+      "text": "i had french fries for lunch",
+      "createdAt": "2026-10-03T21:41:34.000Z",
+      "url": "https://x.com/thsottiaux/status/2106499926956060984",
+      "reasons": [
+        "上下文：回复 @poteto「you can just ask…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "you can just ask"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.04",
+          "weekday": "周日",
+          "time": "05:41",
+          "text": "2026.10.04（周日）05:41",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.03",
+          "weekday": "周六",
+          "time": "14:41",
+          "text": "2026.10.03（周六）14:41",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2106439068557144179",
       "account": "thsottiaux",
@@ -8861,12 +8985,12 @@
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 216,
+    "scanned": 219,
     "explicit": 0,
     "occurred": 6,
     "hint": 31,
-    "none": 173,
-    "rejected": 173
+    "none": 176,
+    "rejected": 176
   },
   "truncated": false
 }
