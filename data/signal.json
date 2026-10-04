@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-10-04T06:02:04.989Z",
+  "generatedAt": "2026-10-04T14:22:21.425Z",
   "checkedTweets": 230,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-05T06:02:04.989Z",
-  "windowTo": "2026-10-04T06:02:04.989Z",
+  "windowFrom": "2026-08-05T14:22:21.425Z",
+  "windowTo": "2026-10-04T14:22:21.425Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -14,17 +14,17 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.04",
       "weekday": "周日",
-      "time": "14:02",
-      "text": "2026.10.04（周日）14:02",
+      "time": "22:22",
+      "text": "2026.10.04（周日）22:22",
       "offset": "UTC+8"
     },
     "b": {
       "label": "Tibo 当地时间",
       "zone": "America/Los_Angeles",
-      "date": "2026.10.03",
-      "weekday": "周六",
-      "time": "23:02",
-      "text": "2026.10.03（周六）23:02",
+      "date": "2026.10.04",
+      "weekday": "周日",
+      "time": "07:22",
+      "text": "2026.10.04（周日）07:22",
       "offset": "UTC-7"
     },
     "diffHours": 15,
@@ -1113,7 +1113,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-04T06:02:04.989Z"
+        "checkedAt": "2026-10-04T14:22:21.425Z"
       }
     },
     {
