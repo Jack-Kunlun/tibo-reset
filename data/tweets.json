@@ -1,6 +1,60 @@
 {
   "tweets": [
     {
+      "id": "2106546689012281771",
+      "text": "Interesting position you’re taking there mister Bacon. Now let’s see what someone can do with the ChatGPT subscription or the Grok subscription. 👀",
+      "created_at": "2026-10-04T00:47:23.000Z",
+      "url": "https://x.com/thsottiaux/status/2106546689012281771",
+      "inReplyTo": {
+        "account": "Baconbrix",
+        "id": "",
+        "text": "Another 50% usage cut on the pro plan",
+        "created_at": "2026-10-03T20:19:49.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-04T01:40:50.164Z"
+    },
+    {
+      "id": "2106544544892518815",
+      "text": "Dots are persistent agents that carry context across the single conversation. You can call it in the middle of work and then catch it later via slack or text in the app, it’s the same dot talking to you.",
+      "created_at": "2026-10-04T00:38:51.000Z",
+      "url": "https://x.com/thsottiaux/status/2106544544892518815",
+      "inReplyTo": {
+        "account": "atelicinvest",
+        "id": "",
+        "text": "Why are these ppl pretending that there was no way to do this before today Am i losing my mind here",
+        "created_at": "2026-10-03T17:40:39.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-04T01:40:50.164Z"
+    },
+    {
+      "id": "2106543375088488596",
+      "text": "6.1 coming soon",
+      "created_at": "2026-10-04T00:34:12.000Z",
+      "url": "https://x.com/thsottiaux/status/2106543375088488596",
+      "inReplyTo": {
+        "account": "davis7",
+        "id": "",
+        "text": "I'm enjoying Astra on low reasoning + ultra fast way too much for a ton of little things like: - email management - one off fixes - research - quick demos Usage limits are still pretty brutal. Really want GPT-6.1 Sol ultra fast that's gonna be absurdly useful",
+        "created_at": "2026-10-03T22:33:36.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-04T01:40:50.164Z"
+    },
+    {
       "id": "2106541589007114420",
       "text": "Glad you like it! Anything we can improve?",
       "created_at": "2026-10-04T00:27:07.000Z",
@@ -3495,7 +3549,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-04T00:29:55.707Z",
+  "updated_at": "2026-10-04T01:40:50.166Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }
