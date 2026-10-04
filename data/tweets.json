@@ -1,6 +1,78 @@
 {
   "tweets": [
     {
+      "id": "2106894683523928229",
+      "text": "We're still early indeed!",
+      "created_at": "2026-10-04T23:50:11.000Z",
+      "url": "https://x.com/thsottiaux/status/2106894683523928229",
+      "inReplyTo": {
+        "account": "Yuchenj_UW",
+        "id": "",
+        "text": "I haven’t touched Claude Code or Codex CLI in a while. The terminal era is over imo. It's the wrong interface for coding agents. Tabs are ephemeral, but context is persistent, and managing 30 tabs is pure cognitive overhead. I don’t really need an IDE like Cursor either. I",
+        "created_at": "2026-10-03T17:23:34.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-04T23:50:53.599Z"
+    },
+    {
+      "id": "2106894238541918707",
+      "text": "> some easy wins: it takes 3 clicks on my phone to open dots from ChatGPT app, and there should be shortcut to dictation to it. Team is on it",
+      "created_at": "2026-10-04T23:48:25.000Z",
+      "url": "https://x.com/thsottiaux/status/2106894238541918707",
+      "inReplyTo": {
+        "account": "mattlam_",
+        "id": "",
+        "text": "starting to like dots, there are some tasks that I prefer to have more supervision, and it's just easier for me to mostly guide and ask dots to use local computer use when needed. Also many logins don't work with some form of autofill, so the secure input or 1pass sharing don't",
+        "created_at": "2026-10-04T19:55:02.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-04T23:50:53.599Z"
+    },
+    {
+      "id": "2106893863663321520",
+      "text": "Always loved linear!",
+      "created_at": "2026-10-04T23:46:55.000Z",
+      "url": "https://x.com/thsottiaux/status/2106893863663321520",
+      "inReplyTo": {
+        "account": "karrisaarinen",
+        "id": "",
+        "text": "Frantically fixing a confusing product caused by frantic shipping is just more of the same. Pause and step back. Get the team clear on what you’re building and why. Have clarity to guide the shape, what ships and what doesn’t. Quality is a way of working, not a cleanup sprint.",
+        "created_at": "2026-10-04T22:41:22.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-04T23:50:53.599Z"
+    },
+    {
+      "id": "2106893559962144962",
+      "text": "Interestingly, user and sub count is growing nicely. But feedback was clear.",
+      "created_at": "2026-10-04T23:45:43.000Z",
+      "url": "https://x.com/thsottiaux/status/2106893559962144962",
+      "inReplyTo": {
+        "account": "ZryMiller",
+        "id": "",
+        "text": "How many users canceled their subscriptions to make this happen?",
+        "created_at": "2026-10-04T21:40:30.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-04T23:50:53.599Z"
+    },
+    {
       "id": "2106858787151995288",
       "text": "You're hired",
       "created_at": "2026-10-04T21:27:33.000Z",
@@ -3770,7 +3842,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-04T22:48:13.101Z",
+  "updated_at": "2026-10-04T23:50:53.599Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }
