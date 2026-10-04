@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-02T21:18:48.000Z",
     "last_text": "Reset all propagated. Enjoy. https://t.co/GaVJhbptR0",
-    "days_since_last": 1.7979964814814815,
+    "days_since_last": 1.8445930092592593,
     "avg_interval_days": 6.679287686809616,
     "median_interval_days": 3.096388888888889,
     "sd_interval_days": 10.96766591511672,
@@ -14,19 +14,19 @@
     "reset_count": 52,
     "hit_within_avg": 0.7017543859649122
   },
-  "generated_at": "2026-10-04T16:27:54.987Z",
+  "generated_at": "2026-10-04T17:35:00.940Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
     "stoppedBy": "known",
-    "newTweets": 1,
-    "knownCount": 230,
+    "newTweets": 0,
+    "knownCount": 231,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 7,
-      "harvested": 9,
-      "withContext": 9,
+      "steps": 1,
+      "harvested": 2,
+      "withContext": 2,
       "authorsMissing": 0
     },
     "replyError": null,
@@ -53,7 +53,7 @@
     "added": 0,
     "updated": 0,
     "upstreamCount": 57,
-    "refreshedAt": "2026-10-04T16:27:35.345Z",
+    "refreshedAt": "2026-10-04T17:34:46.107Z",
     "error": null,
     "changed": false,
     "patchedTexts": 0
