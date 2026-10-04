@@ -1,6 +1,17 @@
 {
   "tweets": [
     {
+      "id": "2106610099720720811",
+      "text": "All right, we’re locking in. Only things being worked on are simplifications, more efficiency for more usage, groundbreaking features or new models. Sometimes you have to invest ahead of the curve, but feedback is clear that you all want things to get simpler. On it.",
+      "created_at": "2026-10-04T04:59:21.000Z",
+      "url": "https://x.com/thsottiaux/status/2106610099720720811",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-04T06:02:04.987Z"
+    },
+    {
       "id": "2106609390577156384",
       "text": "There is a full usage dashboard in the app now! Let me know what’s missing if anything, will fix",
       "created_at": "2026-10-04T04:56:32.000Z",
@@ -69,8 +80,8 @@
       "text_full": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-04T04:59:20.574Z"
     },
     {
@@ -87,8 +98,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-04T04:59:20.574Z"
     },
     {
@@ -3658,7 +3669,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-04T04:59:20.575Z",
+  "updated_at": "2026-10-04T06:02:04.988Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }
