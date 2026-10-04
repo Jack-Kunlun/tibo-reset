@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-10-04T15:25:09.865Z",
-  "checkedTweets": 230,
+  "generatedAt": "2026-10-04T16:27:54.896Z",
+  "checkedTweets": 231,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-05T15:25:09.865Z",
-  "windowTo": "2026-10-04T15:25:09.865Z",
+  "windowFrom": "2026-08-05T16:27:54.896Z",
+  "windowTo": "2026-10-04T16:27:54.896Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -12,10 +12,10 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.10.04",
-      "weekday": "周日",
-      "time": "23:25",
-      "text": "2026.10.04（周日）23:25",
+      "date": "2026.10.05",
+      "weekday": "周一",
+      "time": "00:27",
+      "text": "2026.10.05（周一）00:27",
       "offset": "UTC+8"
     },
     "b": {
@@ -23,49 +23,52 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.04",
       "weekday": "周日",
-      "time": "08:25",
-      "text": "2026.10.04（周日）08:25",
+      "time": "09:27",
+      "text": "2026.10.04（周日）09:27",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2106610099720720811",
+    "id": "2106769163620671823",
     "account": "thsottiaux",
-    "text": "All right, we’re locking in. Only things being worked on are simplifications, more efficiency for more usage, groundbreaking features or new models. Sometimes you have to invest ahead of the curve, but feedback is clear that you all want things to get simpler. On it.",
-    "createdAt": "2026-10-04T04:59:21.000Z",
-    "url": "https://x.com/thsottiaux/status/2106610099720720811",
+    "text": "Heard",
+    "createdAt": "2026-10-04T15:31:25.000Z",
+    "url": "https://x.com/thsottiaux/status/2106769163620671823",
     "reasons": [
-      "命中额度词 limits/usage/credits",
-      "命中「新额度」类词 fresh/new/top up"
+      "上下文：回复 @argofowl「tibo hear me out @thsottiaux…」"
     ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "argofowl",
+      "id": "",
+      "text": "tibo hear me out @thsottiaux"
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.10.04",
         "weekday": "周日",
-        "time": "12:59",
-        "text": "2026.10.04（周日）12:59",
+        "time": "23:31",
+        "text": "2026.10.04（周日）23:31",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.10.03",
-        "weekday": "周六",
-        "time": "21:59",
-        "text": "2026.10.03（周六）21:59",
+        "date": "2026.10.04",
+        "weekday": "周日",
+        "time": "08:31",
+        "text": "2026.10.04（周日）08:31",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "hint",
-    "rejected": "有额度意图但没给出时间，只能作线索",
-    "intent": 3,
+    "level": "none",
+    "rejected": "无额度相关词",
+    "intent": 0,
     "window": null,
     "candidateWindow": null
   },
@@ -1113,7 +1116,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-04T15:25:09.865Z"
+        "checkedAt": "2026-10-04T16:27:54.896Z"
       }
     },
     {
@@ -1907,6 +1910,48 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2106769163620671823",
+      "account": "thsottiaux",
+      "text": "Heard",
+      "createdAt": "2026-10-04T15:31:25.000Z",
+      "url": "https://x.com/thsottiaux/status/2106769163620671823",
+      "reasons": [
+        "上下文：回复 @argofowl「tibo hear me out @thsottiaux…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "argofowl",
+        "id": "",
+        "text": "tibo hear me out @thsottiaux"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.04",
+          "weekday": "周日",
+          "time": "23:31",
+          "text": "2026.10.04（周日）23:31",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.04",
+          "weekday": "周日",
+          "time": "08:31",
+          "text": "2026.10.04（周日）08:31",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2106607456130592861",
       "account": "thsottiaux",
@@ -9458,12 +9503,12 @@
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 230,
+    "scanned": 231,
     "explicit": 0,
     "occurred": 6,
     "hint": 34,
-    "none": 184,
-    "rejected": 184
+    "none": 185,
+    "rejected": 185
   },
   "truncated": false
 }
