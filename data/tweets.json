@@ -1,6 +1,24 @@
 {
   "tweets": [
     {
+      "id": "2106541589007114420",
+      "text": "Glad you like it! Anything we can improve?",
+      "created_at": "2026-10-04T00:27:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2106541589007114420",
+      "inReplyTo": {
+        "account": "Voxyz_ai",
+        "id": "",
+        "text": "dots is 𝗵𝗮𝗻𝗱𝘀 𝗱𝗼𝘄𝗻 𝗺𝘆 𝗳𝗮𝘃𝗼𝗿𝗶𝘁𝗲 𝗮𝗴𝗲𝗻𝘁 right now. Over the past few days it's become my main one. Especially when it's open on my desktop and talking to it feels like talking to a real person, it feels incredibly futuristic. I care a lot about how things",
+        "created_at": "2026-10-03T22:00:02.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-04T00:29:55.695Z"
+    },
+    {
       "id": "2106501204285239560",
       "text": "If we were to add one more sidebar, what should be in it",
       "created_at": "2026-10-03T21:46:38.000Z",
@@ -3477,7 +3495,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-03T22:25:12.033Z",
+  "updated_at": "2026-10-04T00:29:55.707Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }

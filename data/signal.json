@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-10-03T22:25:12.034Z",
-  "checkedTweets": 219,
+  "generatedAt": "2026-10-04T00:29:55.708Z",
+  "checkedTweets": 220,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-04T22:25:12.034Z",
-  "windowTo": "2026-10-03T22:25:12.034Z",
+  "windowFrom": "2026-08-05T00:29:55.708Z",
+  "windowTo": "2026-10-04T00:29:55.708Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -14,8 +14,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.04",
       "weekday": "周日",
-      "time": "06:25",
-      "text": "2026.10.04（周日）06:25",
+      "time": "08:29",
+      "text": "2026.10.04（周日）08:29",
       "offset": "UTC+8"
     },
     "b": {
@@ -23,32 +23,36 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.03",
       "weekday": "周六",
-      "time": "15:25",
-      "text": "2026.10.03（周六）15:25",
+      "time": "17:29",
+      "text": "2026.10.03（周六）17:29",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2106501204285239560",
+    "id": "2106541589007114420",
     "account": "thsottiaux",
-    "text": "If we were to add one more sidebar, what should be in it",
-    "createdAt": "2026-10-03T21:46:38.000Z",
-    "url": "https://x.com/thsottiaux/status/2106501204285239560",
+    "text": "Glad you like it! Anything we can improve?",
+    "createdAt": "2026-10-04T00:27:07.000Z",
+    "url": "https://x.com/thsottiaux/status/2106541589007114420",
     "reasons": [
-      "命中「新额度」类词 fresh/new/top up"
+      "上下文：回复 @Voxyz_ai「dots is 𝗵𝗮𝗻𝗱𝘀 𝗱𝗼𝘄𝗻 𝗺𝘆 𝗳\ud835…」"
     ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "Voxyz_ai",
+      "id": "",
+      "text": "dots is 𝗵𝗮𝗻𝗱𝘀 𝗱𝗼𝘄𝗻 𝗺𝘆 𝗳𝗮𝘃𝗼𝗿𝗶𝘁𝗲 𝗮𝗴𝗲𝗻𝘁 right now. Over the past few days it's become my main one. Especially when it's open on my desktop and talking to it feels like talking to a real person, it feels incredibly futuristic. I care a lot about how things"
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.10.04",
         "weekday": "周日",
-        "time": "05:46",
-        "text": "2026.10.04（周日）05:46",
+        "time": "08:27",
+        "text": "2026.10.04（周日）08:27",
         "offset": "UTC+8"
       },
       "b": {
@@ -56,15 +60,15 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.03",
         "weekday": "周六",
-        "time": "14:46",
-        "text": "2026.10.03（周六）14:46",
+        "time": "17:27",
+        "text": "2026.10.03（周六）17:27",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
     "level": "none",
     "rejected": "无额度相关词",
-    "intent": 1,
+    "intent": 0,
     "window": null,
     "candidateWindow": null
   },
@@ -979,7 +983,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-03T22:25:12.034Z"
+        "checkedAt": "2026-10-04T00:29:55.708Z"
       }
     },
     {
@@ -1773,6 +1777,48 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2106541589007114420",
+      "account": "thsottiaux",
+      "text": "Glad you like it! Anything we can improve?",
+      "createdAt": "2026-10-04T00:27:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2106541589007114420",
+      "reasons": [
+        "上下文：回复 @Voxyz_ai「dots is 𝗵𝗮𝗻𝗱𝘀 𝗱𝗼𝘄𝗻 𝗺𝘆 𝗳\ud835…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "Voxyz_ai",
+        "id": "",
+        "text": "dots is 𝗵𝗮𝗻𝗱𝘀 𝗱𝗼𝘄𝗻 𝗺𝘆 𝗳𝗮𝘃𝗼𝗿𝗶𝘁𝗲 𝗮𝗴𝗲𝗻𝘁 right now. Over the past few days it's become my main one. Especially when it's open on my desktop and talking to it feels like talking to a real person, it feels incredibly futuristic. I care a lot about how things"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.04",
+          "weekday": "周日",
+          "time": "08:27",
+          "text": "2026.10.04（周日）08:27",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.03",
+          "weekday": "周六",
+          "time": "17:27",
+          "text": "2026.10.03（周六）17:27",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2106501204285239560",
       "account": "thsottiaux",
@@ -8985,12 +9031,12 @@
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 219,
+    "scanned": 220,
     "explicit": 0,
     "occurred": 6,
     "hint": 31,
-    "none": 176,
-    "rejected": 176
+    "none": 177,
+    "rejected": 177
   },
   "truncated": false
 }
