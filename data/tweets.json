@@ -1,6 +1,97 @@
 {
   "tweets": [
     {
+      "id": "2106609390577156384",
+      "text": "There is a full usage dashboard in the app now! Let me know what’s missing if anything, will fix",
+      "created_at": "2026-10-04T04:56:32.000Z",
+      "url": "https://x.com/thsottiaux/status/2106609390577156384",
+      "inReplyTo": {
+        "account": "hiarun02",
+        "id": "",
+        "text": "The one thing missing from Codex is transparency. I wanna know what’s actually eating my usage.",
+        "created_at": "2026-10-03T18:41:18.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-04T04:59:20.574Z"
+    },
+    {
+      "id": "2106607456130592861",
+      "text": "6.1 sol ultrafast",
+      "created_at": "2026-10-04T04:48:51.000Z",
+      "url": "https://x.com/thsottiaux/status/2106607456130592861",
+      "inReplyTo": {
+        "account": "_ak_111",
+        "id": "",
+        "text": "tibo just said \"6.1 coming soon\" but 6.1 sol is already here... so what exactly is coming soon? 👀 6.1 astra?",
+        "created_at": "2026-10-04T01:07:19.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-04T04:59:20.574Z"
+    },
+    {
+      "id": "2106605571168510149",
+      "text": "6.1 sol ultrafast that is",
+      "created_at": "2026-10-04T04:41:21.000Z",
+      "url": "https://x.com/thsottiaux/status/2106605571168510149",
+      "inReplyTo": {
+        "account": "davis7",
+        "id": "",
+        "text": "I'm enjoying Astra on low reasoning + ultra fast way too much for a ton of little things like: - email management - one off fixes - research - quick demos Usage limits are still pretty brutal. Really want GPT-6.1 Sol ultra fast that's gonna be absurdly useful",
+        "created_at": "2026-10-03T22:33:36.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-04T04:59:20.574Z"
+    },
+    {
+      "id": "2106603980386394123",
+      "text": "What it did - delete all categories of email that were not needed for me to keep, validating them in batch - identify labels for types of work that I do and label all the emails appropriately - walked me through emails that needed a reply, searching for relevant context in the background to help get things right and in the process I was able to go through a lot of feedback and requests people send me directly through email. It was a good Saturday.",
+      "created_at": "2026-10-04T04:35:02.000Z",
+      "url": "https://x.com/thsottiaux/status/2106603980386394123",
+      "inReplyTo": {
+        "account": "davis7",
+        "id": "",
+        "text": "I'm enjoying Astra on low reasoning + ultra fast way too much for a ton of little things like: - email management - one off fixes - research - quick demos Usage limits are still pretty brutal. Really want GPT-6.1 Sol ultra fast that's gonna be absurdly useful",
+        "created_at": "2026-10-03T22:33:36.000Z",
+        "url": ""
+      },
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-04T04:59:20.574Z"
+    },
+    {
+      "id": "2106602729875685780",
+      "text": "I have never in my life achieved inbox zero until I just made it an active goal for my dot to help get it done. Let’s see how long it lasts, but it’s a great feeling.",
+      "created_at": "2026-10-04T04:30:04.000Z",
+      "url": "https://x.com/thsottiaux/status/2106602729875685780",
+      "inReplyTo": {
+        "account": "davis7",
+        "id": "",
+        "text": "I'm enjoying Astra on low reasoning + ultra fast way too much for a ton of little things like: - email management - one off fixes - research - quick demos Usage limits are still pretty brutal. Really want GPT-6.1 Sol ultra fast that's gonna be absurdly useful",
+        "created_at": "2026-10-03T22:33:36.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-04T04:59:20.574Z"
+    },
+    {
       "id": "2106593009806815429",
       "text": "Ah, perfection",
       "created_at": "2026-10-04T03:51:26.000Z",
@@ -3567,7 +3658,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-04T03:55:57.264Z",
+  "updated_at": "2026-10-04T04:59:20.575Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }
