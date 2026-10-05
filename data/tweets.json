@@ -1,6 +1,60 @@
 {
   "tweets": [
     {
+      "id": "2106959403782184960",
+      "text": "Claudex AI Space by Google",
+      "created_at": "2026-10-05T04:07:21.000Z",
+      "url": "https://x.com/thsottiaux/status/2106959403782184960",
+      "inReplyTo": {
+        "account": "ai_for_success",
+        "id": "",
+        "text": "Name the AI company.",
+        "created_at": "2026-10-05T03:19:35.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-05T04:14:09.656Z"
+    },
+    {
+      "id": "2106958559695282202",
+      "text": "Not fixes. Significant improvements. Let’s have some fun!",
+      "created_at": "2026-10-05T04:04:00.000Z",
+      "url": "https://x.com/thsottiaux/status/2106958559695282202",
+      "inReplyTo": {
+        "account": "makeamarkery",
+        "id": "",
+        "text": "This is 100% a move of fear, and a move of panic. You don't ship 20 different things at once, and then announce 28 days of fixes.",
+        "created_at": "2026-10-05T03:21:39.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-05T04:14:09.656Z"
+    },
+    {
+      "id": "2106957975147676025",
+      "text": "Don’t feel bad. It’s part of the fun and I’m here for it.",
+      "created_at": "2026-10-05T04:01:41.000Z",
+      "url": "https://x.com/thsottiaux/status/2106957975147676025",
+      "inReplyTo": {
+        "account": "fawnunwrap",
+        "id": "",
+        "text": "are we lwk abusing oai i feel kinda bad for some reason",
+        "created_at": "2026-10-04T23:11:49.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-05T04:14:09.656Z"
+    },
+    {
       "id": "2106894683523928229",
       "text": "We're still early indeed!",
       "created_at": "2026-10-04T23:50:11.000Z",
@@ -3842,7 +3896,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-04T23:50:53.599Z",
+  "updated_at": "2026-10-05T04:14:09.656Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }
