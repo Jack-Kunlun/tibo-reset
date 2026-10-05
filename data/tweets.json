@@ -1,6 +1,60 @@
 {
   "tweets": [
     {
+      "id": "2106967126250791091",
+      "text": "Facts",
+      "created_at": "2026-10-05T04:38:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2106967126250791091",
+      "inReplyTo": {
+        "account": "hiarun02",
+        "id": "",
+        "text": "Wait what, Codex users get a free reset every day for 28 days if OpenAI doesn’t ship a meaningful update?",
+        "created_at": "2026-10-05T04:13:40.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-05T05:17:03.814Z"
+    },
+    {
+      "id": "2106966244314567159",
+      "text": "Congrats!!",
+      "created_at": "2026-10-05T04:34:32.000Z",
+      "url": "https://x.com/thsottiaux/status/2106966244314567159",
+      "inReplyTo": {
+        "account": "alexkehr",
+        "id": "",
+        "text": "Taste grew over 100% in just a couple of days last week. More people joined and started using it than in the previous four months combined. It sort of feels like I may have accidentally started a company. Which has me wondering if I should do the VC thing again and take a big",
+        "created_at": "2026-10-05T03:49:04.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-05T05:17:03.814Z"
+    },
+    {
+      "id": "2106963521561083946",
+      "text": "Everything is indeed coordinated through Slack",
+      "created_at": "2026-10-05T04:23:43.000Z",
+      "url": "https://x.com/thsottiaux/status/2106963521561083946",
+      "inReplyTo": {
+        "account": "AlexBerish",
+        "id": "",
+        "text": "i am very curious how things work at @openai when it comes to decisions about shipping products, because shipping speed is so fast especially things like, for example, decisions api is @sama just monitoring slack and signs off on things that way? or not involved in approving?",
+        "created_at": "2026-10-04T23:24:07.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-05T05:17:03.814Z"
+    },
+    {
       "id": "2106959403782184960",
       "text": "Claudex AI Space by Google",
       "created_at": "2026-10-05T04:07:21.000Z",
@@ -3896,7 +3950,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-05T04:14:09.656Z",
+  "updated_at": "2026-10-05T05:17:03.816Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }
