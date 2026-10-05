@@ -1,6 +1,24 @@
 {
   "tweets": [
     {
+      "id": "2107185534359761051",
+      "text": "Nice avatar",
+      "created_at": "2026-10-05T19:05:55.000Z",
+      "url": "https://x.com/thsottiaux/status/2107185534359761051",
+      "inReplyTo": {
+        "account": "karrisaarinen",
+        "id": "",
+        "text": "Moving over to @OpenAI Dot from Muse. I'm using Chatgpt/Codex anyway daily for my personal stuff so simpler that way. (I like keeping my work ai use with @linear since it has the context I need). Also introducing sleepy Doomhammer orc peon: Work, work. Okay dokey.",
+        "created_at": "2026-10-05T17:51:17.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-05T19:54:54.623Z"
+    },
+    {
       "id": "2107159119107146237",
       "text": "Reaching 50 TPS instead of 30TPS, with also the most optimized tokenizer out there. And the models are quite the efficient ones in terms of number of tokens needed to get things done!",
       "created_at": "2026-10-05T17:20:57.000Z",
@@ -3973,7 +3991,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-05T17:49:45.461Z",
+  "updated_at": "2026-10-05T19:54:54.624Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }

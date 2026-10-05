@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-10-05T17:49:45.462Z",
-  "checkedTweets": 248,
+  "generatedAt": "2026-10-05T19:54:54.625Z",
+  "checkedTweets": 249,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-06T17:49:45.462Z",
-  "windowTo": "2026-10-05T17:49:45.462Z",
+  "windowFrom": "2026-08-06T19:54:54.625Z",
+  "windowTo": "2026-10-05T19:54:54.625Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -14,8 +14,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.06",
       "weekday": "周二",
-      "time": "01:49",
-      "text": "2026.10.06（周二）01:49",
+      "time": "03:54",
+      "text": "2026.10.06（周二）03:54",
       "offset": "UTC+8"
     },
     "b": {
@@ -23,30 +23,36 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.05",
       "weekday": "周一",
-      "time": "10:49",
-      "text": "2026.10.05（周一）10:49",
+      "time": "12:54",
+      "text": "2026.10.05（周一）12:54",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2107159119107146237",
+    "id": "2107185534359761051",
     "account": "thsottiaux",
-    "text": "Reaching 50 TPS instead of 30TPS, with also the most optimized tokenizer out there. And the models are quite the efficient ones in terms of number of tokens needed to get things done!",
-    "createdAt": "2026-10-05T17:20:57.000Z",
-    "url": "https://x.com/thsottiaux/status/2107159119107146237",
-    "reasons": [],
+    "text": "Nice avatar",
+    "createdAt": "2026-10-05T19:05:55.000Z",
+    "url": "https://x.com/thsottiaux/status/2107185534359761051",
+    "reasons": [
+      "上下文：回复 @karrisaarinen「Moving over to @OpenAI Dot from Muse…」"
+    ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "karrisaarinen",
+      "id": "",
+      "text": "Moving over to @OpenAI Dot from Muse. I'm using Chatgpt/Codex anyway daily for my personal stuff so simpler that way. (I like keeping my work ai use with @linear since it has the context I need). Also introducing sleepy Doomhammer orc peon: Work, work. Okay dokey."
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.10.06",
         "weekday": "周二",
-        "time": "01:20",
-        "text": "2026.10.06（周二）01:20",
+        "time": "03:05",
+        "text": "2026.10.06（周二）03:05",
         "offset": "UTC+8"
       },
       "b": {
@@ -54,8 +60,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.05",
         "weekday": "周一",
-        "time": "10:20",
-        "text": "2026.10.05（周一）10:20",
+        "time": "12:05",
+        "text": "2026.10.05（周一）12:05",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -1151,7 +1157,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-05T17:49:45.462Z"
+        "checkedAt": "2026-10-05T19:54:54.625Z"
       }
     },
     {
@@ -1945,6 +1951,48 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2107185534359761051",
+      "account": "thsottiaux",
+      "text": "Nice avatar",
+      "createdAt": "2026-10-05T19:05:55.000Z",
+      "url": "https://x.com/thsottiaux/status/2107185534359761051",
+      "reasons": [
+        "上下文：回复 @karrisaarinen「Moving over to @OpenAI Dot from Muse…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "karrisaarinen",
+        "id": "",
+        "text": "Moving over to @OpenAI Dot from Muse. I'm using Chatgpt/Codex anyway daily for my personal stuff so simpler that way. (I like keeping my work ai use with @linear since it has the context I need). Also introducing sleepy Doomhammer orc peon: Work, work. Okay dokey."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.06",
+          "weekday": "周二",
+          "time": "03:05",
+          "text": "2026.10.06（周二）03:05",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.05",
+          "weekday": "周一",
+          "time": "12:05",
+          "text": "2026.10.05（周一）12:05",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2107159119107146237",
       "account": "thsottiaux",
@@ -10124,53 +10172,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2098569976143806918",
-      "account": "thsottiaux",
-      "text": "Excited to welcome Aidan & @ Sasha from the Git AI team to OpenAI! They are building in the open and have developed an open-source tool that helps developers understand how coding agents contribute to their codebase. Together, we’ll make it easier for businesses to see where Codex is making a difference when working through problems for individuals and teams. We’ll also keep Git AI open source and continue investing in it.",
-      "createdAt": "2026-09-12T00:30:46.000Z",
-      "url": "https://x.com/thsottiaux/status/2098569976143806918",
-      "reasons": [],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.12",
-          "weekday": "周六",
-          "time": "08:30",
-          "text": "2026.09.12（周六）08:30",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.11",
-          "weekday": "周五",
-          "time": "17:30",
-          "text": "2026.09.11（周五）17:30",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 248,
+    "scanned": 249,
     "explicit": 0,
     "occurred": 6,
     "hint": 35,
-    "none": 201,
-    "rejected": 201
+    "none": 202,
+    "rejected": 202
   },
   "truncated": true
 }
