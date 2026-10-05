@@ -1,6 +1,29 @@
 {
   "tweets": [
     {
+      "id": "2107159119107146237",
+      "text": "Reaching 50 TPS instead of 30TPS, with also the most optimized tokenizer out there. And the models are quite the efficient ones in terms of number of tokens needed to get things done!",
+      "created_at": "2026-10-05T17:20:57.000Z",
+      "url": "https://x.com/thsottiaux/status/2107159119107146237",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-05T17:49:45.460Z"
+    },
+    {
+      "id": "2107158998495748264",
+      "text": "Day 1/ We have optimized the default speed to be ~50% faster across GPT-6 Astra and GPT-6.1 Sol through the subscription across all our products and partners using Sign in With ChatGPT (including OpenCode, Pi, Amp, Devin, ...). No changes needed on your end and this should be felt within the next two hours.",
+      "created_at": "2026-10-05T17:20:29.000Z",
+      "url": "https://x.com/thsottiaux/status/2107158998495748264",
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-05T17:49:45.460Z"
+    },
+    {
       "id": "2106967126250791091",
       "text": "Facts",
       "created_at": "2026-10-05T04:38:03.000Z",
@@ -3950,7 +3973,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-05T11:33:26.767Z",
+  "updated_at": "2026-10-05T17:49:45.461Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }
