@@ -1,6 +1,107 @@
 {
   "tweets": [
     {
+      "id": "2107295839655952486",
+      "text": "The real story is this one",
+      "created_at": "2026-10-06T02:24:14.000Z",
+      "url": "https://x.com/thsottiaux/status/2107295839655952486",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-06T02:25:39.574Z"
+    },
+    {
+      "id": "2107295543563362784",
+      "text": "Coincidence?",
+      "created_at": "2026-10-06T02:23:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2107295543563362784",
+      "inReplyTo": {
+        "account": "iansilber",
+        "id": "",
+        "text": "haaad to be after i left huh? jkjk, hyped for The Great Simplification 🙏",
+        "created_at": "2026-10-05T04:51:40.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T02:25:39.574Z"
+    },
+    {
+      "id": "2107295306794905929",
+      "text": "Facts",
+      "created_at": "2026-10-06T02:22:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2107295306794905929",
+      "inReplyTo": {
+        "account": "nicdunz",
+        "id": "",
+        "text": "6.1 sol before boost vs after boost astra level intelligence, super fast",
+        "created_at": "2026-10-05T18:12:32.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T02:25:39.574Z"
+    },
+    {
+      "id": "2107295089416708515",
+      "text": "We rolled out the Astra changes earlier. The 50 TPS is what you’re after",
+      "created_at": "2026-10-06T02:21:15.000Z",
+      "url": "https://x.com/thsottiaux/status/2107295089416708515",
+      "inReplyTo": {
+        "account": "miu21590",
+        "id": "",
+        "text": "It's been 3 hours since Tibo promised to improve the speed for Astra and Sol 6.1 in Codex As a result, Sol 6.1 really did get faster, but Astra 6 didn't So either Tibo lied about the timing or about the model, either way we have the right to get a reset",
+        "created_at": "2026-10-05T20:49:07.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T02:25:39.574Z"
+    },
+    {
+      "id": "2107294414091759840",
+      "text": "I smell fear",
+      "created_at": "2026-10-06T02:18:34.000Z",
+      "url": "https://x.com/thsottiaux/status/2107294414091759840",
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "hey @bot help me think of some bangers to post about the temu knockoff of you",
+        "created_at": "2026-10-06T01:46:31.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T02:25:39.574Z"
+    },
+    {
+      "id": "2107294063011733505",
+      "text": "Sent you a DM for how you’re measuring",
+      "created_at": "2026-10-06T02:17:10.000Z",
+      "url": "https://x.com/thsottiaux/status/2107294063011733505",
+      "inReplyTo": {
+        "account": "stalkermustang",
+        "id": "",
+        "text": "\"in the next 2 hours\" 4 hours later — barely 35 TPS.",
+        "created_at": "2026-10-05T21:30:02.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T02:25:39.574Z"
+    },
+    {
       "id": "2107200530477101461",
       "text": "Sergio is cooking up magic with collaborative space right in ChatGPT. Improving leaps and bounds every day.",
       "created_at": "2026-10-05T20:05:31.000Z",
@@ -4002,7 +4103,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-05T20:57:57.044Z",
+  "updated_at": "2026-10-06T02:25:39.575Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }
