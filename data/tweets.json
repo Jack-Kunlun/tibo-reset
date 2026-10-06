@@ -1,6 +1,130 @@
 {
   "tweets": [
     {
+      "id": "2107579151322591412",
+      "text": "OK fake tibo",
+      "created_at": "2026-10-06T21:10:01.000Z",
+      "url": "https://x.com/thsottiaux/status/2107579151322591412",
+      "inReplyTo": {
+        "account": "MerkleGhost",
+        "id": "",
+        "text": "Great day, but a reset would be sick.",
+        "created_at": "2026-10-06T21:01:54.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T21:11:49.454Z"
+    },
+    {
+      "id": "2107578816638177408",
+      "text": "Waiting for today’s ship",
+      "created_at": "2026-10-06T21:08:41.000Z",
+      "url": "https://x.com/thsottiaux/status/2107578816638177408",
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "Is this why your 28 days are full of nothingburgers",
+        "created_at": "2026-10-06T20:20:02.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T21:11:49.454Z"
+    },
+    {
+      "id": "2107578625419866469",
+      "text": "Four updates or a reset. Or both. How was day 2.",
+      "created_at": "2026-10-06T21:07:55.000Z",
+      "url": "https://x.com/thsottiaux/status/2107578625419866469",
+      "kind": "reset",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-06T21:11:49.454Z"
+    },
+    {
+      "id": "2107577536779870210",
+      "text": "I do like giving resets",
+      "created_at": "2026-10-06T21:03:36.000Z",
+      "url": "https://x.com/thsottiaux/status/2107577536779870210",
+      "inReplyTo": {
+        "account": "The_Alex",
+        "id": "",
+        "text": "Weighing these updates against a reset was a bad idea",
+        "created_at": "2026-10-06T20:52:44.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T21:11:49.454Z"
+    },
+    {
+      "id": "2107576143285219799",
+      "text": "Vote",
+      "created_at": "2026-10-06T20:58:04.000Z",
+      "url": "https://x.com/thsottiaux/status/2107576143285219799",
+      "inReplyTo": {
+        "account": "The_Alex",
+        "id": "",
+        "text": "Weighing these updates against a reset was a bad idea",
+        "created_at": "2026-10-06T20:52:44.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T21:11:49.454Z"
+    },
+    {
+      "id": "2107575657014468879",
+      "text": "Roundup of Day 2/ 2.1/ Approve for me (auto-review) is now included and does not use usage. Can be between 2-10% of plan when used. Also better for you. 2.2/ Simplified API for builders. 2.3/ Meeting notes integrated. 2.4/ Decisions API live for builders. Will use in the app to improve the experience.",
+      "created_at": "2026-10-06T20:56:08.000Z",
+      "url": "https://x.com/thsottiaux/status/2107575657014468879",
+      "inReplyTo": {
+        "account": "The_Alex",
+        "id": "",
+        "text": "Weighing these updates against a reset was a bad idea",
+        "created_at": "2026-10-06T20:52:44.000Z",
+        "url": ""
+      },
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T21:11:49.454Z"
+    },
+    {
+      "id": "2107574912349303197",
+      "text": "Day 2.4/ Decisions API is live. We will use this ourselves to improve the experience for everyone in many fun ways. Realtime general classifier does open some great possibilities.",
+      "created_at": "2026-10-06T20:53:10.000Z",
+      "url": "https://x.com/thsottiaux/status/2107574912349303197",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-06T21:11:49.454Z"
+    },
+    {
+      "id": "2107573405553938664",
+      "text": "Day 2.3/ Never worry about remembering what you were saying with that colleague. Just talk your heart out and build up the context to load up into codex to get it all done.",
+      "created_at": "2026-10-06T20:47:11.000Z",
+      "url": "https://x.com/thsottiaux/status/2107573405553938664",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-06T21:11:49.454Z"
+    },
+    {
       "id": "2107558288934216153",
       "text": "No dodge, just three updates today",
       "created_at": "2026-10-06T19:47:07.000Z",
@@ -4389,7 +4513,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-06T20:08:57.088Z",
+  "updated_at": "2026-10-06T21:11:49.455Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }
