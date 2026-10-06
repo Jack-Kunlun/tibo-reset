@@ -1,6 +1,132 @@
 {
   "tweets": [
     {
+      "id": "2107592473048715573",
+      "text": "I accept your vote",
+      "created_at": "2026-10-06T22:02:57.000Z",
+      "url": "https://x.com/thsottiaux/status/2107592473048715573",
+      "inReplyTo": {
+        "account": "TokenGremlin",
+        "id": "",
+        "text": "Tibo would never let me be one of the judges for these “improvements” he keeps announcing, because I would’ve already voted for a reset today.",
+        "created_at": "2026-10-06T19:47:47.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T22:14:23.672Z"
+    },
+    {
+      "id": "2107592271952748814",
+      "text": "Is this how the internet works 👀",
+      "created_at": "2026-10-06T22:02:09.000Z",
+      "url": "https://x.com/thsottiaux/status/2107592271952748814",
+      "inReplyTo": {
+        "account": "adonis_singh",
+        "id": "",
+        "text": "it's a mistake to even ask this, everyone will vote for reset even they launch something insane lol",
+        "created_at": "2026-10-06T21:26:35.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T22:14:23.672Z"
+    },
+    {
+      "id": "2107587734810525809",
+      "text": "Lines of code as a measure for productivity?",
+      "created_at": "2026-10-06T21:44:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2107587734810525809",
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "yeah i can see why shipping is such a big event for you",
+        "created_at": "2026-10-06T21:26:43.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T22:14:23.672Z"
+    },
+    {
+      "id": "2107587334661378382",
+      "text": "Feels right, but such is the game",
+      "created_at": "2026-10-06T21:42:32.000Z",
+      "url": "https://x.com/thsottiaux/status/2107587334661378382",
+      "inReplyTo": {
+        "account": "AionForge",
+        "id": "",
+        "text": "You guys could ship Astra 502.1 and we’d still vote reset",
+        "created_at": "2026-10-06T21:38:53.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T22:14:23.672Z"
+    },
+    {
+      "id": "2107587158001496242",
+      "text": "It must be done",
+      "created_at": "2026-10-06T21:41:50.000Z",
+      "url": "https://x.com/thsottiaux/status/2107587158001496242",
+      "inReplyTo": {
+        "account": "itsmattfranco",
+        "id": "",
+        "text": "i'm sorry tibo, but hopefully today's updates were helpful for others!",
+        "created_at": "2026-10-06T21:41:25.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T22:14:23.672Z"
+    },
+    {
+      "id": "2107586622766366739",
+      "text": "The math doesn’t math, but the rules are the rules",
+      "created_at": "2026-10-06T21:39:42.000Z",
+      "url": "https://x.com/thsottiaux/status/2107586622766366739",
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "Good day but I do need a reset",
+        "created_at": "2026-10-06T21:19:15.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T22:14:23.672Z"
+    },
+    {
+      "id": "2107586339860631980",
+      "text": "It’s the compute that is cooked",
+      "created_at": "2026-10-06T21:38:35.000Z",
+      "url": "https://x.com/thsottiaux/status/2107586339860631980",
+      "inReplyTo": {
+        "account": "vipinxtwt",
+        "id": "",
+        "text": "I think Tibo is cooked after promising 28 features in 28 days",
+        "created_at": "2026-10-06T21:20:57.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T22:14:23.672Z"
+    },
+    {
       "id": "2107579151322591412",
       "text": "OK fake tibo",
       "created_at": "2026-10-06T21:10:01.000Z",
@@ -4513,7 +4639,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-06T21:11:49.455Z",
+  "updated_at": "2026-10-06T22:14:23.673Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }
