@@ -1,6 +1,53 @@
 {
   "tweets": [
     {
+      "id": "2107311729768353844",
+      "text": "This might have been my best day so far at oai. Ridiculous amounts of fun and intensity. Future is bright",
+      "created_at": "2026-10-06T03:27:22.000Z",
+      "url": "https://x.com/thsottiaux/status/2107311729768353844",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-06T03:28:53.672Z"
+    },
+    {
+      "id": "2107310074209407069",
+      "text": "It’s the only thing you’re talking about. I recognize the obsession",
+      "created_at": "2026-10-06T03:20:48.000Z",
+      "url": "https://x.com/thsottiaux/status/2107310074209407069",
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "How did you know I was referring to dots",
+        "created_at": "2026-10-06T02:47:51.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T03:28:53.672Z"
+    },
+    {
+      "id": "2107301501215613206",
+      "text": "You can be part of the judge panel for the 28 days",
+      "created_at": "2026-10-06T02:46:44.000Z",
+      "url": "https://x.com/thsottiaux/status/2107301501215613206",
+      "inReplyTo": {
+        "account": "kimmonismus",
+        "id": "",
+        "text": "Fair enough, id take this update instead of a reset: GPT-6-Astra and GPT-6.1 Sol now reach 50 token per second instead of 30 token per second.",
+        "created_at": "2026-10-05T17:22:46.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T03:28:53.672Z"
+    },
+    {
       "id": "2107295839655952486",
       "text": "The real story is this one",
       "created_at": "2026-10-06T02:24:14.000Z",
@@ -4103,7 +4150,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-06T02:25:39.575Z",
+  "updated_at": "2026-10-06T03:28:53.673Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }
