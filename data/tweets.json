@@ -1,6 +1,53 @@
 {
   "tweets": [
     {
+      "id": "2107558288934216153",
+      "text": "No dodge, just three updates today",
+      "created_at": "2026-10-06T19:47:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2107558288934216153",
+      "inReplyTo": {
+        "account": "babayagatwt",
+        "id": "",
+        "text": "2.1 saved you from giving us a reset I use it a lot and it was eating a real chunk of my usage. making that free is a real win for me. But 2.2 was not a substantial improvement. don't stretch the pledge into tiny wins just to dodge the reset.",
+        "created_at": "2026-10-06T19:45:14.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T20:08:57.087Z"
+    },
+    {
+      "id": "2107555660548468830",
+      "text": "What if bot goes down",
+      "created_at": "2026-10-06T19:36:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2107555660548468830",
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "i just automated our release and QA process! using Grok Bot i made two Team Bots: sandcastle, my release manager, and poteto, my engineer bot. i added them to Slack and made a new channel for managing releases. first i tell sandcastle that i want to do a cut. it'll DM all the",
+        "created_at": "2026-10-06T17:43:30.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T20:08:57.087Z"
+    },
+    {
+      "id": "2107548725359104441",
+      "text": "Day 2.2/ OK this one is smaller, but we removed some friction for when building on the API. Happy building.",
+      "created_at": "2026-10-06T19:09:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2107548725359104441",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-06T20:08:57.087Z"
+    },
+    {
       "id": "2107517084884521030",
       "text": "wowza",
       "created_at": "2026-10-06T17:03:23.000Z",
@@ -72,8 +119,8 @@
       "url": "https://x.com/thsottiaux/status/2107368786353398184",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-06T08:39:22.233Z",
       "inReplyTo": {
         "account": "nicdunz",
@@ -4342,7 +4389,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-06T19:06:14.862Z",
+  "updated_at": "2026-10-06T20:08:57.088Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }

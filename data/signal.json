@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-10-06T19:06:14.863Z",
-  "checkedTweets": 270,
+  "generatedAt": "2026-10-06T20:08:57.089Z",
+  "checkedTweets": 273,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-07T19:06:14.863Z",
-  "windowTo": "2026-10-06T19:06:14.863Z",
+  "windowFrom": "2026-08-07T20:08:57.089Z",
+  "windowTo": "2026-10-06T20:08:57.089Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -14,8 +14,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.07",
       "weekday": "周三",
-      "time": "03:06",
-      "text": "2026.10.07（周三）03:06",
+      "time": "04:08",
+      "text": "2026.10.07（周三）04:08",
       "offset": "UTC+8"
     },
     "b": {
@@ -23,27 +23,28 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.06",
       "weekday": "周二",
-      "time": "12:06",
-      "text": "2026.10.06（周二）12:06",
+      "time": "13:08",
+      "text": "2026.10.06（周二）13:08",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2107517084884521030",
+    "id": "2107558288934216153",
     "account": "thsottiaux",
-    "text": "wowza",
-    "createdAt": "2026-10-06T17:03:23.000Z",
-    "url": "https://x.com/thsottiaux/status/2107517084884521030",
+    "text": "No dodge, just three updates today",
+    "createdAt": "2026-10-06T19:47:07.000Z",
+    "url": "https://x.com/thsottiaux/status/2107558288934216153",
     "reasons": [
-      "上下文：回复 @nicdunz「bot or dot?…」"
+      "上下文：回复 @babayagatwt「2.1 saved you from giving us a reset…」",
+      "被回复的推文含额度语境（本条无延续语气，不借意图）"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "nicdunz",
+      "account": "babayagatwt",
       "id": "",
-      "text": "bot or dot?"
+      "text": "2.1 saved you from giving us a reset I use it a lot and it was eating a real chunk of my usage. making that free is a real win for me. But 2.2 was not a substantial improvement. don't stretch the pledge into tiny wins just to dodge the reset."
     },
     "createdZones": {
       "a": {
@@ -51,8 +52,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.07",
         "weekday": "周三",
-        "time": "01:03",
-        "text": "2026.10.07（周三）01:03",
+        "time": "03:47",
+        "text": "2026.10.07（周三）03:47",
         "offset": "UTC+8"
       },
       "b": {
@@ -60,17 +61,25 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.06",
         "weekday": "周二",
-        "time": "10:03",
-        "text": "2026.10.06（周二）10:03",
+        "time": "12:47",
+        "text": "2026.10.06（周二）12:47",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "none",
-    "rejected": "无额度相关词",
+    "level": "hint",
+    "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
     "intent": 0,
     "window": null,
-    "candidateWindow": null
+    "candidateWindow": {
+      "word": "today",
+      "precision": "day",
+      "from": "2026-10-06T07:00:00.000Z",
+      "to": "2026-10-07T06:59:00.000Z",
+      "dayNum": 20732,
+      "spec": 72,
+      "note": null
+    }
   },
   "signals": [],
   "occurred": [
@@ -329,6 +338,57 @@
     }
   ],
   "hints": [
+    {
+      "id": "2107558288934216153",
+      "account": "thsottiaux",
+      "text": "No dodge, just three updates today",
+      "createdAt": "2026-10-06T19:47:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2107558288934216153",
+      "reasons": [
+        "上下文：回复 @babayagatwt「2.1 saved you from giving us a reset…」",
+        "被回复的推文含额度语境（本条无延续语气，不借意图）"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "babayagatwt",
+        "id": "",
+        "text": "2.1 saved you from giving us a reset I use it a lot and it was eating a real chunk of my usage. making that free is a real win for me. But 2.2 was not a substantial improvement. don't stretch the pledge into tiny wins just to dodge the reset."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.07",
+          "weekday": "周三",
+          "time": "03:47",
+          "text": "2026.10.07（周三）03:47",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.06",
+          "weekday": "周二",
+          "time": "12:47",
+          "text": "2026.10.06（周二）12:47",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": {
+        "word": "today",
+        "precision": "day",
+        "from": "2026-10-06T07:00:00.000Z",
+        "to": "2026-10-07T06:59:00.000Z",
+        "dayNum": 20732,
+        "spec": 72,
+        "note": null
+      }
+    },
     {
       "id": "2107368734981517634",
       "account": "thsottiaux",
@@ -1201,7 +1261,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-06T19:06:14.863Z"
+        "checkedAt": "2026-10-06T20:08:57.089Z"
       }
     },
     {
@@ -1995,6 +2055,86 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2107555660548468830",
+      "account": "thsottiaux",
+      "text": "What if bot goes down",
+      "createdAt": "2026-10-06T19:36:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2107555660548468830",
+      "reasons": [
+        "上下文：回复 @poteto「i just automated our release and QA …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "i just automated our release and QA process! using Grok Bot i made two Team Bots: sandcastle, my release manager, and poteto, my engineer bot. i added them to Slack and made a new channel for managing releases. first i tell sandcastle that i want to do a cut. it'll DM all the"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.07",
+          "weekday": "周三",
+          "time": "03:36",
+          "text": "2026.10.07（周三）03:36",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.06",
+          "weekday": "周二",
+          "time": "12:36",
+          "text": "2026.10.06（周二）12:36",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2107548725359104441",
+      "account": "thsottiaux",
+      "text": "Day 2.2/ OK this one is smaller, but we removed some friction for when building on the API. Happy building.",
+      "createdAt": "2026-10-06T19:09:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2107548725359104441",
+      "reasons": [
+        "含发布/宣传语境（下调置信度）"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.07",
+          "weekday": "周三",
+          "time": "03:09",
+          "text": "2026.10.07（周三）03:09",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.06",
+          "weekday": "周二",
+          "time": "12:09",
+          "text": "2026.10.06（周二）12:09",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2107517084884521030",
       "account": "thsottiaux",
@@ -10132,89 +10272,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2100297380968997327",
-      "account": "thsottiaux",
-      "text": "Astra ✅ Fast ✅ Frontier ✅ Efficient ✅ For everyone",
-      "createdAt": "2026-09-16T18:54:51.000Z",
-      "url": "https://x.com/thsottiaux/status/2100297380968997327",
-      "reasons": [],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.17",
-          "weekday": "周四",
-          "time": "02:54",
-          "text": "2026.09.17（周四）02:54",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.16",
-          "weekday": "周三",
-          "time": "11:54",
-          "text": "2026.09.16（周三）11:54",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2100295443620007993",
-      "account": "thsottiaux",
-      "text": "What is ChatGPT",
-      "createdAt": "2026-09-16T18:47:10.000Z",
-      "url": "https://x.com/thsottiaux/status/2100295443620007993",
-      "reasons": [],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.17",
-          "weekday": "周四",
-          "time": "02:47",
-          "text": "2026.09.17（周四）02:47",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.16",
-          "weekday": "周三",
-          "time": "11:47",
-          "text": "2026.09.16（周三）11:47",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 270,
+    "scanned": 273,
     "explicit": 0,
     "occurred": 6,
-    "hint": 36,
-    "none": 222,
-    "rejected": 222
+    "hint": 37,
+    "none": 224,
+    "rejected": 224
   },
   "truncated": true
 }
