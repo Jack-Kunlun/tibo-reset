@@ -1,6 +1,96 @@
 {
   "tweets": [
     {
+      "id": "2107320918200693212",
+      "text": "Blackboard",
+      "created_at": "2026-10-06T04:03:53.000Z",
+      "url": "https://x.com/thsottiaux/status/2107320918200693212",
+      "inReplyTo": {
+        "account": "badlogicgames",
+        "id": "",
+        "text": "at earendil, we actually whiteboard still, like cave people. this is from anfew weeks ago.",
+        "created_at": "2026-10-05T11:58:13.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T04:31:44.170Z"
+    },
+    {
+      "id": "2107320000554123426",
+      "text": "Will be even more blissful to manage both",
+      "created_at": "2026-10-06T04:00:14.000Z",
+      "url": "https://x.com/thsottiaux/status/2107320000554123426",
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "Maybe you should let me poast while you focus on your 28 days of resets",
+        "created_at": "2026-10-06T03:23:16.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T04:31:44.170Z"
+    },
+    {
+      "id": "2107314912963989821",
+      "text": "A few things",
+      "created_at": "2026-10-06T03:40:01.000Z",
+      "url": "https://x.com/thsottiaux/status/2107314912963989821",
+      "inReplyTo": {
+        "account": "KolinHuang",
+        "id": "",
+        "text": "what are we shipping tmr boss",
+        "created_at": "2026-10-06T02:26:47.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T04:31:44.170Z"
+    },
+    {
+      "id": "2107314411975381479",
+      "text": "Let’s call upon the @poteto",
+      "created_at": "2026-10-06T03:38:02.000Z",
+      "url": "https://x.com/thsottiaux/status/2107314411975381479",
+      "inReplyTo": {
+        "account": "DhruvJain08",
+        "id": "",
+        "text": "waiting for @poteto to lurk in here and drop a meme rather than reset my grok bot usage or some credits instead. :///",
+        "created_at": "2026-10-06T03:29:41.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T04:31:44.170Z"
+    },
+    {
+      "id": "2107314076993155297",
+      "text": "3 cups a day",
+      "created_at": "2026-10-06T03:36:42.000Z",
+      "url": "https://x.com/thsottiaux/status/2107314076993155297",
+      "inReplyTo": {
+        "account": "gazzzzzzman",
+        "id": "",
+        "text": "how much caffeine do you take, tibo?",
+        "created_at": "2026-10-06T03:34:20.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T04:31:44.170Z"
+    },
+    {
       "id": "2107311729768353844",
       "text": "This might have been my best day so far at oai. Ridiculous amounts of fun and intensity. Future is bright",
       "created_at": "2026-10-06T03:27:22.000Z",
@@ -4150,7 +4240,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-06T03:28:53.673Z",
+  "updated_at": "2026-10-06T04:31:44.171Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }
