@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-02T21:18:48.000Z",
     "last_text": "Reset all propagated. Enjoy. https://t.co/GaVJhbptR0",
-    "days_since_last": 3.4726184606481483,
+    "days_since_last": 3.8206153703703705,
     "avg_interval_days": 6.679287686809616,
     "median_interval_days": 3.096388888888889,
     "sd_interval_days": 10.96766591511672,
@@ -14,41 +14,31 @@
     "reset_count": 52,
     "hit_within_avg": 0.7017543859649122
   },
-  "generated_at": "2026-10-06T08:39:22.398Z",
+  "generated_at": "2026-10-06T17:00:29.291Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
     "stoppedBy": "known",
-    "newTweets": 4,
-    "knownCount": 264,
+    "newTweets": 1,
+    "knownCount": 268,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 8,
+      "steps": 7,
       "harvested": 12,
       "withContext": 8,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 3,
-      "attempted": 3,
-      "fetched": 3,
+      "candidates": 1,
+      "attempted": 1,
+      "fetched": 1,
       "skipped": 0,
       "scanned": [
         {
           "id": "2107368734981517634",
           "length": 676,
-          "showMore": false
-        },
-        {
-          "id": "2107158998495748264",
-          "length": 308,
-          "showMore": false
-        },
-        {
-          "id": "2106610099720720811",
-          "length": 267,
           "showMore": false
         }
       ]
@@ -58,7 +48,7 @@
     "added": 0,
     "updated": 0,
     "upstreamCount": 57,
-    "refreshedAt": "2026-10-06T08:38:54.507Z",
+    "refreshedAt": "2026-10-06T17:00:11.896Z",
     "error": null,
     "changed": false,
     "patchedTexts": 0
