@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-10-06T22:14:23.674Z",
-  "checkedTweets": 288,
+  "generatedAt": "2026-10-06T23:17:23.231Z",
+  "checkedTweets": 291,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-07T22:14:23.674Z",
-  "windowTo": "2026-10-06T22:14:23.674Z",
+  "windowFrom": "2026-08-07T23:17:23.231Z",
+  "windowTo": "2026-10-06T23:17:23.231Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -14,8 +14,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.07",
       "weekday": "周三",
-      "time": "06:14",
-      "text": "2026.10.07（周三）06:14",
+      "time": "07:17",
+      "text": "2026.10.07（周三）07:17",
       "offset": "UTC+8"
     },
     "b": {
@@ -23,27 +23,27 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.06",
       "weekday": "周二",
-      "time": "15:14",
-      "text": "2026.10.06（周二）15:14",
+      "time": "16:17",
+      "text": "2026.10.06（周二）16:17",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2107592473048715573",
+    "id": "2107603154699173997",
     "account": "thsottiaux",
-    "text": "I accept your vote",
-    "createdAt": "2026-10-06T22:02:57.000Z",
-    "url": "https://x.com/thsottiaux/status/2107592473048715573",
+    "text": "@poteto mind looking into this one? Could use some PRs",
+    "createdAt": "2026-10-06T22:45:24.000Z",
+    "url": "https://x.com/thsottiaux/status/2107603154699173997",
     "reasons": [
-      "上下文：回复 @TokenGremlin「Tibo would never let me be one of th…」"
+      "上下文：回复 @ShaneMac「Embarrassed to share this, but it sc…」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "TokenGremlin",
+      "account": "ShaneMac",
       "id": "",
-      "text": "Tibo would never let me be one of the judges for these “improvements” he keeps announcing, because I would’ve already voted for a reset today."
+      "text": "Embarrassed to share this, but it scared the shit out of me Last Thursday, an AI agent posted my personal bank balances into our company Slack. As me It broke down all my expenses in detail. Then it apologized Be careful of the dark side of proactive agents More below..."
     },
     "createdZones": {
       "a": {
@@ -51,8 +51,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.07",
         "weekday": "周三",
-        "time": "06:02",
-        "text": "2026.10.07（周三）06:02",
+        "time": "06:45",
+        "text": "2026.10.07（周三）06:45",
         "offset": "UTC+8"
       },
       "b": {
@@ -60,8 +60,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.06",
         "weekday": "周二",
-        "time": "15:02",
-        "text": "2026.10.06（周二）15:02",
+        "time": "15:45",
+        "text": "2026.10.06（周二）15:45",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -369,6 +369,57 @@
     }
   ],
   "hints": [
+    {
+      "id": "2107597780352950624",
+      "account": "thsottiaux",
+      "text": "Completely unrelated to the rest of the ships today, but our models did solve some important math problems and the team documented it in the following blogpost. Remarkable new era of scientific progress.",
+      "createdAt": "2026-10-06T22:24:02.000Z",
+      "url": "https://x.com/thsottiaux/status/2107597780352950624",
+      "reasons": [
+        "命中「新额度」类词 fresh/new/top up",
+        "上下文：回复 @ShaneMac「Embarrassed to share this, but it sc…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "ShaneMac",
+        "id": "",
+        "text": "Embarrassed to share this, but it scared the shit out of me Last Thursday, an AI agent posted my personal bank balances into our company Slack. As me It broke down all my expenses in detail. Then it apologized Be careful of the dark side of proactive agents More below..."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.07",
+          "weekday": "周三",
+          "time": "06:24",
+          "text": "2026.10.07（周三）06:24",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.06",
+          "weekday": "周二",
+          "time": "15:24",
+          "text": "2026.10.06（周二）15:24",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
+      "intent": 1,
+      "window": null,
+      "candidateWindow": {
+        "word": "today",
+        "precision": "day",
+        "from": "2026-10-06T07:00:00.000Z",
+        "to": "2026-10-07T06:59:00.000Z",
+        "dayNum": 20732,
+        "spec": 72,
+        "note": null
+      }
+    },
     {
       "id": "2107578816638177408",
       "account": "thsottiaux",
@@ -1431,7 +1482,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-06T22:14:23.674Z"
+        "checkedAt": "2026-10-06T23:17:23.231Z"
       }
     },
     {
@@ -2225,6 +2276,90 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2107603154699173997",
+      "account": "thsottiaux",
+      "text": "@poteto mind looking into this one? Could use some PRs",
+      "createdAt": "2026-10-06T22:45:24.000Z",
+      "url": "https://x.com/thsottiaux/status/2107603154699173997",
+      "reasons": [
+        "上下文：回复 @ShaneMac「Embarrassed to share this, but it sc…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "ShaneMac",
+        "id": "",
+        "text": "Embarrassed to share this, but it scared the shit out of me Last Thursday, an AI agent posted my personal bank balances into our company Slack. As me It broke down all my expenses in detail. Then it apologized Be careful of the dark side of proactive agents More below..."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.07",
+          "weekday": "周三",
+          "time": "06:45",
+          "text": "2026.10.07（周三）06:45",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.06",
+          "weekday": "周二",
+          "time": "15:45",
+          "text": "2026.10.06（周二）15:45",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2107599996225007892",
+      "account": "thsottiaux",
+      "text": "To calibrate",
+      "createdAt": "2026-10-06T22:32:51.000Z",
+      "url": "https://x.com/thsottiaux/status/2107599996225007892",
+      "reasons": [
+        "上下文：回复 @ShaneMac「Embarrassed to share this, but it sc…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "ShaneMac",
+        "id": "",
+        "text": "Embarrassed to share this, but it scared the shit out of me Last Thursday, an AI agent posted my personal bank balances into our company Slack. As me It broke down all my expenses in detail. Then it apologized Be careful of the dark side of proactive agents More below..."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.07",
+          "weekday": "周三",
+          "time": "06:32",
+          "text": "2026.10.07（周三）06:32",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.06",
+          "weekday": "周二",
+          "time": "15:32",
+          "text": "2026.10.06（周二）15:32",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2107592473048715573",
       "account": "thsottiaux",
@@ -10358,101 +10493,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2101055411394904265",
-      "account": "thsottiaux",
-      "text": "👋",
-      "createdAt": "2026-09-18T21:07:00.000Z",
-      "url": "https://x.com/thsottiaux/status/2101055411394904265",
-      "reasons": [
-        "上下文：回复 @argofowl「tibo: hi everyone: can't hi back cuz…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "argofowl",
-        "id": "",
-        "text": "tibo: hi everyone: can't hi back cuz no usage"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.19",
-          "weekday": "周六",
-          "time": "05:07",
-          "text": "2026.09.19（周六）05:07",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.18",
-          "weekday": "周五",
-          "time": "14:07",
-          "text": "2026.09.18（周五）14:07",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2101054196703522861",
-      "account": "thsottiaux",
-      "text": "I remember that",
-      "createdAt": "2026-09-18T21:02:10.000Z",
-      "url": "https://x.com/thsottiaux/status/2101054196703522861",
-      "reasons": [
-        "上下文：回复 @6monthsAgoInAI「6 months ago: GPT-5.4 mini is launch…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "6monthsAgoInAI",
-        "id": "",
-        "text": "6 months ago: GPT-5.4 mini is launched"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.19",
-          "weekday": "周六",
-          "time": "05:02",
-          "text": "2026.09.19（周六）05:02",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.18",
-          "weekday": "周五",
-          "time": "14:02",
-          "text": "2026.09.18（周五）14:02",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 288,
+    "scanned": 291,
     "explicit": 0,
     "occurred": 7,
-    "hint": 40,
-    "none": 235,
-    "rejected": 235
+    "hint": 41,
+    "none": 237,
+    "rejected": 237
   },
   "truncated": true
 }
