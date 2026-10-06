@@ -1,6 +1,51 @@
 {
   "tweets": [
     {
+      "id": "2107378093635899886",
+      "text": "Settings → General → Permissions → Auto-review",
+      "created_at": "2026-10-06T07:51:05.000Z",
+      "url": "https://x.com/thsottiaux/status/2107378093635899886",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T08:39:22.233Z"
+    },
+    {
+      "id": "2107370852564021582",
+      "text": "Use auto-review instead of full-access. Not a trade-off anymore and you'll sleep more peacefully",
+      "created_at": "2026-10-06T07:22:18.000Z",
+      "url": "https://x.com/thsottiaux/status/2107370852564021582",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-06T08:39:22.233Z"
+    },
+    {
+      "id": "2107368786353398184",
+      "text": "You can read about the feature here: https:// alignment.openai.com/auto-review/",
+      "created_at": "2026-10-06T07:14:06.000Z",
+      "url": "https://x.com/thsottiaux/status/2107368786353398184",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-06T08:39:22.233Z"
+    },
+    {
+      "id": "2107368734981517634",
+      "text": "Day 2.1/ We have made Auto-review free for all users signed in through a ChatGPT account. You can enable it in settings > permissions > auto-review. Auto-review improves upon the default sandbox setting that requires you to approve everything, which is prone to decision fatigue unless you spend a lot of time configuring specific rules. It allows you to run long tasks while having a second agent review all actions taken by the primary agent. Its only goal is to prevent high-risk actions from being taken and to protect against unwanted actions that are not aligned with the original user intent. This Auto-review feature is now free and does not draw usage from your plan.",
+      "created_at": "2026-10-06T07:13:54.000Z",
+      "url": "https://x.com/thsottiaux/status/2107368734981517634",
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-06T08:39:22.233Z"
+    },
+    {
       "id": "2107320918200693212",
       "text": "Blackboard",
       "created_at": "2026-10-06T04:03:53.000Z",
@@ -42,10 +87,10 @@
       "created_at": "2026-10-06T03:40:01.000Z",
       "url": "https://x.com/thsottiaux/status/2107314912963989821",
       "inReplyTo": {
-        "account": "poteto",
+        "account": "KolinHuang",
         "id": "",
-        "text": "Maybe you should let me poast while you focus on your 28 days of resets",
-        "created_at": "2026-10-06T03:23:16.000Z",
+        "text": "what are we shipping tmr boss",
+        "created_at": "2026-10-06T02:26:47.000Z",
         "url": ""
       },
       "kind": "other",
@@ -78,10 +123,10 @@
       "created_at": "2026-10-06T03:36:42.000Z",
       "url": "https://x.com/thsottiaux/status/2107314076993155297",
       "inReplyTo": {
-        "account": "DhruvJain08",
+        "account": "gazzzzzzman",
         "id": "",
-        "text": "waiting for @poteto to lurk in here and drop a meme rather than reset my grok bot usage or some credits instead. :///",
-        "created_at": "2026-10-06T03:29:41.000Z",
+        "text": "how much caffeine do you take, tibo?",
+        "created_at": "2026-10-06T03:34:20.000Z",
         "url": ""
       },
       "kind": "other",
@@ -4240,7 +4285,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-06T06:36:57.647Z",
+  "updated_at": "2026-10-06T08:39:22.234Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }
