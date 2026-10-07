@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-07T03:35:09.000Z",
     "last_text": "We shipped four things that were deemed good to great and some math proofs, but the vote is clear and the community demands a reset. I did calibrate it and it *seems* that the game is rigged in reset's favor, but such are the rules at the moment.\n\nTherefore ... the reset has been https://t.co/mHSI0Pcu4M",
-    "days_since_last": 0.004533958333333333,
+    "days_since_last": 0.048426469907407406,
     "avg_interval_days": 6.637599177841634,
     "median_interval_days": 3.216273148148148,
     "sd_interval_days": 10.877260568160736,
@@ -14,49 +14,44 @@
     "reset_count": 53,
     "hit_within_avg": 0.6896551724137931
   },
-  "generated_at": "2026-10-07T03:41:40.883Z",
+  "generated_at": "2026-10-07T04:44:53.189Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
     "stoppedBy": "known",
-    "newTweets": 4,
-    "knownCount": 295,
+    "newTweets": 0,
+    "knownCount": 299,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 8,
-      "harvested": 13,
-      "withContext": 13,
+      "steps": 1,
+      "harvested": 6,
+      "withContext": 6,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 2,
-      "attempted": 2,
-      "fetched": 2,
+      "candidates": 1,
+      "attempted": 1,
+      "fetched": 1,
       "skipped": 0,
       "scanned": [
         {
           "id": "2107676072871600470",
           "length": 297,
           "showMore": false
-        },
-        {
-          "id": "2107575657014468879",
-          "length": 302,
-          "showMore": false
         }
       ]
     }
   },
   "history": {
-    "added": 1,
+    "added": 0,
     "updated": 0,
     "upstreamCount": 58,
-    "refreshedAt": "2026-10-07T03:41:14.382Z",
+    "refreshedAt": "2026-10-07T04:44:36.420Z",
     "error": null,
-    "changed": true,
-    "patchedTexts": 1
+    "changed": false,
+    "patchedTexts": 0
   },
   "last_full_at": "2026-10-05T10:30:19.757Z",
   "errors": []
