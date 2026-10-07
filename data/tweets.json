@@ -1,6 +1,39 @@
 {
   "tweets": [
     {
+      "id": "2107913738791596286",
+      "text": "Will be there by EOD PST.",
+      "created_at": "2026-10-07T19:19:33.000Z",
+      "url": "https://x.com/thsottiaux/status/2107913738791596286",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-07T19:29:08.945Z"
+    },
+    {
+      "id": "2107913674593644711",
+      "text": "Day 3/ The big one is GPT-6 in Chat, but today is also a little celebration day with a new high of 40M active users across Codex and ChatGPT Work. Loading a banked reset in everyone's paid accounts. See you again tomorrow!",
+      "created_at": "2026-10-07T19:19:17.000Z",
+      "url": "https://x.com/thsottiaux/status/2107913674593644711",
+      "kind": "credit",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-07T19:29:08.945Z"
+    },
+    {
+      "id": "2107912709715132482",
+      "text": "We're going beyond text and are releasing a new version of GPT-6 to all users in ChatGPT. Lots of model and infra improvements coming together here to scale it to 1.2B users!",
+      "created_at": "2026-10-07T19:15:27.000Z",
+      "url": "https://x.com/thsottiaux/status/2107912709715132482",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-07T19:29:08.945Z"
+    },
+    {
       "id": "2107700139066593612",
       "text": "Hmmm, muse is that you",
       "created_at": "2026-10-07T05:10:46.000Z",
@@ -104,8 +137,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-07T03:41:40.733Z"
     },
     {
@@ -123,8 +156,8 @@
       "text_full": true,
       "kind": "reset",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-07T03:41:40.733Z"
     },
     {
@@ -4920,7 +4953,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-07T11:03:10.020Z",
+  "updated_at": "2026-10-07T19:29:08.946Z",
   "source": "browser",
   "coverage_since": "2026-10-06T03:35:09.000Z"
 }
