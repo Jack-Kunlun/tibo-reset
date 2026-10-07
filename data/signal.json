@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-10-07T00:20:08.120Z",
-  "checkedTweets": 292,
+  "generatedAt": "2026-10-07T01:26:46.566Z",
+  "checkedTweets": 293,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-08T00:20:08.120Z",
-  "windowTo": "2026-10-07T00:20:08.120Z",
+  "windowFrom": "2026-08-08T01:26:46.566Z",
+  "windowTo": "2026-10-07T01:26:46.566Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -14,8 +14,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.07",
       "weekday": "周三",
-      "time": "08:20",
-      "text": "2026.10.07（周三）08:20",
+      "time": "09:26",
+      "text": "2026.10.07（周三）09:26",
       "offset": "UTC+8"
     },
     "b": {
@@ -23,28 +23,27 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.06",
       "weekday": "周二",
-      "time": "17:20",
-      "text": "2026.10.06（周二）17:20",
+      "time": "18:26",
+      "text": "2026.10.06（周二）18:26",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2107613966692409653",
+    "id": "2107628890550399465",
     "account": "thsottiaux",
-    "text": "Ship ship ship",
-    "createdAt": "2026-10-06T23:28:21.000Z",
-    "url": "https://x.com/thsottiaux/status/2107613966692409653",
+    "text": "It does",
+    "createdAt": "2026-10-07T00:27:40.000Z",
+    "url": "https://x.com/thsottiaux/status/2107628890550399465",
     "reasons": [
-      "含发布/宣传语境（下调置信度）",
-      "上下文：回复 @TheRohanVarma「One week since we launched dots! We’…」"
+      "上下文：回复 @devberkayy「tell me it accepts images…」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "TheRohanVarma",
+      "account": "devberkayy",
       "id": "",
-      "text": "One week since we launched dots! We’ve been working through your feedback and shipped a bunch of improvements: - Faster cloud browsing - Fixed extra phone notifications while you’re already using ChatGPT - Cleaner code blocks and attachments on web - Fewer pauses while waiting"
+      "text": "tell me it accepts images"
     },
     "createdZones": {
       "a": {
@@ -52,8 +51,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.07",
         "weekday": "周三",
-        "time": "07:28",
-        "text": "2026.10.07（周三）07:28",
+        "time": "08:27",
+        "text": "2026.10.07（周三）08:27",
         "offset": "UTC+8"
       },
       "b": {
@@ -61,8 +60,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.06",
         "weekday": "周二",
-        "time": "16:28",
-        "text": "2026.10.06（周二）16:28",
+        "time": "17:27",
+        "text": "2026.10.06（周二）17:27",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -1483,7 +1482,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-07T00:20:08.120Z"
+        "checkedAt": "2026-10-07T01:26:46.566Z"
       }
     },
     {
@@ -2277,6 +2276,48 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2107628890550399465",
+      "account": "thsottiaux",
+      "text": "It does",
+      "createdAt": "2026-10-07T00:27:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2107628890550399465",
+      "reasons": [
+        "上下文：回复 @devberkayy「tell me it accepts images…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "devberkayy",
+        "id": "",
+        "text": "tell me it accepts images"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.07",
+          "weekday": "周三",
+          "time": "08:27",
+          "text": "2026.10.07（周三）08:27",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.06",
+          "weekday": "周二",
+          "time": "17:27",
+          "text": "2026.10.06（周二）17:27",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2107613966692409653",
       "account": "thsottiaux",
@@ -10453,59 +10494,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2101125563448705092",
-      "account": "thsottiaux",
-      "text": "It's already named chat",
-      "createdAt": "2026-09-19T01:45:46.000Z",
-      "url": "https://x.com/thsottiaux/status/2101125563448705092",
-      "reasons": [
-        "上下文：回复 @MatthewBerman「And it will be named Chat.…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "MatthewBerman",
-        "id": "",
-        "text": "And it will be named Chat."
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.19",
-          "weekday": "周六",
-          "time": "09:45",
-          "text": "2026.09.19（周六）09:45",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.18",
-          "weekday": "周五",
-          "time": "18:45",
-          "text": "2026.09.18（周五）18:45",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 292,
+    "scanned": 293,
     "explicit": 0,
     "occurred": 7,
     "hint": 41,
-    "none": 238,
-    "rejected": 238
+    "none": 239,
+    "rejected": 239
   },
   "truncated": true
 }
