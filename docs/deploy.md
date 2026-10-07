@@ -433,7 +433,7 @@ curl -s https://reset.example.com/ | grep -o 'id="gen"[^<]*<[^>]*>[^<]*' | head 
 构建时的数字 —— 实测踩到过：页面已是 0.29 天，卡片仍印着 10.1 天。
 「数据变了不用重新部署」成立，「想让分享卡片跟上」不成立。
 
-### 6.1 没有文件通道时的应急路径（已实测走通一次）
+### 6.1 没有文件通道时的应急路径（已实测走通，见本节末的留档表）
 
 上面那两条命令的前提是**本机能 scp 到服务器**。本机与服务器之间的 SSH 目前是
 `Permission denied (publickey,password)`（`authorized_keys` 为空，见第七节），
@@ -449,9 +449,9 @@ curl -s https://reset.example.com/ | grep -o 'id="gen"[^<]*<[^>]*>[^<]*' | head 
 | 4 | 服务器 | `base64 -d … > p.diff.gz` → `gunzip` → `sha256sum` 与**本机同一文件的哈希逐字节比对** |
 | 5 | 服务器 | `docker cp <容器>:/app/src/lib/x.mjs <工作区>/` → `patch -s -p1 -d <工作区> < p.diff` → 再比一次 sha256 |
 | 6 | 服务器 | `docker cp` 回容器，`docker exec <容器> sha256sum` 第三次比对 |
-| 6.5 | 服务器 | **先预检、再换容器**：用新镜像起一个临时容器（`-p 127.0.0.1:8788:8788 -e PORT=8788`，挂**同一个**数据卷）→ 让它与旧容器的 8787 跑同一个接口对照差异 → `docker rm -f`。几分钟成本，换掉「换完才发现不对」那个窗口 |
-| 7 | 服务器 | `docker stop` → `docker rename <旧> <旧>-prev` → `docker commit <旧> tibo-reset:amd64-<后缀>` |
-| 8 | 服务器 | `docker run -d …`（参数照抄 `docker inspect`，见下）→ `docker ps` 看 `(healthy)` |
+| 6.5 | 服务器 | **先预检、再换容器**：`docker commit <容器> tibo-reset:amd64-<后缀>` 出新镜像 → 用它起一个临时容器（`-p 127.0.0.1:8788:8788 -e PORT=8788`，挂**同一个**数据卷）→ 让它与旧容器的 8787 跑同一个页面/接口对照差异 → `docker rm -f`。几分钟成本，换掉「换完才发现不对」那个窗口。`commit` 必须落在这一步 —— 放在第 7 步就没有镜像可预检了；而且 `commit` 默认会短暂 pause 容器，放在**停机之前**比放在停机中间好 |
+| 7 | 服务器 | `docker stop` → `docker rename <旧> <旧>-prev`（新回滚点）。名字被上一轮的回滚点占着时先把它改名腾出来 |
+| 8 | 服务器 | `docker run -d … <6.5 出的新镜像>`（参数照抄 `docker inspect`，见下）→ `docker ps` 看 `(healthy)` |
 | 9 | 服务器 | `docker exec petcare-edge-gateway nginx -s reload`（容器名不变但 IP 变了，见下） |
 | 10 | 本机 | 从**外部**（经公网域名）拉 `/api/signals` 与页面：确认新逻辑生效、计数变化符合预期、数据卷没丢 |
 
@@ -469,6 +469,8 @@ curl -s https://reset.example.com/ | grep -o 'id="gen"[^<]*<[^>]*>[^<]*' | head 
 | ⛔ **`curl` 被平台拦** | 经 Lighthouse 连接器下发时，**含 `curl` 的命令一律 `AccessDeny`**（`echo alive` 能过、`curl -s http://127.0.0.1:8787/api/health` 被拒，与目标地址无关）。**换 `wget -qO- -T 5 <url>`**，或直接在服务器上跑 `jq`（`/usr/bin/jq` 在，`node` 不在）。别据此以为「服务器不通」 |
 | ⛔ **`--env-file /srv/tibo.env` 被平台拦** | 同上一条，读那个凭据文件的写法一律被拒。**别把凭据文件拷到别的路径绕过** —— 那是绕安全控制。可行做法：`docker commit` 会把容器的 **`Config.Env` 一起写进新镜像**，所以第 8 步**不传 `--env-file` 也拿到同一套环境变量**。上传前先核对：`docker exec <旧> sh -c 'printf %s "$INGEST_TOKEN" \| sha256sum'` 与 `docker exec <临时容器> sh -c '...'` 两个哈希必须相同（**只打哈希，不打值**）。代价是密钥多进了一个镜像层 —— 该镜像不推 registry，风险有限，但**这确实是对第二节「凭据显式传参」原则的偏离**，记在这里而不是假装没发生 |
 | 预检容器与生产容器**同时挂 `/srv/tibo-data`** 是安全的 | `server/entrypoint.sh` 只在数据目录**为空**时才铺种子数据（判据是 `ls -A` 为空），已有数据「一个字都不碰」；两个容器都只读渲染。所以第 6.5 步的对照可以直接用真数据，不必另造夹具 |
+| `p.b64` 自己也要比哈希 | 分块 `printf '%s' '<块>' >> p.b64` 丢字符是**不会报错**的 —— 它是追加，不是校验。第 4 步之前先 `sha256sum p.b64` 与本机同文件比对，把「传输」这一步也纳入判据（比对点 4 处 → 5 处）|
+| 预检容器不必接 `--network` | 它只被 `127.0.0.1:8788` 访问，不参与网关解析，所以不用加入 `petcare_petcare-network`。但**必须显式挂同一个数据卷** —— 卷是 bind mount，不在 `docker commit` 的结果里，临时镜像里的 `/app/data` 只是构建期的种子数据；不挂卷就是拿种子数据去对照，白跑 |
 
 ⚠ `docker commit` 会把容器的环境变量一起写进新镜像（含 `INGEST_TOKEN`）—— 这是这条应急
 路径**绕不过去的代价**。原设计是第 8 步仍传 `--env-file /srv/tibo.env`，让「凭据来自哪个
@@ -477,17 +479,31 @@ curl -s https://reset.example.com/ | grep -o 'id="gen"[^<]*<[^>]*>[^<]*' | head 
 核对 —— 新旧容器的 `INGEST_TOKEN` 与 `SITE_URL` 哈希逐字节相同，行为等价。等 SSH 恢复、
 回到常规镜像流程后，这件事自动消失（那时凭据回到 `--env-file`）。
 
-**2026-10-07 实测留档**（供下一次估量）：
+**实测留档**（供下一次估量。两轮记在同一张表里，按**镜像基线**分列 —— 基线 SHA 才是
+「线上 src 长什么样」的唯一标识，比「第几次」可靠）：
 
-| 项 | 值 |
-|---|---|
-| 镜像基线 | `c6a9228`（容器启动时刻 10-02 19:07 与之吻合；之后到 `HEAD` 之间**只有 data 提交**，所以 src 与基线一致）|
-| 传的文件 | 3 个：`src/lib/signals.mjs`、`src/lib/render.mjs`、`src/index.html` |
-| 载荷 | 补丁 304 行 / 17104 B → `gzip -9` 7932 B → base64 10576 B → **切 6 块**（每块 1900 字符）|
-| 比对 | gz 与 patch 的 sha256 两侧一致；补丁前后各比一次文件哈希；容器内再比一次，共 4 处 |
-| 预检 | 临时容器 8788 vs 生产 8787：`occurred` **7 → 5**、`program` **无 → 有**、页面新块 0 → 2 处 |
-| 停机窗口 | **≈9 秒**（stop → rename → run 串在一条命令里，`sleep 9` 后已 healthy，`RestartCount=0`）|
-| 新镜像 tag / 回滚点 | `tibo-reset:amd64-20261007` / `tibo-reset-prev`（`tibo-reset:amd64` 原 tag 未被动过）|
+| 项 | 基线 `c6a9228` | 基线 `2c34f3e` |
+|---|---|---|
+| 传的文件 | 3 个：`src/lib/signals.mjs`、`src/lib/render.mjs`、`src/index.html` | 2 个：`src/lib/render.mjs`、`src/index.html`（改动量 +35 −27）|
+| 载荷 | 补丁 304 行 / 17104 B → `gzip -9` 7932 B → base64 10576 B → **切 6 块** | 补丁 102 行 / 6522 B → `gzip -9` 3564 B → base64 4752 B → **切 3 块** |
+| 比对 | 4 处：gz、patch、补丁后、容器内 | **5 处**（多一道 `p.b64` 自身的哈希）：全部逐字节相同 |
+| 预检 | 8788 vs 8787：`occurred` **7 → 5**、`program` **无 → 有**、页面新块 0 → 2 处 | 8788 vs 8787：页面「留档超出上限」**1 → 0 处**；`diff` 共出 3 处，其中**代码差异只有两处**（`.sig-prog` 上边距、那行提示），第三处是页面上「已过 N 分 N 秒」的计数（两次抓取时刻不同，不是改动）|
+| 停机窗口 | 见下（当时记的是 `sleep` 的时长）| **0.46 秒** |
+| 新镜像 tag / 回滚点 | `tibo-reset:amd64-20261007` / `tibo-reset-prev` | `tibo-reset:amd64-20261007b` / `tibo-reset-prev`（`tibo-reset:amd64` 原 tag 仍未被动过）|
+
+⚠ **「停机窗口」这一格以前记错了口径。** 上面那个「≈9 秒」是 `sleep` 的时长，不是站点不可用
+的时长 —— 它把「等健康检查转绿」也算进去了，而健康检查本来就有自己的间隔。真正的窗口是
+**旧进程停止 → 新进程开始监听**，两个时刻都能直接读出来：
+
+```
+docker inspect tibo-reset-prev --format '{{.State.FinishedAt}}'   # 2026-10-07T03:53:23.811507369Z
+docker inspect tibo-reset      --format '{{.State.StartedAt}}'    # 2026-10-07T03:53:24.056657488Z
+docker logs -t --tail 30 tibo-reset                               # 末行「监听 8787」@ 03:53:24.269
+```
+
+旧停 → 新容器创建 **0.25 秒**，→ 后端开始监听 **0.46 秒**。所以「`stop` / `rename` / `run`
+串在一条命令里」的收益是实的：窗口是**进程重启**级的，不是「人手动几步」级的。下次别再用
+`sleep` 的时长当停机时长记，会系统性高估一个数量级。
 
 ### 改代码的完整动作
 
