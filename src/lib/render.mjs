@@ -245,10 +245,48 @@ function truncationNote(sig) {
   return `<div class="sig-idle"><span class="sig-dot"></span><span>留档超出上限 · ${bits.join(' · ')}</span></div>`;
 }
 
+/**
+ * 每日重置窗口：他宣布「未来 N 天里每天要么发一个改进、要么给一次完整重置」。
+ *
+ * ── 为什么不并进预告那块 ────────────────────────────────────────────
+ * 预告回答的是「下一次是哪一天」；这条回答的是「这 N 天里**每一天**都在射程内」。
+ * 它是**下界**，不是某一个窗口。页面上的「还要等多久」是按历史间隔外推的中位数，
+ * 读者很容易把它读成「在这之前不会重置」—— 而这条规则恰好把这个读法反过来，
+ * 所以它必须自己显形，不能靠读者从别处推。
+ *
+ * 用弱样式（不套 `.sig` 那套）：预告才是页首最大视觉重量，这条是补充事实。
+ * 窗口块复用 `windowBlock` —— 同一种形状（当地 + 北京两行）只该有一个渲染器。
+ */
+export function renderProgram(p) {
+  if (!p || !p.window) return '';
+  // 宣布时刻的**双时区**文本由数据层算好（`buildProgram` 里的 `createdZones`），
+  // 渲染层只读不自算 —— 与线索块（`hintBlock`）同一口径：页面上任何一处时间
+  // 都同时给「北京」与「Tibo 当地」，不要求读者自己减那 15 小时（见 PRD F2）。
+  const cz = p.createdZones ?? null;
+  return `
+  <section class="sig-prog">
+    <div class="sp-head">
+      <span class="sp-tag">每日重置窗口</span>
+      <span class="sp-left">共 <b>${esc(String(p.days ?? ''))}</b> 天 · 还剩 <b>${esc(String(p.daysLeft ?? ''))}</b> 天</span>
+    </div>
+    <div class="sp-rule">每天要么发一个改进、要么给一次完整重置 —— 期间任何一天都可能重置</div>
+    ${windowBlock(p.window)}
+    <div class="sig-meta">
+      ${cz ? `<span>发布于 ${esc(cz.a?.text ?? '')} 北京 · ${esc(cz.b?.text ?? '')} 当地</span>` : ''}
+      ${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">查看原推 ↗</a>` : ''}
+    </div>
+  </section>`;
+}
+
 export function renderSignal(sig) {
   if (!sig) return '';
 
   const blocks = [];
+
+  // ⓪ 每日重置窗口：先讲「规则」，再讲「哪一天」。
+  //    它是个**跨多日的持续事实**，与下面那条「某一天」的预告不是一回事，
+  //    所以先出现；没有它时整块返回空串，页面与从前逐字节一致。
+  const prog = renderProgram(sig.program);
 
   // ① 预告：**一条预告就是一个时间窗口**，支撑它的推文挂在这条里面。
   //
@@ -286,7 +324,7 @@ export function renderSignal(sig) {
     const fromLine = from
       ? `<span class="sig-idle-sub">时间窗自 ${esc(from)} 起 · 共扫 ${sig.checkedTweets} 条</span>`
       : '';
-    return `
+    return `${prog}
     <div class="sig-idle">
       <span class="sig-dot"></span>
       <span>时间窗内 <b>${sig.checkedTweets}</b> 条推文中没有检测到重置预告${extra}</span>
@@ -296,7 +334,7 @@ ${fromLine}
 
   if (truncNote) blocks.push(truncNote);
 
-  return blocks.join('');
+  return prog + blocks.join('');
 }
 
 /**

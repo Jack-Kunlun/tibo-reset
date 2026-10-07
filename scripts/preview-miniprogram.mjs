@@ -105,6 +105,32 @@ const cdHtml = (groups) =>
     )
     .join('');
 
+/* 每日重置窗口：**不在** sig.show 那道门里，所以它是独立的一块，先于信号块出现。
+   结构照 index.wxml 的那块逐句对齐 —— 预览是手写副本，不对齐就会给出一个真机上
+   不存在的页面（这块正是新加的，漏了就会被当成「本来就这样」）。 */
+const progHtml = sig.program?.show
+  ? `<div class="prog">
+      <div class="prog-head">
+        <span class="prog-tag">每日重置窗口</span>
+        <span class="prog-left">共 <span class="n">${esc(sig.program.days)}</span> 天 · 还剩 <span class="n">${esc(sig.program.daysLeft)}</span> 天</span>
+      </div>
+      <span class="prog-rule">每天要么发一个改进、要么给一次完整重置 —— 期间任何一天都可能重置</span>
+      ${
+        sig.program.window
+          ? `<div class="win">
+              <div class="wrow"><span class="k">Tibo 当地时间</span><span class="v">${esc(sig.program.window.sourceZone)}</span><span class="z">${esc(sig.program.window.srcOffset)}</span></div>
+              <div class="wrow"><span class="k">北京时间</span><span class="v">${esc(sig.program.window.userZone)}</span><span class="z">${esc(sig.program.window.usrOffset)}</span></div>
+              <div class="wfoot">${esc(sig.program.window.diffText)}${sig.program.window.rangeNote ? ` · ${esc(sig.program.window.rangeNote)}` : ''}</div>
+            </div>`
+          : ''
+      }
+      <div class="prog-meta">
+        ${sig.program.announcedText ? `<span>发布于 ${esc(sig.program.announcedText)}</span>` : ''}
+        ${sig.program.url ? `<span class="prog-link">复制原推链接</span>` : ''}
+      </div>
+    </div>`
+  : '';
+
 const signalHtml = sig.show
   ? `<div class="sig" data-level="${sig.level}">
       <div class="sig-halo"></div>
@@ -262,6 +288,8 @@ ${normalize}
     <div class="brand"><span class="h1">等 TIBO 按按钮</span><span class="sub">RESET OBSERVATORY</span></div>
     <div class="pulse"><span class="dot"></span><span>观测中 · <span id="upd">${esc(fmtClockSec(now))}</span></span></div>
   </div>
+
+  ${progHtml}
 
   ${signalHtml}
 

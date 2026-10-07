@@ -137,6 +137,17 @@
   .sig-idle-sub{margin-left:auto;font-size:11.5px}
   .sig-dot{width:7px;height:7px;border-radius:50%;background:var(--mist)}
 
+  /* ---------- 每日重置窗口（跨多日的持续规则，不是某一天的预告） ---------- */
+  /* 视觉上刻意比 .sig（预告块）轻：预告才是页首最大视觉重量，这条是补充事实。
+     左边那道 3px 岚青是唯一的强调，用来把它和下面那片灰底卡片区分开。 */
+  .sig-prog{margin:0 0 14px;padding:12px 14px;background:var(--paper2);
+    border:1px solid var(--line);border-left:3px solid var(--lan);border-radius:10px}
+  .sp-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+  .sp-tag{font-size:11.5px;font-weight:600;color:var(--lan);letter-spacing:.04em}
+  .sp-left{margin-left:auto;font-size:11.5px;color:var(--mist)}
+  .sp-left b{color:var(--ink2)}
+  .sp-rule{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:10px}
+
   /* ---------- 预告里的依据推文 ---------- */
   /* 一条预告 = 一个时间窗口，**支撑它的推文挂在这条预告里面**，不另起一块。
      旧版把同一个结论拆成「横幅 + 另有 N 条 + 折叠证据」三处，读的人得自己拼；
@@ -337,6 +348,9 @@
     .ev-top{flex-wrap:wrap}
     .sig-precision{margin-left:0}
     .sig-idle-sub{margin-left:0}
+    /* 「还剩 N 天」和「时间窗自…起」是同一类右对齐副行，窄屏一律改成另起一行左对齐：
+       硬留在右边会被挤成两行、还会把左边的标签顶歪。 */
+    .sp-left{margin-left:0}
     /* 倒数条在窄屏必然换行（「距窗口开启」+ 锚点 + 数字挤不进一行）。
        换行后数字独占一行，`margin-left:auto` 会把它推到最右、看起来像掉队，
        所以窄屏改成整行居中。 */

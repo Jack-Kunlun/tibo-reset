@@ -110,6 +110,9 @@ export function normalizeTimelineItems(items, opts = {}) {
       // 被回复的内容由上游的 pairReplyContext 在收割时挂上，这里只负责透传。
       // 丢了它，识别算法就只能看到他的半句话。
       ...(it.inReplyTo ? { inReplyTo: it.inReplyTo } : {}),
+      // 民调同理：它是正文之外**唯一**带量化民意的字段（正文只有 "Vote" 一个词）。
+      // 不带出来，采集侧就等于把这条民意扔了。
+      ...(it.poll ? { poll: it.poll } : {}),
     });
   }
   return [...seen.values()]
@@ -198,7 +201,53 @@ class CdpSession {
  */
 export function harvestExpression(handle) {
   const h = JSON.stringify(String(handle ?? '').toLowerCase());
-  return `(function(){var H=${h};var out=[];document.querySelectorAll('article').forEach(function(a){
+  return `(function(){var H=${h};
+  /* 民调：他的「今天算不算好日子」投票是**唯一会给出量化民意**的东西
+     （实测 2026-10-06：76% 投「needs a reset」，他随后回「I accept your vote」）。
+     而正文里只有 "Vote" 一个词 —— 选项与得票率**只在 DOM 的 cardPoll 里**，
+     不采就等于这条民意在系统里不存在。
+
+     两种形态必须都认，只写一种会在另一种上静默返回空：
+       · 已有结果：ul[role=list] > li[role=listitem]，每项 = 填充条(style width%) + 文本 + NN%
+       · 进行中  ：div[role=radiogroup] > div[role=radio]，只有文本、没有得票率
+
+     ⚠ 页脚文案是**本地化**的（实测界面为中文：「74,565 次投票 · 最终结果」）。
+       所以票数只能从数字里取（取其中最大的那个），status 原样留档、**不按词解释** ——
+       按 "votes" 之类的英文词匹配，换个界面语言就静默失效。 */
+  function pollOf(a){
+    var card=a.querySelector('[data-testid="cardPoll"]');
+    if(!card)return null;
+    var opts=[],i;
+    var items=card.querySelectorAll('li[role="listitem"]');
+    if(items.length){
+      for(i=0;i<items.length;i++){
+        var li=items[i];
+        var pct=null;
+        var fill=li.querySelector('div[style*="width"]');
+        if(fill){var mm=(fill.getAttribute('style')||'').match(/width:\\s*([0-9.]+)%/);if(mm)pct=parseFloat(mm[1]);}
+        var dl=li.querySelectorAll('div[dir="ltr"]');
+        var tx=dl[0]?(dl[0].innerText||'').replace(/\\s+/g,' ').trim():'';
+        // 万一百分比排在前面，跳过它取下一个
+        if(/^\\d+(\\.\\d+)?%$/.test(tx)&&dl[1])tx=(dl[1].innerText||'').replace(/\\s+/g,' ').trim();
+        opts.push({text:tx,pct:pct});
+      }
+    }else{
+      var rs=card.querySelectorAll('[role="radio"]');
+      for(i=0;i<rs.length;i++){
+        var d=rs[i].querySelector('div[dir="ltr"]');
+        opts.push({text:(d?(d.innerText||''):'').replace(/\\s+/g,' ').trim(),pct:null});
+      }
+    }
+    if(!opts.length)return null;
+    var ul=card.querySelector('ul[role="list"]');
+    var fb=card.lastElementChild;
+    var foot=fb&&fb!==ul?(fb.innerText||'').replace(/\\s+/g,' ').trim():'';
+    var total=null;
+    var nums=foot.match(/\\d[\\d,]{1,14}/g);
+    if(nums){var best=0;for(i=0;i<nums.length;i++){var v=parseInt(nums[i].replace(/,/g,''),10);if(v>best)best=v;}if(best>0)total=best;}
+    return {options:opts,totalVotes:total,status:foot};
+  }
+  var out=[];document.querySelectorAll('article').forEach(function(a){
     var t=a.querySelector('[data-testid="tweetText"]');
     var tm=a.querySelector('time');
     var id='',url='';
@@ -212,7 +261,7 @@ export function harvestExpression(handle) {
     var un=a.querySelector('[data-testid="User-Name"]');
     if(un){var m2=(un.innerText||'').match(/@([A-Za-z0-9_]+)/);if(m2)author=m2[1];}
     var more=!!a.querySelector('[data-testid="tweet-text-show-more-link"]');
-    out.push({id:id,url:url,time:tm?tm.getAttribute('datetime'):'',text:t?t.innerText.replace(/\\s+/g,' '):'',author:author,truncated:more});
+    out.push({id:id,url:url,time:tm?tm.getAttribute('datetime'):'',text:t?t.innerText.replace(/\\s+/g,' '):'',author:author,truncated:more,poll:pollOf(a)});
   });return out;})()`;
 }
 

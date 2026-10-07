@@ -606,6 +606,76 @@ check(
   buildSignal(bothSig).badge
 );
 
+/* ------------- 8c. 每日重置窗口：跨多日的规则，与横幅解耦 ------------- */
+
+/**
+ * 他宣布「未来 N 天里每天要么发一个改进、要么给一次完整重置」（实测 2026-10-04）。
+ *
+ * 这块**不能挂在横幅那道门里**：横幅回答「有没有某一天的预告」，
+ * 而这条规则讲的是「这 N 天里每一天都在射程内」。只在预告分支里带上它，
+ * 等于「没有预告时这条规则也不存在」—— 而那恰恰是最需要它的时候
+ * （没有预告 + 还有 26 天 = 读者最容易以为「这段时间不会重置」）。
+ * 所以下面逐条钉死：三条返回路径都必须带上它。
+ */
+const progTweet = mkTweet(
+  'Over the next 28 days, each day we’ll either ship one thing that is a clear improvement and relevant for most codex/work users or ship a full reset. Let the improvements begin.',
+  '9101'
+);
+const progSig = detectSignals([progTweet], { now });
+check('每日重置窗口被识别出来', Boolean(progSig.program), JSON.stringify(progSig.program));
+check('窗口天数取自原文（28）', progSig.program?.days === 28, String(progSig.program?.days));
+check('剩余天数是整数且落在区间内', Number.isInteger(progSig.program?.daysLeft) && progSig.program.daysLeft > 0 && progSig.program.daysLeft <= 28, String(progSig.program?.daysLeft));
+
+const progVm = buildSignal(progSig);
+check('端上带出每日重置窗口', progVm.program?.show === true, JSON.stringify(progVm.program));
+check('窗口块有当地/北京两行（复用 windowView）', Boolean(progVm.program?.window?.sourceZone && progVm.program?.window?.userZone), JSON.stringify(progVm.program?.window));
+/* 宣布时刻也必须是**双时区**，而且文本来自数据层（`buildProgram` 的 createdZones），
+ * 端点只拼不改 —— 端上自己换算要依赖 Intl，部分安卓机型不可用。
+ * 钉完整串而不是「含『当地』」：窗口块里本来就有「当地」，那种断言是恒绿。 */
+check(
+  '宣布时刻双时区且由数据层带出（端上不自算）',
+  progVm.program?.announcedText === '2026.09.20（周日）17:00 北京 · 2026.09.20（周日）02:00 当地',
+  JSON.stringify(progVm.program?.announcedText)
+);
+check('数据层确实给了 createdZones（不是渲染层兜的）', Boolean(progSig.program?.createdZones?.a?.text && progSig.program?.createdZones?.b?.text), JSON.stringify(progSig.program?.createdZones));
+
+// ① 空态路径（没有预告、没有线索）：规则必须还在
+check('没有预告时窗口仍在（空态路径）', progVm.program.show === true && progVm.show === false, `show=${progVm.show} program=${progVm.program?.show}`);
+
+// ② 有线索的路径
+const hintPathVm = buildSignal({
+  ...progSig,
+  hints: [{ id: 'h1', text: 'x', level: 'hint', window: { from: 'x', to: 'x' } }],
+});
+check('有线索时窗口也在', hintPathVm.program?.show === true, JSON.stringify(hintPathVm.program?.show));
+
+// ③ 有预告的路径
+const fcastPathVm = buildSignal({ ...progSig, forecasts: [{ level: 'explicit', window: null, evidence: [] }] });
+check('有预告时窗口也在（两条互不遮蔽）', fcastPathVm.program?.show === true, JSON.stringify(fcastPathVm.program?.show));
+
+// 反例：没有这条规则时必须安静，不能凭空造一个窗口
+check('没有该字段时不展示（更不炸）', buildSignal({ checkedTweets: 1 }).program?.show === false);
+check('sig 为 null 时不炸', buildSignal(null).program?.show === false);
+
+// 过期即撤：整段走完之后不再出现（与「过期的预告不再展示」同一条原则）。
+//
+// ⚠ 这条推文必须**写得进扫描窗**才算数：`mkTweet` 固定 created_at = now-1h，
+// 那样算出来的窗口永远是活的，断言会恒绿。所以显式造一条 40 天前的推文 ——
+// 它在 60 天的回看窗内（进得了 list），而它的 28 天窗口早就走完了（09-07 就结束）。
+const staleProg = detectSignals(
+  [
+    {
+      id: '9102',
+      account: 'thsottiaux',
+      text: progTweet.text,
+      created_at: new Date(now - 40 * 86400_000).toISOString(),
+    },
+  ],
+  { now }
+);
+check('窗口走完后不再出现', staleProg.program === null, JSON.stringify(staleProg.program));
+check('它确实被判过（不是被扫描窗挡掉）', staleProg.checkedTweets === 1, `checked=${staleProg.checkedTweets}`);
+
 /* --------------------- 9. F9 一次性订阅提醒 --------------------- */
 
 console.log('\n【9】F9 一次性订阅提醒');

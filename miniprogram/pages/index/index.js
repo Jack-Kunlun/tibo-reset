@@ -35,7 +35,7 @@ Page({
     since: '',
     verdict: { cls: 'calm', text: '', tail: '' },
     metrics: [],
-    signal: { show: false, checked: 0, lookback: 60 },
+    signal: { show: false, checked: 0, lookback: 60, program: { show: false } },
     forecast: null,
     survivalN: 0,
     updText: '',

@@ -68,18 +68,24 @@ function headlineOf(top, w) {
  * 而真正的重置根本不出现。现在预告优先，线索只在没有预告时兜底。
  */
 export function buildSignal(sig) {
-  if (!sig) return { show: false, checked: 0, lookback: 60, windowFrom: '' };
+  if (!sig) return { show: false, checked: 0, lookback: 60, windowFrom: '', program: { show: false } };
+
+  // 每日重置窗口挂在**三条返回路径**上，而不是只在有预告时。
+  // 它讲的是「这 N 天里每天都可能」—— 与有没有某一天的预告是两件事，
+  // 只在预告分支里带上，就等于「没有预告时这条规则也不存在」。
+  const program = programView(sig.program);
 
   // 预告：一个时间窗口一条。数据层给的是数组（理论上可能有多个未来窗口），
   // 端上只展示**最先到期**的那条 —— 手机屏幕上并列两块预告纯属噪音。
   const f = (sig.forecasts || [])[0] || null;
-  if (f) return forecastView(f);
+  if (f) return { ...forecastView(f), program };
 
   const hint = (sig.hints || []).find((s) => s.window) || null;
-  if (hint) return signalView(hint, 'hint');
+  if (hint) return { ...signalView(hint, 'hint'), program };
 
   return {
     show: false,
+    program,
     checked: sig.checkedTweets,
     lookback: sig.lookbackDays,
     // ⚠ 数据层给的是 ISO 串。**必须过一遍格式化** —— 直接透传的话，
@@ -87,6 +93,31 @@ export function buildSignal(sig) {
     // 机器格式、又长到把右对齐的副行顶出卡片。真机截图实测。
     windowFrom: fmtDay(sig.windowFrom),
     hintCount: (sig.hints || []).length,
+  };
+}
+
+/**
+ * 每日重置窗口视图：他宣布「未来 N 天里每天要么发一个改进、要么给一次完整重置」。
+ *
+ * 与预告**并列但不是同一件事**：预告回答「哪一天」，这条回答「每一天都在射程内」。
+ * 网页端（`render.mjs` 的 `renderProgram`）画的是同一份数据层结论，两边各画一次。
+ *
+ * 不套 `.sig` 那套醒目样式：预告才是这一区的主角，这条是补充事实。
+ */
+function programView(p) {
+  if (!p || !p.window) return { show: false };
+  // 宣布时刻的**双时区**文本在数据层就算好了，这里只拼不改 —— 与线索块的
+  // `createdText` 完全同源（`buildProgram` 里的 `createdZones`）。
+  // 端上自己算要依赖 Intl，部分安卓机型不可用；而且网页端读的是同一份，
+  // 两边各算一次正是本项目反复吃过亏的地方。
+  const cz = p.createdZones;
+  return {
+    show: true,
+    days: p.days ?? 0,
+    daysLeft: p.daysLeft ?? 0,
+    window: windowView(p.window),
+    announcedText: cz ? `${cz.a.text} 北京 · ${cz.b.text} 当地` : '',
+    url: p.url || '',
   };
 }
 

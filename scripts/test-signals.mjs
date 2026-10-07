@@ -13,7 +13,7 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { analyzeTweet, detectSignals, latestEventMs, hasOccurredPart, SOURCE_ZONE, USER_ZONE } from '../src/lib/signals.mjs';
+import { analyzeTweet, detectSignals, latestEventMs, hasOccurredPart, detectProgram, SOURCE_ZONE, USER_ZONE } from '../src/lib/signals.mjs';
 import { renderSignal } from '../src/lib/render.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -176,6 +176,58 @@ console.log('\n【2】反例：绝不能误报');
   for (const [text, label] of cases) {
     const r = run(text, '2026-09-17T17:57:59.000Z');
     check(`${label} 不判 occurred`, r.level !== 'occurred', `实际 ${r.level}（${text.slice(0, 40)}）`);
+  }
+}
+
+/* -------- 2.2 否定 / 备选语境：2026-10-07 从真实语料里抓到的两条假阳性 --------
+ *
+ * 两条都是「冠词 + reset」这条**弱证据**在没有人拦的情况下直接升级成既成事实。
+ * 它们的共同点是**语义与结论相反或无关**，而且都是高置信度误报 ——
+ * conf 0.86 的 occurred 说「他刚才重置了」，而那句话原意是「我没法给重置」。
+ * 这正是本模块最不能出的错（假信号比漏检更伤可信度），所以两条都必须钉在这儿。
+ */
+{
+  // ① 被否定：他说的是「给不了」。
+  const denied =
+    'Because usage on your primary dot is virtually unlimited at the moment, ' +
+    'I can’t really give a reset. I need to come up with something new fast.';
+  const r1 = run(denied, '2026-10-01T14:51:54.000Z');
+  check('被否定的 reset（can’t really give a reset）不判 occurred', r1.level !== 'occurred', `实际 ${r1.level}`);
+  check('它也不被反过来升级成预告', r1.level !== 'explicit', `实际 ${r1.level}`);
+
+  // ② 备选项：在复述「每天要么给改进、要么给完整重置」这条规则，是回顾不是宣告。
+  const either = 'Four updates or a reset. Or both. How was day 2.';
+  const r2 = run(either, '2026-10-06T21:07:55.000Z');
+  check('把 reset 摆成备选项（N or a reset）不判 occurred', r2.level !== 'occurred', `实际 ${r2.level}`);
+  check('它也不被升级成预告（没有时间窗）', r2.level !== 'explicit', `实际 ${r2.level}`);
+
+  // ③ 同族形态：`either … or`，且句中**一个未来语气词都没有**。
+  //    这条是刻意的：10-04 那条真实推文里带着 "we'll"，会被 `RE_FUTURE` 提前拦下，
+  //    所以它**证明不了**这道新闸门有效 —— 恒绿的断言等于没有断言。
+  //    去掉未来语气才真正压到 `RE_ANNOUNCE` 这条弱证据上。
+  const eitherOr = 'Each day we ship an improvement or a reset.';
+  const r3 = run(eitherOr, '2026-10-04T20:33:43.000Z');
+  check('either/or 备选（无未来语气）不判 occurred', r3.level !== 'occurred', `实际 ${r3.level}`);
+
+  // ③b 真实语料形状回归：10-04 那条 28 天计划原文。
+  //    它由 `RE_FUTURE` 拦（"we'll" 在表里），**与本次闸门无关** ——
+  //    留着它防的是将来有人把未来语气表改松。标注清楚，免得被当成这道闸门的功劳。
+  const plan =
+    'Over the next 28 days, each day we’ll either ship one thing that is a clear ' +
+    'improvement and relevant for most codex/work users or ship a full reset.';
+  const r4 = run(plan, '2026-10-04T20:33:43.000Z');
+  check('28 天计划原文不判 occurred（由未来语气拦，见注释）', r4.level !== 'occurred', `实际 ${r4.level}`);
+
+  // ④ **反向兜底**：强证据不受这道闸门影响。
+  //    没有这条，「只拦弱证据」就只是注释里的一句话，没人证明过 ——
+  //    而收紧误报最容易连带把真事实一起收掉。
+  for (const [text, label] of [
+    ['Resets all propagated. Or so I’m told. https://t.co/x', '完成句式 + 句尾的 or'],
+    ['Reset all propagated. No issues reported.', '完成句式 + 句中的 No'],
+    ['Everyone’s limits have been reset. Never seen them this happy.', '被动完成 + Never'],
+  ]) {
+    const r = run(text, '2026-10-02T21:18:48.000Z');
+    check(`${label} 仍判 occurred（强证据优先）`, r.level === 'occurred', `实际 ${r.level}（${text.slice(0, 40)}）`);
   }
 }
 
@@ -1079,7 +1131,19 @@ console.log('\n【11】完成句式的单复数 + lastResetAt 不可省');
    * 这条是**形状级**的：不管将来他换哪种措辞，只要命中完成句式就不该被丢掉。 */
   const tweets = JSON.parse(await readFile(resolve(ROOT, 'data/tweets.json'), 'utf8')).tweets;
   const records = JSON.parse(await readFile(resolve(ROOT, 'data/resets.json'), 'utf8')).records;
-  const NOW = new Date('2026-09-30T15:00:00.000Z').getTime();
+  /* ⚠ NOW 必须锚在**数据自己的时间轴**上，不能写死一个日历日。
+   *
+   * `windowTo` 就是 NOW，而语料每采一轮就往前长。一旦有新推文越过写死的 NOW，
+   * 它就落在窗外，任何桶里都不会出现 —— 这条形状级断言于是自己变红，
+   * 报错却只列推文内容，看不出「是夹具过期，不是识别坏了」。
+   * 实测（2026-10-07）：NOW 停在 09-30，而 10-02 那条 `Reset all propagated` 已入库，
+   * 本断言在 HEAD 上就是红的 —— 与当次改动无关。
+   *
+   * 取「最新一条推文之后 1 分钟」：窗内有全部历史，且不依赖跑测试的日期。
+   * 过滤 `Number.isFinite` 是必须的 —— 缺 `created_at` 的条目会让 Math.max 静默变 NaN。
+   */
+  const stamps = tweets.map((t) => Date.parse(t.created_at)).filter(Number.isFinite);
+  const NOW = Math.max(...stamps) + 60_000;
   const sig = detectSignals(tweets, { now: NOW, lastResetAt: latestEventMs(records) });
 
   const doneShape = tweets.filter((t) => /\bresets?\s+(?:all\s+)?(?:propagated|complete[ds]?|done|rolled|finished)\b/i.test(t.text || ''));
@@ -1155,6 +1219,152 @@ console.log('\n【11】完成句式的单复数 + lastResetAt 不可省');
     without.level !== withIt.level,
     `不传=${without.level}(forecasts=${(without.forecasts || []).length}) / 传=${withIt.level}(forecasts=${(withIt.forecasts || []).length})`
   );
+}
+
+/* ==================== 12. 每日重置窗口（跨多日的持续规则） ==================== */
+
+console.log('\n【12】每日重置窗口');
+
+{
+  /* 判定是**三条同时成立**才算（天数 + 二选一 + reset）。
+   * 少一条就会把别的话吞进来：只认「28 days」的话，任何提到天数的话都成立。 */
+  const hit = [
+    [
+      'Over the next 28 days, each day we’ll either ship one thing that is a clear improvement or ship a full reset.',
+      28,
+      '真实公告（10-04）',
+    ],
+  ];
+  for (const [text, days, label] of hit) {
+    const r = detectProgram(text);
+    check(`${label} 命中且天数=${days}`, r?.days === days, JSON.stringify(r));
+  }
+  const miss = [
+    ['we will ship a reset in the next 30 days', '单次承诺（没有二选一）'],
+    ['Over the next 14 days we will ship lots of improvements', '有二选一的味道但没有 reset'],
+    ['Four updates or a reset. Or both. How was day 2.', '没有天数'],
+    ['Over the next 500 days we’ll either ship a fix or ship a full reset', '天数荒谬（不是窗口）'],
+  ];
+  for (const [text, label] of miss) {
+    check(`${label} → 不命中`, detectProgram(text) === null, JSON.stringify(detectProgram(text)));
+  }
+}
+
+{
+  /* 真实语料：起止、剩余天数、窗口文案都要对得上。
+   *
+   * 10-04 20:33Z 发的（当地 10-04 13:33），28 天 → 当地 10-04 ~ 10-31。 */
+  const tweets = JSON.parse(await readFile(resolve(ROOT, 'data/tweets.json'), 'utf8')).tweets;
+  const records = JSON.parse(await readFile(resolve(ROOT, 'data/resets.json'), 'utf8')).records;
+  const stamps = tweets.map((t) => Date.parse(t.created_at)).filter(Number.isFinite);
+  const NOW = Math.max(...stamps) + 60_000;
+  const sig = detectSignals(tweets, { now: NOW, lastResetAt: latestEventMs(records) });
+  const p = sig.program;
+
+  check('真实语料：识别出每日窗口', Boolean(p), JSON.stringify(p?.days));
+  check('真实语料：天数 28', p?.days === 28, String(p?.days));
+  check('真实语料：当地是日期区间（不展开钟点）', p?.window?.sourceZone === '2026.10.04（周日） – 2026.10.31（周六）', p?.window?.sourceZone);
+  check(
+    '真实语料：北京给「起」而非区间（与「全天」同一处置）',
+    p?.window?.userZone === '2026.10.04（周日）15:00 起',
+    p?.window?.userZone
+  );
+  check('真实语料：截止时刻退到 rangeNote', p?.window?.rangeNote === '窗口到北京 2026.11.01（周日）14:59 为止', p?.window?.rangeNote);
+  /* 宣布时刻的双时区表述由**数据层**算好（`buildProgram`）。两端各算一次正是本项目
+   * 反复吃过亏的地方（词表分裂、时间戳口径不一致），而端上自己算还依赖 Intl ——
+   * 部分安卓机型不可用。所以这里钉的是数据层产出的**原文**，不是渲染层的拼装。 */
+  check(
+    '真实语料：宣布时刻带双时区（北京 + 当地）',
+    p?.createdZones?.a?.text === '2026.10.05（周一）04:33' && p?.createdZones?.b?.text === '2026.10.04（周日）13:33',
+    JSON.stringify(p?.createdZones && { a: p.createdZones.a?.text, b: p.createdZones.b?.text })
+  );
+  const today = detectSignals(tweets, { now: NOW, lastResetAt: latestEventMs(records) }).program.daysLeft;
+  check('真实语料：剩余天数是 1..28 的整数', Number.isInteger(today) && today >= 1 && today <= 28, String(today));
+
+  /* 逐字节级回归：窗口块的文案里**不许出现任何一个钟点**。
+   * 天粒度写成「00:00 – 23:59」正是这一区反复否掉的那种凭空精度 ——
+   * 他没说过任何一个钟点，那对端点只是整段的两头。 */
+  check(
+    '当地那行不带任何钟点',
+    !/\d{2}:\d{2}/.test(p?.window?.sourceZone ?? ''),
+    p?.window?.sourceZone
+  );
+}
+
+{
+  /* 过期即撤：整段走完（`to < now`）就不再出现 —— 与「过期的预告不再展示」同一条原则。
+   * 一条已经结束的承诺留在页面上，只会让读者以为它还在生效。 */
+  const old = [
+    {
+      id: 'old1',
+      account: 'thsottiaux',
+      text:
+        'Over the next 28 days, each day we’ll either ship one thing that is a clear improvement or ship a full reset.',
+      created_at: '2026-08-01T20:00:00.000Z',
+    },
+  ];
+  const NOW = Date.parse('2026-09-30T15:00:00.000Z');
+  const sig = detectSignals(old, { now: NOW });
+  check('窗口走完后不再出现', sig.program === null, JSON.stringify(sig.program));
+  check('它确实被扫到了（不是被时间窗挡掉）', sig.checkedTweets === 1, String(sig.checkedTweets));
+}
+
+{
+  /* 渲染层：弱样式一块，窗口块复用现有渲染器，且**只出现一次**。
+   * 「一处只讲一件事」—— 同一份事实铺两块，读者会以为有两个窗口。 */
+  const w = {
+    sourceZone: '2026.10.04（周日） – 2026.10.31（周六）',
+    userZone: '2026.10.04（周日）15:00 起',
+    openText: '2026.10.04（周日）15:00',
+    rangeNote: '窗口到北京 2026.11.01（周日）14:59 为止',
+    fromTs: 1759585200000,
+    zones: { a: { offset: 'UTC+8' }, b: { offset: 'UTC-7' }, diffText: '北京时间比 Tibo 当地时间快 15 小时' },
+  };
+  const base = {
+    level: 'none',
+    generatedAt: '2026-10-07T01:26:46.566Z',
+    checkedTweets: 293,
+    windowFrom: '2026-08-08T01:26:46.566Z',
+    forecasts: [],
+    hints: [],
+    rejected: [],
+    counts: { hint: 0, rejected: 0 },
+  };
+  const withProg = renderSignal({
+    ...base,
+    program: {
+      days: 28,
+      daysLeft: 26,
+      url: 'https://x.com/thsottiaux/status/1',
+      announcedAt: '2026-10-04T20:33:43.000Z',
+      createdZones: { a: { text: '2026.10.05（周一）04:33' }, b: { text: '2026.10.04（周日）13:33' } },
+      window: w,
+    },
+  });
+  check('渲染层出现每日窗口块', withProg.includes('sig-prog'), withProg.slice(0, 60));
+  check('窗口块里两个时区都在', withProg.includes('Tibo 当地时间') && withProg.includes('北京时间'));
+  check('给出剩余天数', withProg.includes('还剩') && withProg.includes('26'), '');
+  check('带原文链接', withProg.includes('https://x.com/thsottiaux/status/1'));
+  /* 宣布时刻也要**双时区**。整块里「当地时间」出现在窗口块，所以不能只断言
+   * 「含『当地』」—— 那是恒绿。这里钉死完整串，少一侧立刻红。 */
+  check(
+    '宣布时刻双时区（不是只给北京）',
+    withProg.includes('发布于 2026.10.05（周一）04:33 北京 · 2026.10.04（周日）13:33 当地'),
+    (withProg.match(/发布于[^<]*/) ?? ['(没渲染出「发布于」)'])[0]
+  );
+  check('同一份事实只出现一块', withProg.split('sig-prog').length - 1 === 1, String(withProg.split('sig-prog').length - 1));
+
+  // 与预告并存时也只出现一块（program 不该被 forecast 分支再渲染一次）
+  const both = renderSignal({
+    ...base,
+    program: { days: 28, daysLeft: 26, url: '', announcedAt: '2026-10-04T20:33:43.000Z', window: w },
+    forecasts: [{ level: 'explicit', window: w, evidence: [], counts: { hard: 1, soft: 0 }, reasons: [] }],
+  });
+  check('与预告并存时仍只有一块', both.split('sig-prog').length - 1 === 1, String(both.split('sig-prog').length - 1));
+
+  // 反例：没有这个字段时渲染结果里不该有余影（页面与从前逐字节一致）
+  const none = renderSignal({ ...base });
+  check('没有该字段时不渲染窗口块', !none.includes('sig-prog'), none.slice(0, 60));
 }
 
 /* ================================ 结果 ================================ */

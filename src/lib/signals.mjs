@@ -168,6 +168,34 @@ const RE_ANNOUNCE =
 const RE_HYPOTHETICAL = /\b(?:if|unless|whether|would|could|might|should|suppose|imagine|unless)\b|\bwon'?t\s+reset\b/i;
 
 /**
+ * 否定 / 备选语境 —— 名词化的 reset 在**被否定**或**被摆成备选项**时不是既成事实。
+ *
+ * 两个真实假阳性逼出来的（2026-10-07 逐条核对全库，`occurred` 7 条里 2 条是假的）：
+ *   ①「Because usage on your primary dot is virtually unlimited at the moment,
+ *      I **can't** really give a reset.」→ 语义与结论**正好相反**（他在说没法给），
+ *      却是 conf 0.86 的 occurred
+ *   ②「Four updates **or** a reset. Or both. How was day 2.」
+ *      → 在复述「每天要么给一个改进、要么给一次完整重置」这条规则，是**回顾**不是宣告
+ *
+ * 两条栽在同一处：`RE_ANNOUNCE` 这条**弱证据**只看「冠词 + reset」，不看它周围的
+ * 否定词与选择连词。`RE_HYPOTHETICAL` 里没有 can't、也没有 or —— 缺的不是词，
+ * 是这一类语境本身。
+ *
+ * ⚠ 两点约束，别放宽：
+ *   · 只拦**弱证据**那条路。强证据（`RE_PAST`：reset all propagated / has been reset…）
+ *     在 `hasOccurredReset` 里**先返回**，不受这里影响 ——「Resets all propagated.
+ *     Or so I'm told.」照样判 occurred。
+ *   · 两条模式都限定在 reset **前面 0–3 个词**内，不做全句扫描。全句扫会让
+ *     「Reset all propagated. Enjoy, or not.」这类因为句尾一个 or 而丢掉事实。
+ *     3 个词是按实测语料定的：`can't really give a reset` / `or ship a full reset`
+ *     都在 3 词以内，而「not only are they a very significant improvement …
+ *     banked reset」那种跨小句的巧合命中会被长度挡住。
+ */
+const RE_DENIED =
+  /\b(?:can(?:not|[’']?t)|won[’']?t|will\s+not|wouldn[’']?t|don[’']?t|doesn[’']?t|didn[’']?t|not|never|no|unable\s+to)\b(?:\s+\w+){0,3}\s+reset/i;
+const RE_ALTERNATIVE = /\b(?:or|either)\b(?:\s+\w+){0,3}\s+reset/i;
+
+/**
  * 将来完成时：「will have reset … by tomorrow」不是已完成。
  *
  * ⚠ 收紧过一次（KI-012）。旧写法是 `(?:will|shall|going to|gonna)\s+(?:have|be)`
@@ -206,6 +234,10 @@ export function hasOccurredReset(text) {
   if (RE_PAST.test(t)) return true;
   // 名词化是弱证据，只在这条没有未来语气时才作数。
   if (RE_FUTURE.test(t)) return false;
+  // ……且只在这句话没有把它否定掉、或把它摆成备选项时才作数。
+  // 纯文本层的判定，所以放在最后一道 —— 前面全是「否决」条件，
+  // 否认不掉的才轮到这条弱证据成立。见 RE_DENIED / RE_ALTERNATIVE 的注释。
+  if (RE_DENIED.test(t) || RE_ALTERNATIVE.test(t)) return false;
   return RE_ANNOUNCE.test(t);
 }
 
@@ -625,6 +657,11 @@ function describeWindow(w, sourceZone, userZone) {
   const wholeLocalDay =
     sameSourceDay && sf.hour === '00' && sf.minute === '00' && st.hour === '23' && st.minute === '59';
   const instant = w.precision === 'instant';
+  // 跨多日的整段（`program` 用）。它**天生不是**一整天，所以必须排在
+  // wholeLocalDay 之前判 —— 否则一个 28 天的区间会掉进最后那个「含糊粒度」分支，
+  // 被写成「10.04 00:00 → 10.31 23:59」。那正是这里反复否掉的那种凭空精度：
+  // 他没说过任何一个钟点，那对 00:00 / 23:59 只是整段的两个端点。
+  const span = w.precision === 'span';
 
   let sourceText;
   let userText;
@@ -633,6 +670,12 @@ function describeWindow(w, sourceZone, userZone) {
   if (instant) {
     sourceText = datetime(sf);
     userText = datetime(f);
+  } else if (span) {
+    // 多日整段：当地只给**日期区间**（天粒度就说天），北京只给**开启那一刻**，
+    // 截止那一刻退到 rangeNote。两边的钟点都是真实的端点，不是硬撑出来的精度。
+    sourceText = `${dayOnly(sf)} – ${dayOnly(st)}`;
+    userText = `${datetime(f)} 起`;
+    rangeNote = `窗口到北京 ${datetime(t2)} 为止`;
   } else if (wholeLocalDay) {
     // 「全天」前留一个空格：窄屏的窗口值独占一行、宽度刚好卡在临界点上，
     // 不留这个空格浏览器会在「全 / 天」之间断行（实测小程序端 15px 字号）。
@@ -1154,6 +1197,112 @@ export function latestEventMs(records) {
   return max;
 }
 
+/* ------------------------- 每日重置窗口（program） ------------------------- */
+
+/**
+ * 他偶尔宣布的不是「某次重置」，而是一段**连续多日的规则**。实测 2026-10-04：
+ *   「Over the next 28 days, each day we'll either ship one thing that is a clear
+ *    improvement and relevant for most codex/work users or ship a full reset.
+ *    Let the improvements begin.」
+ * → 未来 28 天内**每一天**都在射程内。
+ *
+ * ── 为什么不能只靠已有的四档 ────────────────────────────────────────
+ *   · 它不是 `explicit`：`explicit` 的准入是「有窗口 + 有依据」，而这里没有
+ *     任何一天被指名，parseTimes 一个窗口都解不出来；
+ *   · 显然也不是 `occurred`；
+ *   · 落进 `hint` 只会得到一句「有额度意图但没给出时间」—— 可它给出的信息
+ *     比一整条预告还硬：**整个区间里每一天都可能重置**，这是下界，不是线索。
+ * 预测模型按历史间隔外推（中位数 3.1 天），读者看到「还要等 N 天」在窗外是
+ * 统计口径，在这 28 天里却会被读成「27 天内不会再重置」—— 方向恰好是反的。
+ *
+ * ── 识别必须三条同时成立，缺一不可 ──────────────────────────────────
+ *   ① 一个明确的天数，且带 next 这类「从现在起」的框架（否则任何提到天数的话都成立）；
+ *   ② 两个备选项（`either … or`）—— 他这条的核心就是「二选一」；
+ *   ③ 其中一项是 reset。
+ * 只认 ①③ 会把「we'll ship a reset in the next 30 days」这类**单次**承诺也吞进来。
+ */
+const RE_PROGRAM_SPAN =
+  /\b(?:over|in|for|across|within)\s+the\s+next\s+(\d{1,3})\s+days?\b|\bnext\s+(\d{1,3})\s+days?\b/i;
+const RE_PROGRAM_EITHER = /\beither\b[\s\S]{0,240}?\bor\b/i;
+
+/**
+ * 纯判定：这条推文是不是在宣布一段「每日重置窗口」。命中返回 `{ days }`，否则 null。
+ * 抽成独立导出函数是为了能单测 —— `buildProgram` 要跑时间换算，测起来太重。
+ */
+export function detectProgram(text) {
+  const t = String(text ?? '');
+  const m = t.match(RE_PROGRAM_SPAN);
+  if (!m) return null;
+  if (!RE_PROGRAM_EITHER.test(t)) return null;
+  if (!RE_RESET.test(t)) return null;
+  const days = Number(m[1] ?? m[2]);
+  // 上界 400 天：这是个「窗口」而不是常态，写死一个荒谬的天数说明这根本不是这条规则。
+  if (!Number.isFinite(days) || days < 2 || days > 400) return null;
+  return { days };
+}
+
+/**
+ * 从本轮参与判断的推文里挑出**当前仍然有效**的每日窗口。
+ *
+ * 取**最近一次**宣布（列表是时间倒序，第一个命中的就是）：他改口时以最新为准。
+ * 整段走完（`to < now`）即不再返回 —— 与「过期的预告不再展示」同一条原则：
+ * 一条已经结束的承诺留在页面上，只会让读者以为它还在生效。
+ *
+ * ⚠ 这里**不做**「窗口内已经发生过重置就撤掉」的处置。那是 `staleWindowReason`
+ * 给**单次预告**定的规则（窗口内重置过 = 这条预告兑现了）。每日窗口的性质不同：
+ * 兑现一次不等于这段规则结束 —— 10-04 起每天都可能重置，某天真的重置了，
+ * 第二天仍然在窗口内。把它一起撤掉，反而会让页面在重置当天就丢掉这条规则。
+ */
+export function buildProgram(analyzed, opts = {}) {
+  const now = Number(opts.now ?? Date.now());
+  const sourceZone = opts.sourceZone ?? SOURCE_ZONE;
+  const userZone = opts.userZone ?? USER_ZONE;
+
+  for (const a of analyzed ?? []) {
+    const hit = detectProgram(a?.text);
+    if (!hit) continue;
+    const annTs = Date.parse(a.createdAt ?? '');
+    if (!Number.isFinite(annTs)) continue;
+
+    // 天数按**他当地**的日历日算：「the next 28 days」是他那儿的 28 天。
+    // 起止取当地整日端点，与 fullDay 同一口径（天粒度不带钟点）。
+    const fromDay = localParts(annTs, sourceZone).dayNum;
+    const throughDay = fromDay + hit.days - 1;
+    const from = at(fromDay, 0, 0, sourceZone);
+    const to = at(throughDay, 23, 59, sourceZone);
+    if (to < now) continue;
+
+    const win = describeWindow({ from, to, precision: 'span', dayNum: fromDay }, sourceZone, userZone);
+    // 剩余天数用**日历日相减**，而不是 (to - now) / DAY 再取整：
+    // 后者在一天中间会得出 25.2 → 「还剩 25 天」，与「含今天还有 26 天」对不上，
+    // 而这种差一天的错没人会去复核。
+    const todayDay = localParts(now, sourceZone).dayNum;
+
+    // 宣布时刻的双时区表述**在这里算好跟着数据走**，与 `base.createdZones` 同一套理由：
+    // 时区换算属「算法」不属「渲染」，小程序端自己算要依赖 Intl，而部分安卓机型上不可用。
+    // 两端各算一次正是本项目反复吃过亏的地方（词表分裂、时间戳口径不一致）。
+    const cz = dualZone(new Date(annTs).toISOString(), userZone, sourceZone, '北京时间', 'Tibo 当地时间');
+
+    return {
+      id: a.id ?? null,
+      url: a.url ?? null,
+      text: a.text,
+      announcedAt: new Date(annTs).toISOString(),
+      days: hit.days,
+      from: new Date(from).toISOString(),
+      to: new Date(to).toISOString(),
+      fromDayNum: fromDay,
+      throughDayNum: throughDay,
+      daysLeft: Math.max(0, throughDay - todayDay + 1),
+      createdZones: { a: cz.a, b: cz.b, diffText: cz.diffText },
+      // 与 explicit 的 window 同形，好让渲染层复用同一个窗口块（windowBlock）。
+      // 「一处只讲一件事」的另一个方向：同一个形状只该有一个渲染器。
+      window: { from: new Date(from).toISOString(), to: new Date(to).toISOString(), dayNum: fromDay, ...win },
+    };
+  }
+  return null;
+}
+
 /* ------------------------------- 入口 ------------------------------- */
 
 /**
@@ -1334,6 +1483,11 @@ export function detectSignals(tweets, opts = {}) {
 
   return {
     level,
+    // 「每日重置窗口」—— 他宣布的「未来 N 天里每天要么发一个改进、要么给一次完整重置」。
+    // 单独一档而不是塞进四档：它既不是某一天的预告、也不是「已发生」，
+    // 但它决定了「还要等多久」这个问题的**下界**（今天就可能）。
+    // 用 live 而不是 analyzed，与 hypothesis 同一口径：过期的不参与。
+    program: buildProgram(live, { now, sourceZone, userZone }),
     generatedAt: new Date(now).toISOString(),
     checkedTweets: list.length,
     lookbackDays: lookback,

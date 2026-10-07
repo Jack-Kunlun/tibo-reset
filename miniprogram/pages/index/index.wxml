@@ -19,6 +19,43 @@
   <!-- 数据不是实时的就明说，不假装 -->
   <view wx:if="{{notice}}" class="notice">{{notice}}</view>
 
+  <!-- ============ 每日重置窗口 ============ -->
+  <!-- 他宣布「未来 N 天里每天要么发一个改进、要么给一次完整重置」。
+       它**不在** signal.show 那个门里：这条规则与「有没有某一天的预告」是两件事，
+       放进那道门就等于「没有预告时这条规则也不存在」。样式刻意比 .sig 轻。 -->
+  <view wx:if="{{signal.program.show}}" class="prog">
+    <view class="prog-head">
+      <text class="prog-tag">每日重置窗口</text>
+      <text class="prog-left">共 <text class="n">{{signal.program.days}}</text> 天 · 还剩 <text class="n">{{signal.program.daysLeft}}</text> 天</text>
+    </view>
+    <text class="prog-rule">每天要么发一个改进、要么给一次完整重置 —— 期间任何一天都可能重置</text>
+    <view wx:if="{{signal.program.window}}" class="win">
+      <view class="wrow">
+        <text class="k">Tibo 当地时间</text>
+        <text class="v">{{signal.program.window.sourceZone}}</text>
+        <text class="z">{{signal.program.window.srcOffset}}</text>
+      </view>
+      <view class="wrow">
+        <text class="k">北京时间</text>
+        <text class="v">{{signal.program.window.userZone}}</text>
+        <text class="z">{{signal.program.window.usrOffset}}</text>
+      </view>
+      <view class="wfoot">
+        {{signal.program.window.diffText}}{{signal.program.window.rangeNote ? ' · ' + signal.program.window.rangeNote : ''}}
+      </view>
+    </view>
+    <view class="prog-meta">
+      <text wx:if="{{signal.program.announcedText}}">发布于 {{signal.program.announcedText}}</text>
+      <!-- 复制链接（不是 open-type），与别处一致：隐私接口被拒时必须有提示，不静默 -->
+      <text
+        wx:if="{{signal.program.url && !singlePage}}"
+        class="prog-link"
+        data-url="{{signal.program.url}}"
+        bindtap="onCopySource"
+      >复制原推链接</text>
+    </view>
+  </view>
+
   <!-- ============ 信号 ============ -->
   <!-- 有预告时这块是全页视觉重量最大的地方：星期用最大字号，秒级倒计时压在下面。
        只有「情绪」没有时间的推文进不到这里（规则见 utils/view.js 的 buildSignal）。 -->

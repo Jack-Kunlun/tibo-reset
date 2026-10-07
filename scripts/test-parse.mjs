@@ -26,7 +26,7 @@ import {
   rankRadarCandidates,
   resetFloorMs,
 } from '../src/lib/collect.mjs';
-import { normalizeTimelineItems, isKnownScreen, pairReplyContext } from '../src/lib/browser.mjs';
+import { normalizeTimelineItems, isKnownScreen, pairReplyContext, harvestExpression } from '../src/lib/browser.mjs';
 
 let pass = 0;
 const failures = [];
@@ -360,6 +360,74 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
     kept[1]?.url
   );
   check('空输入不抛错', normalizeTimelineItems(undefined).length === 0, '');
+}
+
+/* ================== 民调字段（正文之外唯一的量化民意） ================== */
+
+{
+  /* 实测 2026-10-06：他发民调「今天算不算好日子」，正文只有 "Vote" 一个词 ——
+   * 选项（含 "needs a reset"）与得票率**只在 DOM 的 cardPoll 里**。
+   * 不把它带进 tweets.json，「76% 要重置」这个事实在库里就根本不存在。
+   *
+   * 两种形态：
+   *   已出结果 → { text, pct: 24 }
+   *   进行中   → { text, pct: null }（还没有得票率，但选项文本已经在）
+   */
+  const poll = {
+    options: [
+      { text: '👌(good day)', pct: 24 },
+      { text: '🫨 (needs a reset)', pct: 76 },
+    ],
+    totalVotes: 74565,
+    status: '74,565 次投票 · 最终结果',
+  };
+  const [a] = normalizeTimelineItems([{ id: '1', time: '2026-09-13T00:00:00.000Z', text: 'Vote', poll }], {
+    handle: 'thsottiaux',
+  });
+  check('民调字段被透传（选项全在这儿）', a?.poll?.options?.length === 2, JSON.stringify(a?.poll));
+  check('选项文本原样保留（含表情）', a?.poll?.options?.[1]?.text === '🫨 (needs a reset)', a?.poll?.options?.[1]?.text);
+  check('得票率透传', a?.poll?.options?.[1]?.pct === 76, String(a?.poll?.options?.[1]?.pct));
+  check('总票数透传', a?.poll?.totalVotes === 74565, String(a?.poll?.totalVotes));
+  check('页脚原文留档（本地化文案原样存，不做解释）', a?.poll?.status === '74,565 次投票 · 最终结果', a?.poll?.status);
+
+  // 进行中的形态：pct 全为 null 也要留下 —— 那时候能拿到的信息是「他在问什么」。
+  const [c] = normalizeTimelineItems(
+    [{ id: '3', time: '2026-09-13T00:00:00.000Z', text: 'To calibrate', poll: { options: [{ text: 'x', pct: null }], totalVotes: 27286, status: '27,286 次投票 · 剩下 2 分钟' } }],
+    { handle: 'thsottiaux' }
+  );
+  check('进行中的民调（pct 为空）同样保留', c?.poll?.options?.[0]?.pct === null && c?.poll?.totalVotes === 27286, JSON.stringify(c?.poll));
+
+  // 反例：没有民调的条目**不许凭空长出一个字段**。
+  // 写成 `poll: it.poll ?? null` 的话，tweets.json 里每条都会多一个 poll:null，
+  // 体积白涨、diff 全是噪音，而它一个字的信息都没带。
+  const [b] = normalizeTimelineItems([{ id: '2', time: '2026-09-13T00:00:00.000Z', text: 'no poll' }], { handle: 'x' });
+  check('没有民调时不写这个字段', !('poll' in b), JSON.stringify(Object.keys(b)));
+}
+
+{
+  /* 抽取表达式是**跑在页面里的字符串**，Node 侧没有 DOM，行为断言测不到它。
+   *
+   * 这里只能做「形状级」的文本扫描 —— 它拦得住「有人把这段顺手删了」，
+   * 拦不住「选择器写错了」。后者的证据在真机实测里（见 docs/data-source.md
+   * 「民调」一节的两条实测记录：进行中 / 已出结果各一条）。
+   * 明知它弱还留着：这段一旦被删，采集会**静默**少一个字段，
+   * 库里没有任何别的断言能发现。 */
+  const expr = harvestExpression('thsottiaux');
+  /* 扫描前**必须先剥掉注释**：表达式里带着中文说明，而说明里为了讲清「不许按语言
+   * 匹配票数」正好引用了 `votes` / `次投票` 这两个词 —— 不剥注释，那条守卫会被
+   * 自己的注释弄红，然后下一个人就会去改断言而不是改代码。
+   * 只剥块注释：`//` 在这里不安全，表达式里有 `https://x.com` 这种字符串。 */
+  const code = expr.replace(/\/\*[\s\S]*?\*\//g, '');
+  check('抽取表达式仍认民调容器', code.includes('cardPoll'), '');
+  check(
+    '两种形态都还在（已出结果 / 进行中）',
+    code.includes('role="listitem"') && code.includes('role="radio"'),
+    ''
+  );
+  check('得票率从填充条的 width% 取', code.includes('width:'), '');
+  /* ⛔ 票数**不许按英文词匹配**：实测界面语言是中文，页脚是「74,565 次投票 · 最终结果」。
+   * 按 votes 匹配在中文界面下会静默取不到，而这类失效不会报错、只会少一个数字。 */
+  check('票数不按语言相关的词匹配', !/votes|次投票/.test(code), '');
 }
 
 /* ==================== 增量停止判据（「已入库就停」） ==================== */

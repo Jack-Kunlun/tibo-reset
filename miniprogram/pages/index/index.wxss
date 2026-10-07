@@ -618,6 +618,68 @@
   margin-left: auto;
 }
 
+/* ---------- 每日重置窗口（跨多日的持续规则，不是某一天的预告） ---------- */
+/* 视觉上刻意比 .sig 轻：预告才是这一区的主角，这条是补充事实。
+   左边那道 4rpx 岚青是唯一的强调，用来和下面那片白卡片区分开。
+   窗口块直接复用 .win / .wrow / .wfoot —— 它们是顶层类名，不受 .sig 作用域限制，
+   同一种形状（当地 + 北京两行）没有理由再画一遍。 */
+.prog {
+  margin: 0 0 20rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 18rpx;
+  border: 1rpx solid #E4DFD5;
+  border-left: 4rpx solid #3F7376;
+  background: #F2EFE8;
+}
+
+.prog-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 10rpx;
+}
+
+.prog-tag {
+  font-size: 22rpx;
+  font-weight: 620;
+  color: #3F7376;
+  letter-spacing: 1rpx;
+}
+
+.prog-left {
+  margin-left: auto;
+  font-size: 22rpx;
+  color: #8C8880;
+}
+
+.prog-left .n {
+  color: #4A4842;
+  font-weight: 620;
+}
+
+.prog-rule {
+  display: block;
+  font-size: 25rpx;
+  line-height: 1.6;
+  color: #4A4842;
+  margin-bottom: 16rpx;
+}
+
+.prog-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  margin-top: 12rpx;
+  font-size: 21rpx;
+  color: #8C8880;
+}
+
+.prog-link {
+  color: #3F7376;
+  border-bottom: 1rpx dotted #3F7376;
+}
+
 /* ---------- 预测 ---------- */
 
 .fc {
