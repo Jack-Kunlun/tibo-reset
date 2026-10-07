@@ -1,10 +1,10 @@
 {
   "level": "occurred",
-  "generatedAt": "2026-10-06T23:17:23.231Z",
-  "checkedTweets": 291,
+  "generatedAt": "2026-10-07T00:20:08.120Z",
+  "checkedTweets": 292,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-07T23:17:23.231Z",
-  "windowTo": "2026-10-06T23:17:23.231Z",
+  "windowFrom": "2026-08-08T00:20:08.120Z",
+  "windowTo": "2026-10-07T00:20:08.120Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -14,8 +14,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.07",
       "weekday": "周三",
-      "time": "07:17",
-      "text": "2026.10.07（周三）07:17",
+      "time": "08:20",
+      "text": "2026.10.07（周三）08:20",
       "offset": "UTC+8"
     },
     "b": {
@@ -23,27 +23,28 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.06",
       "weekday": "周二",
-      "time": "16:17",
-      "text": "2026.10.06（周二）16:17",
+      "time": "17:20",
+      "text": "2026.10.06（周二）17:20",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2107603154699173997",
+    "id": "2107613966692409653",
     "account": "thsottiaux",
-    "text": "@poteto mind looking into this one? Could use some PRs",
-    "createdAt": "2026-10-06T22:45:24.000Z",
-    "url": "https://x.com/thsottiaux/status/2107603154699173997",
+    "text": "Ship ship ship",
+    "createdAt": "2026-10-06T23:28:21.000Z",
+    "url": "https://x.com/thsottiaux/status/2107613966692409653",
     "reasons": [
-      "上下文：回复 @ShaneMac「Embarrassed to share this, but it sc…」"
+      "含发布/宣传语境（下调置信度）",
+      "上下文：回复 @TheRohanVarma「One week since we launched dots! We’…」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "ShaneMac",
+      "account": "TheRohanVarma",
       "id": "",
-      "text": "Embarrassed to share this, but it scared the shit out of me Last Thursday, an AI agent posted my personal bank balances into our company Slack. As me It broke down all my expenses in detail. Then it apologized Be careful of the dark side of proactive agents More below..."
+      "text": "One week since we launched dots! We’ve been working through your feedback and shipped a bunch of improvements: - Faster cloud browsing - Fixed extra phone notifications while you’re already using ChatGPT - Cleaner code blocks and attachments on web - Fewer pauses while waiting"
     },
     "createdZones": {
       "a": {
@@ -51,8 +52,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.07",
         "weekday": "周三",
-        "time": "06:45",
-        "text": "2026.10.07（周三）06:45",
+        "time": "07:28",
+        "text": "2026.10.07（周三）07:28",
         "offset": "UTC+8"
       },
       "b": {
@@ -60,8 +61,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.06",
         "weekday": "周二",
-        "time": "15:45",
-        "text": "2026.10.06（周二）15:45",
+        "time": "16:28",
+        "text": "2026.10.06（周二）16:28",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -1482,7 +1483,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-06T23:17:23.231Z"
+        "checkedAt": "2026-10-07T00:20:08.120Z"
       }
     },
     {
@@ -2276,6 +2277,49 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2107613966692409653",
+      "account": "thsottiaux",
+      "text": "Ship ship ship",
+      "createdAt": "2026-10-06T23:28:21.000Z",
+      "url": "https://x.com/thsottiaux/status/2107613966692409653",
+      "reasons": [
+        "含发布/宣传语境（下调置信度）",
+        "上下文：回复 @TheRohanVarma「One week since we launched dots! We’…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "TheRohanVarma",
+        "id": "",
+        "text": "One week since we launched dots! We’ve been working through your feedback and shipped a bunch of improvements: - Faster cloud browsing - Fixed extra phone notifications while you’re already using ChatGPT - Cleaner code blocks and attachments on web - Fewer pauses while waiting"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.07",
+          "weekday": "周三",
+          "time": "07:28",
+          "text": "2026.10.07（周三）07:28",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.06",
+          "weekday": "周二",
+          "time": "16:28",
+          "text": "2026.10.06（周二）16:28",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2107603154699173997",
       "account": "thsottiaux",
@@ -10451,59 +10495,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2101124031567262054",
-      "account": "thsottiaux",
-      "text": "i'm so dev for hype day",
-      "createdAt": "2026-09-19T01:39:40.000Z",
-      "url": "https://x.com/thsottiaux/status/2101124031567262054",
-      "reasons": [
-        "上下文：回复 @pvncher「Im so hype for dev day…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "pvncher",
-        "id": "",
-        "text": "Im so hype for dev day"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.19",
-          "weekday": "周六",
-          "time": "09:39",
-          "text": "2026.09.19（周六）09:39",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.18",
-          "weekday": "周五",
-          "time": "18:39",
-          "text": "2026.09.18（周五）18:39",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 291,
+    "scanned": 292,
     "explicit": 0,
     "occurred": 7,
     "hint": 41,
-    "none": 237,
-    "rejected": 237
+    "none": 238,
+    "rejected": 238
   },
   "truncated": true
 }
