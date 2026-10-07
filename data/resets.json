@@ -1,6 +1,14 @@
 {
   "records": [
     {
+      "id": "2107676072871600470",
+      "announced_at": "2026-10-07T03:35:09.000Z",
+      "type": "reset",
+      "text": "We shipped four things that were deemed good to great and some math proofs, but the vote is clear and the community demands a reset. I did calibrate it and it *seems* that the game is rigged in reset's favor, but such are the rules at the moment.\n\nTherefore ... the reset has been https://t.co/mHSI0Pcu4M",
+      "url": "https://x.com/thsottiaux/status/2107676072871600470",
+      "attribution": "codex-resets.com"
+    },
+    {
       "id": "2106131810921136451",
       "announced_at": "2026-10-02T21:18:48.000Z",
       "type": "reset",
@@ -466,5 +474,5 @@
     }
   ],
   "bootstrapped_at": "2026-09-20T08:17:13.018Z",
-  "refreshed_at": "2026-10-07T02:35:33.396Z"
+  "refreshed_at": "2026-10-07T03:41:14.382Z"
 }

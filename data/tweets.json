@@ -1,6 +1,79 @@
 {
   "tweets": [
     {
+      "id": "2107676900894417277",
+      "text": "It ended well",
+      "created_at": "2026-10-07T03:38:26.000Z",
+      "url": "https://x.com/thsottiaux/status/2107676900894417277",
+      "inReplyTo": {
+        "account": "ForwardEditor",
+        "id": "",
+        "text": "This will never end well LOL feels like even if a day goes incredibly, this is like asking whether you'd like 1 cookie or 0 cookies",
+        "created_at": "2026-10-06T22:41:20.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-07T03:41:40.733Z"
+    },
+    {
+      "id": "2107676653895967106",
+      "text": "Also! Good evening!!",
+      "created_at": "2026-10-07T03:37:27.000Z",
+      "url": "https://x.com/thsottiaux/status/2107676653895967106",
+      "inReplyTo": {
+        "account": "ForwardEditor",
+        "id": "",
+        "text": "This will never end well LOL feels like even if a day goes incredibly, this is like asking whether you'd like 1 cookie or 0 cookies",
+        "created_at": "2026-10-06T22:41:20.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-07T03:41:40.733Z"
+    },
+    {
+      "id": "2107676261099426030",
+      "text": "And we won't unship the improvements. You get to have your cake and eat it too. See you tomorrow for Day 3!",
+      "created_at": "2026-10-07T03:35:54.000Z",
+      "url": "https://x.com/thsottiaux/status/2107676261099426030",
+      "inReplyTo": {
+        "account": "ForwardEditor",
+        "id": "",
+        "text": "This will never end well LOL feels like even if a day goes incredibly, this is like asking whether you'd like 1 cookie or 0 cookies",
+        "created_at": "2026-10-06T22:41:20.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-07T03:41:40.733Z"
+    },
+    {
+      "id": "2107676072871600470",
+      "text": "We shipped four things that were deemed good to great and some math proofs, but the vote is clear and the community demands a reset. I did calibrate it and it *seems* that the game is rigged in reset's favor, but such are the rules at the moment. Therefore ... the reset has been https://t.co/mHSI0Pcu4M",
+      "created_at": "2026-10-07T03:35:09.000Z",
+      "url": "https://x.com/thsottiaux/status/2107676072871600470",
+      "inReplyTo": {
+        "account": "ForwardEditor",
+        "id": "",
+        "text": "This will never end well LOL feels like even if a day goes incredibly, this is like asking whether you'd like 1 cookie or 0 cookies",
+        "created_at": "2026-10-06T22:41:20.000Z",
+        "url": ""
+      },
+      "text_full": true,
+      "kind": "reset",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-07T03:41:40.733Z"
+    },
+    {
       "id": "2107647946032664948",
       "text": "Or it will end very well?",
       "created_at": "2026-10-07T01:43:23.000Z",
@@ -4793,7 +4866,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-07T02:35:50.802Z",
+  "updated_at": "2026-10-07T03:41:40.734Z",
   "source": "browser",
-  "coverage_since": "2026-10-01T21:18:48.000Z"
+  "coverage_since": "2026-10-06T03:35:09.000Z"
 }
