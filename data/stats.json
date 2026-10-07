@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-07T03:35:09.000Z",
     "last_text": "We shipped four things that were deemed good to great and some math proofs, but the vote is clear and the community demands a reset. I did calibrate it and it *seems* that the game is rigged in reset's favor, but such are the rules at the moment.\n\nTherefore ... the reset has been https://t.co/mHSI0Pcu4M",
-    "days_since_last": 0.13584454861111112,
+    "days_since_last": 0.2674094675925926,
     "avg_interval_days": 6.637599177841634,
     "median_interval_days": 3.216273148148148,
     "sd_interval_days": 10.877260568160736,
@@ -14,7 +14,7 @@
     "reset_count": 53,
     "hit_within_avg": 0.6896551724137931
   },
-  "generated_at": "2026-10-07T06:50:46.120Z",
+  "generated_at": "2026-10-07T10:00:13.315Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
@@ -24,9 +24,9 @@
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 1,
-      "harvested": 3,
-      "withContext": 3,
+      "steps": 2,
+      "harvested": 6,
+      "withContext": 6,
       "authorsMissing": 0
     },
     "replyError": null,
@@ -48,7 +48,7 @@
     "added": 0,
     "updated": 0,
     "upstreamCount": 58,
-    "refreshedAt": "2026-10-07T06:50:32.955Z",
+    "refreshedAt": "2026-10-07T09:59:59.102Z",
     "error": null,
     "changed": false,
     "patchedTexts": 0
