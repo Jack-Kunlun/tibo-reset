@@ -1,6 +1,42 @@
 {
   "tweets": [
     {
+      "id": "2107647946032664948",
+      "text": "Or it will end very well?",
+      "created_at": "2026-10-07T01:43:23.000Z",
+      "url": "https://x.com/thsottiaux/status/2107647946032664948",
+      "inReplyTo": {
+        "account": "ForwardEditor",
+        "id": "",
+        "text": "This will never end well LOL feels like even if a day goes incredibly, this is like asking whether you'd like 1 cookie or 0 cookies",
+        "created_at": "2026-10-06T22:41:20.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-07T02:35:50.801Z"
+    },
+    {
+      "id": "2107647667925135663",
+      "text": "This is how quickly *Steven* moves",
+      "created_at": "2026-10-07T01:42:16.000Z",
+      "url": "https://x.com/thsottiaux/status/2107647667925135663",
+      "inReplyTo": {
+        "account": "stevenheidel",
+        "id": "",
+        "text": "here's how quickly we move at @OpenAI : Sept 22 - initial Decisions API prototype Sept 29 - DevDay announcement today - launch 🚀 just two weeks from local demo to public launch",
+        "created_at": "2026-10-06T22:15:07.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-07T02:35:50.801Z"
+    },
+    {
       "id": "2107628890550399465",
       "text": "It does",
       "created_at": "2026-10-07T00:27:40.000Z",
@@ -70,7 +106,21 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-10-06T23:17:23.229Z"
+      "first_seen": "2026-10-06T23:17:23.229Z",
+      "poll": {
+        "options": [
+          {
+            "text": "👌 (great release)",
+            "pct": 19.9
+          },
+          {
+            "text": "🫨 (needs a reset)",
+            "pct": 80.1
+          }
+        ],
+        "totalVotes": 28471,
+        "status": "28,471 次投票 · 最终结果"
+      }
     },
     {
       "id": "2107597780352950624",
@@ -257,7 +307,7 @@
       "text": "Four updates or a reset. Or both. How was day 2.",
       "created_at": "2026-10-06T21:07:55.000Z",
       "url": "https://x.com/thsottiaux/status/2107578625419866469",
-      "kind": "reset",
+      "kind": "other",
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
@@ -297,7 +347,21 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-06T21:11:49.454Z"
+      "first_seen": "2026-10-06T21:11:49.454Z",
+      "poll": {
+        "options": [
+          {
+            "text": "👌(good day)",
+            "pct": 24
+          },
+          {
+            "text": "🫨 (needs a reset)",
+            "pct": 76
+          }
+        ],
+        "totalVotes": 74565,
+        "status": "74,565 次投票 · 最终结果"
+      }
     },
     {
       "id": "2107575657014468879",
@@ -4729,7 +4793,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-07T01:26:46.564Z",
+  "updated_at": "2026-10-07T02:35:50.802Z",
   "source": "browser",
   "coverage_since": "2026-10-01T21:18:48.000Z"
 }
