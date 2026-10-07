@@ -224,26 +224,26 @@ const PRECISION_TEXT = {
  * 没有预告时兜底。
  */
 /**
- * 留档触顶提示（`truncated`）。**必须两条渲染路径都带上** —— 早退那条
- * （本轮一个信号都没有）原先把它整个吞掉，于是「什么都没检测到 + 留档触顶」
- * 就成了静默截断，正好是 AGENTS.md 那条红线的反面。
+ * ⚠ 这一区**不再**显示「留档超出上限」提示（2026-10-07 撤掉，见 decisions.md D-039）。
  *
- * 文案只列**真触顶**的列表，写成「保留 X / 共 Y」，并点明保留的是最近的那批。
- * 旧版把两个**不同列表**的长度并排写成「只保留了前 9 / 60 条」—— 9 是 hints
- * （那一轮并没触顶，9 条全在）、60 是 rejected（触顶）。读起来像「60 条里只留了
- * 9 条」，与事实无关，读者会据此以为留档被砍掉了六分之五。
+ * 它原先是一个 `truncationNote(sig)`：`truncated` 为真时渲染一行
+ * 「留档超出上限 · 排除项保留了最近的 200 / 共 241 条」，动机是不许静默截断。
+ * 但那条红线的落点在**数据** —— AGENTS.md 只要求「`hints` / `rejected` 触顶会置
+ * `truncated: true`」，由检测层（`detectSignals`）与采集日志负责，从没要求页面复述。
+ *
+ * 页面复述它有两处说不通：
+ *   1) 它报的 `rejected`（排除项）**两端都不渲染**。向读者汇报一份他看不见的档案的
+ *      容量，读者既无法核对也无法行动，只会把它读成故障 —— 它长得本来就象状态栏，
+ *      还紧挨着真正的状态行（「时间窗内 … 没有检测到重置预告」）。
+ *   2) 措辞是**档案口径**（「保留了最近的 200 条」）。即便换成 `hints`（页面确实用到），
+ *      页面展示的也是 **0 或 1 条**线索、从不展示 200 条 —— 「保留多少条」是档案的属性，
+ *      不是视图的属性。视图该保证的是**它自己给出的数字是真的**：闲时那行的线索数
+ *      已改用 `counts.hint`（未截断的真实条数），见下面那段。
+ *
+ * 而且触发面在扩大：`rejected` 于 2026-10-05/06 之间越过 200（D-019 当时按
+ * 「62 条 / 60 天」外推，预估要 194 天，实际 **13 天**），因为它随**窗内推文量**走
+ * 而不是随天数走（`scanned` 从 90 涨到 295）。所以这行提示一旦出现就是**常驻**的。
  */
-function truncationNote(sig) {
-  if (!sig?.truncated) return '';
-  const bits = [];
-  const note = (kept, all, label) => {
-    if (all > kept) bits.push(`${label}保留了最近的 ${kept} / 共 ${all} 条`);
-  };
-  note((sig.hints ?? []).length, sig.counts?.hint ?? 0, '线索');
-  note((sig.rejected ?? []).length, sig.counts?.rejected ?? 0, '排除项');
-  if (!bits.length) return '';
-  return `<div class="sig-idle"><span class="sig-dot"></span><span>留档超出上限 · ${bits.join(' · ')}</span></div>`;
-}
 
 /**
  * 每日重置窗口：他宣布「未来 N 天里每天要么发一个改进、要么给一次完整重置」。
@@ -310,11 +310,12 @@ export function renderSignal(sig) {
     if (h) blocks.push(hintBlock(h, sig, now));
   }
 
-  // 留档触顶提示要在**两条路径**上都出现（含下面那条早退），理由见 truncationNote。
-  const truncNote = truncationNote(sig);
-
   if (!blocks.length) {
-    const hints = (sig.hints ?? []).length;
+    // 线索数必须取 `counts.hint`（**未截断的真实条数**），不能取 `hints.length`。
+    // 后者是 `slice(0, MAX_LISTED)` 之后的长度 —— 一旦留档触顶，这行就会把
+    // 「260 条线索」悄悄写成「200 条线索」。这正是本仓库最忌讳的那类错：
+    // 不报错、不崩溃，只让页面上的数字变小，而没人会去复核。
+    const hints = sig.counts?.hint ?? (sig.hints ?? []).length;
     const extra = hints ? `，${hints} 条线索` : '';
     // 时间窗起点是 ISO 串，必须走格式化。此前这里写的是 `.slice(0, 10)` ——
     // 那切的是 **UTC** 日期（起点落在 UTC 16:00–24:00 时会比北京日期**早一天**），
@@ -329,10 +330,8 @@ export function renderSignal(sig) {
       <span class="sig-dot"></span>
       <span>时间窗内 <b>${sig.checkedTweets}</b> 条推文中没有检测到重置预告${extra}</span>
 ${fromLine}
-    </div>${truncNote}`;
+    </div>`;
   }
-
-  if (truncNote) blocks.push(truncNote);
 
   return prog + blocks.join('');
 }

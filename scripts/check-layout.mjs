@@ -1,14 +1,20 @@
 #!/usr/bin/env node
 /**
  * 验收 A7：窄屏（≤500px）无横向溢出。
+ * 验收 A7b：相邻两个带边框的块之间不得贴线（顶栏下边框尤其）。
  *
  * 为什么不能只用 `--window-size`：无头 Chrome 有最小窗口宽度（实测约 485px），
  * 给 `--window-size=320,800` 它也只按 ~485px 排版 —— 量出来的是假象，不是 320px 的真相。
  * 这里改用 **iframe 固定宽度**：iframe 的视口宽度就等于它的 CSS 宽度，
  * 媒体查询按真实窄屏生效，量到的 scrollWidth 才有意义。
  *
- * 判据只有一条：`scrollWidth <= clientWidth`。溢出 1px 也算失败 ——
+ * A7 判据：`scrollWidth <= clientWidth`。溢出 1px 也算失败 ——
  * 手机上的横向滚动条就是这么来的。
+ *
+ * A7b 判据：两块**各自带边框**的块之间的间距 ≥ `SEAM_MIN`。加这一条是因为横向
+ * 溢出查不出「纵向贴线」：`.sig-prog` 的 `margin-top` 漏写时横向一切正常，
+ * 只是它的上边框和顶栏那条 1px 线叠在了一起（2026-10-07 线上实况）。
+ * 两者都是「真实渲染 + 真几何」，所以放在同一个探针里，只多几行。
  *
  * 用法：node scripts/check-layout.mjs [--json]
  */
@@ -36,6 +42,18 @@ const CHROME_CANDIDATES = [
 /** 目标宽度：覆盖到常见最窄机型（320）到平板竖屏 */
 const WIDTHS = [320, 360, 375, 390, 414, 500, 768];
 
+/**
+ * A7b 的最小可见间距（px）。
+ *
+ * 两块**各自带边框**的块贴在一起时，两条 1px 线会叠成一条粗细不均的线 ——
+ * 2026-10-07 线上就是这样：信号区的第一块（`.sig-prog`）`margin-top` 为 0，
+ * 它的上边框正好压在顶栏 `header.top` 的下边框上，看起来像顶栏那条线被加粗了。
+ *
+ * 阈值取 8 而不是「> 0」：差 1–2px 的两条线读起来仍然是一条。现网同族的实际取值
+ * 是 12 / 22 / 26，所以 8 是个下限，不是目标值。
+ */
+const SEAM_MIN = 8;
+
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.png': 'image/png',
@@ -48,6 +66,7 @@ const PROBE = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><ti
 <div id="host"></div><pre id="result">pending</pre>
 <script>
 var WIDTHS = ${JSON.stringify(WIDTHS)};
+var SEAM_MIN = ${SEAM_MIN};
 var host = document.getElementById('host');
 var frames = WIDTHS.map(function (w) {
   var f = document.createElement('iframe');
@@ -92,6 +111,39 @@ Promise.all(frames.map(function (f) {
           });
         }
       }
+      // A7b：wrap 的直接子元素里，相邻两个**各自带边框**的块之间必须有可见间距。
+      // 只查这一种组合：hero 这类无边框块靠 padding 撑开、与上一块的间距本来
+      // 就是 0，按「所有兄弟都得有间距」写会立刻误报。零高度的隐藏块（未出现的
+      // 采集异常条）要跳过，并且要**继续往前找**上一个可见兄弟 —— 否则它会挡在
+      // header 与首块之间，把这个 bug 正好遮掉。
+      var seams = [];
+      var wrapEl = d.querySelector('.wrap');
+      if (wrapEl) {
+        var kids = wrapEl.children;
+        for (var i = 0; i < kids.length; i++) {
+          var k = kids[i];
+          var kr = k.getBoundingClientRect();
+          if (kr.bottom - kr.top <= 0) continue;
+          if ((parseFloat(getComputedStyle(k).borderTopWidth) || 0) <= 0) continue;
+          var pv = k.previousElementSibling;
+          var pr = null;
+          while (pv) {
+            var t = pv.getBoundingClientRect();
+            if (t.bottom - t.top > 0) { pr = t; break; }
+            pv = pv.previousElementSibling;
+          }
+          if (!pv || !pr) continue;
+          if ((parseFloat(getComputedStyle(pv).borderBottomWidth) || 0) <= 0) continue;
+          var gap = Math.round(kr.top - pr.bottom);
+          if (gap < SEAM_MIN) {
+            seams.push({
+              prev: pv.tagName.toLowerCase() + '.' + String(pv.className || '').slice(0, 22),
+              next: k.tagName.toLowerCase() + '.' + String(k.className || '').slice(0, 22),
+              gap: gap,
+            });
+          }
+        }
+      }
       return {
         w: Number(f.getAttribute('data-w')),
         scrollW: de.scrollWidth,
@@ -99,6 +151,7 @@ Promise.all(frames.map(function (f) {
         bodyScrollW: d.body.scrollWidth,
         worst: worst,
         inner: inner,
+        seams: seams,
       };
     });
     document.getElementById('result').textContent = JSON.stringify(out);
@@ -282,4 +335,22 @@ if (innerAgg.size) {
     console.log(`  · <${it.tag} class="${it.cls}"> ×${n} 处  最大超出 ${it.over}px  触发宽度 ${ws.join(', ')}px`);
   }
 }
+
+/* ------------------------------ A7b：贴线 ------------------------------ */
+
+console.log(`\n【A7b】相邻带边框的块不得贴线（间距需 ≥ ${SEAM_MIN}px）\n`);
+let seams = 0;
+for (const r of results) {
+  const bad = r.seams ?? [];
+  for (const s of bad) seams++;
+  console.log(
+    `  ${bad.length ? '✗' : '✓'} ${String(r.w).padStart(3)}px  ` +
+      (bad.length ? bad.map((s) => `${s.prev} → ${s.next} 间距 ${s.gap}px`).join('；') : `全部间距达标`)
+  );
+}
+if (seams) {
+  console.log(`\n✗ ${seams} 处贴线。给下面那一块补上 margin-top（同族现有取值 12 / 22 / 26px）。`);
+  process.exit(1);
+}
+console.log(`\n✓ ${results.length} 个宽度均无贴线的相邻边框块`);
 

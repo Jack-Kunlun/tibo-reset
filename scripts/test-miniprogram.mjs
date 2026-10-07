@@ -1216,6 +1216,49 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
   );
 }
 
+/* --------------------- 13g. 顶栏正下方那一块不能贴线 --------------------- */
+
+/* 与 13e / 13f 同类：wxml 与 wxss 在 Node 里渲染不了，但「有没有留出上边距」查得出来。
+ * 端上 `.top` 自带 1rpx 下边框（app.wxss），而 `.prog` 是它下面的第一个元素
+ * （`notice` 不存在时）。margin-top 为 0 时它的上边框正好压在顶栏那条线上，两条 1rpx
+ * 叠成一条 —— 网页端 2026-10-07 线上就是这个毛病，端上是同一套结构、同一个错法。
+ * 网页端已由 `scripts/check-layout.mjs` 的 A7b 用**真实几何**盯住；端上量不到几何，
+ * 退一步钉住「margin-top 非 0、且与同族同值」，至少挡住「又变回 0」。
+ * ⚠ 这是形状级断言，不是几何断言，别把它当成 A7b 的等价物。 */
+{
+  const wxssIndex = await readFile(resolve(ROOT, 'miniprogram/pages/index/index.wxss'), 'utf8');
+  /* 同一个选择器在文件里可能有好几条规则（`.sig` 既有一条 `animation-delay`、
+   * 又有一条真正设尺寸的），所以不能只取第一条匹配 —— 那会读到 `animation-delay`
+   * 那条、拿不到边距。这里遍历该选择器的**全部**规则，取第一条真带边距的。
+   * 边距可能写成 `margin-top`，也可能被收进 `margin` 简写的第一位，两种都认。 */
+  const topMarginOf = (selEscaped) => {
+    const rules = wxssIndex.match(new RegExp('^' + selEscaped + '\\s*\\{[^}]*\\}', 'gm')) ?? [];
+    for (const r of rules) {
+      const long = r.match(/margin-top:\s*(-?[\d.]+)rpx/);
+      if (long) return Number(long[1]);
+      // 简写只取第一位的数值即可，**不要**要求数值后面紧跟 `rpx` ——
+      // `margin: 0 0 20rpx` 这类写法会让正则匹配不上、报出 `NaNrpx` 这种难读的失败信息。
+      const short = r.match(/margin:\s*(-?[\d.]+)/);
+      if (short) return Number(short[1]);
+    }
+    return NaN;
+  };
+  const hasRule = (selEscaped) => new RegExp('^' + selEscaped + '\\s*\\{', 'm').test(wxssIndex);
+
+  const progMT = topMarginOf('\\.prog');
+  check(
+    '.prog 有上边距（0 会让上边框压在顶栏下边框上）',
+    hasRule('\\.prog') && progMT >= 8,
+    hasRule('\\.prog') ? `margin-top=${progMT}rpx` : '（index.wxss 里没有 .prog 规则）'
+  );
+  const kin = [topMarginOf('\\.sig-idle'), topMarginOf('\\.sig')];
+  check(
+    '.prog 的上边距与同族（.sig / .sig-idle）一致',
+    kin.every((v) => Number.isFinite(v)) && kin.every((v) => v === progMT),
+    `.prog=${progMT} · .sig-idle=${kin[0]} / .sig=${kin[1]}`
+  );
+}
+
 /* ------------------------------ 结果 ------------------------------ */
 
 console.log(`\n${'─'.repeat(52)}`);

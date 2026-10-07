@@ -1367,6 +1367,69 @@ console.log('\n【12】每日重置窗口');
   check('没有该字段时不渲染窗口块', !none.includes('sig-prog'), none.slice(0, 60));
 }
 
+/* ==================== 13. 留档触顶：数据里标记，页面上不复述 ==================== */
+
+console.log('\n【13】留档触顶（D-039）：页面上不再出现，数字仍然是真数');
+
+/* 这一节存在的理由：那行提示**曾经**在页面上（「留档超出上限 · 排除项保留了最近的
+ * 200 / 共 241 条」），而它报的 `rejected` **两端都不渲染** —— 向读者汇报一份他看不见
+ * 的档案的容量。撤掉之后要钉住两件事，否则下一个人很容易顺手加回来：
+ *   ① 页面上不许再出现这行（含「保留了最近的」这种档案口径）；
+ *   ② **留下来的那个数字必须是真的** —— 闲时那行的线索数改用 `counts.hint`（未截断的
+ *      真实条数）。这一条比 ① 更要紧：① 只是少一行提示，② 错了就是页面上的数字变小，
+ *      不报错、不崩溃，正是本仓库反复吃亏的那类问题。 */
+{
+  const base = {
+    level: 'none',
+    generatedAt: '2026-10-07T01:26:46.566Z',
+    checkedTweets: 295,
+    windowFrom: '2026-08-08T01:26:46.566Z',
+    forecasts: [],
+    hints: [],
+    rejected: [],
+    counts: { hint: 0, rejected: 0 },
+  };
+  const bulk = (n, pre) =>
+    Array.from({ length: n }, (_, i) => ({
+      id: `${pre}-${i}`,
+      text: 'just a random thought',
+      createdAt: new Date(Date.parse('2026-10-07T01:00:00.000Z') - i * 3_600_000).toISOString(),
+    }));
+
+  // 线上实况：排除项 241 条、只留 200（2026-10-07 的 data/signal.json）
+  const capped = renderSignal({
+    ...base,
+    truncated: true,
+    rejected: bulk(200, 'r'),
+    counts: { hint: 0, rejected: 241 },
+  });
+  check('排除项触顶时，页面不再提「留档超出上限」', !capped.includes('留档超出上限'), capped.slice(0, 110));
+  check(
+    '也不再出现「保留了最近的 X / 共 Y 条」这种档案口径',
+    !/保留了最近的/.test(capped),
+    capped.slice(0, 110)
+  );
+  // 反例的另一半：撤掉提示不等于把那一块整个删掉，空状态那行必须还在
+  check('空状态那一行本身仍在（不是整块消失）', capped.includes('没有检测到重置预告'), capped.slice(0, 110));
+
+  // 线索触顶：列表只留 200，但页面上那个数必须是真实总数 260
+  const hintsCapped = renderSignal({
+    ...base,
+    truncated: true,
+    hints: bulk(200, 'h'),
+    counts: { hint: 260, rejected: 0 },
+  });
+  check(
+    '线索触顶时页面报真实总数 260（不是保留数 200）',
+    hintsCapped.includes('260 条线索') && !hintsCapped.includes('200 条线索'),
+    (hintsCapped.match(/\d+ 条线索/) ?? ['(没渲染出线索数)'])[0]
+  );
+
+  // 对照：未触顶时两个数本来就相等 —— 证明上一条不是恒绿
+  const normal = renderSignal({ ...base, hints: bulk(43, 'h'), counts: { hint: 43, rejected: 0 } });
+  check('对照：未触顶时报 43', normal.includes('43 条线索'), (normal.match(/\d+ 条线索/) ?? ['(无)'])[0]);
+}
+
 /* ================================ 结果 ================================ */
 
 console.log(`\n${'─'.repeat(56)}`);

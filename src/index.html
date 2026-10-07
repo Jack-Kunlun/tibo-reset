@@ -140,7 +140,16 @@
   /* ---------- 每日重置窗口（跨多日的持续规则，不是某一天的预告） ---------- */
   /* 视觉上刻意比 .sig（预告块）轻：预告才是页首最大视觉重量，这条是补充事实。
      左边那道 3px 岚青是唯一的强调，用来把它和下面那片灰底卡片区分开。 */
-  .sig-prog{margin:0 0 14px;padding:12px 14px;background:var(--paper2);
+  /* 上边距**不能省**。顶栏（`header.top`）自带 1px 下边框，而这块是信号区的第一个
+     元素（模板里由 SIGNAL 那个占位符填入、紧跟在 header 之后）。margin-top 为 0 时
+     它的上边框正好压在顶栏那条线上，两条 1px 叠成一条 —— 实测 2026-10-07 线上就是这样。
+     取值与 `.sig-idle` 同为 22px：两者都是浅色补充卡，同屏出现时是 22 / 22 的均匀节奏。
+     （同族里 `.sig` 用的是 12px，所以 22 不是全族统一值，取的是**同量级**的那个。）
+     ⚠ 这条约束已进验收：`scripts/check-layout.mjs` 的 A7b 会量「相邻两个有边框的块
+     之间必须有可见间距」，改回 0 会直接变红。
+     ⚠ 注释里**不许原样写出占位符**（连注释标记一起）—— `injectTokens` 只替换第一处，
+     页脚那道「有占位符没被替换」的检查会因此报错。 */
+  .sig-prog{margin:22px 0 14px;padding:12px 14px;background:var(--paper2);
     border:1px solid var(--line);border-left:3px solid var(--lan);border-radius:10px}
   .sp-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
   .sp-tag{font-size:11.5px;font-weight:600;color:var(--lan);letter-spacing:.04em}

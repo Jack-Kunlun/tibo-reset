@@ -318,6 +318,12 @@ HTTP 200 / 213KB 完整页面 / 4 次重试全中；runner（AWS）403 挑战页
   没有 all，就被判成 `other`。
 - **不许静默截断**。`signals` / `occurred` 全量保留；`hints` / `rejected` 有上限
   （`MAX_LISTED`，2026-09-22 由 60 提到 200）但触顶会置 `truncated: true`。
+  ⚠ 「不静默」的落点是**数据 + 采集日志**，**不是页面**（2026-10-07，D-039）：`truncated`
+  与 `counts.rejected` / `counts.hint` 写进 `data/signal.json`，`scripts/collect.mjs`
+  另打一行 `⚠ 留档触顶：…`。**页面不许复述它** —— 曾经那行是
+  「留档超出上限 · 排除项保留了最近的 200 / 共 241 条」，而 `rejected` 两端都不渲染，
+  等于向读者汇报一份他看不见的档案的容量。页面上凡是**展示出来的计数**必须是未截断的
+  真实条数（取 `counts.*`），不许用被 `slice` 过的列表长度 —— 那是「不报错的错数字」。
   上限按**倒序**截取，触顶时丢的是**最旧**的几条。对 `rejected` 而言这个方向是安全的：
   带重置结论的推文走 `explicit` / `occurred`，而那两类不设上限。（早先的注释把
   「09-12 那条 `A reset` 被截断」记成这里的锅 —— 实测它在 `occurred` 档，从不进 `rejected`。）
@@ -552,7 +558,7 @@ node scripts/test-secrets.mjs       # 证书/私钥进不了 git、也进不了�
 node scripts/test-ship.mjs          # 发布脚本：目标架构是 amd64、服务器侧不走 git、$var 不紧跟中文、apt 源可按环境切换
 node scripts/test-history.mjs       # 历史每轮刷新（不能冻结）+ 长推文正文回填（截断在 ~280 字符）
 node scripts/check-consistency.mjs  # A3：页面数字 ↔ API
-node scripts/check-layout.mjs       # A7：窄屏横向溢出（需要 Chrome）
+node scripts/check-layout.mjs       # A7 窄屏横向溢出 + A7b 相邻带边框的块不得贴线（需要 Chrome）
 node scripts/check-history-secrets.mjs  # 🔴 全历史扫敏感信息（只看已提交的，不是工作区；浅克隆会显式跳过）
 node scripts/diagnose.mjs           # 复现全部回测与校准数字
 ```
@@ -586,6 +592,15 @@ DOM 早就完整写进 stdout 了，主进程却一直挂着（曾因此空转 2
 **看起来像溢出其实不是**。要测真正的窄屏，用 **iframe 固定宽度** ——
 iframe 的视口宽度就等于它的 CSS 宽度，媒体查询会按真实窄屏生效。
 `scripts/check-layout.mjs` 就是这么做的，判据是 `documentElement.scrollWidth ≤ clientWidth`。
+
+**坑三：纵向的「贴线」横向判据查不出来（A7b）。** 两块**各自带边框**的块贴在一起时，
+两条 1px 线会叠成一条粗细不均的线 —— 2026-10-07 线上就是这样：信号区第一块
+（`.sig-prog`）漏了 `margin-top`，它的上边框正好压在顶栏 `header.top` 的下边框上。
+这种 bug 存在时**横向一切正常**，所以同一个探针里多量一条：`.wrap` 的直接子元素中，
+**两块都带边框**时它们的间距必须 ≥ 8px。只查这一种组合 —— `.hero` 这类无边框块靠
+padding 撑开、与上一块的间距本来就是 0，按「所有兄弟都得有间距」写会立刻误报；
+零高度的隐藏块（未出现的采集异常条）要跳过，并且要**继续往前找**上一个可见兄弟，
+否则它会挡在 header 与首块之间把这个 bug 遮掉。
 
 截图（本机有 Chrome，不需要装 Chromium）：
 

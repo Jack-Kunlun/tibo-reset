@@ -623,8 +623,11 @@
    左边那道 4rpx 岚青是唯一的强调，用来和下面那片白卡片区分开。
    窗口块直接复用 .win / .wrow / .wfoot —— 它们是顶层类名，不受 .sig 作用域限制，
    同一种形状（当地 + 北京两行）没有理由再画一遍。 */
+/* 上边距不能省：`.top` 自带 1rpx 下边框（见 app.wxss），而这块是它下面的第一个
+   元素（`notice` 不存在时）。margin-top 为 0 就会把上边框压在顶栏那条线上。
+   取值与 `.sig-idle` / `.sig` 同为 28rpx —— 端上这几块本来就是同一个数。 */
 .prog {
-  margin: 0 0 20rpx;
+  margin: 28rpx 0 20rpx;
   padding: 20rpx 24rpx;
   border-radius: 18rpx;
   border: 1rpx solid #E4DFD5;
