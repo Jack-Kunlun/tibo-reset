@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-07T19:29:08.947Z",
+  "generatedAt": "2026-10-07T20:32:01.042Z",
   "checkedTweets": 305,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-08T19:29:08.947Z",
-  "windowTo": "2026-10-07T19:29:08.947Z",
+  "windowFrom": "2026-08-08T20:32:01.042Z",
+  "windowTo": "2026-10-07T20:32:01.042Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.08",
       "weekday": "周四",
-      "time": "03:29",
-      "text": "2026.10.08（周四）03:29",
+      "time": "04:32",
+      "text": "2026.10.08（周四）04:32",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,8 +98,8 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.07",
       "weekday": "周三",
-      "time": "12:29",
-      "text": "2026.10.07（周三）12:29",
+      "time": "13:32",
+      "text": "2026.10.07（周三）13:32",
       "offset": "UTC-7"
     },
     "diffHours": 15,
@@ -1736,7 +1736,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-07T19:29:08.947Z"
+        "checkedAt": "2026-10-07T20:32:01.042Z"
       }
     },
     {
