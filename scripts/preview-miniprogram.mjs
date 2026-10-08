@@ -73,11 +73,14 @@ const v = makeVerdict(chart.pct);
 const metrics = buildMetrics(chart);
 const gauge = buildGauge(chart);
 const sig = buildSignal(signals);
-const forecast = buildForecast(prediction);
 // 预测总览的锚点取**预测自己的 asOf**，与 pages/index/index.js 的 apply() 同一口径。
 // 用 Date.now() 会得到一个和页面上「预测算于 X」对不上的 ETA。
 const predNow = Date.parse(prediction.asOf) || now;
 const pred = buildOutlookView(chart, prediction, signals, predNow);
+// ⚠ 依据卡要读 outlook 的判据（`checks`），所以必须先有 `pred` 才能算 `forecast`。
+//   反过来的顺序（先 forecast 再 pred）会让卡②底部那句结语落空 —— 这在页面上
+//   只表现为「少了一句总结」，不报错、不塌版，正是最难发现的那类不一致。
+const forecast = buildForecast(prediction, pred);
 // 倒计时文案走共享函数（页面每秒 tick 用的是同一个）—— 预览里各写一份，
 // 那句措辞就会与真机不一致，「预览通过」随即变成没有根据的话。
 const predCd = predCountdown(pred, now);
@@ -153,11 +156,13 @@ const predHtml = pred
    结构照 index.wxml 的那块逐句对齐 —— 预览是手写副本，不对齐就会给出一个真机上
    不存在的页面。
 
-   ⚠ 位置：`.pred` 之后、`sig` 之后再出现（2026-10-08 改版）。旧版它在最前，
-   于是首屏第一眼读到的是「规则」，而不是「下一次什么时候」。 */
+   ⚠ 位置：`.pred` → `.sig` → **预测依据** → 它（2026-10-08 两轮改版的结果）。
+   旧版它在全页最前，于是首屏第一眼读到的是「规则」而不是「下一次什么时候」；
+   中途挪到「信号之后」仍会探进首屏，最后落到「预测依据之后」。 */
 const progHtml = sig.program?.show
   ? `<div class="prog">
       <div class="prog-head">
+        <div class="ico ico-cal"></div>
         <span class="prog-tag">每日重置窗口</span>
         <span class="prog-left">共 <span class="n">${esc(sig.program.days)}</span> 天 · 还剩 <span class="n">${esc(sig.program.daysLeft)}</span> 天</span>
       </div>
@@ -237,7 +242,14 @@ const signalHtml = sig.show
         ${sig.reason ? `<span>判定依据：${esc(sig.reason)}</span>` : ''}
       </div>
     </div>`
-  : `<div class="sig-idle"><span class="idot"></span><span>最近 <b>${sig.checked}</b> 条推文中没有检测到重置预告</span><span class="isub">已扫描 ${sig.lookback} 天内的公开发言</span></div>`;
+  : `<div class="sig-idle">
+      <div class="idle-ico"></div>
+      <div class="idle-body">
+        <div class="idle-t">最近 <b>${sig.checked}</b> 条推文中没有检测到重置预告</div>
+        ${sig.windowFrom ? `<div class="idle-sub">时间窗自 ${esc(sig.windowFrom)} 起</div>` : ''}
+      </div>
+      <span class="idle-go">›</span>
+    </div>`;
 
 const metricsHtml = metrics
   .map(
@@ -247,49 +259,60 @@ const metricsHtml = metrics
   )
   .join('');
 
+/* 预测依据：三张卡，各自独立成立。
+   ⚠ 这份 HTML 是**手写副本**，不是从 index.wxml 渲染出来的 —— 结构必须逐块对齐，
+   否则「预览通过」是一句没有根据的话（样式会自动跟随：wxss 是读原文件转的，
+   只有结构要手写）。判据用**带属性**的串（`class="bc-grid"` 这类），
+   只 grep `bc` 会命中 <style> 里的选择器、看起来「渲染好了」其实没有。 */
 const forecastHtml = forecast
-  ? `<div class="fc">
-      <div class="fc-main">
-        <div class="k">中位剩余等待</div>
-        <div class="v">${forecast.q50}<span class="u">${esc(forecast.q50Unit)}</span></div>
-        <div class="range">80% 区间 <span class="b">${esc(forecast.rangeText)}</span></div>
-      </div>
-      <div class="fc-bars">
-        ${forecast.bars
+  ? `<div class="bc-grid">
+
+      <div class="bc" data-bc="wait">
+        <div class="bc-h"><div class="ico ico-wait"></div><span class="bc-t">中位剩余等待</span></div>
+        <div class="bc-num"><span class="b">${forecast.wait.num}</span><span class="u">${esc(
+          forecast.wait.unit
+        )}</span></div>
+        <div class="bc-range">${esc(forecast.wait.range)}</div>
+        ${forecast.wait.bars
           .map(
             (b) =>
-              `<div class="bar"><span class="lb">${esc(b.label)}</span><div class="track"><div class="fill" style="width:${b.w}%"></div></div><span class="pv">${esc(
+              `<div class="bc-bar"><span class="lb">${esc(b.label)}</span><div class="track"><div class="fill" style="width:${b.w}%"></div></div><span class="pv">${esc(
                 b.pv
               )}</span></div>`
           )
           .join('')}
-        <div class="cal-tag">概率未经校准 · 实际发生率通常更高</div>
+        <div class="bc-note is-warn">${esc(forecast.wait.warn)}</div>
       </div>
-    </div>
-    <div class="card fc-meta">
-      <div class="fc-block">
-        <div class="bh">样本外回测 · n=${forecast.cal.n}</div>
-        ${forecast.cal.rows
+
+      <div class="bc" data-bc="backtest">
+        <div class="bc-h"><div class="ico ico-bars"></div><span class="bc-t">样本外回测</span></div>
+        <div class="bc-sub">n = ${forecast.backtest.n}（阈值 ≥ ${forecast.backtest.minN}）</div>
+        ${forecast.backtest.rows
           .map(
             (r) =>
-              `<div class="row"><span class="rk">${esc(r.k)}</span><span class="rv ${r.ok ? 'good' : 'bad'}">${esc(
-                r.v
-              )}</span><span class="rj">${esc(r.j)}</span></div>`
+              `<div class="bc-row"><span class="k">${esc(r.k)}</span><span class="v ${
+                r.ok ? 'good' : 'bad'
+              }">${esc(r.v)}</span><span class="j">${esc(r.j)}</span></div>`
           )
           .join('')}
+        <div class="bc-note" data-note="backtest">${esc(forecast.backtest.note)}</div>
       </div>
-      <div class="fc-block">
-        <div class="bh">节奏在加速</div>
-        ${forecast.phases
+
+      <div class="bc" data-bc="pace">
+        <div class="bc-h"><div class="ico ico-trend"></div><span class="bc-t">节奏在加速</span></div>
+        ${forecast.pace.phases
           .map(
             (p) =>
               `<div class="ph"><span class="pi">第 ${p.i} 段</span><span class="pt">${esc(p.from)} → ${esc(
                 p.to
-              )}</span><span class="pm">${p.mean}</span><span class="pn">n=${p.n} · 最大 ${p.max}</span></div>`
+              )}</span><span class="pm">${p.mean}<span class="u">${esc(p.unit)}</span></span><span class="pn">n=${
+                p.n
+              } · 最大 ${esc(p.max)}</span></div>`
           )
           .join('')}
-        <div class="bfoot">${esc(forecast.phaseSummary)}</div>
+        <div class="bc-note">${esc(forecast.pace.note)}</div>
       </div>
+
     </div>`
   : '';
 
@@ -331,27 +354,36 @@ ${normalize}
 
   ${signalHtml}
 
-  <div class="sec-head"><span class="t">预测依据</span></div>
+  <div class="sec-head"><span class="t">预测依据</span><span class="h">${esc(
+    forecast ? forecast.hint : ''
+  )}</span></div>
   ${forecastHtml}
 
   ${progHtml}
 
-  <div class="sec-head"><span class="t">重置通常发生在第几天</span><span class="h">n = ${chart.gapDays.length} 次历史间隔</span></div>
-  <div class="lede">横轴按区间等宽分档（不是按天数），纵轴是落在该档的次数。高亮那一档就是你当前所在的一档。</div>
-  <div class="card"><canvas id="hist" class="chart chart-hist"></canvas></div>
+  <div class="sec-head"><span class="t">历史规律</span><span class="h">n = ${chart.gapDays.length} 次历史间隔</span></div>
+  <div class="lede">三张图看的是同一批历史间隔：哪一档最容易发生、到第 X 天为止发生了多少、每次各是几天。</div>
+  <div class="lede lede-2">直方图横轴按区间等宽分档（不是按天数），纵轴是落在该档的次数；高亮那一档就是你当前所在的一档。</div>
 
-  <div class="sec-head"><span class="t">等待生存曲线</span><span class="h">n = ${chart.gapDays.length} 次历史间隔</span></div>
-  <div class="lede">纵轴是「到第 X 天为止，历史上百分之多少的重置已经发生」。你现在的位置标在曲线上。</div>
-  <div class="card"><canvas id="survival" class="chart chart-survival"></canvas></div>
+  <div class="hr-grid">
+    <div class="hr">
+      <div class="hr-h"><span class="hr-t">重置通常发生在第几天</span><span class="hr-n">n = ${chart.gapDays.length}</span></div>
+      <canvas id="hist" class="chart chart-hist"></canvas>
+    </div>
 
-  <div class="sec-head"><span class="t">每次间隔的离散分布</span></div>
-  <div class="lede">每一次重置到下一次重置的间隔天数。平均值被右侧的极端值拉高了。</div>
-  <div class="card">
-    <canvas id="strip" class="chart chart-strip"></canvas>
-    <div class="legend">
-      <div class="lg"><span class="sw sw-lan"></span>常规间隔</div>
-      <div class="lg"><span class="sw sw-mist"></span>偏长间隔</div>
-      <div class="lg"><span class="sw sw-cin"></span>极端长等待</div>
+    <div class="hr">
+      <div class="hr-h"><span class="hr-t">等待生存曲线</span><span class="hr-n">n = ${chart.gapDays.length}</span></div>
+      <canvas id="survival" class="chart chart-survival"></canvas>
+    </div>
+
+    <div class="hr">
+      <div class="hr-h"><span class="hr-t">每次间隔的离散分布</span><span class="hr-n">n = ${chart.gapDays.length}</span></div>
+      <canvas id="strip" class="chart chart-strip"></canvas>
+      <div class="legend">
+        <div class="lg"><span class="sw sw-lan"></span>常规间隔</div>
+        <div class="lg"><span class="sw sw-mist"></span>偏长间隔</div>
+        <div class="lg"><span class="sw sw-cin"></span>极端长等待</div>
+      </div>
     </div>
   </div>
 

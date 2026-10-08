@@ -138,15 +138,19 @@ Page({
     // 换了一批数据，倒计时的去重键必须作废 —— 否则新窗口的第一秒不会渲染
     this._pcdKey = null;
 
+    // 预测总览先算出来，随后的依据卡要读它的 `checks`（三项判据）与 `evidence`
+    // （阈值 / 重采样波动）——「过没过」只能有一份来源，所以这个顺序不能反。
+    const outlook = buildOutlookView(chart, state.prediction, state.signals, predNow);
+
     this.setData(
       {
         metrics: buildMetrics(chart),
         signal: buildSignal(state.signals),
         gauge: buildGauge(chart),
-        pred: buildOutlookView(chart, state.prediction, state.signals, predNow),
+        pred: outlook,
         // 直方图有没有东西可画。`total` 为 0 时不着 canvas —— 空白画布比没有画布更像故障
         histShow: Boolean(chart && chart.hist && chart.hist.total),
-        forecast: buildForecast(state.prediction),
+        forecast: buildForecast(state.prediction, outlook),
         survivalN: chart ? chart.gapDays.length : 0,
         genText: fmtDateTime(genTs),
         // 「观测中」后面是**当前北京时间**，由 tick 每秒推进（见 tick）。
@@ -374,6 +378,32 @@ Page({
    * ⚠ 只 setData 打开状态，**不重算 evidence** —— 列表随 signal 一起下发过了，
    *   重算会把每秒都在 ticking 的横幅整块触发重排。
    */
+  /**
+   * 提示条（「最近 N 条推文中没有检测到重置预告」）的落点。
+   *
+   * 它指向「已经等了多久」那一块 —— 没有预告时，读者下一个该看的正是那个数字
+   * （等了多久、在历史里算什么位置）。网页端是同一条信息走 `href="#elapsed"`；
+   * 小程序没有锚点链接，只能量出位置再滚过去。
+   *
+   * ⚠ 用 `exec()` 的**结果数组**一次取回矩形与滚动量，不要写在两个回调里各读一次 ——
+   *   `boundingClientRect` 的回调先执行，那时 `scrollOffset` 的结果还没到手，
+   *   拿到的是上一轮的值（首次点击时就是 0），算出来的目标位置会偏一屏。
+   */
+  onIdleTap() {
+    wx.createSelectorQuery()
+      .select('#elapsed')
+      .boundingClientRect()
+      .selectViewport()
+      .scrollOffset()
+      .exec((res) => {
+        const rect = res && res[0];
+        const scroll = res && res[1];
+        if (!rect) return;
+        const top = rect.top + ((scroll && scroll.scrollTop) || 0) - 16;
+        wx.pageScrollTo({ scrollTop: Math.max(0, top), duration: 240 });
+      });
+  },
+
   onToggleEv() {
     const s = this.data.signal;
     if (!s || !s.evCount) return;

@@ -886,21 +886,9 @@ function backtestCard(o, prediction) {
     ),
   ].join('');
 
-  // 结语必须**由判据算出来**，不能写死一句话。写死的那一天，某个指标不达标，
-  // 页面就会一边把置信度降成「低」、一边说「三项都在容差内」。
-  // 「有 N 项未达标」里的 N 也是数出来的 —— 两项同时不达标时，「有一项」就是假话。
-  const note =
-    o.etaKind === 'announced'
-      ? {
-          'hard-date': '依据来自公告本身，与上面这些模型统计无关 —— 他把时间说死到了具体时刻。',
-          'hard-vague': '依据来自公告本身，与上面这些模型统计无关 —— 但他只给到「一周内」这种粒度。',
-          'soft-only': '公告里只有模糊提及、没有把话说死，窗口是推定出来的，依据弱于前两档。',
-        }[o.confidenceReason] ?? '依据来自公告本身，与上面这些模型统计无关。'
-      : ck.failed
-        ? `样本量、覆盖率与重采样波动中有 ${ck.failed} 项未达标，置信度因此降为「${
-            o.confidenceLabel
-          }」。`
-        : `样本量、覆盖率与重采样波动都在容差内，置信度因此给出「${o.confidenceLabel}」。`;
+  // 结语由 `outlook.mjs` 的 `checks.note` 给出 —— 那句话的主语就是 `checks` 本身，
+  // 主语只能有一个来源（见 outlook.mjs 里那段注释）。这里只负责放进卡里。
+  const note = o.checks?.note ?? '';
 
   return `
   <div class="bc" data-bc="backtest">

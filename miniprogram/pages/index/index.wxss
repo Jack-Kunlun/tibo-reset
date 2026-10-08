@@ -739,42 +739,63 @@
   color: #3F7376;
 }
 
+/* ---------- 提示条：最近没有检测到预告 ---------- */
+/* 「没有预告」本身是一条信息，不是一个空状态。旧版是一条弱底色的状态行，读起来
+   像「这块坏了」；现在它是**可点的卡**：图标 + 主句 + 副行 + 箭头。
+   点它滚到「已经等了多久」—— 没有预告时，那正是下一个该看的数字（等多久了、
+   在历史里算什么位置）。落点见 index.js 的 onIdleTap。
+   ⚠ 箭头必须有落点：不指向任何地方的箭头是假的交互提示。 */
 .sig-idle {
   margin-top: 28rpx;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 12rpx;
-  padding: 22rpx 26rpx;
-  border-radius: 18rpx;
-  border: 1rpx solid #E4DFD5;
-  background: #FFFFFF;
-  font-size: 24rpx;
-  color: #4A4842;
+  gap: 22rpx;
+  padding: 26rpx 30rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid #EFE1C4;
+  background: #FBF4E6;
 }
 
-.sig-idle .idot {
-  width: 12rpx;
-  height: 12rpx;
+/* 喇叭图标走 `.ico` 家族同一套做法（base64 背景图），底色单独一档暖黄。 */
+.sig-idle .idle-ico {
+  flex: 0 0 auto;
+  width: 60rpx;
+  height: 60rpx;
   border-radius: 50%;
-  background: #B0ABA2;
-  /* 静默态也得有一点动静：它在说「我们还在扫」，不是在说「没数据」 */
-  animation: idleScan 2.6s ease-in-out infinite;
+  background: #F4E6C8 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNyIgaGVpZ2h0PSIxNyIgdmlld0JveD0iMCAwIDE4IDE4IiBmaWxsPSJub25lIj48cGF0aCBkPSJNMi42IDcuMWgyLjFsNy4xLTMuNXYxMC44TDQuNyAxMC45SDIuNkExLjIgMS4yIDAgMCAxIDEuNCA5LjdWOC4zYTEuMiAxLjIgMCAwIDEgMS4yLTEuMloiIHN0cm9rZT0iI0FGOUE2RSIgc3Ryb2tlLXdpZHRoPSIxLjM1IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHBhdGggZD0iTTUuNCAxMS40IDYuMSAxNC43YTEuMjUgMS4yNSAwIDAgMCAyLjQ1LS41bC0uMy0yLjMiIHN0cm9rZT0iI0FGOUE2RSIgc3Ryb2tlLXdpZHRoPSIxLjM1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMTQuMyA2LjQgMTUuNiA1LjRNMTQuNCA5LjZoMS42IiBzdHJva2U9IiNBRjlBNkUiIHN0cm9rZS13aWR0aD0iMS4zNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+") center / 30rpx 30rpx no-repeat;
 }
 
-@keyframes idleScan {
-  0%, 100% { opacity: 0.35; transform: scale(0.86); }
-  50%      { opacity: 1; transform: scale(1.1); }
+.sig-idle .idle-body {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.sig-idle .b {
+/* 两行都是块级：外层是 flex 项，里面若保持 inline 就不会换行，
+   副行会跟主句挤在同一行的尾巴上。 */
+.sig-idle .idle-t {
+  display: block;
+  font-size: 28rpx;
   font-weight: 620;
+  line-height: 1.45;
+  color: #4A3A18;
 }
 
-.sig-idle .isub {
-  font-size: 21rpx;
-  color: #8C8880;
-  margin-left: auto;
+.sig-idle .idle-t .b {
+  font-weight: 700;
+}
+
+.sig-idle .idle-sub {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #8B7548;
+}
+
+.sig-idle .idle-go {
+  flex: 0 0 auto;
+  font-size: 38rpx;
+  line-height: 1;
+  color: #C3A468;
 }
 
 /* ---------- 每日重置窗口（跨多日的持续规则，不是某一天的预告） ---------- */
@@ -797,12 +818,14 @@
   background: #F2EFE8;
 }
 
+/* `align-items:center` 而不是 `baseline`：这一行现在开头是个 52rpx 的图标方块，
+   `baseline` 对齐会让图标整体下沉半行。 */
 .prog-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   flex-wrap: wrap;
   gap: 12rpx;
-  margin-bottom: 10rpx;
+  margin-bottom: 12rpx;
 }
 
 .prog-tag {
@@ -845,202 +868,285 @@
   border-bottom: 1rpx dotted #3F7376;
 }
 
-/* ---------- 预测 ---------- */
+/* ---------- 图标片 ---------- */
+/* 小程序不能内联 `<svg>`，所以图标一律走 base64 背景图 —— 这是 wxss 里唯一可行的
+   写法（wxss 读不到本地图片路径，只有 base64 与网络图两种可选）。
+   ⚠ 颜色**写死在 svg 里**：网页端用 `currentColor` 跟随文字色，这里做不到。
+     所以每个图标只有一个用途、一种颜色，不要再拿它去配别的底色。
+   ⚠ 万一某个内核不渲染 SVG 背景图，这里退化成一个 52rpx 的浅青方块 ——
+     占位仍在、排版不塌、信息不丢。所以那层底色不能省。 */
+.ico {
+  flex: 0 0 auto;
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 16rpx;
+  background-color: rgba(63, 115, 118, 0.09);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 30rpx 30rpx;
+}
 
-.fc {
+.ico-wait  { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSIgdmlld0JveD0iMCAwIDE2IDE2IiBmaWxsPSJub25lIj48Y2lyY2xlIGN4PSI4IiBjeT0iOCIgcj0iNi4xIiBzdHJva2U9IiMzRjczNzYiIHN0cm9rZS13aWR0aD0iMS4zNSIvPjxwYXRoIGQ9Ik04IDQuNlY4bDIuNCAxLjYiIHN0cm9rZT0iIzNGNzM3NiIgc3Ryb2tlLXdpZHRoPSIxLjM1IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz4="); }
+.ico-bars  { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSIgdmlld0JveD0iMCAwIDE2IDE2IiBmaWxsPSJub25lIj48cGF0aCBkPSJNMyAxMy4yVjkuOU02LjcgMTMuMlY2LjRNMTAuNCAxMy4yVjguOCIgc3Ryb2tlPSIjM0Y3Mzc2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTEzLjQgMTMuMlYzLjkiIHN0cm9rZT0iIzNGNzM3NiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgb3BhY2l0eT0iLjQiLz48L3N2Zz4="); }
+.ico-trend { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSIgdmlld0JveD0iMCAwIDE2IDE2IiBmaWxsPSJub25lIj48cGF0aCBkPSJNMi4yIDQuNiA2IDguNmwyLjYtMi40IDUuMiA0LjkiIHN0cm9rZT0iIzNGNzM3NiIgc3Ryb2tlLXdpZHRoPSIxLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0xMC44IDExLjFoMy4yVjcuOSIgc3Ryb2tlPSIjM0Y3Mzc2IiBzdHJva2Utd2lkdGg9IjEuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+"); }
+.ico-cal   { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSIgdmlld0JveD0iMCAwIDE2IDE2IiBmaWxsPSJub25lIj48cmVjdCB4PSIyLjEiIHk9IjMuNCIgd2lkdGg9IjExLjgiIGhlaWdodD0iMTAuNSIgcng9IjIiIHN0cm9rZT0iIzNGNzM3NiIgc3Ryb2tlLXdpZHRoPSIxLjM1Ii8+PHBhdGggZD0iTTIuMSA2LjZoMTEuOE01LjQgMS45djIuNk0xMC42IDEuOXYyLjYiIHN0cm9rZT0iIzNGNzM3NiIgc3Ryb2tlLXdpZHRoPSIxLjM1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNNS42IDkuNmgxLjZ2MS42SDUuNnoiIGZpbGw9IiMzRjczNzYiLz48L3N2Zz4="); background-color: rgba(63, 115, 118, 0.12); }
+
+/* ---------- 预测依据：三张卡 ---------- */
+/* 单列堆叠（手机屏放不下三列）。结构与网页端的 `.bc-grid` 是同一套，只是列数
+   不同 —— 类名刻意保持一致，改一处时两端能对上。 */
+.bc-grid {
   display: flex;
   flex-direction: column;
-  gap: 1rpx;
-  background: #E4DFD5;
+  gap: 20rpx;
+}
+
+.bc {
+  background: #FFFFFF;
   border: 1rpx solid #E4DFD5;
   border-radius: 20rpx;
-  overflow: hidden;
+  padding: 30rpx 32rpx;
+  display: flex;
+  flex-direction: column;
 }
 
-.fc-main {
-  background: #FFFFFF;
-  padding: 30rpx 28rpx;
+.bc-h {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 22rpx;
 }
 
-.fc-main .k {
-  font-size: 23rpx;
-  color: #8C8880;
-  letter-spacing: 0.06em;
-}
-
-.fc-main .v {
-  font-size: 76rpx;
+.bc-h .bc-t {
+  font-size: 27rpx;
   font-weight: 620;
-  line-height: 1.1;
+  color: #1F1E1B;
+  letter-spacing: 0.01em;
+}
+
+/* 主数字：与主卡的中位剩余等待是同一个量，所以必须**差一个数量级** ——
+   同一个数字在两处一样大时，读者会以为它们是两件事。 */
+.bc-num {
+  display: flex;
+  align-items: baseline;
+  gap: 10rpx;
   font-variant-numeric: tabular-nums;
 }
 
-.fc-main .v .u {
-  font-size: 26rpx;
-  color: #8C8880;
-  font-weight: 400;
-  margin-left: 8rpx;
+.bc-num .b {
+  font-size: 58rpx;
+  font-weight: 620;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #1F1E1B;
 }
 
-.fc-main .range {
+.bc-num .u {
+  font-size: 25rpx;
+  color: #4A4842;
+}
+
+/* 区间与下面那几条概率是**两个口径**（剩余等待的双侧区间 vs 到第 N 天之前的
+   累积概率），所以拆开写，并把「80% 区间」四个字留在值旁边。 */
+.bc-range {
+  font-size: 23rpx;
+  color: #3F7376;
+  margin: 10rpx 0 20rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.bc-bar {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 14rpx;
+}
+
+.bc-bar .lb {
+  flex: 0 0 118rpx;
   font-size: 23rpx;
   color: #4A4842;
-  margin-top: 10rpx;
 }
 
-.fc-main .range .b {
+.bc-bar .track {
+  flex: 1 1 auto;
+  height: 12rpx;
+  border-radius: 99rpx;
+  background: #F2EFE8;
+  overflow: hidden;
+}
+
+.bc-bar .track .fill {
+  height: 100%;
+  border-radius: 99rpx;
+  background: #3F7376;
+}
+
+.bc-bar .pv {
+  flex: 0 0 86rpx;
+  font-size: 23rpx;
+  text-align: right;
+  color: #1F1E1B;
+  font-variant-numeric: tabular-nums;
+}
+
+.bc-sub {
+  font-size: 23rpx;
+  color: #8C8880;
+  margin: -10rpx 0 14rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 行式：标签 → 大号数值 → 判定，**三行竖排、左对齐**。
+   判定不能与数值挤同一行 ——「≈ 无区分力」比数值本身还长，挤一行会把数值
+   顶到换行，读者会以为那一行没有值。 */
+.bc-row {
+  display: block;
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid #E4DFD5;
+}
+
+/* 最后一行不带下边框，否则它会和结语的上边框叠在一起。 */
+.bc-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.bc-row .k {
+  display: block;
+  font-size: 23rpx;
+  line-height: 1.4;
+  color: #4A4842;
+}
+
+.bc-row .v {
+  display: block;
+  font-size: 38rpx;
+  font-weight: 620;
+  line-height: 1.15;
+  color: #1F1E1B;
+  margin-top: 4rpx;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* 达标用主强调色（青绿），不达标用朱红 —— 与网页端同一套语义。 */
+.bc-row .v.good { color: #3F7376; }
+.bc-row .v.bad  { color: #B3563C; }
+
+.bc-row .j {
+  display: block;
+  font-size: 21rpx;
+  line-height: 1.5;
+  color: #8C8880;
+  margin-top: 4rpx;
+}
+
+/* 结语压到卡底（三张卡高度不一，空白落在它上方读起来才是「留白」）。 */
+.bc-note {
+  margin: auto 0 0;
+  padding-top: 20rpx;
+  border-top: 1rpx dashed #E4DFD5;
+  font-size: 22rpx;
+  line-height: 1.65;
+  color: #8C8880;
+}
+
+/* 概率未校准这句是**披露**，不是提醒 —— 它报的不是系统有多好，而是这些数字
+   偏低（实际发生率通常更高）。单独给一档底色，让它从结语里跳出来。 */
+.bc-note.is-warn {
+  margin-top: 16rpx;
+  padding: 14rpx 18rpx;
+  border: 1rpx solid #EFE6D2;
+  border-radius: 14rpx;
+  background: #FBF6EC;
+  color: #8B7548;
+}
+
+/* 节奏的三个阶段：段号 / 区间 / 平均 / 样本，**四行竖排**。
+   旧版是「第 N 段 | 区间 | 平均 | n=…」挤在一行 —— 手机上必然折行且列对不齐。 */
+.ph {
+  display: block;
+  padding: 16rpx 0;
+}
+
+/* 分隔线只在**两个阶段之间**，单条阶段不带边框 —— 最后一条的下边框会和卡底
+   结语的上边框叠成一条。 */
+.ph + .ph {
+  border-top: 1rpx solid #E4DFD5;
+}
+
+.ph .pi {
+  display: block;
+  font-size: 21rpx;
+  color: #8C8880;
+  font-variant-numeric: tabular-nums;
+}
+
+.ph .pt {
+  display: block;
+  margin-top: 2rpx;
+  font-size: 21rpx;
+  color: #8C8880;
+  font-variant-numeric: tabular-nums;
+}
+
+.ph .pm {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 34rpx;
   font-weight: 620;
   color: #1F1E1B;
   font-variant-numeric: tabular-nums;
 }
 
-.fc-bars {
-  background: #FFFFFF;
-  padding: 26rpx 28rpx 22rpx;
-}
-
-.bar {
-  display: flex;
-  align-items: center;
-  gap: 14rpx;
-  margin-bottom: 16rpx;
-}
-
-.bar .lb {
-  font-size: 22rpx;
-  color: #4A4842;
-  width: 132rpx;
-  flex: none;
-}
-
-.bar .track {
-  flex: 1;
-  height: 14rpx;
-  background: #F2EFE8;
-  border-radius: 99rpx;
-  overflow: hidden;
-}
-
-.bar .fill {
-  height: 100%;
-  background: #3F7376;
-  border-radius: 99rpx;
-}
-
-.bar .pv {
-  font-size: 23rpx;
-  font-variant-numeric: tabular-nums;
-  width: 104rpx;
-  flex: none;
-  text-align: right;
-}
-
-.cal-tag {
+.ph .pm .u {
+  margin-left: 6rpx;
   font-size: 21rpx;
-  color: #B3563C;
-  margin-top: 6rpx;
-}
-
-.fc-meta {
-  margin-top: 20rpx;
-  padding: 26rpx 28rpx;
-}
-
-.fc-block + .fc-block {
-  margin-top: 34rpx;
-  padding-top: 26rpx;
-  border-top: 1rpx solid #E4DFD5;
-}
-
-.fc-block .bh {
-  font-size: 24rpx;
-  font-weight: 620;
-  margin-bottom: 16rpx;
-}
-
-.row {
-  display: flex;
-  align-items: baseline;
-  gap: 14rpx;
-  padding: 12rpx 0;
-  border-bottom: 1rpx solid #F2EFE8;
-}
-
-.row:last-child {
-  border-bottom: 0;
-}
-
-.row .rk {
-  font-size: 23rpx;
+  font-weight: 400;
   color: #4A4842;
-  width: 214rpx;
-  flex: none;
 }
 
-.row .rv {
-  font-size: 25rpx;
-  font-variant-numeric: tabular-nums;
-  width: 128rpx;
-  flex: none;
-  font-weight: 600;
-}
-
-.row .rv.good {
-  color: #3F7376;
-}
-
-.row .rv.bad {
-  color: #B3563C;
-}
-
-.row .rj {
-  font-size: 21rpx;
-  color: #8C8880;
-  flex: 1;
-}
-
-.ph {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 0 12rpx;
-  padding: 14rpx 0;
-  font-size: 22rpx;
-}
-
-.ph .pi {
-  color: #8C8880;
-  width: 96rpx;
-  flex: none;
-}
-
-/* flex:1 + min-width:0：让日期自己占满剩余宽度，
-   而不是给死宽度然后把「2025.09.17 → 2026.04.28」折成两行 */
-.ph .pt {
-  color: #4A4842;
-  font-variant-numeric: tabular-nums;
-  flex: 1;
-  min-width: 0;
-}
-
-.ph .pm {
-  font-weight: 620;
-  font-variant-numeric: tabular-nums;
-  flex: none;
-}
-
-/* 样本量与最大间隔另起一行，靠左对齐到日期列 */
 .ph .pn {
-  width: 100%;
-  padding-left: 108rpx;
-  color: #8C8880;
+  display: block;
+  margin-top: 2rpx;
   font-size: 21rpx;
+  color: #8C8880;
+  font-variant-numeric: tabular-nums;
 }
 
-.bfoot {
-  margin-top: 14rpx;
-  font-size: 22rpx;
+/* ---------- 历史规律：三张图一组 ---------- */
+/* 单列堆叠。每张图只留「小标题 + 样本量」，口径说明移到组标题下面那两行 ——
+   旧版每张图各有一整段引导文，六行文字把同一批数据切成了三件事。 */
+.hr-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.hr {
+  background: #FFFFFF;
+  border: 1rpx solid #E4DFD5;
+  border-radius: 20rpx;
+  padding: 26rpx 24rpx 22rpx;
+}
+
+.hr-h {
+  margin-bottom: 16rpx;
+}
+
+.hr-h .hr-t {
+  display: block;
+  font-size: 25rpx;
+  font-weight: 620;
+  color: #1F1E1B;
+}
+
+.hr-h .hr-n {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 21rpx;
   color: #8C8880;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- 图表 ---------- */

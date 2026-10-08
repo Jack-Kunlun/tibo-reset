@@ -281,32 +281,108 @@ console.log('\n【4】指标与预测');
 check('指标 6 项', d.metrics.length === 6, `实际 ${d.metrics.length}`);
 check('指标无空值', d.metrics.every((m) => m.v !== '' && m.v != null && m.note), JSON.stringify(d.metrics));
 check('预测已生成', !!d.forecast);
-check('概率条 5 条', d.forecast.bars.length === 5, `实际 ${d.forecast.bars.length}`);
+
+/* 依据区现在是**三张卡**，每张卡各自回答一个问题：
+   `wait` 多久 / `backtest` 准不准 / `pace` 节奏在往哪走。
+   断言据此按卡分节，而不是像旧版那样在 `forecast` 下平铺一堆字段。 */
+check(
+  '依据区三张卡都在（多久 / 准不准 / 节奏）',
+  !!d.forecast.wait && !!d.forecast.backtest && !!d.forecast.pace,
+  Object.keys(d.forecast).join(',')
+);
+check(
+  '节头副文案跟着档位换措辞（公告档别说「结论在上方」）',
+  typeof d.forecast.hint === 'string' && d.forecast.hint.length > 8,
+  d.forecast.hint
+);
+
+// —— 卡①：还要等多久 ——
+check('概率条 5 条', d.forecast.wait.bars.length === 5, `实际 ${d.forecast.wait.bars.length}`);
 check(
   '概率条宽度都在 1%–100%',
-  d.forecast.bars.every((b) => Number(b.w) >= 1 && Number(b.w) <= 100),
-  JSON.stringify(d.forecast.bars.map((b) => b.w))
+  d.forecast.wait.bars.every((b) => Number(b.w) >= 1 && Number(b.w) <= 100),
+  JSON.stringify(d.forecast.wait.bars.map((b) => b.w))
 );
-check('中位剩余主数字为纯数字', /^[0-9]+$/.test(d.forecast.q50), d.forecast.q50);
+check('中位剩余主数字为纯数字', /^[0-9]+$/.test(d.forecast.wait.num), d.forecast.wait.num);
 check(
   '中位剩余带时长单位（不再是光秃秃的「天」）',
-  /^(天|小时|分|秒)( \d+ (小时|分|秒))?$/.test(d.forecast.q50Unit),
-  d.forecast.q50Unit
+  /^(天|小时|分|秒)( \d+ (小时|分|秒))?$/.test(d.forecast.wait.unit),
+  d.forecast.wait.unit
 );
 check(
-  '80% 区间两端都按时长格式渲染',
-  d.forecast.rangeText.split(' – ').length === 2 &&
-    d.forecast.rangeText
+  '80% 区间两端都按时长格式渲染（且带「80% 区间」前缀）',
+  d.forecast.wait.range.startsWith('80% 区间 ') &&
+    d.forecast.wait.range
+      .slice('80% 区间 '.length)
+      .split(' – ')
+      .length === 2 &&
+    d.forecast.wait.range
+      .slice('80% 区间 '.length)
       .split(' – ')
       .every((s) => /^\d+ (天|小时|分|秒)( \d+ (小时|分|秒))?$/.test(s)),
-  d.forecast.rangeText
+  d.forecast.wait.range
 );
-check('回测表 3 行', d.forecast.cal.rows.length === 3, `实际 ${d.forecast.cal.rows.length}`);
-check('阶段表非空', d.forecast.phases.length >= 2, `实际 ${d.forecast.phases.length}`);
+// 概率没做过校准这件事必须在**数字旁边**说，不能用散文代替 ——
+// 它报的不是系统有多好，而是这些数字偏低。掉这句，卡上就只剩一串看着可信的数。
+check(
+  '概率条旁边留着「未经校正」的提示',
+  typeof d.forecast.wait.warn === 'string' && /未经校正/.test(d.forecast.wait.warn),
+  d.forecast.wait.warn
+);
+
+// —— 卡②：准不准 ——
+// 四行不是三行：样本量看标题、覆盖率 / 区分度 / **重采样波动** 三行。
+// 第四行不能省 —— 它与覆盖率、样本量一起直接决定主卡那个置信度，
+// 而卡底那句结语正是拿它们三个当主语的。少一行，那句话就指着页面上看不见的东西说话。
+check('回测表 4 行', d.forecast.backtest.rows.length === 4, `实际 ${d.forecast.backtest.rows.length}`);
+check(
+  '回测表四行依次是 50%分位 / 80%区间 / 区分度 / 重采样波动',
+  d.forecast.backtest.rows.map((r) => r.k).join('|') ===
+    '50% 分位覆盖率|80% 区间覆盖率|7 天区分度|重采样波动',
+  d.forecast.backtest.rows.map((r) => r.k).join('|')
+);
+check(
+  '每一行都带「过没过」之外的说明（判据要能读，不能只给个红绿点）',
+  d.forecast.backtest.rows.every((r) => typeof r.j === 'string' && r.j.length > 0),
+  JSON.stringify(d.forecast.backtest.rows.map((r) => r.j))
+);
+check(
+  '样本量标题带阈值（读者要知道「≥ 多少才算够」）',
+  Number.isFinite(Number(d.forecast.backtest.n)) && Number.isFinite(Number(d.forecast.backtest.minN)),
+  `n=${d.forecast.backtest.n} minN=${d.forecast.backtest.minN}`
+);
+
+/* 卡底那句结语里的「N 项未达标」必须与**同一张卡上看得见的判据**自洽：
+   样本量（n ≥ minN）、覆盖率（第 2 行）、重采样波动（第 4 行）。
+   ⚠ 第 1 行（50% 分位覆盖率）与第 3 行（7 天区分度）**不在**这句话的主语里 ——
+   把它们算进去会把 N 说大。
+   这条是「同源」断言：结语若来自本地另拼的一份模板，等式就会破。 */
+{
+  const bt = d.forecast.backtest;
+  const failed = [
+    Number(bt.n) >= Number(bt.minN),
+    !!bt.rows[1].ok,
+    !!bt.rows[3].ok,
+  ].filter((ok) => !ok).length;
+  const note = String(bt.note ?? '');
+  check(
+    '卡②结语的「N 项未达标」与卡上那三个判据自洽',
+    note.length > 8 && (failed === 0 ? /都在容差内/.test(note) : new RegExp(`有 ${failed} 项未达标`).test(note)),
+    `failed=${failed} / note=「${note}」`
+  );
+}
+
+// —— 卡③：节奏在往哪走 ——
+check('阶段表非空', d.forecast.pace.phases.length >= 2, `实际 ${d.forecast.pace.phases.length}`);
 check(
   '阶段表日期已格式化（不是 ISO 原文）',
-  d.forecast.phases.every((p) => /^\d{4}\.\d{2}\.\d{2}$/.test(p.from) && /^\d{4}\.\d{2}\.\d{2}$/.test(p.to)),
-  JSON.stringify(d.forecast.phases[0])
+  d.forecast.pace.phases.every((p) => /^\d{4}\.\d{2}\.\d{2}$/.test(p.from) && /^\d{4}\.\d{2}\.\d{2}$/.test(p.to)),
+  JSON.stringify(d.forecast.pace.phases[0])
+);
+check(
+  '阶段表每段有编号（页面靠它画从左到右的箭头）',
+  d.forecast.pace.phases.every((p, i) => p.i === i + 1),
+  JSON.stringify(d.forecast.pace.phases.map((p) => p.i))
 );
 
 /* ---- 4b. 预测总览：首屏第一块，四个问题缺一不可 ---- */
@@ -359,13 +435,16 @@ check(
    所以上面那条形状断言照样绿，错的只是那两个端点。双侧 80% 区间是 [q10, q90]。
    用快照自己的数字重算一遍来核对，而不是把当前值写死。 */
 const snapPred = (await import(resolve(ROOT, 'miniprogram/data/snapshot.js'))).default.prediction;
-const mpScene = await import(resolve(ROOT, 'miniprogram/utils/scene.js'));
-const { pct1 } = await import(resolve(ROOT, 'miniprogram/utils/format.js'));
-const wantRange = `${mpScene.fmtSpanShort(snapPred.prediction.q10)} – ${mpScene.fmtSpanShort(snapPred.prediction.q90)}`;
+const fmt = await import(resolve(ROOT, 'miniprogram/utils/format.js'));
+const { pct1, fmtSpan } = fmt;
+// ⚠ 期望值要用**与 view.js 同一个** `fmtSpan` 算，早先是拿 scene.js 的 `fmtSpanShort`。
+// 两条实现是刻意分开的（网页端 `render.mjs` 的 `spanOf` 是权威、`scene.js` 只给短串），
+// 拿短串来核对长串，等于顺手把「两份口径漂了」这件事也放过去了。
+const wantRange = `80% 区间 ${fmtSpan(snapPred.prediction.q10)} – ${fmtSpan(snapPred.prediction.q90)}`;
 check(
   '80% 区间的端点是 q10–q90（不是 q25–q90）',
-  d.forecast.rangeText === wantRange,
-  `实得「${d.forecast.rangeText}」/ 期望「${wantRange}」`
+  d.forecast.wait.range === wantRange,
+  `实得「${d.forecast.wait.range}」/ 期望「${wantRange}」`
 );
 // 非恒真守卫：两个端点真的不同，否则上一条可能是「怎么写都过」
 check(
@@ -375,11 +454,20 @@ check(
 );
 // 回测表那一行的**口径**：它论证的是上面那个双侧区间，所以必须是 covBand80。
 // 用 cov80 也能填出一个看着像样的百分比 —— 换个口径讲另一件事，是最难发现的那类错。
+{
+  const row = d.forecast.backtest.rows[1];
+  check(
+    '回测表的「80% 区间覆盖率」行取的是 covBand80（双侧），不是 cov80（单侧上界）',
+    row.k === '80% 区间覆盖率' && row.v === pct1(snapPred.calibration.covBand80),
+    `${row.k} = ${row.v} / covBand80 = ${pct1(snapPred.calibration.covBand80)}`
+  );
+}
+// 第四行的**值**也要对得上：它是 outlook 判据 `relOk` 的原料，页面上少这一个数，
+// 置信度就少一个可核对的理由。阈值取自 outlook 自己的常量区间（≤ 1.5×）。
 check(
-  '回测表的「80% 区间覆盖率」行取的是 covBand80（双侧），不是 cov80（单侧上界）',
-  d.forecast.cal.rows[1].k === '80% 区间覆盖率' &&
-    d.forecast.cal.rows[1].v === pct1(snapPred.calibration.covBand80),
-  `${d.forecast.cal.rows[1].k} = ${d.forecast.cal.rows[1].v} / covBand80 = ${pct1(snapPred.calibration.covBand80)}`
+  '回测表第四行「重采样波动」的值带 × 单位（不是光秃秃的倍数）',
+  /^(\d+\.\d+×|—)$/.test(d.forecast.backtest.rows[3].v),
+  d.forecast.backtest.rows[3].v
 );
 
 /* ---- 4c. 总览的倒计时：与公告倒计时是两个锚点 ---- */
@@ -1425,9 +1513,9 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
    * `.pred` 单独看一遍的理由：它是新加入这个家族的，最容易被写漏。
    *
    * ⚠ `.prog`（每日重置窗口）2026-10-08 已**移出这一族**：它从「信号之后」挪到了
-   *   「预测依据之后」（见下面的顺序断言），相邻的变成 `.fc-meta` 而不是这三块。
-   *   所以不能再要求它与前三块同值 —— 那会让这条断言在**正确的改动**下变红；
-   *   但它自己的上边距仍须 ≥8（`.fc-meta` 也是带边框的块）。
+   *   「预测依据之后」（见下面的顺序断言），相邻的变成 `.bc-grid` 里的 `.bc`
+   *   而不是这三块。所以不能再要求它与前三块同值 —— 那会让这条断言在**正确的改动**
+   *   下变红；但它自己的上边距仍须 ≥8（`.bc` 也是带边框的块）。
    */
   const FAMILY = ['.pred', '.sig', '.sig-idle'];
   const margins = FAMILY.map((s) => [s, topMarginOf(s.replace('.', '\\.'))]);
@@ -1460,23 +1548,37 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
   const iPred = at('class="pred"');
   const iSig = at('class="sig"');
   const iProg = at('class="prog"');
-  const iForecast = at('class="fc"');
+  // 2026-10-08 第二轮：依据区从 `.fc`（一块 `card fc-meta`）扩成 `.bc-grid`（三张卡），
+  // 并在它后面**新增**了一组 `.hr-grid`（历史规律：三张图从「各占一节」收成一组）。
+  // 锚点随之从 `.fc` 换成这两个 —— 用旧锚点会 `-1`，而 `-1` 恰好能让「排在之后」
+  // 那类比较**看起来**成立（`-1 < x` 恒真），所以「找得到」那条前置断言必须留着。
+  const iBc = at('class="bc-grid"');
+  const iHr = at('class="hr-grid"');
 
-  check('模板里找得到四块（顺序断言的前提）', [iPred, iSig, iProg, iForecast].every((i) => i >= 0), `pred=${iPred} sig=${iSig} prog=${iProg} fc=${iForecast}`);
+  check(
+    '模板里找得到五块（顺序断言的前提）',
+    [iPred, iSig, iProg, iBc, iHr].every((i) => i >= 0),
+    `pred=${iPred} sig=${iSig} prog=${iProg} bc=${iBc} hr=${iHr}`
+  );
   check(
     '预测总览排在信号之前（结论在前，依据在后）',
     iPred >= 0 && iSig >= 0 && iPred < iSig,
     `pred@${iPred} vs sig@${iSig}`
   );
   check(
-    '每日重置窗口排在预测依据之后（规则不是结论，也不能挤进首屏）',
-    iForecast >= 0 && iProg >= 0 && iProg > iForecast,
-    `prog@${iProg} vs fc@${iForecast}`
+    '预测依据（.bc-grid 三卡）排在预测总览之后',
+    iPred >= 0 && iBc >= 0 && iBc > iPred,
+    `bc@${iBc} vs pred@${iPred}`
   );
   check(
-    '预测依据（.fc）排在预测总览之后',
-    iPred >= 0 && iForecast >= 0 && iForecast > iPred,
-    `fc@${iForecast} vs pred@${iPred}`
+    '每日重置窗口排在预测依据之后（规则不是结论，也不能挤进首屏）',
+    iBc >= 0 && iProg >= 0 && iProg > iBc,
+    `prog@${iProg} vs bc@${iBc}`
+  );
+  check(
+    '历史规律（.hr-grid 三张图）排在每日重置窗口之后',
+    iProg >= 0 && iHr >= 0 && iHr > iProg,
+    `hr@${iHr} vs prog@${iProg}`
   );
   check(
     '「距上一次额度重置」的大计数器排在三张图之后（往回看的信息后置）',
@@ -1485,8 +1587,8 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
   );
   check(
     '间隔直方图的 canvas 在模板里（第三层图表的第一张）',
-    at('id="hist"') > iForecast,
-    `hist@${at('id="hist"')} vs fc@${iForecast}`
+    at('id="hist"') > iHr,
+    `hist@${at('id="hist"')} vs hr@${iHr}`
   );
 }
 

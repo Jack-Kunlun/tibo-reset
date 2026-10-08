@@ -156,66 +156,86 @@
     </view>
   </view>
 
-  <view wx:else class="sig-idle">
-    <text class="idot"></text>
-    <text>时间窗内 <text class="b">{{signal.checked}}</text> 条推文中没有检测到重置预告</text>
-    <!-- 取不到窗口起点时整行不出现 —— 否则渲染成「时间窗自  起」，比没有更差 -->
-    <text wx:if="{{signal.windowFrom}}" class="isub">时间窗自 {{signal.windowFrom}} 起</text>
+  <!-- 「没有预告」本身是一条信息，不是一个空状态：它把「扫了多少条、一条都没命中」
+       摆出来，读者才知道这份「没有」是有分量的。点它滚到「已经等了多久」——
+       没有预告时，那正是下一个该看的数字（等多久了、在历史里算什么位置）。
+       网页端是同一条信息走锚点链接，落点都是同一块。 -->
+  <view wx:else class="sig-idle" bindtap="onIdleTap">
+    <view class="idle-ico"></view>
+    <view class="idle-body">
+      <text class="idle-t">最近 <text class="b">{{signal.checked}}</text> 条推文中没有检测到重置预告</text>
+      <!-- 取不到窗口起点时整行不出现 —— 否则渲染成「时间窗自  起」，比没有更差 -->
+      <text wx:if="{{signal.windowFrom}}" class="idle-sub">时间窗自 {{signal.windowFrom}} 起</text>
+    </view>
+    <text class="idle-go">›</text>
   </view>
 
   <!-- ============ 第二层：预测依据 ============ -->
-  <view class="sec-head">
-    <text class="t">预测依据</text>
-  </view>
-
-  <view wx:if="{{forecast}}" class="fc">
-    <view class="fc-main">
-      <view class="k">中位剩余等待</view>
-      <view class="v">{{forecast.q50}}<text class="u">天</text></view>
-      <view class="range">
-        <text wx:if="{{forecast.hoursText}}">{{forecast.hoursText}} · </text>
-        <text>80% 区间 </text>
-        <text class="b">{{forecast.rangeText}}</text>
-        <text> 天</text>
-      </view>
+  <!-- 三张卡，各自独立成立、挑着读也行：① 还要等多久、区间多宽 ② 这个模型准不准
+       ③ 历史节奏在怎么变。旧版这里是「一块数字 + 两张表」，四块并排看下来像一张
+       表而不像三张卡 ——「信息太碎」的根因正在这里。
+       卡底的结语**不是写死的**：它由共享模块 utils/outlook.js 按三项判据算出来
+       （见 view.js 的 buildForecast），判据漂了那句话会自己跟着变。 -->
+  <block wx:if="{{forecast}}">
+    <view class="sec-head">
+      <text class="t">预测依据</text>
+      <text class="h">{{forecast.hint}}</text>
     </view>
 
-    <view class="fc-bars">
-      <view class="bar" wx:for="{{forecast.bars}}" wx:key="label">
-        <text class="lb">{{item.label}}</text>
-        <view class="track"><view class="fill" style="width: {{item.w}}%"></view></view>
-        <text class="pv">{{item.pv}}</text>
-      </view>
-      <!-- 概率没有做过校准，这一点必须留在数字旁边，不能用散文代替 -->
-      <view class="cal-tag">概率未经校准 · 实际发生率通常更高</view>
-    </view>
-  </view>
+    <view class="bc-grid">
 
-  <!-- 模型自身的校准情况：与预测总览的「置信度」是同一件事的两个粒度 ——
-       那边一句话给出档位，这里给出档位背后的每一行数字。
-       独立成 `.card`（`fc-meta`）而不是并进上面那张 `.fc`：`.fc` 是「结论」，
-       这一块是「结论背后的账」，视觉上要能分开读。 -->
-  <view wx:if="{{forecast}}" class="card fc-meta">
-    <view class="fc-block">
-      <view class="bh">样本外回测 · n={{forecast.cal.n}}</view>
-      <view class="row" wx:for="{{forecast.cal.rows}}" wx:key="k">
-        <text class="rk">{{item.k}}</text>
-        <text class="rv {{item.ok ? 'good' : 'bad'}}">{{item.v}}</text>
-        <text class="rj">{{item.j}}</text>
+      <!-- ① 中位剩余等待 -->
+      <view class="bc" data-bc="wait">
+        <view class="bc-h">
+          <view class="ico ico-wait"></view>
+          <text class="bc-t">中位剩余等待</text>
+        </view>
+        <view class="bc-num">
+          <text class="b">{{forecast.wait.num}}</text>
+          <text class="u">{{forecast.wait.unit}}</text>
+        </view>
+        <view class="bc-range">{{forecast.wait.range}}</view>
+        <view class="bc-bar" wx:for="{{forecast.wait.bars}}" wx:key="label">
+          <text class="lb">{{item.label}}</text>
+          <view class="track"><view class="fill" style="width: {{item.w}}%"></view></view>
+          <text class="pv">{{item.pv}}</text>
+        </view>
+        <!-- 概率没有做过校准，这一点必须留在数字旁边，不能用散文代替 -->
+        <view class="bc-note is-warn">{{forecast.wait.warn}}</view>
       </view>
-    </view>
 
-    <view class="fc-block">
-      <view class="bh">节奏在加速</view>
-      <view class="ph" wx:for="{{forecast.phases}}" wx:key="i">
-        <text class="pi">第 {{item.i}} 段</text>
-        <text class="pt">{{item.from}} → {{item.to}}</text>
-        <text class="pm">{{item.mean}} 天</text>
-        <text class="pn">n={{item.n}} · 最大 {{item.max}} 天</text>
+      <!-- ② 样本外回测：四行数字，前三项与样本量一起决定主卡上那个置信度 -->
+      <view class="bc" data-bc="backtest">
+        <view class="bc-h">
+          <view class="ico ico-bars"></view>
+          <text class="bc-t">样本外回测</text>
+        </view>
+        <view class="bc-sub">n = {{forecast.backtest.n}}（阈值 ≥ {{forecast.backtest.minN}}）</view>
+        <view class="bc-row" wx:for="{{forecast.backtest.rows}}" wx:key="k">
+          <text class="k">{{item.k}}</text>
+          <text class="v {{item.ok ? 'good' : 'bad'}}">{{item.v}}</text>
+          <text class="j">{{item.j}}</text>
+        </view>
+        <view class="bc-note" data-note="backtest">{{forecast.backtest.note}}</view>
       </view>
-      <view class="bfoot">{{forecast.phaseSummary}}</view>
+
+      <!-- ③ 节奏在加速 -->
+      <view class="bc" data-bc="pace">
+        <view class="bc-h">
+          <view class="ico ico-trend"></view>
+          <text class="bc-t">节奏在加速</text>
+        </view>
+        <view class="ph" wx:for="{{forecast.pace.phases}}" wx:key="i">
+          <text class="pi">第 {{item.i}} 段</text>
+          <text class="pt">{{item.from}} → {{item.to}}</text>
+          <text class="pm">{{item.mean}}<text class="u">{{item.unit}}</text></text>
+          <text class="pn">n={{item.n}} · 最大 {{item.max}}</text>
+        </view>
+        <view class="bc-note">{{forecast.pace.note}}</view>
+      </view>
+
     </view>
-  </view>
+  </block>
 
   <!-- ============ 每日重置窗口 ============ -->
   <!-- 他宣布「未来 N 天里每天要么发一个改进、要么给一次完整重置」。
@@ -227,6 +247,7 @@
        等于把结论推下去一屏。旧版（更早）甚至把它放在全页第一块。 -->
   <view wx:if="{{signal.program.show}}" class="prog">
     <view class="prog-head">
+      <view class="ico ico-cal"></view>
       <text class="prog-tag">每日重置窗口</text>
       <text class="prog-left">共 <text class="n">{{signal.program.days}}</text> 天 · 还剩 <text class="n">{{signal.program.daysLeft}}</text> 天</text>
     </view>
@@ -258,45 +279,52 @@
     </view>
   </view>
 
-  <!-- ============ 第三层：间隔直方图 ============ -->
-  <!-- 这张图直接服务预测结论：它回答「历史上重置通常发生在第几天」，
-       当前所在一档高亮 —— 也就是「现在等的时间算长还是短」。 -->
+  <!-- ============ 第三层：历史规律（三张图一组） ============ -->
+  <!-- 三张图共用一行标题与一条题注。旧版每张图各有一个标题 + 一段引导文，六行文字
+       把三张图切成三件事，而它们回答的其实是同一个问题的三个侧面。分组之后图的
+       归属由**组**给出，不再靠重复标题。 -->
   <view class="sec-head">
-    <text class="t">重置通常发生在第几天</text>
+    <text class="t">历史规律</text>
     <text class="h">n = {{survivalN}} 次历史间隔</text>
   </view>
   <view class="lede">
-    横轴按区间等宽分档（不是按天数），纵轴是落在该档的次数。高亮那一档就是你当前所在的一档。
+    三张图看的是同一批历史间隔：哪一档最容易发生、到第 X 天为止发生了多少、每次各是几天。
   </view>
-  <view wx:if="{{histShow}}" class="card">
-    <canvas type="2d" id="hist" class="chart chart-hist"></canvas>
-  </view>
-
-  <!-- ============ 生存曲线 ============ -->
-  <view class="sec-head">
-    <text class="t">等待生存曲线</text>
-    <text class="h">n = {{survivalN}} 次历史间隔</text>
-  </view>
-  <view class="lede">
-    纵轴是「到第 X 天为止，历史上百分之多少的重置已经发生」。你现在的位置标在曲线上。
-  </view>
-  <view class="card">
-    <canvas type="2d" id="survival" class="chart chart-survival"></canvas>
+  <view class="lede lede-2">
+    直方图横轴按区间等宽分档（不是按天数），纵轴是落在该档的次数；高亮那一档就是你当前所在的一档。
   </view>
 
-  <!-- ============ 点阵分布 ============ -->
-  <view class="sec-head">
-    <text class="t">每次间隔的离散分布</text>
-  </view>
-  <view class="lede">
-    每一次重置到下一次重置的间隔天数。平均值被右侧的极端值拉高了。
-  </view>
-  <view class="card">
-    <canvas type="2d" id="strip" class="chart chart-strip"></canvas>
-    <view class="legend">
-      <view class="lg"><text class="sw sw-lan"></text>常规间隔</view>
-      <view class="lg"><text class="sw sw-mist"></text>偏长间隔</view>
-      <view class="lg"><text class="sw sw-cin"></text>极端长等待</view>
+  <view class="hr-grid">
+    <!-- ① 重置通常发生在第几天。直接服务预测结论：高亮的那一档 = 现在等的时间算长还是短 -->
+    <view wx:if="{{histShow}}" class="hr">
+      <view class="hr-h">
+        <text class="hr-t">重置通常发生在第几天</text>
+        <text class="hr-n">n = {{survivalN}}</text>
+      </view>
+      <canvas type="2d" id="hist" class="chart chart-hist"></canvas>
+    </view>
+
+    <!-- ② 等待生存曲线：纵轴是「到第 X 天为止，历史上百分之多少的重置已经发生」 -->
+    <view class="hr">
+      <view class="hr-h">
+        <text class="hr-t">等待生存曲线</text>
+        <text class="hr-n">n = {{survivalN}}</text>
+      </view>
+      <canvas type="2d" id="survival" class="chart chart-survival"></canvas>
+    </view>
+
+    <!-- ③ 每次间隔的离散分布：平均值被右侧的极端值拉高了 -->
+    <view class="hr">
+      <view class="hr-h">
+        <text class="hr-t">每次间隔的离散分布</text>
+        <text class="hr-n">n = {{survivalN}}</text>
+      </view>
+      <canvas type="2d" id="strip" class="chart chart-strip"></canvas>
+      <view class="legend">
+        <view class="lg"><text class="sw sw-lan"></text>常规间隔</view>
+        <view class="lg"><text class="sw sw-mist"></text>偏长间隔</view>
+        <view class="lg"><text class="sw sw-cin"></text>极端长等待</view>
+      </view>
     </view>
   </view>
 
@@ -341,8 +369,10 @@
 
   <view class="metrics">
     <view class="metric" wx:for="{{metrics}}" wx:key="k">
-      <view class="k">{{item.k}}</view>
+      <!-- 值在上、标签在下：这一栏读者扫的是数字，标签只在认不出这个数字时用来
+           解释它。标签占先会把六个数字全推到第二眼。 -->
       <view class="v {{item.hi ? 'hl' : ''}}">{{item.v}}<text wx:if="{{item.u}}" class="u">{{item.u}}</text></view>
+      <view class="k">{{item.k}}</view>
       <view class="note">{{item.note}}</view>
     </view>
   </view>

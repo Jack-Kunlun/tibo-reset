@@ -8,7 +8,6 @@
  */
 
 import { beijingParts, countdown, countdownGroups, fmtDate, fmtClock, fmtDateTime, fmtDay, fmtSpan, pct1, spanOf, toTs, trim1 } from './format.js';
-import { fmtSpanShort } from './scene.js';
 // 与网页端**逐字同一份**（`src/lib/outlook.mjs` 由 scripts/build.mjs 同步过来）。
 // 「下一次什么时候 / 可不可信 / 凭什么」这三件事的判据只该有一份实现。
 import { buildOutlook } from './outlook.js';
@@ -408,6 +407,14 @@ export function buildOutlookView(chart, pred, sig, now) {
     // 「预测算于」= 这条结论是什么时候算出来的。用 o.now（同一锚点），
     // 不用 Date.now() —— 否则倒计时和它自己那句时间会互相矛盾。
     updatedText: `${fmtDateTime(o.now).slice(5)} 北京`,
+
+    /** 依据卡的判据原样透传（视图层**不重算**）。
+     *
+     *  卡②底部那句结语的主语就是 `checks` 本身，`buildForecast` 只负责把它放进卡里；
+     *  不透传的话那句话会渲染成空 —— 一张把「准不准」写成四行百分比、却不给结论的卡。
+     *  `evidence` 同理：第四行「重采样波动」的原料（`medianRel` + 阈值）在里面。 */
+    checks: o.checks,
+    evidence: o.evidence,
   };
 }
 
@@ -444,76 +451,130 @@ export function predCountdown(pred, now) {
  * 只输出数字与单位，不写「本模型不预测什么」这类关于模型自身的说明；
  * 但**数据类披露必须留**：覆盖率、区分度、样本量 —— 那是数字，不是散文。
  */
-export function buildForecast(pred) {
+export function buildForecast(pred, o) {
   if (!pred || !pred.prediction) return null;
 
   const p = pred.prediction;
   const cal = pred.calibration;
-  // 时长字段两档精度（与网页端 og-image.mjs 同样的理由）：
-  // 主数字用 `spanOf` 的完整档（大字 + 单位小字）；挤在同一行里的区间与阶段表用短档。
+  const sk = pred.skill;
+  const ev = o?.evidence ?? {};
+  const ck = o?.checks ?? {};
+
+  // 时长字段两档精度（与网页端同样的理由）：主数字用 `spanOf` 的完整档
+  // （大字 + 单位小字，见卡①）；挤在同一行里的区间与阶段子行用 `fmtSpan`。
   const q50 = spanOf(p.q50);
-  const sk = pred.skill.score;
-  const nearZero = Math.abs(sk) < 0.05;
+
+  const nearZero = Math.abs(sk.score) < 0.05;
   const skillShort = nearZero
     ? '≈ 无区分力'
-    : sk > 0
-      ? `优于盲猜 ${(sk * 100).toFixed(1)}%`
-      : `略差于盲猜 ${(sk * 100).toFixed(1)}%`;
+    : sk.score > 0
+      ? `优于盲猜 ${(sk.score * 100).toFixed(1)}%`
+      : `略差于盲猜 ${(sk.score * 100).toFixed(1)}%`;
 
   const cov50Ok = Math.abs(cal.cov50 - 0.5) < 0.1;
   // ⚠ 双侧区间 [q10, q90] 的实测覆盖率是 `covBand80`，**不是** `cov80`。
   //    `cov80` 是单侧上界 P(T ≤ q80)：它回答「上界会不会被顶破」，
   //    拿它论证上面那个双侧区间可不可信是两回事。实测两者在本数据集上
   //    分别 83.3% / 83.3% 恰好接近 —— 那是巧合，不是口径对得上。
-  const covBandOk = Math.abs(cal.covBand80 - 0.8) < 0.1;
+  //
+  // ⚠ 卡②里「过没过」的三项（覆盖率 / 样本量 / 重采样波动）**直接读 `ck`**
+  //    （outlook.js 给出的判据），这里不再照阈值自判一遍 —— 判据漂了，
+  //    卡片底部那句结语就会说一件页面上并不成立的事。
+  const rel = Number.isFinite(ev.medianRel) ? ev.medianRel : null;
+  const maxRel = ev.thresholds?.maxMedianRel ?? 1.5;
+
+  const phases = pred.phases ?? [];
 
   return {
-    q50: q50.big,
-    q50Unit: q50.unit,
-    // 80% 双侧区间的端点是 [q10, q90]（0.9 − 0.1 = 0.8）。
-    // 曾经这里取 q25 —— 那是 65% 区间，标成「80% 区间」就是在页面上写一句
-    // 当时并不成立的话（AGENTS.md 文案红线第 4 条）。网页端已同步修正。
-    rangeText: `${fmtSpanShort(p.q10)} – ${fmtSpanShort(p.q90)}`,
-    bars: p.horizons.map((h) => ({
-      label: h.label,
-      w: Math.max(1, Math.min(100, h.p * 100)).toFixed(1),
-      pv: pct1(h.p),
-    })),
-    cal: {
+    // 节头那句副文案：公告档下这三张卡**不是**结论的依据（结论来自公告），
+    // 所以措辞要跟着换 —— 与网页端同一句话。
+    hint:
+      o?.etaKind === 'announced'
+        ? '结论来自公告，以下是模型侧的辅助数字'
+        : '结论在上方，这里是它凭什么成立',
+
+    // ① 中位剩余等待：多长时间、区间多宽、各时间窗的累积概率。
+    wait: {
+      num: q50.big,
+      unit: q50.unit,
+      // 80% 双侧区间的端点是 [q10, q90]（0.9 − 0.1 = 0.8）。曾经取 q25 ——
+      // 那是 65% 区间，标成「80% 区间」就是在页面上写一句当时并不成立的话
+      // （AGENTS.md 文案红线第 4 条）。网页端已同步修正。
+      range: `80% 区间 ${fmtSpan(p.q10)} – ${fmtSpan(p.q90)}`,
+      bars: p.horizons.map((h) => ({
+        label: h.label,
+        w: Math.max(1, Math.min(100, h.p * 100)).toFixed(1),
+        pv: pct1(h.p),
+      })),
+      // 概率没有做过校准。这句必须留在数字旁边，不能用散文代替 ——
+      // 它报的不是系统有多好，而是这些数字**偏低**（实际发生率通常更高）。
+      warn: '概率未经校正 · 实际发生率通常更高',
+    },
+
+    // ② 样本外回测：这个模型在它没见过的样本上准不准。
+    //
+    // 四行分两类：前两行是覆盖率，第三行是区分度，第四行是重采样波动。
+    // ⚠ 第四行**不能省**：它与样本量、覆盖率一起直接决定主卡上那个置信度，
+    //   而卡底那句结语正是拿它们三个当主语的。少一行，那句话就会指着
+    //   一个页面上看不见的东西说话。
+    backtest: {
       n: cal.n,
+      minN: ev.thresholds?.minBacktestN ?? 30,
       rows: [
         {
           k: '50% 分位覆盖率',
           v: pct1(cal.cov50),
           ok: cov50Ok,
-          j: cov50Ok ? '校准良好' : '偏离目标',
+          j: cov50Ok ? '一半的中位估计落在实际值以下' : '偏离 50% 的目标',
         },
         {
           // 名字必须与端点的口径一致 —— 叫「分位覆盖率」而值是双侧区间覆盖率，
           // 读者会把 83.3% 理解成「有 83.3% 的情况落在 q80 以下」。
           k: '80% 区间覆盖率',
           v: pct1(cal.covBand80),
-          ok: covBandOk,
-          j: covBandOk ? '校准良好' : '偏离目标',
+          ok: !!ck.covOk,
+          j: ck.covOk ? '区间宽度合适' : '区间偏窄或偏宽',
         },
         {
           k: '7 天区分度',
           v: skillShort,
-          ok: false,
-          j: `Brier ${pred.skill.brier.toFixed(3)} / 盲猜 ${pred.skill.baseline.toFixed(3)}`,
+          // 实测这个模型在 7 天尺度上与盲猜持平，所以这一行**恒为未达标** ——
+          // 不是没算，是算出来就是这个数。
+          ok: sk.score > 0.05,
+          j: `Brier ${sk.brier.toFixed(3)} / 盲猜 ${sk.baseline.toFixed(3)}`,
+        },
+        {
+          k: '重采样波动',
+          v: rel == null ? '—' : `${rel.toFixed(1)}×`,
+          ok: !!ck.relOk,
+          j: `换一批样本后中位估计的相对波动（阈值 ≤ ${maxRel}）`,
         },
       ],
+      // 结语来自共享模块的 `checks.note` —— 那句话的主语就是 `checks` 本身，
+      // 两端各拼一句会让同一句断言有两个可以各自漂移的副本。
+      note: ck.note ?? '',
     },
-    phases: pred.phases.map((ph, i) => ({
-      i: i + 1,
-      from: fmtDay(ph.from),
-      to: fmtDay(ph.to),
-      mean: spanOf(ph.mean).text,
-      n: ph.n,
-      max: fmtSpanShort(ph.max),
-    })),
-    phaseSummary: pred.phases.length
-      ? `平均间隔从 ${fmtSpan(pred.phases[0].mean)} 降到 ${fmtSpan(pred.phases[pred.phases.length - 1].mean)}。`
-      : '',
+
+    // ③ 节奏在加速：分段平均间隔。历史节奏本身在变，模型读的就是它。
+    pace: {
+      phases: phases.map((ph, i) => {
+        const sp = spanOf(ph.mean);
+        return {
+          i: i + 1,
+          from: fmtDay(ph.from),
+          to: fmtDay(ph.to),
+          mean: sp.big,
+          unit: sp.unit,
+          n: ph.n,
+          max: fmtSpan(ph.max),
+        };
+      }),
+      note:
+        phases.length > 1
+          ? `平均间隔从 ${fmtSpan(phases[0].mean)} 降到 ${fmtSpan(
+              phases[phases.length - 1].mean
+            )}。`
+          : '只有一段，还没有可比较的节奏变化。',
+    },
   };
 }

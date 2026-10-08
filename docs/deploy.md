@@ -513,6 +513,61 @@ docker logs -t --tail 30 tibo-reset                               # 末行「监
 （两次实测都稳定在半个秒上下），不是「人手动几步」级的。下次别再用 `sleep` 的时长当停机
 时长记，会系统性高估一个数量级。
 
+⚠ **第四轮（`bdd340d`）窗口 13.3 秒，比前两轮大一个数量级 —— 是操作失误，不是路径问题。**
+旧停 `06:25:24.177` → 新监听 `06:25:37.510`。原因：`docker rename tibo-reset tibo-reset-prev`
+撞上 `Conflict`（更早一轮的回滚点还占着名字，`docker ps` 里看不见它 —— **已退出的容器不在
+`docker ps` 默认输出里**），而这条命令的**前一半已经执行完了，`tibo-reset` 当时是 stop 状态** ——
+站点就停在那儿，等我把名字腾开再发第二条命令。
+
+**教训（下次先做这一步）**：换容器前先
+`docker ps -a --filter name=tibo-reset-prev --format '{{.Names}} {{.Status}}'`，
+占着就先改名腾出来，再执行「stop + rename + run」那**一条**命令。
+上文早记过这个 Conflict，但没记「它会把停机窗口从 0.5 秒放大到 13 秒」—— 补在这里。
+
+### 6.2 用 jsdelivr 国内镜像直取文件（第四轮起改用，优于分块）
+
+⚠ **先纠正本文一处旧结论**：此前写的「服务器**完全没有**出网」不准确。第四轮实测：
+
+| 目标 | 结果 |
+|---|---|
+| `gitee.com`（http/https）、`mirrors.cloud.tencent.com`、`mirrors.tencent.com`、`registry.npmmirror.com` | ✅ 正常返回内容 |
+| `github.com`、`raw.githubusercontent.com`、`cdn.jsdelivr.net`、`fastly/gcore.jsdelivr.net` | ❌ 超时或空响应 |
+| `transfer.sh`、`0x0.st`、`paste.rs`、`bashupload.com`、`tmpfiles.org`、`envs.sh` | ❌ 全部空响应 |
+
+所以是「**国内可达、GitHub 系不可达**」，不是「没网」。诊断用一条循环即可：
+
+```bash
+for u in <url…>; do printf '%s -> ' "$u"; timeout 8 wget -qO- -T 5 "$u" | head -c 45; echo ' |'; done
+```
+
+⚠ 同一批里**别混** `bash -c 'exec 3<>/dev/tcp/…'` 这类探针 —— 会被平台判成危险命令，
+**整条 `AccessDeny`**（连里面的 `echo alive` 也一起被拒）。
+
+既然仓库是**公开**的、jsdelivr 又有国内镜像，第 6.1 节那条分块路径就可以整条跳过：
+
+| 步 | 做什么 |
+|---|---|
+| 1 | 本机 `git push` 到 GitHub —— 新提交必须在**远端**存在，jsdelivr 按 commit 取 |
+| 2 | 服务器 `wget -qO- https://cdn.jsdmirror.com/gh/<user>/<repo>@<sha>/<path> > <path>` |
+| 3 | `sha256sum` 与本机 `git show <sha>:<path> \| shasum -a 256` **逐字节比对** |
+| 4 | `docker cp` 进容器 → `docker exec` 容器内第三次比对 → 预检 → 换容器（同 6.1 的第 6.5 步起） |
+
+第四轮（`bdd340d`）实测：6 个文件（含新增的 `src/lib/outlook.mjs`）**一次拿全**，
+两处比对全等，命令数从分块路径的 20+ 次降到 3 次。
+
+**镜像要挑，同一批实测结果不同**：
+
+| 镜像 | 结果 |
+|---|---|
+| `cdn.jsdmirror.com` | ✅ 6/6 成功，`.html` 也正常 |
+| `jsd.onmicrosoft.cn` | ⚠ `.mjs`/`.js` 正常，**`.html` 返回 0 字节**（落盘后哈希是 `e3b0c442…` = 空文件） |
+| `cdn.statically.io`、`raw.githack.com`、`raw.gitmirror.com`、`ghfast.top`、`gh-proxy.com`、`github.moeyy.xyz` | ❌ 全部空响应 |
+
+所以落盘后**必须比哈希**：空响应**不报错**，`wget` 退出码照旧是 0，`wc -c` 才会露出 0。
+
+**这条路不通的情形**：仓库转私有、jsdelivr 被墙、或要传**不入库**的东西
+（`dist/og-image.png` 在 `.gitignore` 里，jsdelivr 上没有它 —— 照旧走「已接受的滞后」）。
+
 ### 改代码的完整动作
 
 本机一条、服务器一条：
