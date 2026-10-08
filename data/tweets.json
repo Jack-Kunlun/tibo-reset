@@ -1,6 +1,53 @@
 {
   "tweets": [
     {
+      "id": "2108086116683526498",
+      "text": "Ah.. spoiled my Day 17",
+      "created_at": "2026-10-08T06:44:31.000Z",
+      "url": "https://x.com/thsottiaux/status/2108086116683526498",
+      "inReplyTo": {
+        "account": "Angaisb_",
+        "id": "",
+        "text": "Wait I just found out we can customize ChatGPT's website theme too just like we can in Codex Love it!",
+        "created_at": "2026-10-07T21:06:57.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-08T07:21:57.109Z"
+    },
+    {
+      "id": "2108084615349170480",
+      "text": "Day 3 (encore)/ We silently re-shipped codex cloud. It’s pretty good now",
+      "created_at": "2026-10-08T06:38:33.000Z",
+      "url": "https://x.com/thsottiaux/status/2108084615349170480",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-08T07:21:57.109Z"
+    },
+    {
+      "id": "2108080036725354918",
+      "text": "lmao 💀 get it to work on your models",
+      "created_at": "2026-10-08T06:20:21.000Z",
+      "url": "https://x.com/thsottiaux/status/2108080036725354918",
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "hey @bot can I get tibo@mail.grokbot.com for my bot?",
+        "created_at": "2026-10-08T05:44:40.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-08T07:21:57.109Z"
+    },
+    {
       "id": "2108067119980319111",
       "text": "So smart. Figured out by itself who needs it",
       "created_at": "2026-10-08T05:29:02.000Z",
@@ -145,8 +192,8 @@
       "url": "https://x.com/thsottiaux/status/2107913738791596286",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-07T19:29:08.945Z",
       "inReplyTo": {
         "account": "poteto",
@@ -5105,7 +5152,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-08T06:18:48.646Z",
+  "updated_at": "2026-10-08T07:21:57.111Z",
   "source": "browser",
   "coverage_since": "2026-10-07T03:44:55.000Z"
 }
