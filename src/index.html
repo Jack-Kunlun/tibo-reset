@@ -279,10 +279,12 @@
   .v-long{color:#8A6A28;border-color:rgba(179,86,60,.28);background:rgba(179,86,60,.05)}
   .v-rare{color:var(--cinnabar);border-color:rgba(179,86,60,.42);background:rgba(179,86,60,.08)}
 
-  /* ---------- 第一层：预测总览 ---------- */
-  /* 这一页曾经是「观察站」：最先看到的是「距上次重置过了多久」，而用户要的答案是
-     「下一次什么时候」—— 反方向的两件事挤在同屏，往前看的永远排在往回看的后面。
-     现在结论单独成层，并且**只有这里**给出「预计时间」这个字符串。
+  /* ---------- 第二层：预测总览 ---------- */
+  /* 带推断的那一块，**只有这里**给出「预计时间」这个字符串。
+     它上面是「已经等了多久」—— 一个不含推断的事实（见上一节）。顺序改过两次：
+     最早这一页是「观察站」，最先看到的是「距上次重置过了多久」，而用户要的答案
+     「下一次什么时候」被压在下面，于是结论提到最前；2026-10-08 又把「已经等了多久」
+     挪到结论**之前** —— 事实在前、推断在后，读者先知道自己在哪，再看要去哪。
 
      2026-10-08 又收一次：主卡从「左主卡 + 右侧栏」改成**整宽一张**。
      分栏的代价是主卡被压到 1.75fr（约 610px），而它要放的是全页最大的数字；
@@ -485,10 +487,12 @@
     font-family:var(--mono)}
   .hr .legend{gap:10px 14px;font-size:11.5px;padding:8px 2px 2px}
 
-  /* ---------- 补充层：已经等了多久 ---------- */
-  /* 往回看的那个数字。它与主卡的大倒计时是**反方向**的两件事，所以分层放置：
-     往前看的在最上面（结论），往回看的在靠下（背景）。旧版把它放在首屏正中央，
-     于是第一眼读到的是「已经等了这么久」，而不是「下一次什么时候」。 */
+  /* ---------- 第一块：已经等了多久 ---------- */
+  /* 它现在排在**最前**（2026-10-08 改版）。上一版按「往前看的在上、往回看的在下」
+     把它压到页尾，那条规则的前提是「结论必须独占首屏」。前提变了：首屏先给一个
+     **已发生的事实**（不含推断），结论紧跟其后 —— 读者先知道自己在哪，再看要去哪。
+     两个数字互为参照，谁在前都读得通；选事实在前，是因为它没有歧义。
+     它带边框、`section` 又有 44px 上边距，所以与顶栏那条 1px 线不会贴在一起。 */
   .hero-card{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);
     gap:24px;align-items:center;background:var(--card);border:1px solid var(--line);
     border-radius:var(--r);padding:22px 24px;box-shadow:var(--shadow)}
@@ -725,7 +729,40 @@
   <!-- ============ 数据陈旧（超过两个采集周期没成功更新时才出现） ============ -->
   <!--__FRESHNESS__-->
 
-  <!-- ============ 第一层：预测结论（首屏唯一的主角） ============ -->
+  <!-- ============ 第一层：已经等了多久 ============ -->
+  <!-- 2026-10-08 改版：它从页尾提到**最前**。它回答的是这一页最直白的那个问题，
+       而且是一个**已发生的事实**（不含任何模型推断）—— 读者先用它知道「我现在
+       处在什么位置」，再看下面的「下一次什么时候」才有参照物。
+
+       代价要说清：首屏从此是「事实 + 结论」两块，`pred` 不再独占首屏。它之所以
+       不抢结论的位置 —— 它自己不加载荷：没有概率、没有区间，只有一个已经过去的
+       时间与一句历史定位；带推断的那块（`pred`）紧跟其后。 -->
+  <section>
+    <div class="hero-card">
+      <div>
+        <div class="hero-h">
+          <span class="ico">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3.4 1.7h9.2M3.4 14.3h9.2M4.6 1.7v2.4c0 1.9 3.4 3.2 3.4 4.3s-3.4 2.4-3.4 4.3v1.6M11.4 1.7v2.4c0 1.9-3.4 3.2-3.4 4.3s3.4 2.4 3.4 4.3v1.6"
+                stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <h3>已经等了多久</h3>
+        </div>
+        <div class="hero-v" id="elapsed" data-last="<!--__LAST_AT__-->"><!--__ELAPSED__--></div>
+      </div>
+      <!-- 右栏是个**链接**（落到最近记录，「上次重置」在那里可追溯）——
+           设计稿右上角有个箭头，箭头若不指向任何地方就是假的交互提示。 -->
+      <a class="hero-side" href="#records">
+        <div class="hero-k">距上一次重置</div>
+        <div class="hero-at">上次重置 <!--__LAST_LABEL__--></div>
+        <!--__VERDICT__-->
+        <span class="hero-go" aria-hidden="true">›</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ============ 第二层：预测结论 ============ -->
   <!--__OUTLOOK__-->
 
   <!-- 信号区（提示条 / 预告横幅）。**紧贴主卡**：读者看完结论的下一问就是
@@ -783,32 +820,6 @@
     </div>
   </section>
 
-  <!-- ============ 第四层：往回看的那个数字（补充，不是结论） ============ -->
-  <section>
-    <div class="hero-card">
-      <div>
-        <div class="hero-h">
-          <span class="ico">
-            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M3.4 1.7h9.2M3.4 14.3h9.2M4.6 1.7v2.4c0 1.9 3.4 3.2 3.4 4.3s-3.4 2.4-3.4 4.3v1.6M11.4 1.7v2.4c0 1.9-3.4 3.2-3.4 4.3s3.4 2.4 3.4 4.3v1.6"
-                stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-            </svg>
-          </span>
-          <h3>已经等了多久</h3>
-        </div>
-        <div class="hero-v" id="elapsed" data-last="<!--__LAST_AT__-->"><!--__ELAPSED__--></div>
-      </div>
-      <!-- 右栏是个**链接**（落到最近记录，「上次重置」在那里可追溯）——
-           设计稿右上角有个箭头，箭头若不指向任何地方就是假的交互提示。 -->
-      <a class="hero-side" href="#records">
-        <div class="hero-k">距上一次重置</div>
-        <div class="hero-at">上次重置 <!--__LAST_LABEL__--></div>
-        <!--__VERDICT__-->
-        <span class="hero-go" aria-hidden="true">›</span>
-      </a>
-    </div>
-  </section>
-
   <section>
     <div class="head">
       <span class="head-l">
@@ -858,8 +869,7 @@
   for (var d = 0; d < 10; d++) REEL += '<i>' + d + '</i>';
   var pad = function (n) { return (n < 10 ? '0' : '') + n; };
 
-  // ① 第一层的大倒计时：**距预测重置时刻**。这是这一页的主角，也是改版前
-  //    唯一缺的那块 —— 旧版页首那个跳动的数字数的是「距上一次重置」，往回看。
+  // ① 大倒计时：**距预测重置时刻**。带推断那一块（预测总览）的核心数字。
   //    锚点、初始值都在构建期写死（`.pm` 的 data-eta / .grp 的 translateY），
   //    脚本被禁用时数字依然正确，只是不再滚动。
   var pred = document.getElementById('pred');
@@ -870,7 +880,7 @@
   var etaFrom = pred && pred.dataset.eta ? Number(pred.dataset.eta) : NaN;
   var pcdOk = isFinite(etaFrom) && pcdGroups && pcdGroups.length === 4;
 
-  // ② 「已经等了多久」那个大数字（补充层里往回看的那条）。
+  // ② 「已经等了多久」那个大数字 —— 它是页面上的**第一块**（排在预测总览之前）。
   //    锚点取自**它自己的** data-last，不取主卡的 —— 主卡在没有可用预测时
   //    整块不出现，而这一块仍然在。挂在主卡上会让它跟着冻住，页面上就出现
   //    一个不走的钟，而那正是「静默陈旧」最典型的形态。

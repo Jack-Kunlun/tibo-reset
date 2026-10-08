@@ -36,7 +36,7 @@ Page({
     verdict: { cls: 'calm', text: '', tail: '' },
     metrics: [],
     signal: { show: false, checked: 0, lookback: 60, program: { show: false } },
-    /** 预测总览（首屏主角）。null = 数据不足，模板据此整块不渲染，而不是画一张空卡 */
+    /** 预测总览（带推断的那块）。null = 数据不足，模板据此整块不渲染，而不是画一张空卡 */
     pred: null,
     forecast: null,
     /** 直方图有没有数据 —— 没有就不渲染 canvas（`setupCanvas` 找不到节点会静默返回 null） */

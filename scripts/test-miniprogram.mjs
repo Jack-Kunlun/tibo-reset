@@ -391,7 +391,7 @@ check(
 // 用户进页面第一眼要知道的四件事：下一次什么时候 / 可不可信 / 凭什么 / 还有多久。
 // 缺任何一条，首屏就退回「观察站」—— 而那正是这次改版要修正的问题。
 const ov = d.pred;
-check('预测总览已生成（首屏主角）', !!ov, JSON.stringify(ov));
+check('预测总览已生成（带推断的那块）', !!ov, JSON.stringify(ov));
 check(
   '① 下一次什么时候：日期 + 星期 + 时刻三件都在',
   /^\d{1,2}\.\d{1,2}$/.test(ov.md) && /^周[一二三四五六日]$/.test(ov.wd) && /^\d{2}:\d{2}$/.test(ov.hm),
@@ -1545,20 +1545,23 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
   // 拿原串比下标会把注释里的 `class="pred"` 也算进去。
   const wxmlBody = wxmlIndex.replace(/<!--[\s\S]*?-->/g, '');
   const at = (needle) => wxmlBody.indexOf(needle);
+  // 2026-10-08 第三轮：「已经等了多久」（`.hero`）从页尾提到**最前**，锚点随之新增。
+  // 它必须留在下面那条前置断言里 —— 用旧锚点会 `-1`，而 `-1` 恰好能让「排在之前」
+  // 那类比较**看起来**成立（`-1 < x` 恒真），所以「找得到」那条必须留着。
+  const iHero = at('class="hero"');
   const iPred = at('class="pred"');
   const iSig = at('class="sig"');
   const iProg = at('class="prog"');
   // 2026-10-08 第二轮：依据区从 `.fc`（一块 `card fc-meta`）扩成 `.bc-grid`（三张卡），
   // 并在它后面**新增**了一组 `.hr-grid`（历史规律：三张图从「各占一节」收成一组）。
-  // 锚点随之从 `.fc` 换成这两个 —— 用旧锚点会 `-1`，而 `-1` 恰好能让「排在之后」
-  // 那类比较**看起来**成立（`-1 < x` 恒真），所以「找得到」那条前置断言必须留着。
+  // 锚点随之从 `.fc` 换成这两个 —— 用旧锚点会 `-1`，同样会被上面那条前置断言挡住。
   const iBc = at('class="bc-grid"');
   const iHr = at('class="hr-grid"');
 
   check(
-    '模板里找得到五块（顺序断言的前提）',
-    [iPred, iSig, iProg, iBc, iHr].every((i) => i >= 0),
-    `pred=${iPred} sig=${iSig} prog=${iProg} bc=${iBc} hr=${iHr}`
+    '模板里找得到六块（顺序断言的前提）',
+    [iHero, iPred, iSig, iProg, iBc, iHr].every((i) => i >= 0),
+    `hero=${iHero} pred=${iPred} sig=${iSig} prog=${iProg} bc=${iBc} hr=${iHr}`
   );
   check(
     '预测总览排在信号之前（结论在前，依据在后）',
@@ -1580,10 +1583,18 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
     iProg >= 0 && iHr >= 0 && iHr > iProg,
     `hr@${iHr} vs prog@${iProg}`
   );
+  // 2026-10-08 第三轮：大计数器从**页尾**提到**最前**（事实在前、推断在后），
+  // 判据的方向跟着反过来。两条一起钉：只钉一条的话，「挪一半」（删了旧位置、
+  // 忘了插新位置，或插到了别处）可能不报。
   check(
-    '「距上一次额度重置」的大计数器排在三张图之后（往回看的信息后置）',
-    at('class="hero"') > at('id="strip"') && at('id="strip"') > 0,
-    `hero@${at('class="hero"')} vs strip@${at('id="strip"')}`
+    '「已经等了多久」的大计数器排在预测总览之前（事实在前、推断在后）',
+    iHero >= 0 && iPred >= 0 && iHero < iPred,
+    `hero@${iHero} vs pred@${iPred}`
+  );
+  check(
+    '大计数器也排在预测依据与三张图之前（它不再后置到页尾）',
+    iHero >= 0 && iBc > 0 && iHr > 0 && iHero < iBc && iHero < iHr,
+    `hero@${iHero} vs bc@${iBc} / hr@${iHr}`
   );
   check(
     '间隔直方图的 canvas 在模板里（第三层图表的第一张）',

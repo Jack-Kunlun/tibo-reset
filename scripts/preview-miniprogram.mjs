@@ -109,7 +109,7 @@ const counterHtml = counter
   .join('');
 
 /* 预测总览的倒计时用**自己的类名**（pcd-），不复用信号区那套 .cd-* ——
-   两块的字号差一倍（首屏主角 vs 注脚），共用一套类名就得靠后人记得别覆盖。
+   两块的字号差一倍（主数字 vs 注脚），共用一套类名就得靠后人记得别覆盖。
    信号区那个「距窗口开启」的倒数已随「与主卡同锚点、同值」一并去掉。 */
 const pcdHtml = (groups) =>
   groups
@@ -118,8 +118,9 @@ const pcdHtml = (groups) =>
     )
     .join('');
 
-/* 第一层：预测总览。结构照 index.wxml 那块逐句对齐 —— 预览是手写副本，
-   不对齐就会给出一个真机上不存在的页面（这块正是新加的，漏了就会被当成「本来就这样」）。 */
+/* 第二层：预测总览（上面那块是「已经等了多久」）。结构照 index.wxml 那块逐句对齐 ——
+   预览是手写副本，不对齐就会给出一个真机上不存在的页面（这块正是新加的，漏了就会被
+   当成「本来就这样」）。 */
 const predHtml = pred
   ? `<div class="pred" data-status="${esc(pred.status)}" data-level="${esc(pred.confidence)}">
       <div class="pred-head">
@@ -350,6 +351,25 @@ ${normalize}
     <div class="pulse"><span class="dot"></span><span>观测中 · <span id="upd">${esc(fmtClockSec(now))}</span></span></div>
   </div>
 
+  <div class="sec-head"><span class="t">已经等了多久</span></div>
+
+  <div class="hero">
+    <div class="label">距上一次额度重置</div>
+    <div class="counter">${counterHtml}</div>
+    <div class="since">上次重置 ${esc(fmtDateTime(lastAt))} · 已过 ${fmtSpan(elapsed(lastAt).ms / 86400000)}</div>
+    <div class="verdict v-${v.cls}"><span class="b">${esc(v.text)}</span><span class="sep"> · </span><span>${esc(
+      v.tail
+    )}</span></div>
+    ${
+      gauge
+        ? `<div class="gauge g-${gauge.cls}">
+            <div class="g-track"><div class="g-fill" style="width:${gauge.fill}%"></div></div>
+            <div class="g-text">${esc(gauge.text)}</div>
+          </div>`
+        : ''
+    }
+  </div>
+
   ${predHtml}
 
   ${signalHtml}
@@ -385,25 +405,6 @@ ${normalize}
         <div class="lg"><span class="sw sw-cin"></span>极端长等待</div>
       </div>
     </div>
-  </div>
-
-  <div class="sec-head"><span class="t">已经等了多久</span></div>
-
-  <div class="hero">
-    <div class="label">距上一次额度重置</div>
-    <div class="counter">${counterHtml}</div>
-    <div class="since">上次重置 ${esc(fmtDateTime(lastAt))} · 已过 ${fmtSpan(elapsed(lastAt).ms / 86400000)}</div>
-    <div class="verdict v-${v.cls}"><span class="b">${esc(v.text)}</span><span class="sep"> · </span><span>${esc(
-      v.tail
-    )}</span></div>
-    ${
-      gauge
-        ? `<div class="gauge g-${gauge.cls}">
-            <div class="g-track"><div class="g-fill" style="width:${gauge.fill}%"></div></div>
-            <div class="g-text">${esc(gauge.text)}</div>
-          </div>`
-        : ''
-    }
   </div>
 
   <div class="sec-head"><span class="t">样本摘要</span></div>
