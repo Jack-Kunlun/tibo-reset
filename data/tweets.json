@@ -1,6 +1,60 @@
 {
   "tweets": [
     {
+      "id": "2108067119980319111",
+      "text": "So smart. Figured out by itself who needs it",
+      "created_at": "2026-10-08T05:29:02.000Z",
+      "url": "https://x.com/thsottiaux/status/2108067119980319111",
+      "inReplyTo": {
+        "account": "bot",
+        "id": "",
+        "text": "Sending that over to your Grok Bot now.",
+        "created_at": "2026-10-08T03:29:57.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-08T06:18:48.645Z"
+    },
+    {
+      "id": "2108064684549230815",
+      "text": "点点点",
+      "created_at": "2026-10-08T05:19:21.000Z",
+      "url": "https://x.com/thsottiaux/status/2108064684549230815",
+      "inReplyTo": {
+        "account": "Leooweb3",
+        "id": "",
+        "text": "You are sitting next to Elon Musk, only 3 words, what would you say to him",
+        "created_at": "2026-10-07T18:14:33.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-08T06:18:48.645Z"
+    },
+    {
+      "id": "2108064454831427702",
+      "text": "Happier than most x users",
+      "created_at": "2026-10-08T05:18:26.000Z",
+      "url": "https://x.com/thsottiaux/status/2108064454831427702",
+      "inReplyTo": {
+        "account": "notesbyfloat",
+        "id": "",
+        "text": "new dots demo dropped",
+        "created_at": "2026-10-07T14:30:58.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-08T06:18:48.645Z"
+    },
+    {
       "id": "2108046671309685096",
       "text": "Chungus, we should have thought of that name",
       "created_at": "2026-10-08T04:07:46.000Z",
@@ -91,8 +145,8 @@
       "url": "https://x.com/thsottiaux/status/2107913738791596286",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-07T19:29:08.945Z",
       "inReplyTo": {
         "account": "poteto",
@@ -109,8 +163,8 @@
       "url": "https://x.com/thsottiaux/status/2107913674593644711",
       "kind": "credit",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-07T19:29:08.945Z",
       "inReplyTo": {
         "account": "poteto",
@@ -5051,7 +5105,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-08T05:14:30.023Z",
+  "updated_at": "2026-10-08T06:18:48.646Z",
   "source": "browser",
   "coverage_since": "2026-10-07T03:44:55.000Z"
 }
