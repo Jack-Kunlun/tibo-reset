@@ -1,15 +1,58 @@
 {
   "tweets": [
     {
+      "id": "2108017418136330678",
+      "text": "Goodbye Grok models",
+      "created_at": "2026-10-08T02:11:32.000Z",
+      "url": "https://x.com/thsottiaux/status/2108017418136330678",
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "Grok Bot is getting an upgrade!",
+        "created_at": "2026-10-07T07:05:20.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-08T03:03:20.392Z"
+    },
+    {
+      "id": "2108014292910113006",
+      "text": "You really had to sleep on that one",
+      "created_at": "2026-10-08T01:59:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2108014292910113006",
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "Bro is taking “I don’t write code anymore” too literally",
+        "created_at": "2026-10-07T12:20:34.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-08T03:03:20.392Z"
+    },
+    {
       "id": "2107913738791596286",
       "text": "Will be there by EOD PST.",
       "created_at": "2026-10-07T19:19:33.000Z",
       "url": "https://x.com/thsottiaux/status/2107913738791596286",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
-      "first_seen": "2026-10-07T19:29:08.945Z"
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-07T19:29:08.945Z",
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "Bro is taking “I don’t write code anymore” too literally",
+        "created_at": "2026-10-07T12:20:34.000Z",
+        "url": ""
+      }
     },
     {
       "id": "2107913674593644711",
@@ -18,9 +61,16 @@
       "url": "https://x.com/thsottiaux/status/2107913674593644711",
       "kind": "credit",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
-      "first_seen": "2026-10-07T19:29:08.945Z"
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-07T19:29:08.945Z",
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "Bro is taking “I don’t write code anymore” too literally",
+        "created_at": "2026-10-07T12:20:34.000Z",
+        "url": ""
+      }
     },
     {
       "id": "2107912709715132482",
@@ -156,8 +206,8 @@
       "text_full": true,
       "kind": "reset",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-07T03:41:40.733Z"
     },
     {
@@ -4953,7 +5003,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-07T20:32:01.041Z",
+  "updated_at": "2026-10-08T03:03:20.396Z",
   "source": "browser",
   "coverage_since": "2026-10-06T03:35:09.000Z"
 }

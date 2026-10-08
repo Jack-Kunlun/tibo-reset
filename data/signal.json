@@ -1,5 +1,5 @@
 {
-  "level": "explicit",
+  "level": "occurred",
   "program": {
     "id": "2106845241357824205",
     "url": "https://x.com/thsottiaux/status/2106845241357824205",
@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-07T20:32:01.042Z",
-  "checkedTweets": 305,
+  "generatedAt": "2026-10-08T03:03:20.400Z",
+  "checkedTweets": 307,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-08T20:32:01.042Z",
-  "windowTo": "2026-10-07T20:32:01.042Z",
+  "windowFrom": "2026-08-09T03:03:20.400Z",
+  "windowTo": "2026-10-08T03:03:20.400Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.08",
       "weekday": "周四",
-      "time": "04:32",
-      "text": "2026.10.08（周四）04:32",
+      "time": "11:03",
+      "text": "2026.10.08（周四）11:03",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,32 +98,36 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.07",
       "weekday": "周三",
-      "time": "13:32",
-      "text": "2026.10.07（周三）13:32",
+      "time": "20:03",
+      "text": "2026.10.07（周三）20:03",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2107913738791596286",
+    "id": "2108017418136330678",
     "account": "thsottiaux",
-    "text": "Will be there by EOD PST.",
-    "createdAt": "2026-10-07T19:19:33.000Z",
-    "url": "https://x.com/thsottiaux/status/2107913738791596286",
+    "text": "Goodbye Grok models",
+    "createdAt": "2026-10-08T02:11:32.000Z",
+    "url": "https://x.com/thsottiaux/status/2108017418136330678",
     "reasons": [
-      "含未来语气"
+      "上下文：回复 @poteto「Grok Bot is getting an upgrade!…」"
     ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "poteto",
+      "id": "",
+      "text": "Grok Bot is getting an upgrade!"
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.10.08",
         "weekday": "周四",
-        "time": "03:19",
-        "text": "2026.10.08（周四）03:19",
+        "time": "10:11",
+        "text": "2026.10.08（周四）10:11",
         "offset": "UTC+8"
       },
       "b": {
@@ -131,8 +135,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.07",
         "weekday": "周三",
-        "time": "12:19",
-        "text": "2026.10.07（周三）12:19",
+        "time": "19:11",
+        "text": "2026.10.07（周三）19:11",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -143,7 +147,8 @@
     "window": null,
     "candidateWindow": null
   },
-  "signals": [
+  "signals": [],
+  "occurred": [
     {
       "id": "2107913674593644711",
       "account": "thsottiaux",
@@ -155,10 +160,15 @@
         "命中额度词 limits/usage/credits",
         "命中「新额度」类词 fresh/new/top up",
         "含未来语气",
-        "命中「A/the reset」名词化陈述"
+        "命中「A/the reset」名词化陈述",
+        "上下文：回复 @poteto「Bro is taking “I don’t write code an…」"
       ],
       "viaContext": false,
-      "inReplyTo": null,
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "Bro is taking “I don’t write code anymore” too literally"
+      },
       "createdZones": {
         "a": {
           "label": "北京时间",
@@ -180,59 +190,13 @@
         },
         "diffText": "北京时间比 Tibo 当地时间快 15 小时"
       },
-      "level": "explicit",
+      "level": "occurred",
       "rejected": null,
       "intent": 6,
-      "timeWord": "tomorrow",
-      "timeNote": null,
-      "precision": "day",
-      "candidateWindow": null,
-      "window": {
-        "from": "2026-10-08T07:00:00.000Z",
-        "to": "2026-10-09T06:59:00.000Z",
-        "dayNum": 20734,
-        "fromTs": 1791442800000,
-        "toTs": 1791529140000,
-        "userFrom": {
-          "y": "2026",
-          "m": "10",
-          "d": "08",
-          "hh": "15",
-          "mm": "00",
-          "weekdayCN": "周四"
-        },
-        "sourceZone": "2026.10.08（周四） 全天",
-        "userZone": "2026.10.08（周四）15:00 起",
-        "openText": "2026.10.08（周四）15:00",
-        "rangeNote": "窗口到北京 2026.10.09（周五）14:59 为止",
-        "crossesUserDay": true,
-        "zones": {
-          "a": {
-            "label": "北京时间",
-            "zone": "Asia/Shanghai",
-            "date": "2026.10.08",
-            "weekday": "周四",
-            "time": "15:00",
-            "text": "2026.10.08（周四）15:00",
-            "offset": "UTC+8"
-          },
-          "b": {
-            "label": "Tibo 当地时间",
-            "zone": "America/Los_Angeles",
-            "date": "2026.10.08",
-            "weekday": "周四",
-            "time": "00:00",
-            "text": "2026.10.08（周四）00:00",
-            "offset": "UTC-7"
-          },
-          "diffHours": 15,
-          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-        }
-      },
-      "confidence": 0.9299999999999999
-    }
-  ],
-  "occurred": [
+      "occurredAt": "2026-10-07T19:19:17.000Z",
+      "window": null,
+      "confidence": 0.86
+    },
     {
       "id": "2107676072871600470",
       "account": "thsottiaux",
@@ -1736,7 +1700,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-07T20:32:01.042Z"
+        "checkedAt": "2026-10-08T03:03:20.400Z"
       }
     },
     {
@@ -2531,16 +2495,105 @@
   ],
   "rejected": [
     {
+      "id": "2108017418136330678",
+      "account": "thsottiaux",
+      "text": "Goodbye Grok models",
+      "createdAt": "2026-10-08T02:11:32.000Z",
+      "url": "https://x.com/thsottiaux/status/2108017418136330678",
+      "reasons": [
+        "上下文：回复 @poteto「Grok Bot is getting an upgrade!…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "Grok Bot is getting an upgrade!"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.08",
+          "weekday": "周四",
+          "time": "10:11",
+          "text": "2026.10.08（周四）10:11",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.07",
+          "weekday": "周三",
+          "time": "19:11",
+          "text": "2026.10.07（周三）19:11",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2108014292910113006",
+      "account": "thsottiaux",
+      "text": "You really had to sleep on that one",
+      "createdAt": "2026-10-08T01:59:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2108014292910113006",
+      "reasons": [
+        "上下文：回复 @poteto「Bro is taking “I don’t write code an…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "Bro is taking “I don’t write code anymore” too literally"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.08",
+          "weekday": "周四",
+          "time": "09:59",
+          "text": "2026.10.08（周四）09:59",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.07",
+          "weekday": "周三",
+          "time": "18:59",
+          "text": "2026.10.07（周三）18:59",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
       "id": "2107913738791596286",
       "account": "thsottiaux",
       "text": "Will be there by EOD PST.",
       "createdAt": "2026-10-07T19:19:33.000Z",
       "url": "https://x.com/thsottiaux/status/2107913738791596286",
       "reasons": [
-        "含未来语气"
+        "含未来语气",
+        "上下文：回复 @poteto「Bro is taking “I don’t write code an…」"
       ],
       "viaContext": false,
-      "inReplyTo": null,
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "Bro is taking “I don’t write code anymore” too literally"
+      },
       "createdZones": {
         "a": {
           "label": "北京时间",
@@ -10663,276 +10716,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2101448279712207203",
-      "account": "thsottiaux",
-      "text": "You missed the long way to go part of the quote",
-      "createdAt": "2026-09-19T23:08:07.000Z",
-      "url": "https://x.com/thsottiaux/status/2101448279712207203",
-      "reasons": [
-        "上下文：回复 @alexandr_wang「as the prophecy foretold, we must no…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "alexandr_wang",
-        "id": "",
-        "text": "as the prophecy foretold, we must now seize our golden opportunity"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.20",
-          "weekday": "周日",
-          "time": "07:08",
-          "text": "2026.09.20（周日）07:08",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.19",
-          "weekday": "周六",
-          "time": "16:08",
-          "text": "2026.09.19（周六）16:08",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2101432860892901859",
-      "account": "thsottiaux",
-      "text": "Clearly not me",
-      "createdAt": "2026-09-19T22:06:51.000Z",
-      "url": "https://x.com/thsottiaux/status/2101432860892901859",
-      "reasons": [
-        "上下文：回复 @cherry_mx_reds「I thought Tibo commented on a post o…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "cherry_mx_reds",
-        "id": "",
-        "text": "I thought Tibo commented on a post of mine But then I took a closer look and noticed something off He’s jacked - what the heck 😂"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.20",
-          "weekday": "周日",
-          "time": "06:06",
-          "text": "2026.09.20（周日）06:06",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.19",
-          "weekday": "周六",
-          "time": "15:06",
-          "text": "2026.09.19（周六）15:06",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
-  "hypothesis": {
-    "dayNum": 20734,
-    "day": "2026.10.08（周四）",
-    "precision": "day",
-    "window": {
-      "from": "2026-10-08T07:00:00.000Z",
-      "to": "2026-10-09T06:59:00.000Z",
-      "dayNum": 20734,
-      "fromTs": 1791442800000,
-      "toTs": 1791529140000,
-      "userFrom": {
-        "y": "2026",
-        "m": "10",
-        "d": "08",
-        "hh": "15",
-        "mm": "00",
-        "weekdayCN": "周四"
-      },
-      "sourceZone": "2026.10.08（周四） 全天",
-      "userZone": "2026.10.08（周四）15:00 起",
-      "openText": "2026.10.08（周四）15:00",
-      "rangeNote": "窗口到北京 2026.10.09（周五）14:59 为止",
-      "crossesUserDay": true,
-      "zones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.08",
-          "weekday": "周四",
-          "time": "15:00",
-          "text": "2026.10.08（周四）15:00",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.08",
-          "weekday": "周四",
-          "time": "00:00",
-          "text": "2026.10.08（周四）00:00",
-          "offset": "UTC-7"
-        },
-        "diffHours": 15,
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "precision": "day"
-    },
-    "counts": {
-      "hard": 1,
-      "soft": 0,
-      "clockHints": 0,
-      "clockAdopted": 0
-    },
-    "evidence": [
-      {
-        "id": "2107913674593644711",
-        "createdAt": "2026-10-07T19:19:17.000Z",
-        "text": "Day 3/ The big one is GPT-6 in Chat, but today is also a little celebration day with a new high of 40M active users across Codex and ChatGPT Work. Loading a banked reset in everyone's paid accounts. See you again tomorrow!",
-        "url": "https://x.com/thsottiaux/status/2107913674593644711",
-        "via": "原创",
-        "weight": "hard",
-        "contributes": "承诺了这一天",
-        "timeWord": "tomorrow",
-        "precision": "day",
-        "ambiguous": false,
-        "note": null,
-        "from": "2026-10-08T07:00:00.000Z",
-        "to": "2026-10-09T06:59:00.000Z"
-      }
-    ],
-    "clockHints": []
-  },
-  "forecasts": [
-    {
-      "level": "explicit",
-      "day": "2026.10.08（周四）",
-      "precision": "day",
-      "window": {
-        "from": "2026-10-08T07:00:00.000Z",
-        "to": "2026-10-09T06:59:00.000Z",
-        "dayNum": 20734,
-        "fromTs": 1791442800000,
-        "toTs": 1791529140000,
-        "userFrom": {
-          "y": "2026",
-          "m": "10",
-          "d": "08",
-          "hh": "15",
-          "mm": "00",
-          "weekdayCN": "周四"
-        },
-        "sourceZone": "2026.10.08（周四） 全天",
-        "userZone": "2026.10.08（周四）15:00 起",
-        "openText": "2026.10.08（周四）15:00",
-        "rangeNote": "窗口到北京 2026.10.09（周五）14:59 为止",
-        "crossesUserDay": true,
-        "zones": {
-          "a": {
-            "label": "北京时间",
-            "zone": "Asia/Shanghai",
-            "date": "2026.10.08",
-            "weekday": "周四",
-            "time": "15:00",
-            "text": "2026.10.08（周四）15:00",
-            "offset": "UTC+8"
-          },
-          "b": {
-            "label": "Tibo 当地时间",
-            "zone": "America/Los_Angeles",
-            "date": "2026.10.08",
-            "weekday": "周四",
-            "time": "00:00",
-            "text": "2026.10.08（周四）00:00",
-            "offset": "UTC-7"
-          },
-          "diffHours": 15,
-          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-        },
-        "precision": "day"
-      },
-      "text": "Day 3/ The big one is GPT-6 in Chat, but today is also a little celebration day with a new high of 40M active users across Codex and ChatGPT Work. Loading a banked reset in everyone's paid accounts. See you again tomorrow!",
-      "url": "https://x.com/thsottiaux/status/2107913674593644711",
-      "reasons": [
-        "命中重置词 reset",
-        "命中额度词 limits/usage/credits",
-        "命中「新额度」类词 fresh/new/top up",
-        "含未来语气",
-        "命中「A/the reset」名词化陈述"
-      ],
-      "timeNote": "",
-      "createdAt": "2026-10-07T19:19:17.000Z",
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.08",
-          "weekday": "周四",
-          "time": "03:19",
-          "text": "2026.10.08（周四）03:19",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.07",
-          "weekday": "周三",
-          "time": "12:19",
-          "text": "2026.10.07（周三）12:19",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "sources": 1,
-      "evidence": [
-        {
-          "id": "2107913674593644711",
-          "createdAt": "2026-10-07T19:19:17.000Z",
-          "text": "Day 3/ The big one is GPT-6 in Chat, but today is also a little celebration day with a new high of 40M active users across Codex and ChatGPT Work. Loading a banked reset in everyone's paid accounts. See you again tomorrow!",
-          "url": "https://x.com/thsottiaux/status/2107913674593644711",
-          "via": "原创",
-          "weight": "hard",
-          "contributes": "承诺了这一天",
-          "timeWord": "tomorrow",
-          "precision": "day",
-          "ambiguous": false,
-          "note": null,
-          "from": "2026-10-08T07:00:00.000Z",
-          "to": "2026-10-09T06:59:00.000Z"
-        }
-      ],
-      "counts": {
-        "hard": 1,
-        "soft": 0
-      },
-      "clockHints": []
-    }
-  ],
+  "hypothesis": null,
+  "forecasts": [],
   "counts": {
-    "scanned": 305,
-    "explicit": 1,
-    "occurred": 6,
+    "scanned": 307,
+    "explicit": 0,
+    "occurred": 7,
     "hint": 44,
-    "none": 248,
-    "rejected": 248
+    "none": 250,
+    "rejected": 250
   },
   "truncated": true
 }
