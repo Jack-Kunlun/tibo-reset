@@ -481,18 +481,18 @@ curl -s https://reset.example.com/ | grep -o 'id="gen"[^<]*<[^>]*>[^<]*' | head 
 核对 —— 新旧容器的 `INGEST_TOKEN` 与 `SITE_URL` 哈希逐字节相同，行为等价。等 SSH 恢复、
 回到常规镜像流程后，这件事自动消失（那时凭据回到 `--env-file`）。
 
-**实测留档**（供下一次估量。三轮记在同一张表里，按**轮次标识**分列 —— 用一个 commit 指代
+**实测留档**（供下一次估量。五轮记在同一张表里，按**轮次标识**分列 —— 用一个 commit 指代
 「这一轮之后线上 src 长什么样」，比「第几次」可靠。注意第二轮的起点**不是**整份 `2c34f3e`：
 它只改了 render / index 两个文件，signals.mjs 当时仍停在 `2c34f3e` 版）：
 
-| 项 | 第一轮 `c6a9228` | 第二轮 `2c34f3e` | 第三轮 `28f1ada` |
-|---|---|---|---|
-| 传的文件 | 3 个：`src/lib/signals.mjs`、`src/lib/render.mjs`、`src/index.html` | 2 个：`src/lib/render.mjs`、`src/index.html`（改动量 +35 −27）| **1 个**：`src/lib/signals.mjs`（1537 → 1673 行）|
-| 载荷 | 补丁 304 行 / 17104 B → `gzip -9` 7932 B → base64 10576 B → **切 6 块** | 补丁 102 行 / 6522 B → `gzip -9` 3564 B → base64 4752 B → **切 3 块** | 补丁 202 行 / 12345 B → `gzip -9` 5694 B → base64 7593 B → **切 4 块**（1900 × 3 + 1893）|
-| 比对 | 4 处：gz、patch、补丁后、容器内 | **5 处**（多一道 `p.b64` 自身的哈希）：全部逐字节相同 | 5 处 + 补丁行数（202）|
-| 预检 | 8788 vs 8787：`occurred` **7 → 5**、`program` **无 → 有**、页面新块 0 → 2 处 | 8788 vs 8787：页面「留档超出上限」**1 → 0 处**；`diff` 共出 3 处，其中**代码差异只有两处**（`.sig-prog` 上边距、那行提示），第三处是页面上「已过 N 分 N 秒」的计数（两次抓取时刻不同，不是改动）| 8788 vs 8787：`level` **explicit → occurred**、`explicit` **1 → 0**、`occurred` **6 → 7**（新增的正是那条 `19:19:17` 发卡推文，`downgradedFrom` 为空 = 当场判定，不是过期降级）；`hint` / `none` / `rejected` / `scanned` **逐项全等**。页面：explicit 预告块 + 倒数条 + 窗口块整组换成 `sig-idle`（86203 B → 82499 B）|
-| 停机窗口 | 见下（当时记的是 `sleep` 的时长）| **0.46 秒** | **0.51 秒**（容器间隔 0.26 秒）|
-| 新镜像 tag / 回滚点 | `tibo-reset:amd64-20261007` / `tibo-reset-prev` | `tibo-reset:amd64-20261007b` / `tibo-reset-prev` | `tibo-reset:amd64-20261008` / `tibo-reset-prev`（现指 `amd64-20261007b`；`tibo-reset:amd64` 原 tag 仍未被动过）|
+| 项 | 第一轮 `c6a9228` | 第二轮 `2c34f3e` | 第三轮 `28f1ada` | 第四轮 `bdd340d` | 第五轮 `bb6ef47` |
+|---|---|---|---|---|---|
+| 传的文件 | 3 个：`src/lib/signals.mjs`、`src/lib/render.mjs`、`src/index.html` | 2 个：`src/lib/render.mjs`、`src/index.html`（改动量 +35 −27）| **1 个**：`src/lib/signals.mjs`（1537 → 1673 行）| 6 个：`src/index.html`、`src/lib/{render,signals,scene,predict,chart-data}.mjs`/`.js` + **新增** `src/lib/outlook.mjs` | 3 个：`src/index.html`、`src/lib/render.mjs`、`src/lib/outlook.mjs` |
+| 载荷 | 补丁 304 行 / 17104 B → `gzip -9` 7932 B → base64 10576 B → **切 6 块** | 补丁 102 行 / 6522 B → `gzip -9` 3564 B → base64 4752 B → **切 3 块** | 补丁 202 行 / 12345 B → `gzip -9` 5694 B → base64 7593 B → **切 4 块**（1900 × 3 + 1893）| **改用 jsdelivr 直取**（见 6.2）：3 次调用拿全 6 个文件，命令数从 20+ 降到 3 | jsdelivr 直取：**1 次调用**拿全 3 个文件（69249 / 64759 / 11732 B）|
+| 比对 | 4 处：gz、patch、补丁后、容器内 | **5 处**（多一道 `p.b64` 自身的哈希）：全部逐字节相同 | 5 处 + 补丁行数（202）| 3 处：jsdelivr 落盘、`docker cp` 后容器内、与本机 HEAD 逐字节 | 3 处：同上，三处哈希全等（`2db650c7` / `3807c74d` / `1b3882e2`）|
+| 预检 | 8788 vs 8787：`occurred` **7 → 5**、`program` **无 → 有**、页面新块 0 → 2 处 | 8788 vs 8787：页面「留档超出上限」**1 → 0 处**；`diff` 共出 3 处，其中**代码差异只有两处**（`.sig-prog` 上边距、那行提示），第三处是页面上「已过 N 分 N 秒」的计数（两次抓取时刻不同，不是改动）| 8788 vs 8787：`level` **explicit → occurred**、`explicit` **1 → 0**、`occurred` **6 → 7**（新增的正是那条 `19:19:17` 发卡推文，`downgradedFrom` 为空 = 当场判定，不是过期降级）；`hint` / `none` / `rejected` / `scanned` **逐项全等**。页面：explicit 预告块 + 倒数条 + 窗口块整组换成 `sig-idle`（86203 B → 82499 B）| 8788 vs 8787：新版 `bc-grid`×4 / `pcard`×1 / `data-bc`×3 / `hr-grid`×4，旧版 `fc-main`×7 / `fc-bars`×2；页面 82658 → 122208 B | 8788 vs 8787：`class="hero-card"` 字节偏移 **95703 → 62948**（从页尾提到**最前**）、`class="pred"` 61880 → 64231；`/api/signals` 两端逐字相同；页面 122228 → 123167 B（增量全是新写的注释）|
+| 停机窗口 | 见下（当时记的是 `sleep` 的时长）| **0.46 秒** | **0.51 秒**（容器间隔 0.26 秒）| ⚠ **13.3 秒**（撞 `Conflict`，见下）| **0.47 秒**（容器间隔 0.25 秒）|
+| 新镜像 tag / 回滚点 | `tibo-reset:amd64-20261007` / `tibo-reset-prev` | `tibo-reset:amd64-20261007b` / `tibo-reset-prev` | `tibo-reset:amd64-20261008` / `tibo-reset-prev` | `tibo-reset:amd64-20261008b` / `tibo-reset-prev`（旧回滚点改名 `tibo-reset-archive-20261007b`）| `tibo-reset:amd64-20261008c` / `tibo-reset-prev`（指 `amd64-20261008b`；上一轮回滚点改名 `tibo-reset-archive-20261008`）；`tibo-reset:amd64` 原 tag 始终未被顶掉 |
 
 ⚠ **「停机窗口」这一格以前记错了口径。** 上面那个「≈9 秒」是 `sleep` 的时长，不是站点不可用
 的时长 —— 它把「等健康检查转绿」也算进去了，而健康检查本来就有自己的间隔。真正的窗口是
@@ -523,6 +523,11 @@ docker logs -t --tail 30 tibo-reset                               # 末行「监
 `docker ps -a --filter name=tibo-reset-prev --format '{{.Names}} {{.Status}}'`，
 占着就先改名腾出来，再执行「stop + rename + run」那**一条**命令。
 上文早记过这个 Conflict，但没记「它会把停机窗口从 0.5 秒放大到 13 秒」—— 补在这里。
+
+⚠ **第五轮（`bb6ef47`）按上面那条「先做这一步」执行，窗口回到 0.47 秒。**
+`docker ps -a --filter name=tibo-reset-prev` 查到上一轮的回滚点还占着名字，先把它改名
+（`tibo-reset-archive-20261008`）腾出来，再发「stop + rename + run」那**一条**命令 ——
+没有出现 `Conflict`。那条教训是可复现的，不是事后解释。
 
 ### 6.2 用 jsdelivr 国内镜像直取文件（第四轮起改用，优于分块）
 
