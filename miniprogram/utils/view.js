@@ -7,8 +7,11 @@
  * 横幅长什么样」这种平时根本触发不到的路径。
  */
 
-import { fmtDate, fmtClock, fmtDay, fmtSpan, pct1, spanOf, toTs, trim1 } from './format.js';
+import { beijingParts, countdown, countdownGroups, fmtDate, fmtClock, fmtDateTime, fmtDay, fmtSpan, pct1, spanOf, toTs, trim1 } from './format.js';
 import { fmtSpanShort } from './scene.js';
+// 与网页端**逐字同一份**（`src/lib/outlook.mjs` 由 scripts/build.mjs 同步过来）。
+// 「下一次什么时候 / 可不可信 / 凭什么」这三件事的判据只该有一份实现。
+import { buildOutlook } from './outlook.js';
 
 const PRECISION_TEXT = {
   day: '全天',
@@ -318,6 +321,121 @@ export function buildGauge(chart) {
   };
 }
 
+/* ------------------------------ 预测总览 ------------------------------ */
+
+/** 北京时间字段 → 主卡那一行：`10.08` 大字 + `周四 15:00`（与网页端 `etaStamp` 同口径） */
+function etaStamp(ts) {
+  const p = beijingParts(ts);
+  return { md: `${Number(p.month)}.${Number(p.day)}`, wd: p.weekday, hm: `${p.hour}:${p.minute}` };
+}
+
+/**
+ * 预测总览：把「下一次什么时候 / 可不可信 / 凭什么」并成**一张卡**。
+ *
+ * 判据全部来自共享模块 `outlook.js`（与网页端逐字同一份），
+ * 这里只做**排版**：时间怎么摆、句子怎么拼。两端各拼一句，数字一定同源。
+ *
+ * ── 为什么这一块必须在首屏最前 ─────────────────────────────────────
+ * 改版前小程序首屏的第一块是「每日重置窗口」，第二块才是有没有预告，
+ * 而「距上次重置多久」那个大计数器排在第三块 —— 三个块分别在回答
+ * 「规则是什么 / 有没有公告 / 已经等了多久」，**没有一块在回答「下一次什么时候」**。
+ * 用户要的答案要在首屏自己拼，所以这一页此前更像记录页。
+ *
+ * ── 状态与置信度是两个轴，不能合并 ─────────────────────────────────
+ * `status`（观察中 / 高概率 / 已确认）说的是**依据的来源**；
+ * `confidence`（高 / 中 / 低）说的是**这个来源值多少分**。公告档可以
+ * 「已确认 + 置信度中」（他把话说死了，但样本本身不多）；推算档最高只到「中」。
+ *
+ * @param {object} chart  `state.chart`
+ * @param {object} pred   `state.prediction`
+ * @param {object} sig    `state.signals`
+ * @param {number} now    锚点（用 `state.generatedAt` 解析出来的那个，不是 Date.now()）
+ *                        —— 快照态下如果用自己的当前时刻，倒计时会指向一个
+ *                        与页面其余数字不同源的时刻。
+ */
+export function buildOutlookView(chart, pred, sig, now) {
+  const o = buildOutlook({ chart, prediction: pred, signals: sig, now });
+  if (!o) return null;
+
+  const eta = etaStamp(o.etaAt);
+  const b = o.brief;
+
+  // 一句话依据摘要：**只用 o.brief 给的数字原料**拼句子（数字同源，措辞各端自写）
+  let brief;
+  if (o.etaKind === 'announced') {
+    const bits = [];
+    if (b.announcedHard) bits.push(`${b.announcedHard} 条承诺`);
+    if (b.announcedSoft) bits.push(`${b.announcedSoft} 条同日提及`);
+    brief = `Tibo 已给出公告${bits.length ? `（${bits.join(' · ')}）` : ''}，预计时间取窗口开启时刻。`;
+  } else {
+    const n = b.intervals ? `按 ${b.intervals} 次历史间隔的节奏推算` : '按历史间隔的节奏推算';
+    const scan =
+      b.scanned == null
+        ? ''
+        : `本轮扫描 ${b.scanned} 条推文${b.hints ? `，${b.hints} 条时间线索` : ''}均不足以构成预告。`;
+    brief = `没有公告，${n}。${scan}`;
+  }
+
+  // 区间：announced 档就是公告窗口本身，model 档是 80% 双侧区间 [q10, q90]。
+  // 两档的**标签必须不同** —— 把公告窗口叫成「80% 区间」是把承诺说成估计。
+  const band =
+    o.band && Number.isFinite(o.band.fromAt) && Number.isFinite(o.band.toAt)
+      ? `${fmtDateTime(o.band.fromAt).slice(5)} – ${fmtDateTime(o.band.toAt).slice(5)}`
+      : '';
+
+  return {
+    show: true,
+    /** `announced` = 有公告（ETA 是窗口开启时刻）/ `model` = 无公告（ETA 是中位推算）。
+     *  两档的**措辞必须能分开**，所以给它一个自己的字段，别让页面从 status 反推。 */
+    etaKind: o.etaKind,
+    status: o.status,
+    statusLabel: o.statusLabel,
+    statusNote: o.statusNote,
+    confidence: o.confidence,
+    confidenceLabel: o.confidenceLabel,
+    /** 置信度条按 1/2/3 档拉开宽度，与网页端 `.conf-bar` 的 <i><i><i> 同义 */
+    confidenceW: Math.round((o.confidenceRank / 3) * 100),
+    etaNote: o.etaNote,
+    md: eta.md,
+    wd: eta.wd,
+    hm: eta.hm,
+    /** 倒计时锚点（时间戳直通，页面每秒据此重算，不做字符串反解析） */
+    etaAt: o.etaAt,
+    cd: null,
+    bandLabel: o.etaKind === 'announced' ? '公告窗口' : '80% 区间',
+    band,
+    brief,
+    // 「预测算于」= 这条结论是什么时候算出来的。用 o.now（同一锚点），
+    // 不用 Date.now() —— 否则倒计时和它自己那句时间会互相矛盾。
+    updatedText: `${fmtDateTime(o.now).slice(5)} 北京`,
+  };
+}
+
+/**
+ * 预测总览的大倒计时。
+ *
+ * 抽成共享函数而不是写在页面里，是因为**文案必须只有一份**：
+ * 页面（每秒 tick）与 `scripts/preview-miniprogram.mjs`（本地预览）都要用它，
+ * 而预览是手写副本 —— 各写一份的结果是预览上那句措辞与真机不一致，
+ * 于是「预览通过」变成一句没有根据的话。
+ *
+ * ⚠ 过点之后的措辞要**分档**：公告档说「窗口已开启」，推算档说「已到中位预测时刻」。
+ *   拿一句话糊住两档，公告档就会在自己没有「中位预测」的时候提「中位预测」。
+ *
+ * @returns {{over:boolean, groups:Array, label:string}|null} 没有 ETA 时返回 null
+ */
+export function predCountdown(pred, now) {
+  if (!pred || !Number.isFinite(pred.etaAt)) return null;
+  const cd = countdown(pred.etaAt, now);
+  const over =
+    pred.etaKind === 'announced' ? '公告窗口已开启 · 随时可能重置' : '已到中位预测时刻 · 随时可能重置';
+  return {
+    over: cd.over,
+    groups: countdownGroups(cd),
+    label: cd.over ? over : '距离预测重置还有',
+  };
+}
+
 /* ------------------------------ 预测 ------------------------------ */
 
 /**
@@ -343,12 +461,19 @@ export function buildForecast(pred) {
       : `略差于盲猜 ${(sk * 100).toFixed(1)}%`;
 
   const cov50Ok = Math.abs(cal.cov50 - 0.5) < 0.1;
-  const cov80Ok = Math.abs(cal.cov80 - 0.8) < 0.1;
+  // ⚠ 双侧区间 [q10, q90] 的实测覆盖率是 `covBand80`，**不是** `cov80`。
+  //    `cov80` 是单侧上界 P(T ≤ q80)：它回答「上界会不会被顶破」，
+  //    拿它论证上面那个双侧区间可不可信是两回事。实测两者在本数据集上
+  //    分别 83.3% / 83.3% 恰好接近 —— 那是巧合，不是口径对得上。
+  const covBandOk = Math.abs(cal.covBand80 - 0.8) < 0.1;
 
   return {
     q50: q50.big,
     q50Unit: q50.unit,
-    rangeText: `${fmtSpanShort(p.q25)} – ${fmtSpanShort(p.q90)}`,
+    // 80% 双侧区间的端点是 [q10, q90]（0.9 − 0.1 = 0.8）。
+    // 曾经这里取 q25 —— 那是 65% 区间，标成「80% 区间」就是在页面上写一句
+    // 当时并不成立的话（AGENTS.md 文案红线第 4 条）。网页端已同步修正。
+    rangeText: `${fmtSpanShort(p.q10)} – ${fmtSpanShort(p.q90)}`,
     bars: p.horizons.map((h) => ({
       label: h.label,
       w: Math.max(1, Math.min(100, h.p * 100)).toFixed(1),
@@ -364,10 +489,12 @@ export function buildForecast(pred) {
           j: cov50Ok ? '校准良好' : '偏离目标',
         },
         {
-          k: '80% 分位覆盖率',
-          v: pct1(cal.cov80),
-          ok: cov80Ok,
-          j: cov80Ok ? '校准良好' : '区间偏宽',
+          // 名字必须与端点的口径一致 —— 叫「分位覆盖率」而值是双侧区间覆盖率，
+          // 读者会把 83.3% 理解成「有 83.3% 的情况落在 q80 以下」。
+          k: '80% 区间覆盖率',
+          v: pct1(cal.covBand80),
+          ok: covBandOk,
+          j: covBandOk ? '校准良好' : '偏离目标',
         },
         {
           k: '7 天区分度',

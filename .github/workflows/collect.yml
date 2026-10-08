@@ -29,9 +29,12 @@ name: collect
 #   · D-025（2026-09-22）：移除 `push: paths: data/**` 与 ingest 转发。页面改为
 #     请求时实时渲染之后，数据变化重建页面这件事就**没有任何产出**了 —— 页面本来
 #     就是新的，重建只是烧 CI 分钟数；而推送数据也已由本机直连后端，不必绕一圈 CI。
-#     ⚠ 下面 paths 里那两个 `!` 排除是这条决定的**必要条件**：本机采集后提交的
-#       miniprogram/data/snapshot.js 与 miniprogram/utils/scene.js 都是构建产物，
+#     ⚠ 下面 paths 里那几条 `!` 排除是这条决定的**必要条件**：本机采集后提交的
+#       miniprogram/data/snapshot.js 与 miniprogram/utils/ 下的**同步副本**
+#       （scene.js / outlook.js，由 build.mjs 从 src/lib 复制）都是构建产物，
 #       不排除的话采集一次就触发一次重建，等于把 D-025 悄悄撤回。
+#       ⚠ 加共享模块时**必须在这里同步加一条排除** ——
+#         test-collect-warning.mjs 会拿 build.mjs 的 SHARED_MODULES 逐条核对。
 on:
   workflow_dispatch:
   push:
@@ -40,8 +43,9 @@ on:
       - 'scripts/**'
       - 'server/**'
       - 'miniprogram/**'
-      - '!miniprogram/data/**'          # 构建产物（本机采集后提交），非源码
-      - '!miniprogram/utils/scene.js'   # 同上，由 build.mjs 从 src/lib/scene.js 同步
+      - '!miniprogram/data/**'           # 构建产物（本机采集后提交），非源码
+      - '!miniprogram/utils/scene.js'    # 同上，由 build.mjs 从 src/lib/scene.js 同步
+      - '!miniprogram/utils/outlook.js'  # 同上，由 build.mjs 从 src/lib/outlook.mjs 同步
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/collect.yml'

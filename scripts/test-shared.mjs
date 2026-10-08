@@ -7,7 +7,7 @@
  * 只是没人盯着看就不会发现。本脚本补上另一半。
  *
  * 校验五件事：
- *   1. `miniprogram/utils/scene.js` 与 `src/lib/scene.js` 内容一致。
+ *   1. 双端共享模块（`scene.js` / `outlook.mjs`）的副本与源逐字一致。
  *      AGENTS.md 规定副本由构建同步、不得手改 —— 这里就是那条规矩的执行者。
  *      注意本脚本要**在 build 之前**跑：跑在之后的话，副本刚被覆盖，校验恒真、等于没有。
  *   2. 数据层形状正确（升序、长度自洽、无 NaN）
@@ -20,9 +20,16 @@ import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { buildChartData } from '../src/lib/chart-data.js';
+import { buildChartData, HIST_BREAKS } from '../src/lib/chart-data.js';
+import { DEFAULT_BREAKS } from '../src/lib/predict.mjs';
 import { spanOf } from '../src/lib/render.mjs';
-import { survivalScene, stripScene, sceneBounds, fmtSpanShort } from '../src/lib/scene.js';
+import {
+  survivalScene,
+  stripScene,
+  histogramScene,
+  sceneBounds,
+  fmtSpanShort,
+} from '../src/lib/scene.js';
 import { sceneToSvgTag } from '../src/lib/svg.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -47,27 +54,50 @@ const finite = (n) => typeof n === 'number' && Number.isFinite(n);
 
 section('1. 共享模块同步');
 
-const SCENE_HEADER =
-  '/** ⚠ 本文件由 scripts/build.mjs 从 src/lib/scene.js 同步生成，请勿直接修改。 */\n';
+/* 双端共享模块：**逐字**核对，两个文件同一套判据。
+ *
+ * 这个清单必须与 `scripts/build.mjs` 的 `SHARED_MODULES` 一致 —— 两处各写一份
+ * 是因为一边是「生成」一边是「核对」，本来就不该互相 import（核对脚本去读构建
+ * 脚本的常量，等于让被判据者提供判据）。代价是加模块要改两处，这里显式列出来
+ * 就是为了让「只加了一边」在 review 时看得见：漏加的一边不会报错，会静默不覆盖。
+ * 所以下面第一条断言顺手把这件事也钉住。 */
+const SHARED_MODULES = ['scene.js', 'outlook.mjs'];
+const sharedHeader = (name) =>
+  `/** ⚠ 本文件由 scripts/build.mjs 从 src/lib/${name} 同步生成，请勿直接修改。 */\n`;
 
-const sceneSrc = await readFile(resolve(ROOT, 'src/lib/scene.js'), 'utf8');
-
-let sceneCopy = null;
-try {
-  sceneCopy = await readFile(resolve(ROOT, 'miniprogram/utils/scene.js'), 'utf8');
-} catch {
-  /* 交由下面的断言报告，不在这里中断 */
-}
-
-check('小程序侧副本存在', sceneCopy !== null, '请先运行 npm run build');
-check('副本带「勿手改」头部', !!sceneCopy && sceneCopy.startsWith(SCENE_HEADER));
-
-// 这条是核心：改了几何源码却忘了重新构建并提交副本时，CI 必须拦住
+const buildSrc = await readFile(resolve(ROOT, 'scripts/build.mjs'), 'utf8');
+const declaredInBuild = (buildSrc.match(/const SHARED_MODULES = \[([^\]]*)\]/) ?? [, ''])[1]
+  .split(',')
+  .map((s) => s.trim().replace(/['"]/g, ''))
+  .filter(Boolean);
 check(
-  '副本内容与源完全一致（未手改、且已重新构建）',
-  sceneCopy === SCENE_HEADER + sceneSrc,
-  '源码已改但未同步到 miniprogram/utils/scene.js —— 运行 npm run build 并提交'
+  '本脚本的共享模块清单与 build.mjs 一致（只加一边会静默不覆盖）',
+  declaredInBuild.length === SHARED_MODULES.length &&
+    declaredInBuild.every((n, i) => n === SHARED_MODULES[i]),
+  `build.mjs=[${declaredInBuild}] 本脚本=[${SHARED_MODULES}]`
 );
+
+for (const name of SHARED_MODULES) {
+  const header = sharedHeader(name);
+  const src = await readFile(resolve(ROOT, `src/lib/${name}`), 'utf8');
+  const dstRel = `miniprogram/utils/${name.replace(/\.mjs$/, '.js')}`;
+
+  let copy = null;
+  try {
+    copy = await readFile(resolve(ROOT, dstRel), 'utf8');
+  } catch {
+    /* 交由下面的断言报告，不在这里中断 */
+  }
+
+  check(`${dstRel} 存在`, copy !== null, '请先运行 npm run build');
+  check(`${dstRel} 带「勿手改」头部`, !!copy && copy.startsWith(header));
+  // 这条是核心：改了源码却忘了重新构建并提交副本时，CI 必须拦住
+  check(
+    `${dstRel} 内容与源完全一致（未手改、且已重新构建）`,
+    copy === header + src,
+    `src/lib/${name} 已改但未同步到 ${dstRel} —— 运行 npm run build 并提交`
+  );
+}
 
 /* ======================== 2. 数据层 ======================== */
 
@@ -113,6 +143,100 @@ check(
 check('中位数 ≠ 平均数（本项目最核心的结论，掉了一个就有问题）', data.median !== data.mean,
   `median=${data.median} mean=${data.mean}`);
 
+/* ======================== 2b. 间隔直方图的数据层不变量 ======================== */
+
+section('2b. 间隔直方图数据层');
+
+// 这张图回答「历史上重置通常在第几天」，正文则写着「共 N 次历史间隔」。
+// 两者必须数同一批东西 —— 柱子加起来少一次，图就在无声地否认正文。
+const histSum = data.hist.buckets.reduce((s, b) => s + b.n, 0);
+check(
+  `分桶计数合计 == gapDays 长度（${histSum} / ${data.gapDays.length}）`,
+  histSum === data.gapDays.length,
+  '图上柱子与「n = N 次历史间隔」不是同一批数据'
+);
+check(
+  `hist.max == 各桶最大计数（${data.hist.max}）`,
+  data.hist.max === Math.max(...data.hist.buckets.map((b) => b.n)),
+  '柱高基准与真实最大计数不一致 —— 会画出比例错误的图'
+);
+
+// 分桶边界必须与风险模型的切点**同源**。chart-data.js 的注释里写着这句话，
+// 但在此之前没有任何东西在强制它：两边各改一套，图与模型就会讨论不同的区间，
+// 而两张图各自都能画出来（静默）。注意 Infinity ↔ null 的表示差异是刻意的：
+// 这份数据要进快照（JSON），Infinity 会被序列化成 null。
+const breaksMatch =
+  HIST_BREAKS.length === DEFAULT_BREAKS.length &&
+  HIST_BREAKS.every((v, i) => (i === HIST_BREAKS.length - 1 ? v === null && DEFAULT_BREAKS[i] === Infinity : v === DEFAULT_BREAKS[i]));
+check(
+  '直方图分桶边界与 predict.mjs 的 DEFAULT_BREAKS 同源',
+  breaksMatch,
+  `HIST_BREAKS=${JSON.stringify(HIST_BREAKS)} vs DEFAULT_BREAKS=${JSON.stringify(DEFAULT_BREAKS)}`
+);
+check('分桶标签数与桶数一致', data.hist.buckets.length === HIST_BREAKS.length - 1);
+
+// 「当前已过时长位于什么区间」必须自洽：点亮的那一档，必须真的包含 sinceDays。
+// 否则页面会指着一根柱子说「你在这里」，而那根柱子代表的天数范围并不包含现在。
+const inBucket = (i, d) => {
+  const b = data.hist.buckets[i];
+  return !!b && d >= b.from && (b.to === null || d < b.to);
+};
+check(
+  `hist.current 指向的档确实包含 sinceDays（current=${data.hist.current}）`,
+  data.hist.current < 0 || inBucket(data.hist.current, data.sinceDays),
+  `sinceDays=${data.sinceDays}`
+);
+check(
+  `hist.medianBucket 指向的档确实包含中位间隔（medianBucket=${data.hist.medianBucket}）`,
+  data.hist.medianBucket < 0 || inBucket(data.hist.medianBucket, data.median),
+  `median=${data.median}`
+);
+
+// 上界那一头不可达：最后一档是 [30, ∞)，再久也兜得住。
+// 曾经 chart-data.js 的注释写着「超出最后一档时为 -1」，那条分支根本不存在 ——
+// 断言方向反了的话，一个永远不发生的状态会被写成「已保护」。
+const beyond = buildChartData(resets.records, new Date(data.lastAt).getTime() + 600 * 86400000);
+check(
+  '等待 600 天也不越界（最后一档无上界，current 不应为 -1）',
+  beyond.hist.current === data.hist.buckets.length - 1,
+  `current=${beyond.hist.current}（已过 ${beyond.sinceDays.toFixed(0)} 天）`
+);
+
+// 真正可达的那一端：重置**刚刚**发生（sinceDays = 0）时必须落进「0–1」档。
+// 若分桶用 (from, to] 而不是 [from, to)，0 会被所有桶排除 → current = -1，
+// 页面在这一瞬间变成「不指向任何一档」，而这是每次重置后必然经历的状态。
+const justReset = buildChartData(resets.records, new Date(data.lastAt).getTime());
+check(
+  '刚重置（sinceDays = 0）落在「0–1」档，而不是落空',
+  justReset.hist.current === 0,
+  `current=${justReset.hist.current}`
+);
+
+// 零长度间隔（两条记录同一时刻）必须仍被计入 —— 这是左闭右开分区要挡的那个点
+const withZero = buildChartData(
+  [...resets.records, { ...resets.records[resets.records.length - 1], id: 'dup-probe' }],
+  NOW
+);
+check(
+  '零长度间隔仍被计入分桶（柱子合计 == gapDays 长度）',
+  withZero.hist.buckets.reduce((s, b) => s + b.n, 0) === withZero.gapDays.length,
+  `合计 ${withZero.hist.buckets.reduce((s, b) => s + b.n, 0)} vs gapDays ${withZero.gapDays.length}`
+);
+
+// 空桶也要能画：全 0 时不该抛错，也不该画出比例错乱的柱子
+const zeroHist = {
+  ...data,
+  hist: { ...data.hist, buckets: data.hist.buckets.map((b) => ({ ...b, n: 0 })), max: 0, current: -1 },
+};
+let zeroOk = true;
+let zeroN = -1;
+try {
+  zeroN = histogramScene(zeroHist, { width: 900 }).elements.length;
+} catch {
+  zeroOk = false;
+}
+check('全零分桶不抛错且不画柱子', zeroOk && zeroN === 0, `元素数 ${zeroN}`);
+
 /* ======================== 3. 桌面图元越界 ======================== */
 
 section('3. 桌面图元越界');
@@ -123,6 +247,7 @@ const TOL = 0.5;
 const scenesOf = (width, layout) => ({
   生存曲线: survivalScene(data, { width, layout }),
   点阵分布: stripScene(data, { width, layout }),
+  间隔直方图: histogramScene(data, { width, layout }),
 });
 
 for (const width of [900, 1000, 1180]) {
@@ -213,6 +338,7 @@ for (const [name, scene] of Object.entries(scenesOf(900))) {
 const exScenes = {
   生存曲线: survivalScene(extreme, { width: 900 }),
   点阵分布: stripScene(extreme, { width: 900 }),
+  间隔直方图: histogramScene(extreme, { width: 900 }),
 };
 for (const [name, scene] of Object.entries(exScenes)) {
   const b = sceneBounds(scene);
@@ -224,11 +350,42 @@ for (const [name, scene] of Object.entries(exScenes)) {
   check(`极端值 · ${name} 序列化无 NaN`, !/NaN/.test(sceneToSvgTag(scene)));
 }
 
+/** 造一份合成的直方图数据：沿用真实分桶标签，只换计数与当前档 */
+const syntheticHist = (base, counts, current, medianBucket) => ({
+  ...base,
+  hist: {
+    breaks: HIST_BREAKS,
+    buckets: base.hist.buckets.map((b, i) => ({ ...b, n: counts[i] ?? 0 })),
+    max: Math.max(...counts, 0),
+    total: counts.reduce((a, b) => a + b, 0),
+    current,
+    medianBucket,
+  },
+});
+
+// 直方图真正容易出界的两种形状：
+//   · 全部计数压在第一档 → 计数标签顶在最上沿，最容易越过 y = 0
+//   · 全部计数压在最后一档 → 标签贴着右边界，最容易越过 x = width
+for (const [name, counts] of [
+  ['计数全压第一档', [58, 0, 0, 0, 0, 0, 0, 0]],
+  ['计数全压最后一档', [0, 0, 0, 0, 0, 0, 0, 58]],
+]) {
+  const sc = histogramScene(syntheticHist(data, counts, 0, 0), { width: 900 });
+  const b = sceneBounds(sc);
+  check(
+    `直方图 · ${name} 仍在画布内`,
+    b.minX >= -TOL && b.maxX <= sc.width + TOL && b.minY >= -TOL && b.maxY <= sc.height + TOL,
+    JSON.stringify(b)
+  );
+}
+
 // 单点数据（只有一次间隔）不该崩 —— 除零最容易在这里发生
 const single = { ...data, gapDays: [3], sorted: [3], count: 2, shortest: 3, longest: 3 };
+const singleHist = syntheticHist(single, [0, 0, 1, 0, 0, 0, 0, 0], 2, 2);
 const singleScenes = {
   生存曲线: survivalScene(single, { width: 900 }),
   点阵分布: stripScene(single, { width: 900 }),
+  间隔直方图: histogramScene(singleHist, { width: 900 }),
 };
 for (const [name, scene] of Object.entries(singleScenes)) {
   const b = sceneBounds(scene);

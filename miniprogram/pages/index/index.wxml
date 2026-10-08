@@ -1,4 +1,9 @@
-<!-- 观测台首页：距上次重置多久 → 有没有预告 → 还要等多久 → 历史分布 -->
+<!-- 观测台首页：*下一次什么时候* → 凭什么 → 图表 → 已经等了多久 / 历史详情
+
+     ⚠ 顺序是这一页最要紧的设计，改动前先读这一句：
+     改版前首屏的三块分别在回答「规则是什么」（每日重置窗口）、「有没有公告」（信号）、
+     「已经等了多久」（大计数器）—— **没有一块在回答用户要的那个问题**。
+     所以现在的第一块是 `pred`（预测总览），其余按「结论 → 依据 → 图表 → 详情」排。 -->
 
 <!-- `sp` = 单页模式（朋友圈点开）下的底部让位类，给微信固定的「前往小程序」
      操作栏腾出位置。取值与理由见 app.wxss 的 `.wrap.sp`。 -->
@@ -19,45 +24,54 @@
   <!-- 数据不是实时的就明说，不假装 -->
   <view wx:if="{{notice}}" class="notice">{{notice}}</view>
 
-  <!-- ============ 每日重置窗口 ============ -->
-  <!-- 他宣布「未来 N 天里每天要么发一个改进、要么给一次完整重置」。
-       它**不在** signal.show 那个门里：这条规则与「有没有某一天的预告」是两件事，
-       放进那道门就等于「没有预告时这条规则也不存在」。样式刻意比 .sig 轻。 -->
-  <view wx:if="{{signal.program.show}}" class="prog">
-    <view class="prog-head">
-      <text class="prog-tag">每日重置窗口</text>
-      <text class="prog-left">共 <text class="n">{{signal.program.days}}</text> 天 · 还剩 <text class="n">{{signal.program.daysLeft}}</text> 天</text>
+  <!-- ============ 第一层：预测总览 ============ -->
+  <!-- 首屏主角。这一块回答四个问题：下一次什么时候（大字 + 大倒计时）、
+       可不可信（置信度条）、凭什么（一句话依据摘要）、还有多久（倒计时本身）。
+       判据来自共享模块 utils/outlook.js（与网页端逐字同一份文件），这里只排版。
+
+       `data-status` / `data-level` 是样式钩子，不要用它们做逻辑判断。 -->
+  <view wx:if="{{pred}}" class="pred" data-status="{{pred.status}}" data-level="{{pred.confidence}}">
+    <view class="pred-head">
+      <text class="pred-t">下一次重置预测</text>
+      <text class="pred-badge">{{pred.statusLabel}}</text>
     </view>
-    <text class="prog-rule">每天要么发一个改进、要么给一次完整重置 —— 期间任何一天都可能重置</text>
-    <view wx:if="{{signal.program.window}}" class="win">
-      <view class="wrow">
-        <text class="k">Tibo 当地时间</text>
-        <text class="v">{{signal.program.window.sourceZone}}</text>
-        <text class="z">{{signal.program.window.srcOffset}}</text>
+
+    <!-- 状态与依据来源：两句话都不是自我评价，是事实陈述 -->
+    <view class="pred-note">{{pred.statusNote}} · {{pred.etaNote}}</view>
+
+    <view class="pred-eta">
+      <text class="pe-md">{{pred.md}}</text>
+      <text class="pe-rest">{{pred.wd}} {{pred.hm}}</text>
+    </view>
+
+    <view class="pred-cd {{pred.cd.over ? 'is-over' : ''}}">
+      <text class="pcd-cap">{{pred.cd.label}}</text>
+      <view class="pcd-row">
+        <view class="pcd-g" wx:for="{{pred.cd.groups}}" wx:key="unit">
+          <text class="pcd-v">{{item.v}}</text>
+          <text class="pcd-u">{{item.unit}}</text>
+        </view>
       </view>
-      <view class="wrow">
-        <text class="k">北京时间</text>
-        <text class="v">{{signal.program.window.userZone}}</text>
-        <text class="z">{{signal.program.window.usrOffset}}</text>
-      </view>
-      <view class="wfoot">
-        {{signal.program.window.diffText}}{{signal.program.window.rangeNote ? ' · ' + signal.program.window.rangeNote : ''}}
+      <view wx:if="{{pred.band}}" class="pred-band">
+        <text class="pb-k">{{pred.bandLabel}}</text>
+        <text class="pb-v">{{pred.band}}</text>
       </view>
     </view>
-    <view class="prog-meta">
-      <text wx:if="{{signal.program.announcedText}}">发布于 {{signal.program.announcedText}}</text>
-      <!-- 复制链接（不是 open-type），与别处一致：隐私接口被拒时必须有提示，不静默 -->
-      <text
-        wx:if="{{signal.program.url && !singlePage}}"
-        class="prog-link"
-        data-url="{{signal.program.url}}"
-        bindtap="onCopySource"
-      >复制原推链接</text>
+
+    <view class="pred-brief">{{pred.brief}}</view>
+
+    <view class="pred-foot">
+      <text class="pf-k">置信度</text>
+      <text class="pf-v">{{pred.confidenceLabel}}</text>
+      <!-- 置信度可视化：按高/中/低三档拉开宽度。纯文字档位会被读成形容词，
+           一条长度不同的横条才是可比较的量。 -->
+      <view class="pf-bar"><view class="pf-fill" style="width:{{pred.confidenceW}}%"></view></view>
+      <text class="pf-upd">预测算于 {{pred.updatedText}}</text>
     </view>
   </view>
 
   <!-- ============ 信号 ============ -->
-  <!-- 有预告时这块是全页视觉重量最大的地方：星期用最大字号，秒级倒计时压在下面。
+  <!-- 有预告时这块是**预测总览的依据**：Tibo 把时间说死了，结论就不是推算。
        只有「情绪」没有时间的推文进不到这里（规则见 utils/view.js 的 buildSignal）。 -->
   <view wx:if="{{signal.show}}" class="sig" data-level="{{signal.level}}">
     <view class="sig-halo"></view>
@@ -73,19 +87,11 @@
       <text class="ann-sub">{{signal.headline.sub}}</text>
     </view>
 
-    <view wx:if="{{signal.cd}}" class="cd {{signal.cd.over ? 'is-over' : ''}}">
-      <text class="cd-cap">{{signal.cd.label}}</text>
-      <!-- 倒计时的**锚点**必须挨着数字：只给一个跳动的数、不说它数到哪一刻，
-           用户没法核对 —— 这正是「你这时间也不对啊」那条反馈的来源。 -->
-      <text wx:if="{{signal.window.openText}}" class="cd-anchor">北京时间 {{signal.window.openText}}</text>
-      <view class="cd-row">
-        <view class="cd-g" wx:for="{{signal.cd.groups}}" wx:key="unit">
-          <text class="cd-v">{{item.v}}</text>
-          <text class="cd-u">{{item.unit}}</text>
-        </view>
-      </view>
-    </view>
-
+    <!-- ⛔ 这里**没有**「距窗口开启」的倒数，是刻意去掉的。
+         公告档下主卡的锚点就是窗口开启时刻（`etaAt === window.fromTs`），
+         两个同值、同尺寸、只差几秒的大数字叠在同一屏上互相抵消 —— 主角被稀释。
+         往前看的那**一个**读数归主卡；这块只负责「他说了什么、原文在哪」。
+         可核对性没有丢：窗口开启时刻由下面 .win 块以「北京时间 ⋯ 起」给出。 -->
     <view wx:if="{{signal.window}}" class="win">
       <view class="wrow">
         <text class="k">Tibo 当地时间</text>
@@ -157,7 +163,148 @@
     <text wx:if="{{signal.windowFrom}}" class="isub">时间窗自 {{signal.windowFrom}} 起</text>
   </view>
 
-  <!-- ============ HERO：滚动计时 ============ -->
+  <!-- ============ 第二层：预测依据 ============ -->
+  <view class="sec-head">
+    <text class="t">预测依据</text>
+  </view>
+
+  <view wx:if="{{forecast}}" class="fc">
+    <view class="fc-main">
+      <view class="k">中位剩余等待</view>
+      <view class="v">{{forecast.q50}}<text class="u">天</text></view>
+      <view class="range">
+        <text wx:if="{{forecast.hoursText}}">{{forecast.hoursText}} · </text>
+        <text>80% 区间 </text>
+        <text class="b">{{forecast.rangeText}}</text>
+        <text> 天</text>
+      </view>
+    </view>
+
+    <view class="fc-bars">
+      <view class="bar" wx:for="{{forecast.bars}}" wx:key="label">
+        <text class="lb">{{item.label}}</text>
+        <view class="track"><view class="fill" style="width: {{item.w}}%"></view></view>
+        <text class="pv">{{item.pv}}</text>
+      </view>
+      <!-- 概率没有做过校准，这一点必须留在数字旁边，不能用散文代替 -->
+      <view class="cal-tag">概率未经校准 · 实际发生率通常更高</view>
+    </view>
+  </view>
+
+  <!-- 模型自身的校准情况：与预测总览的「置信度」是同一件事的两个粒度 ——
+       那边一句话给出档位，这里给出档位背后的每一行数字。
+       独立成 `.card`（`fc-meta`）而不是并进上面那张 `.fc`：`.fc` 是「结论」，
+       这一块是「结论背后的账」，视觉上要能分开读。 -->
+  <view wx:if="{{forecast}}" class="card fc-meta">
+    <view class="fc-block">
+      <view class="bh">样本外回测 · n={{forecast.cal.n}}</view>
+      <view class="row" wx:for="{{forecast.cal.rows}}" wx:key="k">
+        <text class="rk">{{item.k}}</text>
+        <text class="rv {{item.ok ? 'good' : 'bad'}}">{{item.v}}</text>
+        <text class="rj">{{item.j}}</text>
+      </view>
+    </view>
+
+    <view class="fc-block">
+      <view class="bh">节奏在加速</view>
+      <view class="ph" wx:for="{{forecast.phases}}" wx:key="i">
+        <text class="pi">第 {{item.i}} 段</text>
+        <text class="pt">{{item.from}} → {{item.to}}</text>
+        <text class="pm">{{item.mean}} 天</text>
+        <text class="pn">n={{item.n}} · 最大 {{item.max}} 天</text>
+      </view>
+      <view class="bfoot">{{forecast.phaseSummary}}</view>
+    </view>
+  </view>
+
+  <!-- ============ 每日重置窗口 ============ -->
+  <!-- 他宣布「未来 N 天里每天要么发一个改进、要么给一次完整重置」。
+       它**不在** signal.show 那个门里：这条规则与「有没有某一天的预告」是两件事，
+       放进那道门就等于「没有预告时这条规则也不存在」。样式刻意比 .sig 轻。
+
+       ⚠ 位置在**预测依据之后**：它讲的是规则，不是结论。摆在预测总览后面会挤进
+       首屏，而首屏要留给「下一次什么时候、还有多久」—— 读者先读到「射程范围」，
+       等于把结论推下去一屏。旧版（更早）甚至把它放在全页第一块。 -->
+  <view wx:if="{{signal.program.show}}" class="prog">
+    <view class="prog-head">
+      <text class="prog-tag">每日重置窗口</text>
+      <text class="prog-left">共 <text class="n">{{signal.program.days}}</text> 天 · 还剩 <text class="n">{{signal.program.daysLeft}}</text> 天</text>
+    </view>
+    <text class="prog-rule">每天要么发一个改进、要么给一次完整重置 —— 期间任何一天都可能重置</text>
+    <view wx:if="{{signal.program.window}}" class="win">
+      <view class="wrow">
+        <text class="k">Tibo 当地时间</text>
+        <text class="v">{{signal.program.window.sourceZone}}</text>
+        <text class="z">{{signal.program.window.srcOffset}}</text>
+      </view>
+      <view class="wrow">
+        <text class="k">北京时间</text>
+        <text class="v">{{signal.program.window.userZone}}</text>
+        <text class="z">{{signal.program.window.usrOffset}}</text>
+      </view>
+      <view class="wfoot">
+        {{signal.program.window.diffText}}{{signal.program.window.rangeNote ? ' · ' + signal.program.window.rangeNote : ''}}
+      </view>
+    </view>
+    <view class="prog-meta">
+      <text wx:if="{{signal.program.announcedText}}">发布于 {{signal.program.announcedText}}</text>
+      <!-- 复制链接（不是 open-type），与别处一致：隐私接口被拒时必须有提示，不静默 -->
+      <text
+        wx:if="{{signal.program.url && !singlePage}}"
+        class="prog-link"
+        data-url="{{signal.program.url}}"
+        bindtap="onCopySource"
+      >复制原推链接</text>
+    </view>
+  </view>
+
+  <!-- ============ 第三层：间隔直方图 ============ -->
+  <!-- 这张图直接服务预测结论：它回答「历史上重置通常发生在第几天」，
+       当前所在一档高亮 —— 也就是「现在等的时间算长还是短」。 -->
+  <view class="sec-head">
+    <text class="t">重置通常发生在第几天</text>
+    <text class="h">n = {{survivalN}} 次历史间隔</text>
+  </view>
+  <view class="lede">
+    横轴按区间等宽分档（不是按天数），纵轴是落在该档的次数。高亮那一档就是你当前所在的一档。
+  </view>
+  <view wx:if="{{histShow}}" class="card">
+    <canvas type="2d" id="hist" class="chart chart-hist"></canvas>
+  </view>
+
+  <!-- ============ 生存曲线 ============ -->
+  <view class="sec-head">
+    <text class="t">等待生存曲线</text>
+    <text class="h">n = {{survivalN}} 次历史间隔</text>
+  </view>
+  <view class="lede">
+    纵轴是「到第 X 天为止，历史上百分之多少的重置已经发生」。你现在的位置标在曲线上。
+  </view>
+  <view class="card">
+    <canvas type="2d" id="survival" class="chart chart-survival"></canvas>
+  </view>
+
+  <!-- ============ 点阵分布 ============ -->
+  <view class="sec-head">
+    <text class="t">每次间隔的离散分布</text>
+  </view>
+  <view class="lede">
+    每一次重置到下一次重置的间隔天数。平均值被右侧的极端值拉高了。
+  </view>
+  <view class="card">
+    <canvas type="2d" id="strip" class="chart chart-strip"></canvas>
+    <view class="legend">
+      <view class="lg"><text class="sw sw-lan"></text>常规间隔</view>
+      <view class="lg"><text class="sw sw-mist"></text>偏长间隔</view>
+      <view class="lg"><text class="sw sw-cin"></text>极端长等待</view>
+    </view>
+  </view>
+
+  <!-- ============ 第四层：已等多久 / 样本摘要 ============ -->
+  <view class="sec-head">
+    <text class="t">已经等了多久</text>
+  </view>
+
   <view class="hero">
     <view class="label">距上一次额度重置</view>
 
@@ -188,62 +335,15 @@
     </view>
   </view>
 
-  <!-- ============ 指标 ============ -->
+  <view class="sec-head">
+    <text class="t">样本摘要</text>
+  </view>
+
   <view class="metrics">
     <view class="metric" wx:for="{{metrics}}" wx:key="k">
       <view class="k">{{item.k}}</view>
       <view class="v {{item.hi ? 'hl' : ''}}">{{item.v}}<text wx:if="{{item.u}}" class="u">{{item.u}}</text></view>
       <view class="note">{{item.note}}</view>
-    </view>
-  </view>
-
-  <!-- ============ 时间预测 ============ -->
-  <view class="sec-head">
-    <text class="t">还要等多久</text>
-  </view>
-
-  <view wx:if="{{forecast}}" class="fc">
-    <view class="fc-main">
-      <view class="k">中位剩余等待</view>
-      <view class="v">{{forecast.q50}}<text class="u">天</text></view>
-      <view class="range">
-        <text wx:if="{{forecast.hoursText}}">{{forecast.hoursText}} · </text>
-        <text>80% 区间 </text>
-        <text class="b">{{forecast.rangeText}}</text>
-        <text> 天</text>
-      </view>
-    </view>
-
-    <view class="fc-bars">
-      <view class="bar" wx:for="{{forecast.bars}}" wx:key="label">
-        <text class="lb">{{item.label}}</text>
-        <view class="track"><view class="fill" style="width: {{item.w}}%"></view></view>
-        <text class="pv">{{item.pv}}</text>
-      </view>
-      <!-- 概率没有做过校准，这一点必须留在数字旁边，不能用散文代替 -->
-      <view class="cal-tag">概率未经校准 · 实际发生率通常更高</view>
-    </view>
-  </view>
-
-  <view wx:if="{{forecast}}" class="card fc-meta">
-    <view class="fc-block">
-      <view class="bh">样本外回测 · n={{forecast.cal.n}}</view>
-      <view class="row" wx:for="{{forecast.cal.rows}}" wx:key="k">
-        <text class="rk">{{item.k}}</text>
-        <text class="rv {{item.ok ? 'good' : 'bad'}}">{{item.v}}</text>
-        <text class="rj">{{item.j}}</text>
-      </view>
-    </view>
-
-    <view class="fc-block">
-      <view class="bh">节奏在加速</view>
-      <view class="ph" wx:for="{{forecast.phases}}" wx:key="i">
-        <text class="pi">第 {{item.i}} 段</text>
-        <text class="pt">{{item.from}} → {{item.to}}</text>
-        <text class="pm">{{item.mean}} 天</text>
-        <text class="pn">n={{item.n}} · 最大 {{item.max}} 天</text>
-      </view>
-      <view class="bfoot">{{forecast.phaseSummary}}</view>
     </view>
   </view>
 
@@ -258,34 +358,6 @@
     <view class="rd-hint">{{remind.hint}}</view>
     <view class="rd-btn {{remind.state}}" bindtap="onToggleRemind">{{remind.label}}</view>
     <view wx:if="{{remind.feedback}}" class="rd-fb {{remind.tone}}">{{remind.feedback}}</view>
-  </view>
-
-  <!-- ============ 生存曲线 ============ -->
-  <view class="sec-head">
-    <text class="t">等待生存曲线</text>
-    <text class="h">n = {{survivalN}} 次历史间隔</text>
-  </view>
-  <view class="lede">
-    纵轴是「到第 X 天为止，历史上百分之多少的重置已经发生」。你现在的位置标在曲线上。
-  </view>
-  <view class="card">
-    <canvas type="2d" id="survival" class="chart chart-survival"></canvas>
-  </view>
-
-  <!-- ============ 点阵分布 ============ -->
-  <view class="sec-head">
-    <text class="t">每次间隔的离散分布</text>
-  </view>
-  <view class="lede">
-    每一次重置到下一次重置的间隔天数。平均值被右侧的极端值拉高了。
-  </view>
-  <view class="card">
-    <canvas type="2d" id="strip" class="chart chart-strip"></canvas>
-    <view class="legend">
-      <view class="lg"><text class="sw sw-lan"></text>常规间隔</view>
-      <view class="lg"><text class="sw sw-mist"></text>偏长间隔</view>
-      <view class="lg"><text class="sw sw-cin"></text>极端长等待</view>
-    </view>
   </view>
 
   <!-- ============ 页脚 ============ -->

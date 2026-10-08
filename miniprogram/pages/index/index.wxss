@@ -169,6 +169,7 @@
 }
 
 .top,
+.pred,
 .sig,
 .hero,
 .metrics,
@@ -180,6 +181,8 @@
 }
 
 .top     { animation-delay: 0.02s; }
+/* 预测总览排在最前、延迟也最小 —— 入场的先后顺序本身就在说「先看这块」 */
+.pred    { animation-delay: 0.04s; }
 .sig     { animation-delay: 0.06s; }
 .hero    { animation-delay: 0.1s; }
 .metrics { animation-delay: 0.16s; }
@@ -187,6 +190,228 @@
 .remind  { animation-delay: 0.24s; }
 .card    { animation-delay: 0.28s; }
 .foot    { animation-delay: 0.32s; }
+
+/* ---------- 第一层：预测总览 ---------- */
+/* 这一页曾经是「观察站」：首屏第一块是「每日重置窗口」（规则），第二块是「有没有公告」，
+   大计数器排在第三块 —— **没有一块在回答「下一次什么时候」**。
+   现在结论单独成层，放在 `.top` 下面第一个，也是全页视觉重量最大的一块。
+
+   ── 主次怎么拉开的 ──────────────────────────────────────────────
+   全靠**这一处**：更白的底、更大的圆角、唯一的顶边状态色。不靠到处加装饰。
+   它比 `.sig`（引用/公告）重，比 `.prog`（规则）重得多 —— `.prog` 是 `#F2EFE8` 的浅底。
+
+   ── 状态色系统（与网页端同一套 token，见 src/index.html 的 :root）──────
+     已确认 confirmed  竹青 #5F8455
+     高概率 likely     岚青 #3F7376
+     观察中 watching   雾   #8C8880
+   状态说「依据从哪来」，置信度说「这个来源值多少分」—— 两个轴，两处着色。
+
+   ⚠ 类名前缀是 `pred-` / `pcd-` / `pe-` / `pf-` / `pb-`，刻意避开既有的
+     `.ph .pm`（节奏分段里的数值）与 `.pc-*`（网页端主卡）。同族冲突要靠前缀隔开：
+     用一个已经存在的词，症状会是「某处的数字凭空长出圆角盒子」，
+     而 CSS 里根本找不到谁给它加的 —— 网页端实测踩过一次。 */
+
+.pred {
+  margin-top: 28rpx;
+  padding: 30rpx 28rpx 26rpx;
+  border-radius: 24rpx;
+  border: 1rpx solid #E4DFD5;
+  /* 顶边那道状态色是这一页唯一的「状态色前缀」，比左侧色条更醒目 */
+  border-top: 6rpx solid #8C8880;
+  background:
+    radial-gradient(130% 80% at 0% 0%, rgba(63, 115, 118, 0.07), rgba(255, 255, 255, 0) 58%),
+    #FFFFFF;
+}
+
+.pred[data-status="confirmed"] { border-top-color: #5F8455; }
+.pred[data-status="likely"]    { border-top-color: #3F7376; }
+.pred[data-status="watching"]  { border-top-color: #8C8880; }
+
+.pred-head {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  flex-wrap: wrap;
+  margin-bottom: 12rpx;
+}
+
+.pred-t {
+  font-size: 30rpx;
+  font-weight: 650;
+  color: #1F1E1B;
+}
+
+.pred-badge {
+  padding: 4rpx 16rpx;
+  border-radius: 99rpx;
+  font-size: 21rpx;
+  letter-spacing: 0.08em;
+  color: #FFFFFF;
+  background: #8C8880;
+}
+
+.pred[data-status="confirmed"] .pred-badge { background: #5F8455; }
+.pred[data-status="likely"]    .pred-badge { background: #3F7376; }
+
+.pred-note {
+  font-size: 22rpx;
+  color: #8C8880;
+  line-height: 1.55;
+}
+
+/* 预计时间：日期是最大的字，星期与时刻退到副行。
+   用户从「10 月 8 日 周四 15:00」里最先抓住的是日期本身。 */
+.pred-eta {
+  display: flex;
+  align-items: baseline;
+  gap: 16rpx;
+  flex-wrap: wrap;
+  margin-top: 22rpx;
+}
+
+.pe-md {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 76rpx;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #1F1E1B;
+}
+
+.pe-rest {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 32rpx;
+  color: #4A4842;
+}
+
+/* 大倒计时。这是全页**唯一**往前看的读数（信号区那个「距窗口开启」的倒数
+   在公告档下与它同锚点、同值，已一并去掉）。没有公告时它是首屏唯一的时间锚点。 */
+.pred-cd {
+  margin-top: 24rpx;
+  padding-top: 22rpx;
+  border-top: 1rpx solid #E4DFD5;
+}
+
+.pcd-cap {
+  display: block;
+  font-size: 22rpx;
+  letter-spacing: 0.12em;
+  color: #8C8880;
+}
+
+.pcd-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 18rpx;
+  margin: 12rpx 0 4rpx;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 64rpx;
+  font-weight: 600;
+  line-height: 1.05;
+  color: #1F1E1B;
+  font-variant-numeric: tabular-nums;
+}
+
+.pcd-g {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.pcd-u {
+  font-size: 22rpx;
+  font-weight: 400;
+  color: #8C8880;
+  margin-left: 6rpx;
+  font-family: -apple-system, "PingFang SC", sans-serif;
+}
+
+/* 过了预测时刻就不再报读数，只报状态 —— 与网页端 `.pc-wait[data-over]` 同一口径 */
+.pred-cd.is-over .pcd-row {
+  font-size: 34rpx;
+  color: #B3563C;
+}
+
+.pred-band {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  flex-wrap: wrap;
+  margin-top: 12rpx;
+}
+
+.pb-k {
+  font-size: 22rpx;
+  color: #8C8880;
+}
+
+.pb-v {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 25rpx;
+  color: #4A4842;
+  font-variant-numeric: tabular-nums;
+}
+
+.pred-brief {
+  margin-top: 20rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: #4A4842;
+}
+
+.pred-foot {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
+  margin-top: 22rpx;
+  padding-top: 18rpx;
+  border-top: 1rpx solid #E4DFD5;
+  font-size: 22rpx;
+  color: #8C8880;
+}
+
+.pf-k {
+  letter-spacing: 0.06em;
+}
+
+.pf-v {
+  font-size: 28rpx;
+  font-weight: 620;
+  color: #1F1E1B;
+}
+
+.pred[data-level="high"]   .pf-v { color: #5F8455; }
+.pred[data-level="medium"] .pf-v { color: #3F7376; }
+
+/* 置信度强度条。**刻意不用网页端那三个小格**：手机宽度下 3 格各只有几像素，
+   读起来是三个点而不是一个量。改成一条按档位填充的横条 ——
+   同一个意思（填充越多越可信），在窄屏上更读得出来。 */
+.pf-bar {
+  flex: 1 1 120rpx;
+  min-width: 90rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: #E4DFD5;
+  overflow: hidden;
+}
+
+.pf-fill {
+  height: 100%;
+  border-radius: 4rpx;
+  background: #8C8880;
+  transition: width 0.4s cubic-bezier(0.2, 0.75, 0.3, 1);
+}
+
+.pred[data-level="high"]   .pf-fill { background: #5F8455; }
+.pred[data-level="medium"] .pf-fill { background: #3F7376; }
+
+/* 「预测算于 …」单独起一行：它是**元信息**，跟置信度挤在同一行会被当成置信度的一部分 */
+.pf-upd {
+  flex-basis: 100%;
+  font-size: 21rpx;
+  color: #8C8880;
+}
 
 /* ---------- 信号横幅 ---------- */
 /* 有信号时这里是全页视觉重量最大的块。做法是「晕染 + 大字 + 呼吸」，
@@ -307,72 +532,6 @@
   font-size: 24rpx;
   color: #4A4842;
   font-variant-numeric: tabular-nums;
-}
-
-/* ---------- 预告倒计时 ---------- */
-
-.cd {
-  position: relative;
-  padding: 18rpx 0 20rpx;
-  margin-bottom: 22rpx;
-  text-align: center;
-  border-top: 1rpx dashed rgba(179, 86, 60, 0.3);
-  border-bottom: 1rpx dashed rgba(179, 86, 60, 0.3);
-}
-
-.cd-cap {
-  display: block;
-  font-size: 21rpx;
-  color: #8C8880;
-  letter-spacing: 0.1em;
-  margin-bottom: 4rpx;
-}
-
-/* 倒计时的锚点（北京时间的开启时刻）。挨着数字显示是刻意的 ——
-   只给一个跳动的数、不说它数到哪一刻，用户没法核对。 */
-.cd-anchor {
-  display: block;
-  font-size: 22rpx;
-  color: #4A4842;
-  font-variant-numeric: tabular-nums;
-  margin-bottom: 10rpx;
-}
-
-.cd-row {
-  display: flex;
-  justify-content: center;
-  align-items: baseline;
-  gap: 12rpx;
-}
-
-.cd-g {
-  display: flex;
-  align-items: baseline;
-  gap: 3rpx;
-}
-
-.cd-v {
-  font-size: 46rpx;
-  font-weight: 680;
-  font-variant-numeric: tabular-nums;
-  color: #1F1E1B;
-  letter-spacing: 0.01em;
-}
-
-.cd-u {
-  font-size: 20rpx;
-  color: #8C8880;
-}
-
-/* 窗口已开启：把一屏 0 收掉，只留一句「已开启」并整体转竹青。
-   继续摆着 0天00时00分00秒 是没信息量的读数 —— 而「已开启」本身有信息量：
-   重置随时可能落地。与网页端 .sig-cd[data-over="1"] 同一口径。 */
-.cd.is-over .cd-row {
-  display: none;
-}
-
-.cd.is-over .cd-cap {
-  color: #5F8455;
 }
 
 .wprec {
@@ -623,9 +782,12 @@
    左边那道 4rpx 岚青是唯一的强调，用来和下面那片白卡片区分开。
    窗口块直接复用 .win / .wrow / .wfoot —— 它们是顶层类名，不受 .sig 作用域限制，
    同一种形状（当地 + 北京两行）没有理由再画一遍。 */
-/* 上边距不能省：`.top` 自带 1rpx 下边框（见 app.wxss），而这块是它下面的第一个
-   元素（`notice` 不存在时）。margin-top 为 0 就会把上边框压在顶栏那条线上。
-   取值与 `.sig-idle` / `.sig` 同为 28rpx —— 端上这几块本来就是同一个数。 */
+/* 上边距不能省：`.top` 自带 1rpx 下边框（见 app.wxss），而 `.top` 下面那几块
+   彼此之间只差 0rpx 的间隔时，两条 1rpx 会叠成一条。取值 28rpx 与
+   `.pred` / `.sig-idle` / `.sig` 一致 —— 端上这几块本来就是同一个数。
+   ⚠ `2026-10-08` 起 `.top` 下面**第一个**元素已经不是 `.prog` 而是 `.pred`
+   （预测总览提到首屏第一块），但这条规则与 `.prog` 在不在第一位无关：
+   它管的是「相邻块之间不贴线」，所以取值仍然要对齐同族。 */
 .prog {
   margin: 28rpx 0 20rpx;
   padding: 20rpx 24rpx;
@@ -892,6 +1054,12 @@
 
 .chart-survival {
   height: 208px;
+}
+
+/* 与 scene.js 的 `compactLayout.histHeight = 186` 对齐 ——
+   canvas 高度必须 ≥ 场景高度，否则底部那行档位标签会被裁掉。 */
+.chart-hist {
+  height: 190px;
 }
 
 .chart-strip {

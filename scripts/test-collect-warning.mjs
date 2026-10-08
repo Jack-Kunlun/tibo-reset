@@ -258,12 +258,11 @@ check('手动触发仍在（Pages 需要重发时用）', /^\s*workflow_dispatch
 
 // 下面几条合起来构成 D-025 的核心：数据由本机直推后端，**CI 与数据彻底解耦**。
 // 这里最容易出的错是「只排除了 data/**、漏掉构建产物」—— 本机采集后会把
-// miniprogram/utils/scene.js 一起提交，漏掉它等于「每采一次触发一次重建」，
-// 整个决定被悄悄撤回。
+// `miniprogram/utils/` 下那几个**同步副本**一起提交，漏掉一个就等于
+// 「每采一次触发一次重建」，整个决定被悄悄撤回。
 //
 // ⚠ `!miniprogram/data/**` 现在已**没有对应的入库文件**（快照按 D-027 摘出了
-// 版本管理），但它必须留着：那是一把以防万一的第二道锁 —— 将来若有人把快照
-// 重新提交回来，少了这条排除就会立刻退化成「每采一次重建一次」。
+// 版本管理），但它必须留着：那是一把以防万一的第二道锁（断言在下面）。
 const pathLines = [...ymlCode.matchAll(/^\s*- '([^']+)'/gm)].map((m) => m[1]);
 
 check(
@@ -271,10 +270,33 @@ check(
   !pathLines.some((p) => p === 'data' || p.startsWith('data/')),
   `paths 里出现 data 就等于把「数据变化触发构建」改回来了：${pathLines.join(' ')}`
 );
+
+/* 同步副本的排除清单**从 build.mjs 的 SHARED_MODULES 推导**，不写死文件名。
+ * 写死的后果实测过一次：加了 `outlook.mjs` 之后这里仍然只认 `scene.js`，于是
+ * 「少一条排除」这件**静默**的事（只多烧 CI 分钟，不报任何错）没有判据拦着。
+ * ⚠ 与 AGENTS.md 里「陈旧阈值必须由周期推导，不许手写第二个数字」是同一条道理。 */
+const sharedSrc = await readFile(resolve(ROOT, 'scripts/build.mjs'), 'utf8');
+const sharedDecl = sharedSrc.match(/SHARED_MODULES\s*=\s*\[([^\]]*)\]/);
+const sharedNames = sharedDecl
+  ? sharedDecl[1]
+      .split(',')
+      .map((s) => s.trim().replace(/['"]/g, ''))
+      .filter(Boolean)
+  : [];
 check(
-  'push 触发排除了构建产物 miniprogram/data/** 与 utils/scene.js',
-  pathLines.includes('!miniprogram/data/**') && pathLines.includes('!miniprogram/utils/scene.js'),
-  `当前 paths：${pathLines.join(' ')}`
+  '能从 build.mjs 里读出 SHARED_MODULES（推导的前提）',
+  sharedNames.length > 0,
+  `解析到：${JSON.stringify(sharedNames)}`
+);
+const missingExcludes = sharedNames
+  .map((n) => 'miniprogram/utils/' + n.replace(/\.mjs$/, '.js'))
+  .filter((rel) => !pathLines.includes('!' + rel));
+check(
+  '每个共享模块的同步副本都被 push 触发排除（少一条就退化成「每采一次重建一次」）',
+  missingExcludes.length === 0,
+  missingExcludes.length
+    ? `缺排除：${missingExcludes.map((p) => '!' + p).join(' ')}；当前 paths：${pathLines.join(' ')}`
+    : `${sharedNames.length} 个共享模块都有排除`
 );
 check(
   'CI 不再转发数据（没有任何 ingest 相关代码）',
@@ -308,10 +330,13 @@ check(
 
 /* ================= 构建产物的归属与前置（D-027） ================= */
 
-// 小程序首屏快照**不入库**。它每次构建都不同，两个原因各自独立 ——
-// 内嵌构建时刻（generatedAt 及其派生的预测/时间窗）、以及 bootstrapCI 用
-// Math.random 出的不确定性区间。纳入版本管理只会换来一个长期 modified 的
+// 小程序首屏快照**不入库**。它每次构建都不同，来源是内嵌的构建时刻：
+// `generatedAt` 本身，以及由它派生的预测与时间窗（`sinceDays` 跟着 `now` 走，
+// `uncertainty.medianDays` 也就跟着变）。纳入版本管理只会换来一个长期 modified 的
 // 文件，而「长期 modified」等于训练人忽略 git status（config.js 至今如此）。
+// ⚠ 曾经这里还写过第二个原因「bootstrapCI 用 Math.random」—— 2026-10-08 起
+// `bootstrapCI` 已固定种子（见 `predict.mjs` 的 `BOOTSTRAP_SEED`），那条不再成立；
+// 断言本身照旧成立，因为构建时刻这一层随机性去不掉。
 // ⚠ 两条都要查，理由不同：`git check-ignore` 对**已被跟踪**的文件会返回「未命中」
 // （实测：`git add -f` 之后它就变成不命中），所以第一条理论上也覆盖了强制入库 ——
 // 但那层语义不显眼、还可能随 git 版本而变；显式再查一次 `ls-files` 的意义是让失败

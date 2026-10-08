@@ -14,9 +14,15 @@
  *   ④ 两者按**显示精度**比对（0.1 天 / 0.1%）     → 用户看到的数字一致
  * 最后显式报出两个锚点的间距。四条都是精确判据，没有隐藏容差。
  *
- * ⚠ 刻意避开的字段：`prediction.uncertainty`。它来自 bootstrap 重采样，
- *   `bootstrapCI` 用的是 `Math.random`，同一个请求跑两次结果都不同 ——
- *   拿它做一致性判据只会得到随机失败。页面也没有展示它。
+ * ⚠ 刻意避开的字段：`prediction.uncertainty`。它的 `medianDays` 是
+ *   `quantile(model, sinceDays, 0.5)` —— `sinceDays` 跟着 `now` 走，
+ *   而页面锚在构建那一刻、API 锚在请求那一刻，两边天然差一段时间，
+ *   拿它做一致性判据只会得到**假**失败。
+ *
+ *   注意「随机」不再是理由：2026-10-08 起 `bootstrapCI` 用固定种子
+ *   （见 `predict.mjs` 的 `BOOTSTRAP_SEED`），同一份数据两次跑一定同值。
+ *   但「同值」只在**同一个 `now`** 下成立 —— 时间锚点这层差异还在，
+ *   而页面**确实在展示它**（预测总览侧卡的「中位估计的重采样范围」）。
  *
  * 用法：
  *   node scripts/check-consistency.mjs            # 要求 dist 新鲜（10 分钟内）

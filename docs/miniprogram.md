@@ -4,6 +4,12 @@
 网页把 `scene.js` 的图元序列化成 SVG，小程序用 `utils/draw.js` 画到 canvas 2d。
 几何只算一次，所以两端不会各画各的。
 
+共用的**纯计算**模块由 `npm run build` 从 `src/lib/` 逐字同步到 `utils/`：
+`scene.js`（图元几何）与 `outlook.js`（预测总览推导 —— 预计时刻 / 置信度 / 依据摘要）。
+**同步副本不要手改**。要加新模块，先确认它**自包含**（零 `import` 仓库内其它模块），
+否则复制过去会在小程序里加载失败 —— 而 `build` 与 `test-*` 全绿（它们在 Node 里跑）。
+详见 `AGENTS.md` 的「共享代码的同步规则」与 decisions.md 的 D-043。
+
 ---
 
 ## 一、目录
@@ -15,6 +21,7 @@ miniprogram/
   config.js             ★ 上线前要改的运行时配置（域名 / 开关 / 模板 ID）
   data/snapshot.js      ★ 构建产物：离线首屏数据快照，勿手改（**不入库**，见第二节第 2 步）
   utils/scene.js        ★ 构建产物：从 src/lib/scene.js 同步，勿手改
+  utils/outlook.js      ★ 构建产物：从 src/lib/outlook.mjs 同步，勿手改
   utils/draw.js         图元 → canvas 2d（只负责「怎么画」，不做坐标计算）
   utils/view.js         数据 → 视图模型（纯函数、不碰 wx.*，可在 Node 里回归）
   utils/format.js       时间与数字格式化（刻意不用 Intl、不读设备时区）
@@ -45,8 +52,8 @@ miniprogram/
    —— `miniprogram/utils/api.js` 在模块顶层 import 它。两条路径按需选：
    - `node scripts/build-snapshot.mjs` —— **只**写 `miniprogram/data/snapshot.js`（离线首屏数据）。
      `npm test` 的 `pretest` 会自动跑它，所以只跑测试的话不用手动执行。
-   - `npm run build` —— 额外产出兜底页面 + OG 卡，并把 `src/lib/scene.js` 同步到
-     `miniprogram/utils/scene.js`（**不要手改后者**）。
+   - `npm run build` —— 额外产出兜底页面 + OG 卡，并把 `src/lib/scene.js` 与
+     `src/lib/outlook.mjs` 同步到 `miniprogram/utils/`（**不要手改那两个副本**）。
 3. 改 `miniprogram/config.js`：`apiBase` 填实际域名、`enabled` 置 `true`。
 4. 配微信后台的 `request` 合法域名（见第五节）。
 

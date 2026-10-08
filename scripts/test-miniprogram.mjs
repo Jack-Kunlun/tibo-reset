@@ -175,13 +175,39 @@ if (!captured) {
   process.exit(1);
 }
 
-// 造一个最小页面实例：setData 直接合并到 data，并记下载荷
+// 造一个最小页面实例：setData 合并到 data，并记下载荷
 const page = Object.assign(Object.create(null), captured, {
   data: JSON.parse(JSON.stringify(captured.data)),
 });
+
+/**
+ * `setData` 打桩。
+ *
+ * ⚠ **必须实现路径写法**（`{'signal.cd': …}`）。早先这里是一句
+ * `Object.assign(page.data, patch)`，它把 `'signal.cd'` 变成一个**顶层键名**
+ * `page.data['signal.cd']` —— 于是所有走路径的写入在测试里都落不到读的那一侧，
+ * 而这不报错、只是**测不到**：公告窗口倒计时那一支因此至今零覆盖，
+ * 是个「看起来有测试、其实那一段从没跑过」的典型。
+ *
+ * 真实 `setData` 支持这种写法（官方文档的「数据路径」），端上就是这么用的，
+ * 桩不照着实现等于自己放弃了一半覆盖面。
+ */
 page.setData = (patch, cb) => {
   renders.push(patch);
-  Object.assign(page.data, patch);
+  for (const key of Object.keys(patch)) {
+    if (!key.includes('.')) {
+      page.data[key] = patch[key];
+      continue;
+    }
+    const parts = key.split('.');
+    let cur = page.data;
+    for (let i = 0; i < parts.length - 1; i++) {
+      const seg = parts[i];
+      if (cur[seg] == null || typeof cur[seg] !== 'object') cur[seg] = {};
+      cur = cur[seg];
+    }
+    cur[parts[parts.length - 1]] = patch[key];
+  }
   if (typeof cb === 'function') cb();
 };
 
@@ -281,6 +307,146 @@ check(
   '阶段表日期已格式化（不是 ISO 原文）',
   d.forecast.phases.every((p) => /^\d{4}\.\d{2}\.\d{2}$/.test(p.from) && /^\d{4}\.\d{2}\.\d{2}$/.test(p.to)),
   JSON.stringify(d.forecast.phases[0])
+);
+
+/* ---- 4b. 预测总览：首屏第一块，四个问题缺一不可 ---- */
+
+// 这一块的断言盯的是「四个问题都答了没有」，不是字段名对不对。
+// 用户进页面第一眼要知道的四件事：下一次什么时候 / 可不可信 / 凭什么 / 还有多久。
+// 缺任何一条，首屏就退回「观察站」—— 而那正是这次改版要修正的问题。
+const ov = d.pred;
+check('预测总览已生成（首屏主角）', !!ov, JSON.stringify(ov));
+check(
+  '① 下一次什么时候：日期 + 星期 + 时刻三件都在',
+  /^\d{1,2}\.\d{1,2}$/.test(ov.md) && /^周[一二三四五六日]$/.test(ov.wd) && /^\d{2}:\d{2}$/.test(ov.hm),
+  `${ov.md} ${ov.wd} ${ov.hm}`
+);
+check('① 的倒计时锚点是个能算的时间戳', Number.isFinite(ov.etaAt), String(ov.etaAt));
+check(
+  '② 可不可信：状态（依据从哪来）+ 置信度（这个来源值多少分）是两个轴',
+  !!ov.statusLabel && !!ov.statusNote && ['high', 'medium', 'low'].includes(ov.confidence),
+  `${ov.statusLabel} / ${ov.confidenceLabel}(${ov.confidence})`
+);
+check(
+  '② 置信度有条宽可画（0 < w ≤ 100）',
+  Number.isFinite(ov.confidenceW) && ov.confidenceW > 0 && ov.confidenceW <= 100,
+  `${ov.confidenceW}%`
+);
+check('③ 凭什么：一句话依据摘要', typeof ov.brief === 'string' && ov.brief.length > 8, ov.brief);
+check(
+  '③ 依据摘要的字面必须分档（无公告说「没有公告」，有公告说「已给出公告」）',
+  ov.etaKind === 'announced' ? /已给出公告/.test(ov.brief) : /没有公告/.test(ov.brief),
+  `${ov.etaKind} → ${ov.brief}`
+);
+check(
+  '区间/窗口的**标签**跟着档位走（公告窗口不能叫成 80% 区间）',
+  !!ov.band && (ov.bandLabel === '公告窗口') === (ov.etaKind === 'announced'),
+  `${ov.etaKind} → ${ov.bandLabel} ${ov.band}`
+);
+check(
+  '④ 元信息：预测算于（含北京时间）',
+  /\d{2}\.\d{2} \d{2}:\d{2}/.test(ov.updatedText),
+  ov.updatedText
+);
+check(
+  '总览里没有 undefined / NaN',
+  !JSON.stringify(ov).includes('undefined') && !JSON.stringify(ov).includes('NaN'),
+  JSON.stringify(ov).slice(0, 160)
+);
+
+/* ⚠ 下一条是**值**断言，不是形状断言。
+   `rangeText` 曾经取 q25–q90 而标成「80% 区间」—— 格式完全合法，
+   所以上面那条形状断言照样绿，错的只是那两个端点。双侧 80% 区间是 [q10, q90]。
+   用快照自己的数字重算一遍来核对，而不是把当前值写死。 */
+const snapPred = (await import(resolve(ROOT, 'miniprogram/data/snapshot.js'))).default.prediction;
+const mpScene = await import(resolve(ROOT, 'miniprogram/utils/scene.js'));
+const { pct1 } = await import(resolve(ROOT, 'miniprogram/utils/format.js'));
+const wantRange = `${mpScene.fmtSpanShort(snapPred.prediction.q10)} – ${mpScene.fmtSpanShort(snapPred.prediction.q90)}`;
+check(
+  '80% 区间的端点是 q10–q90（不是 q25–q90）',
+  d.forecast.rangeText === wantRange,
+  `实得「${d.forecast.rangeText}」/ 期望「${wantRange}」`
+);
+// 非恒真守卫：两个端点真的不同，否则上一条可能是「怎么写都过」
+check(
+  'q10 与 q25 确实是两个不同的端点（证明上一条不是恒真）',
+  snapPred.prediction.q10 !== snapPred.prediction.q25,
+  `q10=${snapPred.prediction.q10} q25=${snapPred.prediction.q25}`
+);
+// 回测表那一行的**口径**：它论证的是上面那个双侧区间，所以必须是 covBand80。
+// 用 cov80 也能填出一个看着像样的百分比 —— 换个口径讲另一件事，是最难发现的那类错。
+check(
+  '回测表的「80% 区间覆盖率」行取的是 covBand80（双侧），不是 cov80（单侧上界）',
+  d.forecast.cal.rows[1].k === '80% 区间覆盖率' &&
+    d.forecast.cal.rows[1].v === pct1(snapPred.calibration.covBand80),
+  `${d.forecast.cal.rows[1].k} = ${d.forecast.cal.rows[1].v} / covBand80 = ${pct1(snapPred.calibration.covBand80)}`
+);
+
+/* ---- 4c. 总览的倒计时：与公告倒计时是两个锚点 ---- */
+
+check(
+  'tick() 之后总览的倒计时已挂上（否则首屏那一块是空的）',
+  !!page.data.pred.cd && Array.isArray(page.data.pred.cd.groups) && page.data.pred.cd.groups.length === 4,
+  JSON.stringify(page.data.pred.cd)
+);
+check(
+  '倒计时 4 组依次是天/时/分/秒',
+  (page.data.pred.cd.groups || []).map((g) => g.unit).join('') === '天时分秒',
+  JSON.stringify(page.data.pred.cd.groups)
+);
+// 去重：同一秒内重复 tick 不该再发一次 setData。整块卡片随倒计时重排会掉帧，
+// 所以这条不是「优化」，是首屏流畅度的前提。
+{
+  const n0 = renders.length;
+  page.tick();
+  page.tick();
+  check('同一秒内不重复推送倒计时（避免整块重排）', renders.length === n0, `多推了 ${renders.length - n0} 次`);
+}
+// 过点之后的措辞必须分档：公告档不能说「已到中位预测时刻」—— 那时根本没有中位预测。
+// 直接喂一个「已经过点」的 ETA，而不是等它真的过期（那要等到数据换代）。
+let overModelLabel = '';
+let overAnnLabel = '';
+{
+  const realEta = page.data.pred.etaAt;
+  const realKind = page.data.pred.etaKind;
+  const nowMs = Date.now();
+  page.data.pred.etaAt = nowMs - 60_000;
+
+  page.data.pred.etaKind = 'model';
+  page._pcdKey = null;
+  const overModel = page.tickPredCountdown(nowMs);
+  overModelLabel = (overModel && overModel.label) || '';
+  check(
+    '过了 ETA：算推档说「已到中位预测时刻」',
+    !!overModel && overModel.over === true && /已到中位预测时刻/.test(overModelLabel),
+    overModelLabel
+  );
+
+  page.data.pred.etaKind = 'announced';
+  page._pcdKey = null;
+  const overAnn = page.tickPredCountdown(nowMs);
+  overAnnLabel = (overAnn && overAnn.label) || '';
+  check(
+    '过了 ETA：公告档说「公告窗口已开启」，且不提「中位」',
+    !!overAnn && overAnn.over === true && /公告窗口已开启/.test(overAnnLabel) && !/中位/.test(overAnnLabel),
+    overAnnLabel
+  );
+
+  page.data.pred.etaAt = realEta;
+  page.data.pred.etaKind = realKind;
+  page._pcdKey = null;
+  page.tickPredCountdown(nowMs);
+}
+// 非恒真守卫：两档如果给出同一句话，说明分档没生效，上面两条也就退化成同一条。
+check(
+  '两档的过点措辞确实不同（证明「分档」这条断言不是恒真）',
+  overModelLabel !== '' && overAnnLabel !== '' && overModelLabel !== overAnnLabel,
+  `model=「${overModelLabel}」/ announced=「${overAnnLabel}」`
+);
+check(
+  '还没到 ETA 时说的是「距离预测重置还有」',
+  /距离预测重置还有/.test(page.data.pred.cd.label),
+  page.data.pred.cd.label
 );
 
 console.log('\n【5】信号');
@@ -1216,15 +1382,24 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
   );
 }
 
-/* --------------------- 13g. 顶栏正下方那一块不能贴线 --------------------- */
+/* ---------- 13g. 首屏第一块：几何不贴线 + 顺序不能回退 ---------- */
 
-/* 与 13e / 13f 同类：wxml 与 wxss 在 Node 里渲染不了，但「有没有留出上边距」查得出来。
- * 端上 `.top` 自带 1rpx 下边框（app.wxss），而 `.prog` 是它下面的第一个元素
- * （`notice` 不存在时）。margin-top 为 0 时它的上边框正好压在顶栏那条线上，两条 1rpx
- * 叠成一条 —— 网页端 2026-10-07 线上就是这个毛病，端上是同一套结构、同一个错法。
- * 网页端已由 `scripts/check-layout.mjs` 的 A7b 用**真实几何**盯住；端上量不到几何，
- * 退一步钉住「margin-top 非 0、且与同族同值」，至少挡住「又变回 0」。
- * ⚠ 这是形状级断言，不是几何断言，别把它当成 A7b 的等价物。 */
+/* 两件事，理由完全不同，放在一起是因为它们钉的是**同一块元素**：
+ *
+ * ① 几何：端上 `.top` 自带 1rpx 下边框（app.wxss），它下面第一个内容块要是
+ *    margin-top 为 0，上边框就压在顶栏那条线上，两条 1rpx 叠成一条 ——
+ *    网页端 2026-10-07 线上就是这个毛病，端上是同一套结构、同一个错法。
+ *    网页端已由 `scripts/check-layout.mjs` 的 A7b 用**真实几何**盯住；
+ *    端上量不到几何，退一步钉住「margin-top 非 0、且与同族同值」。
+ *    ⚠ 形状级断言，别把它当成 A7b 的等价物。
+ *
+ * ② 顺序：2026-10-08 改版把 `.pred`（下一次什么时候）提到了首屏第一块，
+ *    而它以前是 `.prog`（每日重置窗口 = 规则）。顺序回退**不会报任何错** ——
+ *    页面照常渲染，只是这一页从「预测中心」退回「观察站」。
+ *    这正是这次改版要修的问题，所以它必须能被机械核对，不能靠 review 时记得。
+ *    同日第二轮又把 `.prog` 从「信号之后」再往后挪到「预测依据之后」：留在
+ *    信号之后时它仍会探进首屏（实测 375×812 下露出大半），而首屏要留给
+ *    「下一次什么时候、还有多久」。 */
 {
   const wxssIndex = await readFile(resolve(ROOT, 'miniprogram/pages/index/index.wxss'), 'utf8');
   /* 同一个选择器在文件里可能有好几条规则（`.sig` 既有一条 `animation-delay`、
@@ -1245,17 +1420,73 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
   };
   const hasRule = (selEscaped) => new RegExp('^' + selEscaped + '\\s*\\{', 'm').test(wxssIndex);
 
-  const progMT = topMarginOf('\\.prog');
+  /* 同族 = 会**相邻出现**的那几块。`.top` 下面依次是 pred → sig|sig-idle，
+   * 彼此相邻处各有一条 1rpx 边框，所以这几块的上边距必须是同一个数。
+   * `.pred` 单独看一遍的理由：它是新加入这个家族的，最容易被写漏。
+   *
+   * ⚠ `.prog`（每日重置窗口）2026-10-08 已**移出这一族**：它从「信号之后」挪到了
+   *   「预测依据之后」（见下面的顺序断言），相邻的变成 `.fc-meta` 而不是这三块。
+   *   所以不能再要求它与前三块同值 —— 那会让这条断言在**正确的改动**下变红；
+   *   但它自己的上边距仍须 ≥8（`.fc-meta` 也是带边框的块）。
+   */
+  const FAMILY = ['.pred', '.sig', '.sig-idle'];
+  const margins = FAMILY.map((s) => [s, topMarginOf(s.replace('.', '\\.'))]);
+  const missing = margins.filter(([, v]) => !Number.isFinite(v)).map(([s]) => s);
   check(
-    '.prog 有上边距（0 会让上边框压在顶栏下边框上）',
-    hasRule('\\.prog') && progMT >= 8,
-    hasRule('\\.prog') ? `margin-top=${progMT}rpx` : '（index.wxss 里没有 .prog 规则）'
+    '首屏相邻的三个块都有上边距',
+    missing.length === 0,
+    missing.length ? `缺 margin-top：${missing.join(' / ')}` : margins.map(([s, v]) => `${s}=${v}`).join(' · ')
   );
-  const kin = [topMarginOf('\\.sig-idle'), topMarginOf('\\.sig')];
+  const first = margins[0][1];
   check(
-    '.prog 的上边距与同族（.sig / .sig-idle）一致',
-    kin.every((v) => Number.isFinite(v)) && kin.every((v) => v === progMT),
-    `.prog=${progMT} · .sig-idle=${kin[0]} / .sig=${kin[1]}`
+    '三块的上边距彼此一致（相邻处两条 1rpx 边框才不会被压在一起）',
+    Number.isFinite(first) && first >= 8 && margins.every(([, v]) => v === first),
+    margins.map(([s, v]) => `${s}=${v}`).join(' · ')
+  );
+  check(
+    '每日重置窗口的上边距 ≥8（挪到预测依据之后，仍不能与上一块贴线）',
+    topMarginOf('\\.prog') >= 8,
+    `.prog=${topMarginOf('\\.prog')}`
+  );
+
+  /* ---- 顺序 ---- */
+  // ⚠ 再读一次 wxml：13e 里那个 `wxmlIndex` 声明在**块作用域**里，出了那块就没了，
+  //   直接引用会 ReferenceError（实测踩过一次）。别为了省一次读文件去改作用域。
+  const wxmlIndex = await readFile(resolve(ROOT, 'miniprogram/pages/index/index.wxml'), 'utf8');
+  // 先剥注释再找位置：注释里会提到类名（这一页的注释特别多），
+  // 拿原串比下标会把注释里的 `class="pred"` 也算进去。
+  const wxmlBody = wxmlIndex.replace(/<!--[\s\S]*?-->/g, '');
+  const at = (needle) => wxmlBody.indexOf(needle);
+  const iPred = at('class="pred"');
+  const iSig = at('class="sig"');
+  const iProg = at('class="prog"');
+  const iForecast = at('class="fc"');
+
+  check('模板里找得到四块（顺序断言的前提）', [iPred, iSig, iProg, iForecast].every((i) => i >= 0), `pred=${iPred} sig=${iSig} prog=${iProg} fc=${iForecast}`);
+  check(
+    '预测总览排在信号之前（结论在前，依据在后）',
+    iPred >= 0 && iSig >= 0 && iPred < iSig,
+    `pred@${iPred} vs sig@${iSig}`
+  );
+  check(
+    '每日重置窗口排在预测依据之后（规则不是结论，也不能挤进首屏）',
+    iForecast >= 0 && iProg >= 0 && iProg > iForecast,
+    `prog@${iProg} vs fc@${iForecast}`
+  );
+  check(
+    '预测依据（.fc）排在预测总览之后',
+    iPred >= 0 && iForecast >= 0 && iForecast > iPred,
+    `fc@${iForecast} vs pred@${iPred}`
+  );
+  check(
+    '「距上一次额度重置」的大计数器排在三张图之后（往回看的信息后置）',
+    at('class="hero"') > at('id="strip"') && at('id="strip"') > 0,
+    `hero@${at('class="hero"')} vs strip@${at('id="strip"')}`
+  );
+  check(
+    '间隔直方图的 canvas 在模板里（第三层图表的第一张）',
+    at('id="hist"') > iForecast,
+    `hist@${at('id="hist"')} vs fc@${iForecast}`
   );
 }
 

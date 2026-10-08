@@ -11,10 +11,10 @@ import config from '../../config.js';
 import { loadState, snapshotState } from '../../utils/api.js';
 import { copyText } from '../../utils/clipboard.js';
 import { indexShareTitle, isSinglePage } from '../../utils/share.js';
-import { buildGauge, buildSignal, buildMetrics, buildForecast } from '../../utils/view.js';
-import { survivalScene, stripScene } from '../../utils/scene.js';
+import { buildGauge, buildSignal, buildMetrics, buildForecast, buildOutlookView, predCountdown } from '../../utils/view.js';
+import { survivalScene, stripScene, histogramScene } from '../../utils/scene.js';
 import { drawScene, setupCanvas } from '../../utils/draw.js';
-import { countdown, countdownGroups, elapsed, fmtSpan, reelGroups, verdict as makeVerdict, fmtDateTime, fmtClock, fmtClockSec } from '../../utils/format.js';
+import { elapsed, fmtSpan, reelGroups, verdict as makeVerdict, fmtDateTime, fmtClock, fmtClockSec, toTs } from '../../utils/format.js';
 import {
   ACTION_LABEL,
   DONE_LABEL,
@@ -36,7 +36,11 @@ Page({
     verdict: { cls: 'calm', text: '', tail: '' },
     metrics: [],
     signal: { show: false, checked: 0, lookback: 60, program: { show: false } },
+    /** 预测总览（首屏主角）。null = 数据不足，模板据此整块不渲染，而不是画一张空卡 */
+    pred: null,
     forecast: null,
+    /** 直方图有没有数据 —— 没有就不渲染 canvas（`setupCanvas` 找不到节点会静默返回 null） */
+    histShow: false,
     survivalN: 0,
     updText: '',
     genText: '',
@@ -122,16 +126,26 @@ Page({
     const lastAt = chart ? new Date(chart.lastAt).getTime() : null;
     const genTs = state.generatedAt ? new Date(state.generatedAt).getTime() : Date.now();
 
+    // 预测总览的**锚点**：取预测自己的 `asOf`，不用 `Date.now()`。
+    // `q50` 是按 `asOf` 那一刻算出来的，换个时刻当锚点就会得到另一个 ETA ——
+    // 而卡里「预测算于 X」写的就是锚点本身，两处对不上比数字旧更糟。
+    // 快照态的 `generatedAt` 与 `asOf` 同源（构建时用的是同一个 now），拿它兜底。
+    const anchor = toTs(state.prediction && state.prediction.asOf);
+    const predNow = Number.isFinite(anchor) ? anchor : genTs;
+
     this.chart = chart;
     this.lastAt = lastAt;
     // 换了一批数据，倒计时的去重键必须作废 —— 否则新窗口的第一秒不会渲染
-    this._cdKey = null;
+    this._pcdKey = null;
 
     this.setData(
       {
         metrics: buildMetrics(chart),
         signal: buildSignal(state.signals),
         gauge: buildGauge(chart),
+        pred: buildOutlookView(chart, state.prediction, state.signals, predNow),
+        // 直方图有没有东西可画。`total` 为 0 时不着 canvas —— 空白画布比没有画布更像故障
+        histShow: Boolean(chart && chart.hist && chart.hist.total),
         forecast: buildForecast(state.prediction),
         survivalN: chart ? chart.gapDays.length : 0,
         genText: fmtDateTime(genTs),
@@ -188,8 +202,8 @@ Page({
       }
     }
 
-    const cd = this.tickCountdown(now);
-    if (cd) patch['signal.cd'] = cd;
+    const pcd = this.tickPredCountdown(now);
+    if (pcd) patch['pred.cd'] = pcd;
 
     // 「观测中」后面是当前北京时间，跟着时钟走。降级态不参与 ——
     // 那时显示的是快照时刻，是个固定值。
@@ -205,26 +219,25 @@ Page({
   },
 
   /**
-   * 预告窗口的倒计时，与主计数共用同一次 tick —— 不额外开定时器。
-   * 同样只在「秒」真的变了才 setData，避免整块横幅跟着重排。
+   * 预测总览的大倒计时，与别处共用同一次 tick —— 不额外开定时器。
+   *
+   * 这是全页**唯一**往前看的读数。信号区此前也有一个「距窗口开启」的倒数
+   * （数的是公告窗口开启时刻），但那与主卡在公告档下是**同一时刻**，
+   * 两个同值的大数字叠在首屏上只会互相稀释 —— 已删，信号区只讲
+   * 「他说了什么、原文在哪」。窗口开启时刻仍由 .win 块以「北京时间 ⋯ 起」给出。
+   *
+   * 文案（含过点后分档的那句）在 `utils/view.js` 的 `predCountdown` 里，
+   * 与本地预览脚本共用一份 —— 那句措辞有两份实现，预览就会与真机不一致。
+   * 这里只管「同一秒不重复 setData」。
    */
-  tickCountdown(now) {
-    const s = this.data.signal;
-    const fromTs = s && s.window && s.window.fromTs;
-    if (!fromTs) return null;
+  tickPredCountdown(now) {
+    const cd = predCountdown(this.data.pred, now);
+    if (!cd) return null;
 
-    const cd = countdown(fromTs, now);
-    const key = cd.over ? 'over' : `${cd.d}:${cd.h}:${cd.m}:${cd.s}`;
-    if (key === this._cdKey) return null;
-    this._cdKey = key;
-
-    return {
-      over: cd.over,
-      groups: countdownGroups(cd),
-      // 窗口开了就不再报读数，只报状态 —— 与网页端 .sig-cd[data-over="1"] 同一口径。
-      // 文案也跟网页端对齐（此前写「距预告窗口开启」，两端不一致）。
-      label: cd.over ? '窗口已开启 · 随时可能重置' : '距窗口开启',
-    };
+    const key = cd.over ? 'over' : cd.groups.map((g) => g.v).join(':');
+    if (key === this._pcdKey) return null;
+    this._pcdKey = key;
+    return cd;
   },
 
   /* ------------------------------ 图表 ------------------------------ */
@@ -234,6 +247,21 @@ Page({
     this._painting = true;
     const chart = this.chart;
     try {
+      // 顺序与页面顺序一致（直方图 → 生存曲线 → 点阵）。三张图共用同一个
+      // `drawScene`，没有各自的分支 —— 图元类型只有 line / circle / poly / text。
+      const hist = await setupCanvas(this, '#hist');
+      if (hist) {
+        drawScene(
+          hist.ctx,
+          histogramScene(chart, {
+            layout: 'compact',
+            width: Math.round(hist.width),
+            height: Math.round(hist.height),
+          }),
+          hist.dpr
+        );
+      }
+
       const surv = await setupCanvas(this, '#survival');
       if (surv) {
         drawScene(

@@ -35,11 +35,13 @@ src/lib/             共享逻辑（纯 JS/ESM）
   signals.mjs          ★ 信号识别（四档）+ 每日重置窗口 + 钟点解析 + 跨推文聚合（hypothesis / forecasts）
   chart-data.js        ★ 从记录构建统一图表数据（双端共用）
   scene.js             ★ 图元几何（双端共用，无渲染目标依赖）
+  outlook.mjs          ★ 预测总览推导（双端共用，自包含；构建期同步到小程序）
   render.mjs           ★ 渲染层：数据 → HTML 片段（构建期与后端**共用同一套**）
   svg.mjs              ★ 图元 → SVG 序列化（render.mjs 的依赖，零依赖纯函数）
   page.mjs             ★ 页面组装：derive / renderPage / injectTokens / logoDataUri
 miniprogram/         微信小程序
   utils/scene.js       由 scripts/build.mjs 从 src/lib/scene.js 同步，勿手改
+  utils/outlook.js     由 scripts/build.mjs 从 src/lib/outlook.mjs 同步，勿手改
   utils/subscribe.js   F9 一次性订阅的客户端封装（一次授权 = 一次通知）
   data/snapshot.js     由构建写入的数据快照（离线首屏用）；**不入库**，见 D-027
 *_nginx/             TLS 证书包（腾讯云 DV，**内含私钥** `.key`）
@@ -58,11 +60,19 @@ miniprogram/         微信小程序
 
 ## 共享代码的同步规则
 
-`src/lib/scene.js` 是唯一真源。`npm run build` 会把它复制到 `miniprogram/utils/scene.js`，
-并在文件头写入「此文件由构建同步，勿手改」。
+真源是 `src/lib/scene.js` 与 `src/lib/outlook.mjs`（列在 `scripts/build.mjs` 的
+`SHARED_MODULES` 里）。`npm run build` 把它们**逐字复制**到 `miniprogram/utils/`
+（`.mjs` → `.js`），并在文件头写入「此文件由构建同步，勿手改」。加模块要**两边都加**
+（`test-shared.mjs` 有一份同名清单，只加一边会报红）。
 
-- 构建期会校验两侧内容一致，不一致直接抛错。
-- **不要**直接编辑 `miniprogram/utils/scene.js`。
+- ⛔ **准入条件：模块必须自包含**（零 `import` 仓库内其它模块）。同步是逐字复制，
+  被复制过去的相对路径在小程序运行时**不存在**，而失败方式是**模块加载期抛错**
+  —— 页面白屏，但 `build` 与 `test-*` 全绿（它们在 Node 里跑，路径是通的）。
+  所以这里只放**纯计算**模块；渲染两侧各写（网页 `svg.mjs`、小程序 `draw.js`），
+  这个分叉是有意的。见 D-043。
+- `scripts/test-shared.mjs` 逐字节核对两侧一致，**必须在 build 之前跑** ——
+  跑在之后副本刚被覆盖，校验恒真（见 D-025 与 `collect.yml` 的步骤顺序）。
+- **不要**直接编辑 `miniprogram/utils/` 下的同步副本。
 - 几何函数必须接受 `{ width, height, fontScale }`，不得写死像素尺寸 ——
   桌面 900px 的布局等比缩到手机 345px 会让图内文字变成 4px，等于没有。
 
@@ -76,8 +86,12 @@ miniprogram/         微信小程序
   词表分裂、时间戳口径上已经各吃过一次亏，每次都是静默不一致。
 - ⛔ **数据更新不得触发构建**。本机采完直接 `POST /api/ingest`，后端读到的就是最新数据，
   重建页面**没有任何产出**（D-025）。`collect.yml` 的 `paths` 因此刻意排除了
-  `miniprogram/data/**` 与 `miniprogram/utils/scene.js` —— 这两个都是**构建产物**。
-  现在随本机提交的只剩 `utils/scene.js`（快照自 2026-09-23 起不入库，D-027），
+  `miniprogram/data/**` 与 `miniprogram/utils/` 下的同步副本（`scene.js` / `outlook.js`）
+  —— 它们都是**构建产物**。
+  ⚠ **加共享模块时必须同时在 `collect.yml` 里加一条排除**；`test-collect-warning.mjs`
+  会拿 `build.mjs` 的 `SHARED_MODULES` 逐条核对 —— 那里原先写死文件名，于是加了
+  `outlook.mjs` 之后这条静默的漏（只多烧 CI 分钟、不报任何错）没人拦得住。
+  现在随本机提交的只剩 `utils/` 下这两个副本（快照自 2026-09-23 起不入库，D-027），
   `miniprogram/data/**` 那条留作**第二道锁**：万一有人把快照提交回来，少了它就会退化成
   「每采一次触发一次重建」，而 `test-collect-warning.mjs` 有断言守着它。
 - `dist/index.html` 降级为**兜底**：实时渲染抛错时退回它（宁可数据旧也不白屏），
@@ -580,7 +594,7 @@ COLLECT_INTERVAL_MIN=0 PORT=18796 DATA_DIR=/tmp/tibo-empty node server/index.mjs
 curl -s -o /tmp/f.html -w '%{http_code}\n' localhost:18796/  # 200，且日志有「退回构建期产物」
 ```
 
-### 无头 Chrome：两个必须知道的坑
+### 无头 Chrome：四个必须知道的坑
 
 **坑一：`--dump-dom` 输出完 DOM 后进程不退出。** macOS + Chrome 153 实测：
 DOM 早就完整写进 stdout 了，主进程却一直挂着（曾因此空转 24 分钟才发现）。
@@ -601,6 +615,25 @@ iframe 的视口宽度就等于它的 CSS 宽度，媒体查询会按真实窄�
 padding 撑开、与上一块的间距本来就是 0，按「所有兄弟都得有间距」写会立刻误报；
 零高度的隐藏块（未出现的采集异常条）要跳过，并且要**继续往前找**上一个可见兄弟，
 否则它会挡在 header 与首块之间把这个 bug 遮掉。
+
+**坑四：看小程序预览页时，`http://127.0.0.1` 在 Chrome 里连不上，而 `file://` 又「不执行 JS」。**
+两个陷阱叠在一起，各自都会给出**看起来正常**的错结论：
+
+- **loopback 在 Chrome 里不通**：本机沙箱下同一时刻 `curl http://127.0.0.1:8801/…` 返回 200、
+  Chrome 却报 `net::ERR_CONNECTION_REFUSED`（`--no-proxy-server` 也救不了）。于是
+  `preview-miniprogram.mjs` 打印的「用 **静态服务器**打开」这条指引在本机**执行不了**。
+- **`file://` 下 ES module 默认被拦**：预览页是 `<script type="module">` + 相对路径
+  `import '../src/lib/…'`，file 源不互信 → 整个 module 不执行。加上
+  **`--allow-file-access-from-files`** 即可（脚本里那句「ES module 不能走 file://」
+  只对**默认**情形成立）。
+- ⛔ **偏移副本（注入 `body{margin-top:-Npx}`）必须生成在 `dist/` 下，绝不能放 `/tmp`。**
+  `'../src/lib/scene.js'` 是相对**页面文件**解析的：放 /tmp 就变成 `/src/lib/scene.js`
+  （不存在）→ module 静默不执行 → **三张 canvas 全空白**，而静态 HTML 照常渲染、
+  `title` 停在初值。看起来就像「图画不出来」，实测与 `--disable-gpu` 无关
+  （归因到它是不成立的）。
+- **判据别只靠眼睛**：注入一段 `getImageData` 统计非透明像素、写进 `title`，
+  再 `--dump-dom` 读回来 —— 实测 `#hist 17807/64790`、`#survival 29991/70928`、
+  `#strip 10904/78430`。这比「看截图里有没有东西」硬得多。
 
 截图（本机有 Chrome，不需要装 Chromium）：
 

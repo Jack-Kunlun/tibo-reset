@@ -393,13 +393,42 @@ export function coverageBacktest(records, opts = {}) {
 /* ------------------------------ 不确定性区间 ------------------------------ */
 
 /**
+ * 确定性伪随机数（mulberry32）。
+ *
+ * 为什么不能再用 `Math.random`：这个区间的**中位那一支已经出现在页面上了**
+ * （预测总览侧卡的「中位估计的重采样范围」），而后端是**按请求实时渲染**的 ——
+ * 未播种的随机流意味着同一个用户刷新一次页面、这个区间就跳一次。
+ * 实测 8 个种子：lo 端点 17.88–18.04 天、hi 端点 19.75–19.89 天，
+ * 区间宽的极差 0.19 天（≈4.6 小时）。也就是说**抖动幅度和展示粒度同量级**，
+ * 不固定种子，页面上就是一个每小时都在变的数字。
+ *
+ * 固定种子不改变统计学含义：bootstrap 只要求「有放回地抽」，不要求「抽得随机」，
+ * 换一次种子只是换一条蒙特卡洛实现。但它让「同一份数据 → 同一个数字」成立，
+ * 这既是对外可比较的前提，也是 A8（同一构建锚点下逐字节相同）的前提。
+ *
+ * 需要复现不同的重采样实现时（诊断脚本、反例验证）用 `opts.rng` 显式覆盖。
+ */
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** 随便一个常数。要求只是「固定」，不是「随机」。 */
+export const BOOTSTRAP_SEED = 0x9e3779b9;
+
+/**
  * 对历史间隔做有放回重采样，重新拟合，得到预测的概率分布。
  * 52 个样本的模型，没有这个区间就无法判断预测值有多少是噪声。
  */
 export function bootstrapCI(intervals, sinceDays, opts = {}) {
   const iterations = opts.iterations ?? 1000;
   const target = opts.target ?? 7;
-  const rng = opts.rng ?? Math.random;
+  const rng = opts.rng ?? mulberry32(BOOTSTRAP_SEED);
 
   const completed = intervals.filter((i) => !i.censored);
   const tail = intervals.filter((i) => i.censored);
@@ -461,13 +490,23 @@ const median = (arr) => {
  */
 export function calibrate(records, opts = {}) {
   const cfg = { ...DEFAULT_CONFIG, ...opts };
-  const cv = coverageBacktest(records, cfg);
-  if (!cv.rows?.length) return { shift: 0, n: 0, cov50: null, cov80: null, cov90: null };
+  // 显式带上 0.1：页面展示的「80% 区间」是**双侧**的 [q10, q90]，
+  // 它的实测覆盖率必须按同一口径算（见下方 covBand80）。
+  // ⚠ 刻意不改 `coverageBacktest` 的默认 levels —— 那会连带改变 /api/backtest 的
+  // `calibration` 数组长度，为一个本接口的内部需求去动一个对外接口的形状不划算。
+  const cv = coverageBacktest(records, { ...cfg, levels: [0.1, 0.5, 0.8, 0.9] });
+  if (!cv.rows?.length) return { shift: 0, n: 0, cov50: null, cov80: null, cov90: null, covBand80: null };
 
   const rows = cv.rows.slice(-cfg.calibrationWindow);
   const shift = median(rows.map((r) => r.actual - r.qs[0.5]));
 
+  // 单侧上界覆盖率：P(T ≤ q_lv)。
   const covered = (lv) => rows.filter((r) => r.actual <= r.qs[lv] + shift).length / rows.length;
+
+  // 双侧区间覆盖率：P(q_lo ≤ T ≤ q_hi)。**这才是页面上那个区间自己的覆盖率** ——
+  // 拿 cov80（单侧）去说 [q10, q90]（双侧）可不可信，等于换个口径讲另一件事。
+  const coveredBand = (lo, hi) =>
+    rows.filter((r) => r.actual >= r.qs[lo] + shift && r.actual <= r.qs[hi] + shift).length / rows.length;
 
   return {
     shift,
@@ -475,6 +514,7 @@ export function calibrate(records, opts = {}) {
     cov50: covered(0.5),
     cov80: covered(0.8),
     cov90: covered(0.9),
+    covBand80: coveredBand(0.1, 0.9),
     shiftUncalibratedBias: rows.reduce((a, r) => a + (r.actual - r.qs[0.5]), 0) / rows.length,
   };
 }
@@ -521,6 +561,12 @@ export function predictAll(records, opts = {}) {
   const adjusted = {
     ...raw,
     horizons: raw.horizons.map((h) => ({ ...h, p: h.p })),
+    // ⚠ q10 必须显式算出来并**返回**，否则「80% 区间」没有真端点可用 ——
+    // 页面上只能退而取 q25，写出来的「80% 区间 q25–q90」实际只有约 65% 覆盖率。
+    // 那不是笔误而是口径错：同一个页面上的 `cov80` 定义为 P(T ≤ q80)（单侧上界），
+    // 而 q25–q90 是双侧 65%，两个「80%」讲的根本不是一件事。
+    // 双侧 80% 区间的正确端点是 [q10, q90]（0.9 − 0.1 = 0.8）。
+    q10: Math.max(0, quantile(model, sinceDays, 0.1) + shift),
     q25: Math.max(0, raw.q25 + shift),
     q50: Math.max(0, raw.median + shift),
     q75: Math.max(0, raw.q75 + shift),
@@ -528,9 +574,8 @@ export function predictAll(records, opts = {}) {
     expectedRemaining: Math.max(0.1, raw.expectedRemaining + shift),
   };
 
-  // 校准后的 80% 区间：用校准后的 q10 / q90 近似
-  const lo = Math.max(0, quantile(model, sinceDays, 0.1) + shift);
-  const hi = adjusted.q90;
+  // 校准后的 80% 双侧区间 = [adjusted.q10, adjusted.q90]。
+  // 校准平移量 `shift` 已分别并入这两个端点，页面直接取字段即可。
 
   const bt = backtest(records, { ...cfg, horizon: 7, now });
   const ci = bootstrapCI(intervals, sinceDays, {

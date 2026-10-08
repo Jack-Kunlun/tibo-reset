@@ -17,7 +17,8 @@
  */
 
 import { fmtDateIn, fmtDateTimeIn, partsIn, dualZone } from './chart-data.js';
-import { survivalScene, stripScene } from './scene.js';
+import { buildOutlook } from './outlook.mjs';
+import { survivalScene, stripScene, histogramScene } from './scene.js';
 import { sceneToSvgTag } from './svg.mjs';
 
 const CJK = 'Asia/Shanghai';
@@ -97,7 +98,7 @@ export const fmtSpan = (days) => spanOf(days).text;
 /**
  * 短版（只到主单位，不到「分」）的实现在 `scene.js` 里 —— 因为那份文件会被
  * 逐字同步到小程序端，必须自包含，所以它自带一个。这里不再重复一份，
- * 免得将来只改了一边。网页端要用就 `import { fmtSpanShort } from './scene.js'`。
+ * 免得将来只改了一边。要用就 `import { fmtSpanShort } from './scene.js'`。
  */
 
 /* --------------------------- 倒计时 / 判定 --------------------------- */
@@ -119,25 +120,20 @@ const reels = (str) => [...str].map((ch) => reel(Number(ch))).join('');
 const group = (key, str, unit) =>
   `<span class="grp" data-g="${key}"><span class="reels">${reels(str)}</span><span class="unit">${unit}</span></span>`;
 
-export function renderCounter(m) {
-  const ms = m.now - new Date(m.lastAt).getTime();
-  const d = Math.floor(ms / DAY);
-  const h = Math.floor((ms % DAY) / 3_600_000);
-  const mi = Math.floor((ms % 3_600_000) / 60_000);
-  const s = Math.floor((ms % 60_000) / 1000);
+/** 把一段毫秒拆成 天/时/分/秒 四个卷轴组。两块倒数共用这一处拆法。 */
+function groupsFromMs(ms) {
+  const left = Math.max(0, ms);
   return (
-    group('d', String(d), '天') +
-    group('h', pad(h), '时') +
-    group('m', pad(mi), '分') +
-    group('s', pad(s), '秒')
+    group('d', String(Math.floor(left / DAY)), '天') +
+    group('h', pad(Math.floor((left % DAY) / 3_600_000)), '时') +
+    group('m', pad(Math.floor((left % 3_600_000) / 60_000)), '分') +
+    group('s', pad(Math.floor((left % 60_000) / 1000)), '秒')
   );
 }
 
-export function renderSince(m) {
-  const ms = m.now - new Date(m.lastAt).getTime();
-  // 口径与页首倒计时一致：不足一天时给到「小时 + 分」，不再只写「不足一天」——
-  // 「不足一天」在「已过 20 小时」和「已过 10 分」两种情形下是同一句话，信息量为零。
-  return `上次重置 ${fmtDateTime(m.lastAt)} · 已过 ${fmtSpan(ms / DAY)}`;
+/** 距预测重置时刻的倒数。锚点、口径与 `.sig-cd` 那套一致，只是这里是主角。 */
+export function renderEtaCounter(o) {
+  return groupsFromMs(o.etaAt - o.now);
 }
 
 /**
@@ -159,6 +155,13 @@ export function renderVerdict(m) {
 
 /* ------------------------------ 指标条 ------------------------------ */
 
+/**
+ * 样本摘要的六个格子。**值在上、标签在下**（设计稿如此）。
+ *
+ * 为什么值放前面：这一栏是「上面那些结论的原料」，读者扫的是数字本身，
+ * 标签只在认不出这个数字时用来解释它。标签占先会把六个数字推到第二眼。
+ * 单位走 `<small>` 单独成段（`6` + `天 13 小时`），与页面别处的「大值 + 小单位」同形。
+ */
 export function renderMetrics(m) {
   // 三项间隔统计都走 spanOf：大字给主单位数值、小字给「天 17 小时」这样的单位串。
   // 之前写死 `toFixed(1) + '天'`，在「6.7 天」这种量级上没问题，但一落到
@@ -177,8 +180,8 @@ export function renderMetrics(m) {
   return items
     .map(
       (it) => `<div class="metric${it.hi ? ' hi' : ''}">
-    <div class="k">${it.k}</div>
     <div class="v">${it.v}${it.u ? `<small>${it.u}</small>` : ''}</div>
+    <div class="k">${it.k}</div>
     <div class="note">${it.note}</div>
   </div>`
     )
@@ -254,31 +257,56 @@ const PRECISION_TEXT = {
  * 读者很容易把它读成「在这之前不会重置」—— 而这条规则恰好把这个读法反过来，
  * 所以它必须自己显形，不能靠读者从别处推。
  *
- * 用弱样式（不套 `.sig` 那套）：预告才是页首最大视觉重量，这条是补充事实。
- * 窗口块复用 `windowBlock` —— 同一种形状（当地 + 北京两行）只该有一个渲染器。
+ * ── 为什么排到依据区之后、并在宽屏做成一行 ──────────────────────────
+ * 它是一条**规则**，不是结论。旧版排在首屏第一块，于是第一眼读到的是射程范围，
+ * 而不是「下一次什么时候」。现在形态降成一行规则 + 右侧时区表，视觉重量低于
+ * 三张依据卡。窗口块复用 `windowBlock` —— 同一种形状（当地 + 北京两行）只该有一个
+ * 渲染器，页面任何一处时间都同时给两个时区（见 PRD F2）。
  */
 export function renderProgram(p) {
   if (!p || !p.window) return '';
   // 宣布时刻的**双时区**文本由数据层算好（`buildProgram` 里的 `createdZones`），
-  // 渲染层只读不自算 —— 与线索块（`hintBlock`）同一口径：页面上任何一处时间
-  // 都同时给「北京」与「Tibo 当地」，不要求读者自己减那 15 小时（见 PRD F2）。
+  // 渲染层只读不自算 —— 与线索块（`hintBlock`）同一口径。
   const cz = p.createdZones ?? null;
+  const days =
+    p.days == null
+      ? ''
+      : `共 <b>${esc(String(p.days))}</b> 天${
+          p.daysLeft == null ? '' : ` · 还剩 <b>${esc(String(p.daysLeft))}</b> 天`
+        }`;
+  // 整卡是链接（有原推时）—— 右侧那个箭头若不指向任何地方，就是假的交互提示。
+  // 没有原推时退化成 `<section>`，箭头也一并去掉：同样不许留下空指向的箭头。
+  const tag = p.url ? 'a' : 'section';
+  const attrs = p.url
+    ? ` class="sig-prog" href="${attr(p.url)}" target="_blank" rel="noopener"`
+    : ' class="sig-prog"';
   return `
-  <section class="sig-prog">
-    <div class="sp-head">
-      <span class="sp-tag">每日重置窗口</span>
-      <span class="sp-left">共 <b>${esc(String(p.days ?? ''))}</b> 天 · 还剩 <b>${esc(String(p.daysLeft ?? ''))}</b> 天</span>
+  <${tag}${attrs}>
+    <div class="sp-lead">
+      <span class="ico ico-cal">${ICON.cal}</span>
+      <div class="sp-body">
+        <div class="sp-head">
+          <span class="sp-tag">每日重置窗口</span>
+          ${days ? `<span class="sp-left">${days}</span>` : ''}
+        </div>
+        <p class="sp-rule">每天要么发一个改进、要么给一次完整重置 —— 期间任何一天都可能重置</p>
+        ${
+          cz
+            ? `<p class="sp-src">发布于 ${esc(cz.a?.text ?? '')} 北京 · ${esc(
+                cz.b?.text ?? ''
+              )} 当地</p>`
+            : ''
+        }
+      </div>
     </div>
-    <div class="sp-rule">每天要么发一个改进、要么给一次完整重置 —— 期间任何一天都可能重置</div>
-    ${windowBlock(p.window)}
-    <div class="sig-meta">
-      ${cz ? `<span>发布于 ${esc(cz.a?.text ?? '')} 北京 · ${esc(cz.b?.text ?? '')} 当地</span>` : ''}
-      ${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">查看原推 ↗</a>` : ''}
+    <div class="sp-side">
+      ${windowBlock(p.window)}
+      ${p.url ? '<span class="sp-go" aria-hidden="true">›</span>' : ''}
     </div>
-  </section>`;
+  </${tag}>`;
 }
 
-export function renderSignal(sig) {
+export function renderSignal(sig, opts = {}) {
   if (!sig) return '';
 
   const blocks = [];
@@ -286,7 +314,11 @@ export function renderSignal(sig) {
   // ⓪ 每日重置窗口：先讲「规则」，再讲「哪一天」。
   //    它是个**跨多日的持续事实**，与下面那条「某一天」的预告不是一回事，
   //    所以先出现；没有它时整块返回空串，页面与从前逐字节一致。
-  const prog = renderProgram(sig.program);
+  //
+  //    `inlineProgram:false` 给网页端用 —— 那边把这一块挪到依据区之后的**独立一节**
+  //    （模板里的 PROGRAM 占位符，位置在历史规律之前），同一份事实在页面上只能出现一次。
+  //    默认 true 是为了保持既有调用方的行为不变（test-signals 直接 `renderSignal(sig)`）。
+  const prog = opts.inlineProgram === false ? '' : renderProgram(sig.program);
 
   // ① 预告：**一条预告就是一个时间窗口**，支撑它的推文挂在这条里面。
   //
@@ -316,21 +348,27 @@ export function renderSignal(sig) {
     // 「260 条线索」悄悄写成「200 条线索」。这正是本仓库最忌讳的那类错：
     // 不报错、不崩溃，只让页面上的数字变小，而没人会去复核。
     const hints = sig.counts?.hint ?? (sig.hints ?? []).length;
-    const extra = hints ? `，${hints} 条线索` : '';
-    // 时间窗起点是 ISO 串，必须走格式化。此前这里写的是 `.slice(0, 10)` ——
-    // 那切的是 **UTC** 日期（起点落在 UTC 16:00–24:00 时会比北京日期**早一天**），
-    // 格式也与页面别处（`2026.07.25`）不一致。取不到起点时整行不出现，
-    // 而不是渲染成「时间窗自  起 · 共扫 N 条」。与小程序端（view.js 的 fmtDay）对齐。
-    const from = sig.windowFrom ? fmtDate(sig.windowFrom) : '';
-    const fromLine = from
-      ? `<span class="sig-idle-sub">时间窗自 ${esc(from)} 起 · 共扫 ${sig.checkedTweets} 条</span>`
-      : '';
+    // 扫描窗口的**天数**取数据层的 `lookbackDays`（`detectSignals` 写入，也在
+    // `data/signal.json` 里）。它回答的是「系统到底看了多长一段」——
+    // 没有这个数，「一条都没检测到」和「根本没去看」在页面上长得一模一样。
+    //
+    // ⚠ 它是「**最少**回看多少天」：真实时间窗取「now − lookbackDays」与
+    //   「上次重置 − 缓冲」里更早的那个，所以可能更长。措辞用「N 天内」而不是
+    //   「最近 N 天」，与小程序端（view.js / preview 脚本）保持同一句。
+    const look = Number.isFinite(sig.lookbackDays) ? `已扫描 ${sig.lookbackDays} 天内的公开发言` : '';
+    const extra = hints ? `${hints} 条线索不成窗口` : '';
+    const sub = [look, extra].filter(Boolean).join(' · ');
+    // 整条是一个**真链接**（落到最近记录）—— 右侧那个箭头若指向空处，就是假的
+    // 交互提示。落点 `#records` 是模板里那个 section 的 id。
     return `${prog}
-    <div class="sig-idle">
-      <span class="sig-dot"></span>
-      <span>时间窗内 <b>${sig.checkedTweets}</b> 条推文中没有检测到重置预告${extra}</span>
-${fromLine}
-    </div>`;
+    <a class="sig-idle" href="#records">
+      <span class="idle-ico" aria-hidden="true">${ICON.bell}</span>
+      <span class="idle-body">
+        <span class="idle-t">最近 <b>${sig.checkedTweets}</b> 条推文中没有检测到重置预告</span>
+        ${sub ? `<span class="idle-sub">${esc(sub)}</span>` : ''}
+      </span>
+      <span class="idle-go" aria-hidden="true">›</span>
+    </a>`;
   }
 
   return prog + blocks.join('');
@@ -524,10 +562,404 @@ function hintBlock(top, sig, now) {
   </section>`;
 }
 
+/* --------------------------- 预测总览（第一层） --------------------------- */
+
+/**
+ * 「预计时间」的排版零件：`周六` / `10.10` / `13:50` 三段分开，
+ * 因为它们的字重要拉开（日期最大、星期与钟点次之），合成一个串就没法分别上样式。
+ */
+function etaStamp(iso) {
+  const p = partsIn(iso, CJK);
+  return { wd: p.weekdayCN, md: `${p.month}.${p.day}`, hm: `${p.hour}:${p.minute}` };
+}
+
+/** `MM.DD HH:mm`（北京）—— 区间端点用。只到分，与页面别处的精度一致。 */
+function fmtMDHM(ts) {
+  const p = partsIn(new Date(ts).toISOString(), CJK);
+  return `${p.month}.${p.day} ${p.hour}:${p.minute}`;
+}
+
+/**
+ * 一句话依据摘要。**只用 `o.brief` 给的数字原料拼句子** ——
+ * 数字同源（outlook.mjs），措辞各端自己写，因为时长口径在两端本来就不同实现。
+ *
+ * 这一句要回答的是「凭什么这么预测」，所以两档的字面必须真的不同：
+ *   · announced → 依据是**那条公告**（可核对的承诺）
+ *   · model     → 依据是**历史节奏**，并且必须把「一轮扫了多少条、一条都没采信」
+ *                 说出来 —— 否则读者无法区分「系统没看见」和「看见了但不够格」。
+ */
+function briefLine(o) {
+  const b = o.brief;
+  if (o.etaKind === 'announced') {
+    const bits = [];
+    if (b.announcedHard) bits.push(`${b.announcedHard} 条承诺`);
+    if (b.announcedSoft) bits.push(`${b.announcedSoft} 条同日提及`);
+    return `Tibo 已给出公告${bits.length ? `（${bits.join(' · ')}）` : ''}，预计时间取窗口开启时刻。`;
+  }
+  const n = b.intervals ? `按 ${b.intervals} 次历史间隔的节奏推算` : '按历史间隔的节奏推算';
+  const scan =
+    b.scanned == null
+      ? ''
+      : `本轮扫描 ${b.scanned} 条推文${b.hints ? `，${b.hints} 条时间线索` : ''}均不足以构成预告。`;
+  return `没有公告，${n}。${scan}`;
+}
+
+/* --------------------------- 卡内图标与装饰 --------------------------- */
+
+/**
+ * 三张依据卡各一个图标。
+ *
+ * 为什么需要：三张卡的**形状完全一致**（同样的标题行、同样的数字排布），
+ * 快速滚动时唯一的区分点就是这个图标 —— 没有它，「中位剩余等待」和
+ * 「样本外回测」在余光里长得一模一样。
+ *
+ * 一律 currentColor 描边、不写死颜色：颜色由 `.ico` 的 CSS 给，
+ * 图标本身不携带颜色，否则改一次主题色要动两处。
+ */
+const ICON = {
+  // 时钟：等待有多长
+  wait: '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.1" stroke="currentColor" stroke-width="1.35"/><path d="M8 4.6V8l2.4 1.6" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  // 柱状：拿历史回测模型
+  check: '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 13.2V9.9M6.7 13.2V6.4M10.4 13.2V8.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M13.4 13.2V3.9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".4"/></svg>',
+  // 折线向下：节奏在加速
+  trend: '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2.2 4.6 6 8.6l2.6-2.4 5.2 4.9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.8 11.1h3.2V7.9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  // 喇叭：公告（提示条与每日重置窗口共用）
+  bell: '<svg width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M2.6 7.1h2.1l7.1-3.5v10.8L4.7 10.9H2.6A1.2 1.2 0 0 1 1.4 9.7V8.3a1.2 1.2 0 0 1 1.2-1.2Z" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"/><path d="M5.4 11.4 6.1 14.7a1.25 1.25 0 0 0 2.45-.5l-.3-2.3" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/><path d="M14.3 6.4 15.6 5.4M14.4 9.6h1.6" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg>',
+  // 日历：每日重置窗口
+  cal: '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2.1" y="3.4" width="11.8" height="10.5" rx="2" stroke="currentColor" stroke-width="1.35"/><path d="M2.1 6.6h11.8M5.4 1.9v2.6M10.6 1.9v2.6" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/><path d="M5.6 9.6h1.6v1.6H5.6z" fill="currentColor"/></svg>',
+};
+
+/**
+ * 主卡右上角的装饰：一大一小两个圆、一条弧线、一个游标点、两颗星。
+ *
+ * 它是这一页**唯一**的纯装饰。之所以允许它存在，是因为主卡要「明显强于其它模块」
+ * 而底色只能拉一档差 —— 再往下就只能靠加边框、加角标，那是营销风的入口。
+ * 装饰层 aria-hidden 且 pointer-events:none，不含信息、不挡点击。
+ * 颜色是固定值而不是 CSS 变量：它要的是「比底更淡一层」，与状态色无关。
+ */
+const OUTLOOK_DECO = `<svg viewBox="0 0 320 224" fill="none" aria-hidden="true">
+        <circle cx="288" cy="30" r="92" fill="#CBE2DD" opacity=".45"/>
+        <circle cx="288" cy="30" r="92" stroke="#B7D5CF" opacity=".55"/>
+        <path d="M14 178C92 178 166 152 212 98" stroke="#A9C9C3" stroke-width="1.3" opacity=".75"/>
+        <circle cx="212" cy="98" r="5.5" fill="#3F7376"/>
+        <path d="M252 148l6.5-11 6.5 11-6.5 11z" fill="#C3DCD7" opacity=".8"/>
+        <path d="M166 58l4.5-8 4.5 8-4.5 8z" fill="#CFE3DE" opacity=".85"/>
+      </svg>`;
+
+
+
+/**
+ * 第一层：预测总览。
+ *
+ * ── 为什么把它单列一层 ───────────────────────────────────────────────
+ * 改版前这一页是「观察站」：最先看到的是「距上次重置已经过了多久」，
+ * 而用户真正要的答案是「下一次什么时候」。两者是**反方向**的两件事，
+ * 挤在同一屏里，往前看的那个永远排在往回看的后面。
+ * 所以这里把结论提到最前，并且**只在这里**给出「预计时间」这个字符串。
+ *
+ * ── 置信度与状态是两个轴，不能合并 ──────────────────────────────────
+ * `status`（观察中 / 高概率 / 已确认）说的是**依据的来源**：
+ * 有没有公告、公告说得多死。`confidence`（高 / 中 / 低）说的是
+ * **这个来源值多少分**：回测样本量、区间实测覆盖率、重采样波动。
+ * 公告档可以「已确认 + 置信度中」（他把话说死了，但样本本身不多）；
+ * 推算档最高只能到「中」—— 没有承诺就不该有「高置信」。
+ * 合并成一个标尺，就再也说不出这两件事的差别。
+ *
+ * 主卡与依据卡的分工也照这条线走：主卡回答「是什么」，依据卡回答「凭什么」。
+ *
+ * `signals` 现在不在本函数里用了（提示条由 `renderSignal` 单独渲染、紧跟在主卡
+ * 之后）。签名保持不变：调用方与测试都按这个位置传参，为一个不用的形参改签名
+ * 只会让下一处调用悄悄错位。
+ */
+export function renderOutlook(o, m, prediction, signals, collect) {
+  if (!o) return '';
+
+  const eta = etaStamp(o.etaDate);
+  const over = o.etaAt - o.now <= 0;
+
+  const band =
+    o.band && Number.isFinite(o.band.fromAt) && Number.isFinite(o.band.toAt)
+      ? `<div class="pc-band">
+          <span class="k">80% 区间</span>
+          <b>${esc(fmtMDHM(o.band.fromAt))}</b>
+          <span class="dash">–</span>
+          <b>${esc(fmtMDHM(o.band.toAt))}</b>
+        </div>`
+      : '';
+
+  return `
+  <section class="pred">
+    <div class="pcard" id="pred" data-status="${esc(o.status)}" data-eta="${o.etaAt}" data-over="${
+      over ? 1 : 0
+    }">
+      <div class="pc-deco">${OUTLOOK_DECO}</div>
+      <div class="pc-script" aria-hidden="true">Still waiting<br>for Tibo...</div>
+
+      <div class="pc-top">
+        <h2>下一次重置预测</h2>
+        <span class="pc-badge" data-status="${esc(o.status)}">${esc(o.statusLabel)}</span>
+      </div>
+      <div class="pc-sub">${esc(o.etaNote)}${o.etaKind === 'model' ? ' · 仅供参考' : ''}</div>
+
+      <div class="pc-eta">
+        <span class="dt">${esc(eta.md)}</span>
+        <span class="rest">${esc(eta.wd)} ${esc(eta.hm)}</span>
+      </div>
+
+      <div class="pc-wait" data-over="${over ? 1 : 0}">
+        <div class="pc-wait-cap" id="pcd-cap">${
+          over ? '已到中位预测时刻' : '距离预测重置还有'
+        }</div>
+        <div class="counter" id="pcd">${renderEtaCounter(o)}</div>
+        <div class="pc-wait-over">已到预测时刻，随时可能重置 —— 上方区间仍在有效范围内</div>
+      </div>
+
+      ${band}
+
+      <p class="pc-brief">${esc(briefLine(o))}</p>
+
+      <div class="pc-foot">
+        <span class="pc-conf" data-level="${esc(o.confidence)}">
+          置信度 <b>${esc(o.confidenceLabel)}</b>
+          <span class="conf-bar"><i></i><i></i><i></i></span>
+        </span>
+        <span class="pc-meta">预测于 <b>${esc(fmtMDHM(o.now))}</b> 北京更新</span>
+      </div>
+    </div>
+  </section>`;
+}
+
+/* --------------------------- 预测依据（第二层） --------------------------- */
+
+/**
+ * 第二层：三张依据卡 —— 「结论凭什么成立」。
+ *
+ * 为什么是**三张**而不是旧版的四块散文 + 两张数字块：主卡已经回答了「是什么」，
+ * 这里只回答「凭什么」。凭据有三类，各自独立成立、挑着读也行：
+ *   ① 剩下的等待有多长、区间多宽  ← 中位估计 + 累积概率
+ *   ② 这个模型在样本外准不准      ← 覆盖率 / 区分度 / 样本量 / 重采样波动
+ *   ③ 历史节奏本身在怎么变        ← 分段平均间隔
+ * 三张卡共用一套骨架（图标 + 标题 → 数字/行 → 底部一句结语），于是「信息太碎」
+ * 的根因被拆开：散文进主卡的一句话摘要（`.pc-brief`），卡里只放数字与判定。
+ *
+ * ⚠ **两支的依据不能串味。** 没有公告时凭据是上面那三项统计；有公告时凭据是
+ *   **公告本身的明确程度**（他把话说死到几点，还是只给到「一周内」）。
+ *   公告档下那三项统计**依然要披露**（AGENTS.md 文案红线第 3 条：覆盖率、区分度、
+ *   样本量是数字不是散文，必须留），但不许再被说成结论的理由 —— 所以卡②的结语
+ *   分两套：推算档讲三项达标情况，公告档明说「依据来自公告本身，与这些统计无关」。
+ *
+ * `signals` 在本函数里不用（扫描条数、线索数都在主卡的 `.pc-brief` 里，同一条事实
+ * 只出现一次）。签名保持不变：调用方与测试都按这个位置传参，为一个不用的形参改签名
+ * 只会让下一处调用悄悄错位。
+ */
+export function renderBasis(o, m, prediction, signals) {
+  if (!o) return '';
+
+  const cards = [
+    waitCard(prediction),
+    backtestCard(o, prediction),
+    paceCard(prediction),
+  ].filter(Boolean);
+
+  if (!cards.length) return '';
+
+  // `prediction.warnings` 目前恒为空数组（predict.mjs 里只声明、从不 push），所以
+  // 这段现在不产出任何东西。保留它是因为另一条路更糟：哪天告警真有了产出，而这里
+  // 没有落点，它就会**静默消失**。样式（`.fc-warn`）也一并留着。
+  const warns = (prediction?.warnings ?? []).length
+    ? `<ul class="fc-warn">${prediction.warnings.map((w) => `<li>${esc(w)}</li>`).join('')}</ul>`
+    : '';
+
+  return `
+  <section>
+    <div class="head">
+      <h2>预测依据</h2>
+      <span class="hint">${
+        o.etaKind === 'announced'
+          ? '结论来自公告，以下是模型侧的辅助数字'
+          : '结论在上方，这里是它凭什么成立'
+      }</span>
+    </div>
+    <div class="bc-grid">${cards.join('')}</div>
+    ${warns}
+  </section>`;
+}
+
+/** 卡①：中位剩余等待 —— 多长时间、区间多宽、各个时间窗的累积概率。 */
+function waitCard(prediction) {
+  const p = prediction?.prediction;
+  if (!p) return '';
+  const q50 = spanOf(p.q50);
+
+  const bars = (p.horizons ?? [])
+    .map(
+      (h) => `<div class="bc-bar">
+        <span class="lb">${esc(h.label)}</span>
+        <span class="track"><i style="width:${Math.max(1, h.p * 100).toFixed(1)}%"></i></span>
+        <span class="pv">${pct1(h.p)}</span>
+      </div>`
+    )
+    .join('');
+
+  // 区间与概率都必须带**自己的口径**：「80% 区间」说的是剩余等待的双侧区间，
+  // 下面那几条是「到第 N 天之前发生的累积概率」。同一张卡里两个概率概念，
+  // 不写清楚就会被读成同一个。概率未经校正这句是必须留的披露 —— 它报的不是
+  // 系统有多好，而是这些数字**偏低**（实际发生率通常更高）。
+  const range =
+    Number.isFinite(p.q10) && Number.isFinite(p.q90)
+      ? `<div class="bc-range"><span class="k">80% 区间</span><b>${fmtSpan(p.q10)} – ${fmtSpan(
+          p.q90
+        )}</b></div>`
+      : '';
+
+  return `
+  <div class="bc" data-bc="wait">
+    <div class="bc-h"><span class="ico">${ICON.wait}</span><h3>中位剩余等待</h3></div>
+    <div class="bc-num"><b>${esc(q50.big)}</b><small>${esc(q50.unit)}</small></div>
+    ${range}
+    ${bars}
+    <p class="bc-note is-warn">概率未经校正 · 实际发生率通常更高</p>
+  </div>`;
+}
+
+/**
+ * 卡②：样本外回测 —— 这个模型在它没见过的样本上准不准。
+ *
+ * 四行分两类：前两行是覆盖率（模型说 80%，实测到了多少），第三行是区分度
+ * （它到底比盲猜强多少 —— 实测约等于没有），第四行是重采样波动（换一批样本，
+ * 这个中位数还站不站得住）。
+ *
+ * ⚠ **第四个数字（重采样波动）不能省。** 它与样本量、覆盖率一起**直接决定**主卡上
+ *   那个置信度，而结语正是拿它们三个当主语的（「…都在容差内，置信度因此给出「中」」）。
+ *   少一行，那句结语就会指着一个页面上看不见的东西说话。
+ */
+function backtestCard(o, prediction) {
+  const cal = prediction?.calibration;
+  const sk = prediction?.skill;
+  const ev = o.evidence ?? {};
+  const ck = o.checks ?? {};
+  if (!cal || !sk) return '';
+
+  const cov50Ok = Number.isFinite(cal.cov50) && Math.abs(cal.cov50 - 0.5) < 0.1;
+  const band80 = Number.isFinite(cal.covBand80) ? pct1(cal.covBand80) : '—';
+  const rel = Number.isFinite(ev.medianRel) ? ev.medianRel : null;
+  const maxRel = ev.thresholds?.maxMedianRel ?? 1.5;
+  const minN = ev.thresholds?.minBacktestN ?? 30;
+
+  const row = (k, v, cls, j) => `<div class="bc-row">
+        <span class="k">${esc(k)}</span>
+        <span class="v${cls ? ` ${cls}` : ''}">${v}</span>
+        <span class="j">${j}</span>
+      </div>`;
+
+  const skillShort =
+    Math.abs(sk.score) < 0.05
+      ? '≈ 无区分力'
+      : sk.score > 0
+        ? `优于盲猜 ${pct1(sk.score)}`
+        : `略差于盲猜 ${pct1(-sk.score)}`;
+
+  const rows = [
+    row(
+      '50% 分位覆盖率',
+      Number.isFinite(cal.cov50) ? pct1(cal.cov50) : '—',
+      cov50Ok ? 'good' : 'bad',
+      cov50Ok ? '一半的中位估计落在实际值以下' : '偏离 50% 的目标'
+    ),
+    row(
+      '80% 区间覆盖率',
+      band80,
+      ck.covOk ? 'good' : 'bad',
+      ck.covOk ? '区间宽度合适' : '区间偏窄或偏宽'
+    ),
+    row(
+      '7 天区分度',
+      esc(skillShort),
+      sk.score > 0.05 ? 'good' : 'bad',
+      `Brier ${sk.brier.toFixed(3)} / 盲猜 ${sk.baseline.toFixed(3)}`
+    ),
+    row(
+      '重采样波动',
+      rel == null ? '—' : `${rel.toFixed(1)}×`,
+      ck.relOk ? 'good' : 'bad',
+      `换一批样本后中位估计的相对波动（阈值 ≤ ${maxRel}）`
+    ),
+  ].join('');
+
+  // 结语必须**由判据算出来**，不能写死一句话。写死的那一天，某个指标不达标，
+  // 页面就会一边把置信度降成「低」、一边说「三项都在容差内」。
+  // 「有 N 项未达标」里的 N 也是数出来的 —— 两项同时不达标时，「有一项」就是假话。
+  const note =
+    o.etaKind === 'announced'
+      ? {
+          'hard-date': '依据来自公告本身，与上面这些模型统计无关 —— 他把时间说死到了具体时刻。',
+          'hard-vague': '依据来自公告本身，与上面这些模型统计无关 —— 但他只给到「一周内」这种粒度。',
+          'soft-only': '公告里只有模糊提及、没有把话说死，窗口是推定出来的，依据弱于前两档。',
+        }[o.confidenceReason] ?? '依据来自公告本身，与上面这些模型统计无关。'
+      : ck.failed
+        ? `样本量、覆盖率与重采样波动中有 ${ck.failed} 项未达标，置信度因此降为「${
+            o.confidenceLabel
+          }」。`
+        : `样本量、覆盖率与重采样波动都在容差内，置信度因此给出「${o.confidenceLabel}」。`;
+
+  return `
+  <div class="bc" data-bc="backtest">
+    <div class="bc-h"><span class="ico">${ICON.check}</span><h3>样本外回测</h3></div>
+    <div class="bc-sub">n = ${esc(String(cal.n ?? '—'))}（阈值 ≥ ${esc(String(minN))}）</div>
+    ${rows}
+    <p class="bc-note" data-note="backtest">${esc(note)}</p>
+  </div>`;
+}
+
+/** 卡③：节奏在加速 —— 分段平均间隔。历史节奏本身在变，模型读的就是它。 */
+function paceCard(prediction) {
+  const phases = prediction?.phases ?? [];
+  if (!phases.length) return '';
+
+  const rows = phases
+    .map((ph, i) => {
+      const sp = spanOf(ph.mean);
+      return `<div class="ph">
+      <span class="pi">第 ${i + 1} 段</span>
+      <span class="pt">${fmtDate(ph.from)} → ${fmtDate(ph.to)}</span>
+      <span class="pm">${esc(sp.big)}<small>${esc(sp.unit)}</small></span>
+      <span class="pn">n=${ph.n} · 最大 ${fmtSpan(ph.max)}</span>
+    </div>`;
+    })
+    .join('');
+
+  const first = phases[0];
+  const last = phases[phases.length - 1];
+  const note =
+    phases.length > 1
+      ? `平均间隔从 ${fmtSpan(first.mean)} 降到 ${fmtSpan(last.mean)}。`
+      : '只有一段，还没有可比较的节奏变化。';
+
+  return `
+  <div class="bc" data-bc="pace">
+    <div class="bc-h"><span class="ico">${ICON.trend}</span><h3>节奏在加速</h3></div>
+    ${rows}
+    <p class="bc-note">${esc(note)}</p>
+  </div>`;
+}
+
 /* ------------------------------ 图 表 ------------------------------ */
 
+/**
+ * 三张历史图表的**草稿尺寸**：历史规律那一组是三列并排，每列在 960 容器里
+ * 只剩 ~257px 的内容宽。所以三张图都按这个宽度**重新排版**（`layout:'compact'`
+ * 走 `scene.js` 的紧凑预设，字号基本不缩），而不是把 900px 的图等比缩下来 ——
+ * 等比缩到 257px 后 11px 的图内文字会变成 3px，等于没有文字。
+ *
+ * ⚠ 尺寸只有一个来源（这个常量）。图上写死的 width/height 属性与 CSS 的
+ *   `width:100%` 是两件事：前者定**排版基准**（文字多少 px、标签放不放得下），
+ *   后者定**显示宽度**。窄屏整列铺满时后者会把图放大，但放大是等比的，
+ *   不会把标签挤丢；反过来把基准写得太大再缩小才会。
+ */
+const CHART_W = 260;
+
 export function renderSurvival(m) {
-  return sceneToSvgTag(survivalScene(m), {
+  return sceneToSvgTag(survivalScene(m, { layout: 'compact', width: CHART_W }), {
     id: 'survival',
     role: 'img',
     label: '等待间隔生存曲线',
@@ -535,11 +967,44 @@ export function renderSurvival(m) {
 }
 
 export function renderStrip(m) {
-  return sceneToSvgTag(stripScene(m), {
+  return sceneToSvgTag(stripScene(m, { layout: 'compact', width: CHART_W }), {
     id: 'strip',
     role: 'img',
     label: '重置间隔点阵分布',
   });
+}
+
+/**
+ * 历史间隔直方图：**重置通常发生在第几天**。
+ *
+ * 与生存曲线、点阵图的分工：生存曲线回答「到第 X 天为止发生了多少」，
+ * 点阵图回答「每次间隔各是几天」，这一张回答「哪一档最容易发生」。
+ * 三张图共用同一组分桶边界（`chart-data.js` 的 HIST_BREAKS），
+ * 也就是风险模型估计风险率所用的那组 —— 图与模型讨论的是同一批区间。
+ */
+export function renderHistogram(m) {
+  return sceneToSvgTag(histogramScene(m, { layout: 'compact', width: CHART_W }), {
+    id: 'hist',
+    role: 'img',
+    label: '历史重置间隔分布直方图',
+  });
+}
+
+/**
+ * 三张图共用的一行题注。高亮的是哪一根、历史中位在哪一档，都在这里说清楚。
+ *
+ * 它在分组之后仍然留着：三列各自只有小标题与样本量，唯独直方图那根**深色柱**
+ * 与生存曲线/点阵图里的虚线要有个共同的解释。一条题注服务三张图，
+ * 正是「图表缺少统一组织」的正面回答（旧版每张图各有一段引导文）。
+ */
+export function renderHistCaption(m) {
+  const cur = m.hist?.buckets?.[m.hist?.current]?.label;
+  const med = m.hist?.buckets?.[m.hist?.medianBucket]?.label;
+  if (!cur) return `柱高 = 历史上落在该区间的次数。共 ${m.hist?.total ?? 0} 次历史间隔。`;
+  return (
+    `柱高 = 历史上落在该区间的次数，深色那根是当前等待所在的区间。` +
+    `现在位于「${esc(cur)} 天」档，历史中位落在「${esc(med)} 天」档。`
+  );
 }
 
 /* ------------------------------ 时间线 ------------------------------ */
@@ -559,114 +1024,6 @@ export function renderTimeline(m) {
     </li>`
     )
     .join('');
-}
-
-/* ------------------------------ 时间预测 ------------------------------ */
-
-/**
- * 预测区块。
- *
- * 只输出数字与单位，不写「本模型不预测什么」这类关于模型自身的说明。
- * 但**数据类披露必须留**：覆盖率、区分度、样本量 —— 那是数字，不是散文。
- */
-export function renderForecast(pred) {
-  if (!pred) {
-    return `<div class="card"><p class="fc-empty">历史样本不足，暂不输出预测。</p></div>`;
-  }
-
-  const p = pred.prediction;
-  const cal = pred.calibration;
-  // q50 直接走 spanOf 决定给「天」还是「小时 + 分」。原来另外算一个
-  // `Math.round(q50 * 24)` 当补充说明，在 q50 > 1 天时会写出「约 40 小时」这种
-  // 没人拿来思考的数字 —— 主数字既然已经分档，那个补充就是纯冗余。
-  const q50 = spanOf(p.q50);
-
-  const bars = p.horizons
-    .map(
-      (h) => `<div class="fc-bar">
-      <span class="lb">${h.label}</span>
-      <span class="track"><i style="width:${Math.max(1, h.p * 100).toFixed(1)}%"></i></span>
-      <span class="pv">${pct1(h.p)}</span>
-    </div>`
-    )
-    .join('');
-
-  const phaseRows = pred.phases
-    .map((ph, i) => {
-      const sp = spanOf(ph.mean);
-      return `<div class="ph">
-      <span class="pi">第 ${i + 1} 段</span>
-      <span class="pt">${fmtDate(ph.from)} → ${fmtDate(ph.to)}</span>
-      <span class="pm">${sp.big}<small>${sp.unit}</small></span>
-      <span class="pn">n=${ph.n} · 最大 ${fmtSpan(ph.max)}</span>
-    </div>`;
-    })
-    .join('');
-
-  const sk = pred.skill.score;
-  const nearZero = Math.abs(sk) < 0.05;
-  const skillShort = nearZero
-    ? '≈ 无区分力'
-    : sk > 0
-      ? `优于盲猜 ${(sk * 100).toFixed(1)}%`
-      : `略差于盲猜 ${(sk * 100).toFixed(1)}%`;
-
-  const warnHtml = pred.warnings.length
-    ? `<ul class="fc-warn">${pred.warnings.map((w) => `<li>${esc(w)}</li>`).join('')}</ul>`
-    : '';
-
-  return `
-    <p class="fc-asof">
-      计算于 <b>${fmtDateTime(pred.asOf)}</b> 北京时间（距上次重置 ${fmtSpan(pred.sinceDays)}）
-    </p>
-
-    <div class="fc">
-      <div class="fc-main">
-        <div class="k">中位剩余等待</div>
-        <div class="v">${q50.big}<small>${q50.unit}</small></div>
-        <div class="range">
-          80% 区间 <b>${fmtSpan(p.q25)} – ${fmtSpan(p.q90)}</b>
-        </div>
-      </div>
-      <div class="fc-bars">
-        ${bars}
-        <p class="fc-note">概率<strong>未校准</strong>，实际发生率通常比上面显示的高。</p>
-      </div>
-    </div>
-
-    <div class="fc-meta">
-      <div class="fc-block">
-        <h3>样本外回测（n=${cal.n}）</h3>
-        <table class="fc-table">
-          <tr><th>指标</th><th>实测</th><th>判定</th></tr>
-          <tr>
-            <td>50% 分位覆盖率</td>
-            <td class="num ${Math.abs(cal.cov50 - 0.5) < 0.1 ? 'good' : 'bad'}">${pct1(cal.cov50)}</td>
-            <td>${Math.abs(cal.cov50 - 0.5) < 0.1 ? '校准良好' : '偏离目标'}</td>
-          </tr>
-          <tr>
-            <td>80% 分位覆盖率</td>
-            <td class="num ${Math.abs(cal.cov80 - 0.8) < 0.1 ? 'good' : 'bad'}">${pct1(cal.cov80)}</td>
-            <td>${Math.abs(cal.cov80 - 0.8) < 0.1 ? '校准良好' : '区间偏宽'}</td>
-          </tr>
-          <tr>
-            <td>7 天区分度</td>
-            <td class="num bad">${skillShort}</td>
-            <td>Brier ${pred.skill.brier.toFixed(3)} / 盲猜 ${pred.skill.baseline.toFixed(3)}</td>
-          </tr>
-        </table>
-      </div>
-
-      <div class="fc-block">
-        <h3>节奏在加速</h3>
-        ${phaseRows}
-        <p class="fc-foot">
-          平均间隔从 ${fmtSpan(pred.phases[0].mean)} 降到 ${fmtSpan(pred.phases[pred.phases.length - 1].mean)}。
-        </p>
-      </div>
-    </div>
-    ${warnHtml}
-  `;
 }
 
 /* ------------------------------ 分享卡片元信息 ------------------------------ */
@@ -724,7 +1081,7 @@ export function renderOgMeta(og) {
  * `builtAt` 与页面正文显示的「最后更新」不是一回事：后者是**数据**时间（dataUpdatedAt），
  * 前者是**渲染**时间。页面正文刻意显示数据时间 —— 用户关心的是数据多新。
  */
-export function renderDigest(m, prediction) {
+export function renderDigest(m, prediction, outlook) {
   const p = prediction?.prediction;
   const cal = prediction?.calibration;
   const sk = prediction?.skill;
@@ -744,11 +1101,28 @@ export function renderDigest(m, prediction) {
         longest: m.longest,
         shortest: m.shortest,
       },
-      remainingDays: p ? { q25: p.q25, q50: p.q50, q90: p.q90 } : null,
+      // `q10` 与 `q90` 才是**双侧 80% 区间**的两个端点（0.9 − 0.1 = 0.8）。
+      // `q25` 保留是因为它另有用途（50% 区间的下界）且既有比对按名字取它 ——
+      // 但它**不是** 80% 区间的下界，实测覆盖率只有 68.3%（见 outlook.mjs 的注释）。
+      remainingDays: p ? { q10: p.q10, q25: p.q25, q50: p.q50, q75: p.q75, q90: p.q90 } : null,
       horizons: p ? p.horizons.map((h) => ({ label: h.label, p: h.p })) : null,
       phases: prediction ? prediction.phases.map((x) => ({ from: x.from, to: x.to, mean: x.mean, n: x.n })) : null,
-      calibration: cal ? { n: cal.n, cov50: cal.cov50, cov80: cal.cov80 } : null,
+      // `cov80` 是**单侧上界** P(T ≤ q80) 的覆盖率；`covBand80` 是页面展示的那个
+      // 双侧区间 [q10, q90] 自己的覆盖率。两个数说的是两件事，都要留着。
+      calibration: cal ? { n: cal.n, cov50: cal.cov50, cov80: cal.cov80, covBand80: cal.covBand80 } : null,
       skill: sk ? { brier: sk.brier, baseline: sk.baseline, score: sk.score } : null,
+      // 首屏那三个结论的机器可读副本。没有它们，「页面上的预计时间与 API 一致」
+      // 就只能靠人去比字符串 —— 而这一项恰恰是最该被机械核对的那个。
+      outlook: outlook
+        ? {
+            etaAt: outlook.etaAt,
+            etaKind: outlook.etaKind,
+            bandFromAt: outlook.band?.fromAt ?? null,
+            bandToAt: outlook.band?.toAt ?? null,
+            status: outlook.status,
+            confidence: outlook.confidence,
+          }
+        : null,
     },
     null,
     2
@@ -882,24 +1256,53 @@ export function renderFreshness(info, nowMs) {
 
 export function renderAll(m, prediction, signals, opts = {}) {
   const v = renderVerdict(m);
-  // 键名统一为大写下划线，与模板里的 <!--__XXX__--> 占位符一一对应
+  // 首屏那三个结论（预计时间 / 状态 / 置信度）只在一处算出来，主卡、依据区、
+  // 内联摘要三方都读它 —— 否则「页面上的预计时间」会有三个各自漂移的版本。
+  const outlook = buildOutlook({ chart: m, prediction, signals, now: m.now });
+
+  // 键名统一为大写下划线，与模板里的占位符一一对应
   return {
     OG_META: renderOgMeta(opts.og),
-    DIGEST: renderDigest(m, prediction),
+    DIGEST: renderDigest(m, prediction, outlook),
     COLLECT_WARNING: renderCollectWarning(opts.collect),
     // 「数据未更新」条。与上面那条**互斥**：errors 非空时 renderFreshness 直接返回空串。
     // 它接手的是原先 CI 定时那轮心跳的职责（见 STALE_AFTER_MINUTES 的注释）。
     FRESHNESS: renderFreshness(opts.collect, m.now),
-    SIGNAL: renderSignal(signals),
-    COUNTER: renderCounter(m),
-    SINCE: renderSince(m),
-    VERDICT: `<div class="verdict ${v.cls}">${v.html}</div>`,
-    METRICS: renderMetrics(m),
-    FORECAST: renderForecast(prediction),
+
+    // 第一层：预测结论。首屏只有它是「结论」，其余都是支撑材料。
+    OUTLOOK: renderOutlook(outlook, m, prediction, signals, opts.collect),
+    // 信号区（`.sig-idle` 提示条 / 预告横幅）。紧贴主卡 —— 读者看完结论的下一问
+    // 就是「有没有公告」。`inlineProgram:false`：每日重置窗口由下面那个独立的
+    // PROGRAM 占位符渲染，同一条事实在页面上只出现一次。
+    SIGNAL: renderSignal(signals, { inlineProgram: false }),
+    // 第二层：预测依据（三张卡）。
+    BASIS: outlook ? renderBasis(outlook, m, prediction, signals) : '',
+    // 每日重置窗口：一条**规则**，排在依据之后。没有它时 renderProgram 返回空串，
+    // 占位符位置什么都不留（不会出现一个空壳卡片）。
+    PROGRAM: renderProgram(signals?.program),
+
+    // 第三层：历史规律。三张图并成一组，故共用一条题注、各自带样本量。
+    HISTOGRAM: renderHistogram(m),
+    HIST_CAPTION: renderHistCaption(m),
+    HIST_N: m.gapDays.length,
     SURVIVAL: renderSurvival(m),
     SURVIVAL_N: m.gapDays.length,
     STRIP: renderStrip(m),
+    STRIP_NOW: fmtSpan(m.sinceDays),
+
+    // 第四层：往回看的那个数字 + 样本摘要。都是补充材料，不是结论。
+    ELAPSED: fmtSpan(m.sinceDays),
+    LAST_AT: m.lastAt,
+    LAST_LABEL: fmtDateTime(m.lastAt),
+    // 判定分档的**整块元素**（含 `v-calm/v-watch/...` 那个类）。类名由 `verdictOf`
+    // 给，模板拿不到分档结果，所以这里必须把外壳一起渲染出来 —— 只给内文的话，
+    // 页面上就只剩一句没有配色的裸文本（验收 A1 的「判定文案」判据会直接红）。
+    VERDICT: `<div class="verdict ${v.cls}">${v.html}</div>`,
+    METRICS: renderMetrics(m),
+
+    // 末层：历史记录。`id="records"` 是提示条与「已经等了多久」右侧那个箭头的落点。
     TIMELINE: renderTimeline(m),
+
     // 右上角「观测中」后面跟的是**当前北京时间**，页面脚本每秒推进它。
     // 静态兜底值取**构建时刻**，不取数据采集时刻（m.generatedAt）——
     // 「观测中」是现在进行时，读者会把后面那个数字当成「现在几点」，
@@ -907,7 +1310,5 @@ export function renderAll(m, prediction, signals, opts = {}) {
     // 「数据多新」由页脚的「最近一次采集 …」单独承担，两处不再重复同一个值。
     UPD: fmtTimeSec(new Date(m.now).toISOString()),
     GEN: fmtDateTime(m.generatedAt),
-    LAST_AT: m.lastAt,
-    LAST_LABEL: fmtDateTime(m.lastAt),
   };
 }

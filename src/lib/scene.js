@@ -94,8 +94,10 @@ const WIDE = {
   width: 900,
   survivalHeight: 320,
   stripHeight: 340,
+  histHeight: 250,
   survival: { L: 54, R: 26, T: 22, B: 46 },
   strip: { L: 54, R: 76, T: 46, B: 46 },
+  hist: { L: 54, R: 26, T: 30, B: 46 },
   lanes: 9,
   laneGap: 12,
   dotR: 4.8,
@@ -115,8 +117,10 @@ export function compactLayout(opts = {}) {
     width,
     survivalHeight: Math.round(opts.survivalHeight ?? 208),
     stripHeight: Math.round(opts.stripHeight ?? 230),
+    histHeight: Math.round(opts.histHeight ?? 186),
     survival: { L: 38, R: 12, T: 32, B: 40 },
     strip: { L: 38, R: 52, T: 46, B: 40 },
+    hist: { L: 38, R: 12, T: 30, B: 42 },
     lanes: 9,
     laneGap: 12,
     dotR: 4.4,
@@ -419,6 +423,110 @@ export function stripScene(data, opts = {}) {
       fill: PALETTE.ink2,
       size: axisFont,
       weight: 600,
+    })
+  );
+
+  return { width: W, height: H, elements: el };
+}
+
+/* ============================== 间隔直方图 ============================== */
+
+/**
+ * 历史间隔的分布：重置通常发生在第几天。
+ *
+ * ⚠ 横轴是**分类轴**（等宽槽位），不是线性天数轴 —— 槽位宽度代表「一个区间」，
+ * 不携带天数信息。这与 `stripScene` 刻意相反：那张图的横轴线性等距，为的是让读者
+ * 能按位置估读天数；这张图要回答的是「哪一档最多」，只有等宽才比得出高低。
+ * 代价是位置不再表示天数，所以每根柱子**必须**带自己的区间标签，一个都不能省。
+ *
+ * 图上只标记一件事：**当前等待落在哪一档**（岚青高亮 + 加粗）。
+ * 刻意不画「中位落在哪一档」的标记：生存曲线与点阵图各自已经标过中位，
+ * 这里再加第三个中位标记是同一件事讲三遍，只会让读者以为它们不是一回事。
+ * 中位与当前档的对比交给题注文字（它需要精确措辞，图内没有这个位置）。
+ */
+export function histogramScene(data, opts = {}) {
+  const L0 = pickLayout(opts);
+  const W = L0.width;
+  const H = opts.height ?? L0.histHeight;
+  const P = L0.hist;
+  const k = L0.fontK;
+  const iw = W - P.L - P.R;
+  const ih = H - P.T - P.B;
+  const axisFont = 11 * k;
+
+  const buckets = data?.hist?.buckets ?? [];
+  const max = data?.hist?.max ?? 0;
+  const current = data?.hist?.current ?? -1;
+  const total = data?.hist?.total ?? 0;
+
+  const el = [];
+  if (!buckets.length || !max) return { width: W, height: H, elements: el };
+
+  const slot = iw / buckets.length;
+  // 封顶：900px 宽下槽位有 102px，让柱子长到 61px 会显得稀而笨。
+  const barW = Math.min(slot * 0.62, 56);
+  const baseY = P.T + ih;
+  const Y = (v) => baseY - (v / max) * ih;
+
+  // 基线（计数 0 的位置）与顶线（最高那一档）
+  el.push(line(P.L, baseY, P.L + iw, baseY, { stroke: PALETTE.line, w: 1 }));
+  el.push(line(P.L, Y(max), P.L + iw, Y(max), { stroke: PALETTE.line, w: 1, dash: [2, 5], op: 0.8 }));
+
+  buckets.forEach((b, i) => {
+    const cx = P.L + slot * (i + 0.5);
+    const x0 = cx - barW / 2;
+    const y = Y(b.n);
+    const isCur = i === current;
+
+    if (b.n > 0) {
+      el.push(
+        poly(
+          [
+            [x0, y],
+            [x0 + barW, y],
+            [x0 + barW, baseY],
+            [x0, baseY],
+          ],
+          isCur
+            ? { fill: PALETTE.lan, op: 0.92 }
+            : { fill: PALETTE.lanSoft, op: 0.3 }
+        )
+      );
+      // 当前档补一条描边：只靠透明度区分，在低对比度屏幕上会看不出来
+      if (isCur) el.push(poly([[x0, y], [x0 + barW, y], [x0 + barW, baseY], [x0, baseY]], {
+        stroke: PALETTE.lan,
+        w: 1.5,
+      }));
+    }
+
+    // 柱子顶端写次数（0 也写，让空档看得出来是「真的没有」而不是画漏了）
+    el.push(
+      text(cx, y - 6, String(b.n), {
+        anchor: 'middle',
+        fill: b.n ? PALETTE.ink2 : PALETTE.mist,
+        size: axisFont,
+        mono: true,
+        weight: isCur ? 700 : 400,
+      })
+    );
+
+    // 槽位下方写区间。位置不表示天数，所以这行标签是柱子唯一的含义来源。
+    el.push(
+      text(cx, baseY + 17, b.label, {
+        anchor: 'middle',
+        fill: isCur ? PALETTE.lan : PALETTE.mist,
+        size: axisFont,
+        mono: true,
+        weight: isCur ? 700 : 400,
+      })
+    );
+  });
+
+  el.push(
+    text(P.L + iw / 2, H - 6, `距上次重置的天数 · 共 ${total} 次历史间隔`, {
+      anchor: 'middle',
+      fill: PALETTE.mist,
+      size: axisFont,
     })
   );
 

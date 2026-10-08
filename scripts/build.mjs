@@ -5,7 +5,7 @@
  *   1. dist/index.html           网页（单文件，图表 SVG 已在构建期渲染好）
  *   2. dist/og-image.png         F8 分享卡片预览图（缺中文字体时跳过）
  *   3. miniprogram/data/snapshot.js  小程序首屏数据快照
- *   4. miniprogram/utils/scene.js    共享几何模块的同步副本
+ *   4. miniprogram/utils/*.js        双端共享模块的同步副本（scene.js / outlook.mjs）
  *
  * 为什么小程序要有快照：小程序的 request 合法域名必须 ICP 备案，
  * 域名没配好之前整个页面会白屏。快照让小程序**离线也能出完整首屏**，
@@ -23,8 +23,25 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = async (p) => JSON.parse(await readFile(resolve(ROOT, p), 'utf8'));
 
 const ACCOUNT = process.env.SOURCE_ACCOUNT ?? 'thsottiaux';
-const SCENE_HEADER =
-  '/** ⚠ 本文件由 scripts/build.mjs 从 src/lib/scene.js 同步生成，请勿直接修改。 */\n';
+
+/**
+ * 双端共用的模块：`src/lib/<name>` → `miniprogram/utils/<name>`，**逐字复制**。
+ *
+ * 为什么不各写一份：两端一旦各写一份，「预测什么时候重置」这件事就会有两个版本，
+ * 而它们只在某个用户先看网页、再打开小程序时才会露出来。`scene.js` 是几何，
+ * `outlook.mjs` 是结论 —— 结论比几何更不该漂移。
+ *
+ * 能被同步的前提是**自包含**：这两个文件都只有自己的内部依赖，不 import 任何
+ * 仓库内其它模块（scene.js 连 `format.js` 都不引，自己带一份 `fmtSpanShort`）。
+ * 所以加新条目之前先确认这一点，否则小程序端会在运行时报「找不到模块」。
+ *
+ * ⚠ 产物不入库之外的处理：副本**要入库**（真机上传时得在包里），
+ *   但**只能由这里生成**；`test-shared.mjs` 会逐字节核对，手改必红。
+ *   且那条核对必须跑在 build **之前**（跑在之后就成了「刚被覆盖所以恒真」）。
+ */
+const SHARED_MODULES = ['scene.js', 'outlook.mjs'];
+const sharedHeader = (name) =>
+  `/** ⚠ 本文件由 scripts/build.mjs 从 src/lib/${name} 同步生成，请勿直接修改。 */\n`;
 
 /* ------------------------------ 读入 ------------------------------ */
 
@@ -121,9 +138,14 @@ await writeSnapshot(snapshotJs);
 
 /* ------------------------ 共享模块同步 ------------------------ */
 
-const sceneSrc = await readFile(resolve(ROOT, 'src/lib/scene.js'), 'utf8');
 await mkdir(resolve(ROOT, 'miniprogram/utils'), { recursive: true });
-await writeFile(resolve(ROOT, 'miniprogram/utils/scene.js'), SCENE_HEADER + sceneSrc, 'utf8');
+const synced = [];
+for (const name of SHARED_MODULES) {
+  const src = await readFile(resolve(ROOT, `src/lib/${name}`), 'utf8');
+  const dst = name.replace(/\.mjs$/, '.js');
+  await writeFile(resolve(ROOT, `miniprogram/utils/${dst}`), sharedHeader(name) + src, 'utf8');
+  synced.push({ dst, bytes: Buffer.byteLength(src) });
+}
 
 /* ------------------------------ 汇总 ------------------------------ */
 
@@ -135,7 +157,9 @@ if (og) {
 console.log('✓ dist/favicon.png            32×32    浏览器标签页图标');
 console.log('✓ dist/apple-touch-icon.png   180×180  iOS 添加到主屏');
 console.log(`✓ ${SNAPSHOT_REL} ${kb(snapshotJs)}  含预测与信号`);
-console.log(`✓ miniprogram/utils/scene.js  ${kb(sceneSrc)}  共享几何已同步`);
+for (const s of synced) {
+  console.log(`✓ miniprogram/utils/${s.dst}  ${(s.bytes / 1024).toFixed(1)} KB  共享模块已同步`);
+}
 console.log(
   `  信号：${signals.level}（已发生 ${signals.occurred?.length ?? 0} / 预告 ${signals.signals.length} / 线索 ${signals.hints.length} / 扫描 ${signals.checkedTweets} 条）`
 );

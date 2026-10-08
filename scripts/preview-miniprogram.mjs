@@ -23,8 +23,8 @@ import { fileURLToPath } from 'node:url';
 import { buildChartData } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
 import { detectSignals, latestEventMs } from '../src/lib/signals.mjs';
-import { countdown, countdownGroups, elapsed, fmtSpan, reelGroups, fmtDateTime, fmtClockSec, verdict as makeVerdict } from '../miniprogram/utils/format.js';
-import { buildGauge, buildSignal, buildMetrics, buildForecast } from '../miniprogram/utils/view.js';
+import { elapsed, fmtSpan, reelGroups, fmtDateTime, fmtClockSec, verdict as makeVerdict } from '../miniprogram/utils/format.js';
+import { buildGauge, buildSignal, buildMetrics, buildForecast, buildOutlookView, predCountdown } from '../miniprogram/utils/view.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = async (p) => JSON.parse(await readFile(resolve(ROOT, p), 'utf8'));
@@ -74,6 +74,13 @@ const metrics = buildMetrics(chart);
 const gauge = buildGauge(chart);
 const sig = buildSignal(signals);
 const forecast = buildForecast(prediction);
+// 预测总览的锚点取**预测自己的 asOf**，与 pages/index/index.js 的 apply() 同一口径。
+// 用 Date.now() 会得到一个和页面上「预测算于 X」对不上的 ETA。
+const predNow = Date.parse(prediction.asOf) || now;
+const pred = buildOutlookView(chart, prediction, signals, predNow);
+// 倒计时文案走共享函数（页面每秒 tick 用的是同一个）—— 预览里各写一份，
+// 那句措辞就会与真机不一致，「预览通过」随即变成没有根据的话。
+const predCd = predCountdown(pred, now);
 
 const esc = (s) =>
   String(s ?? '')
@@ -98,16 +105,56 @@ const counterHtml = counter
   )
   .join('');
 
-const cdHtml = (groups) =>
+/* 预测总览的倒计时用**自己的类名**（pcd-），不复用信号区那套 .cd-* ——
+   两块的字号差一倍（首屏主角 vs 注脚），共用一套类名就得靠后人记得别覆盖。
+   信号区那个「距窗口开启」的倒数已随「与主卡同锚点、同值」一并去掉。 */
+const pcdHtml = (groups) =>
   groups
     .map(
-      (g) => `<div class="cd-g"><span class="cd-v">${esc(g.v)}</span><span class="cd-u">${esc(g.unit)}</span></div>`
+      (g) => `<div class="pcd-g"><span class="pcd-v">${esc(g.v)}</span><span class="pcd-u">${esc(g.unit)}</span></div>`
     )
     .join('');
 
-/* 每日重置窗口：**不在** sig.show 那道门里，所以它是独立的一块，先于信号块出现。
+/* 第一层：预测总览。结构照 index.wxml 那块逐句对齐 —— 预览是手写副本，
+   不对齐就会给出一个真机上不存在的页面（这块正是新加的，漏了就会被当成「本来就这样」）。 */
+const predHtml = pred
+  ? `<div class="pred" data-status="${esc(pred.status)}" data-level="${esc(pred.confidence)}">
+      <div class="pred-head">
+        <span class="pred-t">下一次重置预测</span>
+        <span class="pred-badge">${esc(pred.statusLabel)}</span>
+      </div>
+      <div class="pred-note">${esc(pred.statusNote)} · ${esc(pred.etaNote)}</div>
+      <div class="pred-eta">
+        <span class="pe-md">${esc(pred.md)}</span>
+        <span class="pe-rest">${esc(pred.wd)} ${esc(pred.hm)}</span>
+      </div>
+      <div class="pred-cd${predCd && predCd.over ? ' is-over' : ''}">
+        <span class="pcd-cap">${esc(predCd ? predCd.label : '')}</span>
+        <div class="pcd-row" id="pcd" data-eta="${pred.etaAt}" data-kind="${esc(pred.etaKind)}">${pcdHtml(
+          predCd ? predCd.groups : []
+        )}</div>
+        ${
+          pred.band
+            ? `<div class="pred-band"><span class="pb-k">${esc(pred.bandLabel)}</span><span class="pb-v">${esc(pred.band)}</span></div>`
+            : ''
+        }
+      </div>
+      <div class="pred-brief">${esc(pred.brief)}</div>
+      <div class="pred-foot">
+        <span class="pf-k">置信度</span>
+        <span class="pf-v">${esc(pred.confidenceLabel)}</span>
+        <div class="pf-bar"><div class="pf-fill" style="width:${pred.confidenceW}%"></div></div>
+        <span class="pf-upd">预测算于 ${esc(pred.updatedText)}</span>
+      </div>
+    </div>`
+  : '';
+
+/* 每日重置窗口：**不在** sig.show 那道门里，所以它是独立的一块。
    结构照 index.wxml 的那块逐句对齐 —— 预览是手写副本，不对齐就会给出一个真机上
-   不存在的页面（这块正是新加的，漏了就会被当成「本来就这样」）。 */
+   不存在的页面。
+
+   ⚠ 位置：`.pred` 之后、`sig` 之后再出现（2026-10-08 改版）。旧版它在最前，
+   于是首屏第一眼读到的是「规则」，而不是「下一次什么时候」。 */
 const progHtml = sig.program?.show
   ? `<div class="prog">
       <div class="prog-head">
@@ -144,15 +191,6 @@ const signalHtml = sig.show
               <span class="ann-cap">预告时间</span>
               <span class="ann-big">${esc(sig.headline.big)}</span>
               <span class="ann-sub">${esc(sig.headline.sub)}</span>
-            </div>`
-          : ''
-      }
-      ${
-        sig.window && sig.window.fromTs
-          ? `<div class="cd">
-              <span class="cd-cap">距窗口开启</span>
-              ${sig.window.openText ? `<span class="cd-anchor">北京时间 ${esc(sig.window.openText)}</span>` : ''}
-              <div class="cd-row">${cdHtml(countdownGroups(countdown(sig.window.fromTs, now)))}</div>
             </div>`
           : ''
       }
@@ -289,9 +327,35 @@ ${normalize}
     <div class="pulse"><span class="dot"></span><span>观测中 · <span id="upd">${esc(fmtClockSec(now))}</span></span></div>
   </div>
 
-  ${progHtml}
+  ${predHtml}
 
   ${signalHtml}
+
+  <div class="sec-head"><span class="t">预测依据</span></div>
+  ${forecastHtml}
+
+  ${progHtml}
+
+  <div class="sec-head"><span class="t">重置通常发生在第几天</span><span class="h">n = ${chart.gapDays.length} 次历史间隔</span></div>
+  <div class="lede">横轴按区间等宽分档（不是按天数），纵轴是落在该档的次数。高亮那一档就是你当前所在的一档。</div>
+  <div class="card"><canvas id="hist" class="chart chart-hist"></canvas></div>
+
+  <div class="sec-head"><span class="t">等待生存曲线</span><span class="h">n = ${chart.gapDays.length} 次历史间隔</span></div>
+  <div class="lede">纵轴是「到第 X 天为止，历史上百分之多少的重置已经发生」。你现在的位置标在曲线上。</div>
+  <div class="card"><canvas id="survival" class="chart chart-survival"></canvas></div>
+
+  <div class="sec-head"><span class="t">每次间隔的离散分布</span></div>
+  <div class="lede">每一次重置到下一次重置的间隔天数。平均值被右侧的极端值拉高了。</div>
+  <div class="card">
+    <canvas id="strip" class="chart chart-strip"></canvas>
+    <div class="legend">
+      <div class="lg"><span class="sw sw-lan"></span>常规间隔</div>
+      <div class="lg"><span class="sw sw-mist"></span>偏长间隔</div>
+      <div class="lg"><span class="sw sw-cin"></span>极端长等待</div>
+    </div>
+  </div>
+
+  <div class="sec-head"><span class="t">已经等了多久</span></div>
 
   <div class="hero">
     <div class="label">距上一次额度重置</div>
@@ -310,25 +374,9 @@ ${normalize}
     }
   </div>
 
+  <div class="sec-head"><span class="t">样本摘要</span></div>
+
   <div class="metrics">${metricsHtml}</div>
-
-  <div class="sec-head"><span class="t">还要等多久</span></div>
-  ${forecastHtml}
-
-  <div class="sec-head"><span class="t">等待生存曲线</span><span class="h">n = ${chart.gapDays.length} 次历史间隔</span></div>
-  <div class="lede">纵轴是「到第 X 天为止，历史上百分之多少的重置已经发生」。你现在的位置标在曲线上。</div>
-  <div class="card"><canvas id="survival" class="chart chart-survival"></canvas></div>
-
-  <div class="sec-head"><span class="t">每次间隔的离散分布</span></div>
-  <div class="lede">每一次重置到下一次重置的间隔天数。平均值被右侧的极端值拉高了。</div>
-  <div class="card">
-    <canvas id="strip" class="chart chart-strip"></canvas>
-    <div class="legend">
-      <div class="lg"><span class="sw sw-lan"></span>常规间隔</div>
-      <div class="lg"><span class="sw sw-mist"></span>偏长间隔</div>
-      <div class="lg"><span class="sw sw-cin"></span>极端长等待</div>
-    </div>
-  </div>
 
   <div class="foot">
     <div>数据：公开推文记录 · 最近一次采集 ${esc(fmtDateTime(now))} 北京</div>
@@ -341,14 +389,16 @@ ${normalize}
 <script type="application/json" id="chart-data">${JSON.stringify(chart)}</script>
 <script type="module">
   // 关键：这里 import 的是**发布用的同一份**几何与绘制代码，不是复制品
-  import { survivalScene, stripScene, sceneBounds } from '../src/lib/scene.js';
+  import { survivalScene, stripScene, histogramScene, sceneBounds } from '../src/lib/scene.js';
   import { drawScene } from '../miniprogram/utils/draw.js';
+  import { predCountdown } from '../miniprogram/utils/view.js';
 
   const chart = JSON.parse(document.getElementById('chart-data').textContent);
   const dpr = window.devicePixelRatio || 2;
 
   function paint(sel, make, heightCss) {
     const cv = document.querySelector(sel);
+    if (!cv) return;
     const w = Math.round(cv.getBoundingClientRect().width);
     const h = Math.round(heightCss);
     cv.width = Math.round(w * dpr);
@@ -365,8 +415,33 @@ ${normalize}
     console.log(sel, { w, h, bounds: b, ok: !bad });
   }
 
+  // 高度必须与 index.wxss 的 .chart-* 一一对应，否则预览量的是一个真机上不存在的高度
+  paint('#hist', histogramScene, 190);
   paint('#survival', survivalScene, 208);
   paint('#strip', stripScene, 230);
+
+  /* 首屏那个大倒计时也让它真的走起来。
+     静态数字看不出位数变化时的宽度跳动 —— 而「秒」每位都在变，
+     正是最容易把那一行顶出卡片的时刻。预览页得能看见这件事。 */
+  const pcdRow = document.getElementById('pcd');
+  if (pcdRow) {
+    const etaAt = Number(pcdRow.dataset.eta);
+    const kind = pcdRow.dataset.kind;
+    const tick = () => {
+      const cd = predCountdown({ etaAt, etaKind: kind }, Date.now());
+      if (!cd) return;
+      pcdRow.innerHTML = cd.groups
+        .map(
+          (g) => '<div class="pcd-g"><span class="pcd-v">' + g.v + '</span><span class="pcd-u">' + g.unit + '</span></div>'
+        )
+        .join('');
+      const cap = pcdRow.parentElement.querySelector('.pcd-cap');
+      if (cap) cap.textContent = cd.label;
+      pcdRow.parentElement.classList.toggle('is-over', cd.over);
+    };
+    tick();
+    setInterval(tick, 1000);
+  }
 
   /* 右上角「观测中」跟真实时钟走。静态时间看不出它在不在动，
      而这一处恰恰是「必须会动」的地方 —— 预览页也得能验收这一点。 */

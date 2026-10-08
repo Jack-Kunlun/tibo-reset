@@ -19,6 +19,44 @@ const iso = (t) => new Date(t).toISOString();
  * @param {number} now    计算基准时刻
  * @returns {object|null}
  */
+/**
+ * 间隔直方图的分桶边界。**与 `predict.mjs` 的 `DEFAULT_BREAKS` 是同一组**
+ * （[0,1,2,3,5,8,14,30,∞)）—— 刻意不另起一套：
+ * 图上的柱子回答「历史上重置通常在第几天」，而风险模型正是在同一组桶上估计风险率。
+ * 两边各写一套的话，读者会看到「图上第 3–5 天最多」而模型算的是另一个区间。
+ *
+ * `null` 表示「无上界」：这份数据要进快照（JSON），`Infinity` 会被序列化成 `null`，
+ * 与其让两侧看到不同的形状，不如一开始就用 `null`。
+ */
+export const HIST_BREAKS = [0, 1, 2, 3, 5, 8, 14, 30, null];
+
+/** 分桶的轴标签。等宽排布（**不是**按天数等比），所以标签必须自带区间含义。 */
+export const HIST_LABELS = ['0–1', '1–2', '2–3', '3–5', '5–8', '8–14', '14–30', '30+'];
+
+/**
+ * 「历史上重置通常在第几天发生」的分桶计数。
+ *
+ * 这是**已完成的间隔**的分布（不含进行中的那一截）—— 与 `gapDays` 同源，
+ * 所以图上的柱子加起来必然等于 `gapDays.length`，不会与「n = N 次历史间隔」打架。
+ *
+ * ⚠ 区间取**左闭右开** `[from, to)`，而不是 `(from, to]`。
+ * 后者在两端各漏掉一个点，而且都是能踩到的：
+ *   · 左端：间隔恰为 0（两条记录同一时刻）时，`d > 0` 对任何桶都不成立 ——
+ *     这个点被静默丢掉，柱子合计就少一次，图与正文的「共 N 次」当场对不上。
+ *   · 右端：最后一档上界是无穷，`(30, ∞]` 永远兜得住，于是「超出最后一档」这个
+ *     分支根本不可达（那段曾经写在注释里，是错的）。
+ * 左闭右开则 `[0, ∞)` 被恰好划分，无重叠、无遗漏。
+ */
+function buildHist(gapDays) {
+  const buckets = HIST_BREAKS.slice(0, -1).map((from, i) => {
+    const to = HIST_BREAKS[i + 1];
+    const n = gapDays.filter((d) => d >= from && (to === null || d < to)).length;
+    return { from, to, label: HIST_LABELS[i], n };
+  });
+  const max = buckets.reduce((m, b) => Math.max(m, b.n), 0);
+  return { breaks: HIST_BREAKS, buckets, max, total: gapDays.length };
+}
+
 export function buildChartData(records, now = Date.now()) {
   const asc = (records ?? [])
     .filter((r) => r && r.announced_at)
@@ -52,6 +90,17 @@ export function buildChartData(records, now = Date.now()) {
     attribution: r.attribution ?? null,
   });
 
+  // 当前这一截等待落在哪个桶（「当前已过时长位于什么区间」）。
+  // 区间是左闭右开（与 buildHist 同一套边界，见那里的注释），所以
+  // `sinceDays = 0`（重置刚发生）落在「0–1」档，而不是落空。
+  // 由此 `current === -1` 只在一种情况下出现：桶列表为空。图上就不该有点亮的柱子。
+  const hist = buildHist(gapDays);
+  const bucketOf = (d) => hist.buckets.findIndex((b) => d >= b.from && (b.to === null || d < b.to));
+  hist.current = bucketOf(sinceDays);
+  // 历史中位间隔落在哪一档。与 current 共用同一个 `bucketOf` ——
+  // 「桶的边界怎么判」只应有一处实现，否则图表与正文会对同一段天数给出不同归属。
+  hist.medianBucket = bucketOf(median);
+
   return {
     now,
     count: asc.length,
@@ -63,6 +112,7 @@ export function buildChartData(records, now = Date.now()) {
     shortest: sorted[0],
     sinceDays,
     pct,
+    hist,
     firstAt: iso(asc[0].t),
     lastAt: iso(last.t),
     lastText: last.text ?? '',

@@ -12,11 +12,24 @@
 <meta name="theme-color" content="#FAF8F4" />
 <!--__OG_META__-->
 <style>
+  /* 设计令牌（2026-10-08 重构）。
+     两处口径变化，都不是审美偏好，是「读起来像什么产品」的问题：
+       · 底色从近白（#FAF8F4）压到**柔和暖灰**（#EFEEE9）。近白底 + 白卡 = 卡片
+         靠阴影才浮得起来，一屏几十张白卡就成了碎片堆叠；暖灰底让白卡自己成形。
+       · 主卡改用**薄荷底**而不是更白的白底。它要明显强于其它模块，而「更白」
+         在白底上已经到顶了 —— 只能靠加装饰，那就成了营销风。换底色是唯一
+         既拉开层级又不加装饰的路子。
+     圆角与阴影也收敛成三个令牌：全页只用 r / r-s / shadow 三档，
+     不同模块各写一个半径值正是「不够精致」的来源。 */
   :root{
-    --paper:#FAF8F4; --paper2:#F2EFE8; --card:#FFFFFF;
+    --paper:#EFEEE9; --paper2:#F5F4EF; --card:#FFFFFF;
+    --mint:#E9F2F0; --mint2:#DBEBE8; --mintline:#CFE2DE;
     --ink:#1F1E1B; --ink2:#4A4842; --mist:#8C8880;
-    --line:#E4DFD5;
-    --lan:#3F7376; --bamboo:#5F8455; --cinnabar:#B3563C;
+    --line:#E4E1D8;
+    --lan:#3F7376; --bamboo:#5F8455; --cinnabar:#B3563C; --amber:#9C6B22;
+    --r:16px; --r-s:10px;
+    --shadow:0 1px 2px rgba(31,30,27,.035),0 10px 26px -18px rgba(31,30,27,.28);
+    --shadow-lift:0 1px 2px rgba(31,30,27,.04),0 18px 44px -26px rgba(31,30,27,.34);
     --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
     --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
     /* 卷轴数字的垂直微调：mono 字体的 ascent 留白会让数字看起来偏高 */
@@ -27,15 +40,13 @@
   body{
     margin:0; background:var(--paper); color:var(--ink);
     font-family:var(--sans); font-size:15px; line-height:1.7;
-    background-image:radial-gradient(circle at 12% 0%,rgba(63,115,118,.05),transparent 45%),
-                     radial-gradient(circle at 88% 8%,rgba(95,132,85,.045),transparent 42%);
   }
   .wrap{max-width:960px;margin:0 auto;padding:0 24px 80px}
 
   /* ---------- 顶栏 ---------- */
   header.top{
-    display:flex;align-items:center;justify-content:space-between;gap:16px;
-    padding:20px 0 16px;border-bottom:1px solid var(--line);
+    display:flex;align-items:flex-end;justify-content:space-between;gap:16px;
+    padding:22px 0 18px;border-bottom:1px solid var(--line);
   }
   .brand{display:flex;align-items:baseline;gap:12px}
   /* 品牌标。源图是**不透明黑底**的方形图，这里只加圆角裁切与极轻投影，不做抠底 ——
@@ -44,10 +55,16 @@
     width:32px;height:32px;flex:0 0 auto;display:block;align-self:center;
     border-radius:9px;box-shadow:0 1px 3px rgba(31,30,27,.18);
   }
-  .brand h1{font-size:19px;margin:0;font-weight:650;letter-spacing:.02em}
-  .brand .sub{font-size:12px;color:var(--mist);letter-spacing:.14em;text-transform:uppercase;font-family:var(--mono)}
-  .pulse{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink2);
-    background:var(--paper2);border:1px solid var(--line);padding:5px 12px;border-radius:99px;white-space:nowrap}
+  .brand h1{font-size:21px;margin:0;font-weight:700;letter-spacing:.01em}
+  .brand .sub{font-size:11.5px;color:var(--mist);letter-spacing:.16em;text-transform:uppercase;font-family:var(--mono)}
+  /* 右上角是**两行**：状态胶囊 + 一句这页在干什么。
+     旧版只有胶囊，于是「持续追踪」这件事没有任何地方交代 —— 读者看到的
+     只是一个会跳的钟点，看不出它背后有采集与检测在跑。 */
+  .top-right{display:flex;flex-direction:column;align-items:flex-end;gap:7px;text-align:right}
+  .top-note{font-size:12px;color:var(--mist)}
+  .pulse{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--lan);
+    background:var(--mint);border:1px solid var(--mintline);padding:5px 13px;
+    border-radius:99px;white-space:nowrap}
   /* 「观测中」后面是每秒走的钟点。不用等宽数字的话，秒位一跳整块胶囊就左右晃。 */
   .pulse #upd{font-variant-numeric:tabular-nums}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--bamboo);box-shadow:0 0 0 0 rgba(95,132,85,.5);animation:bp 2.4s infinite}
@@ -122,7 +139,12 @@
   .sw{display:grid;grid-template-columns:104px 1fr auto;gap:12px;align-items:baseline;
     background:var(--card);padding:10px 14px}
   .sw-k{font-size:12px;color:var(--mist)}
-  .sw-v{font-family:var(--mono);font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+  /* 值里是一段「起 — 止」的日期区间，中间只有空格是断点，所以 `keep-all` 只做一件事：
+     不让它断在「周」和「六」之间（841 宽实测会断成三行、末行只剩「六）」）。
+     `anywhere` 兜底：真放不下时退回默认行为，不会溢出。
+     窄屏这一格会独占整行（见下方媒体查询），那时它本来就只有一行。 */
+  .sw-v{font-family:var(--mono);font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;
+    word-break:keep-all;overflow-wrap:anywhere}
   .sw-z{font-family:var(--mono);font-size:11.5px;color:var(--mist);white-space:nowrap}
   .sw-foot{background:var(--card);padding:8px 14px;font-size:12px;color:var(--ink2)}
   .sig-quote{margin:0 0 12px;padding:13px 16px;background:var(--card);border:1px solid var(--line);
@@ -130,32 +152,58 @@
   .sig-meta{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--mist)}
   .sig-meta a{color:var(--lan);text-decoration:none;border-bottom:1px dotted currentColor}
   .sig-note{color:#8A6A28}
-  .sig-idle{margin-top:22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-    font-size:12.5px;color:var(--mist);background:var(--paper2);border:1px solid var(--line);
-    border-radius:10px;padding:12px 16px}
-  .sig-idle b{color:var(--ink2)}
-  .sig-idle-sub{margin-left:auto;font-size:11.5px}
-  .sig-dot{width:7px;height:7px;border-radius:50%;background:var(--mist)}
+  /* 提示条：主卡正下方的**空状态**条。
+     它不是「信号区的一种弱形态」，而是首屏的一部分 —— 读者看完结论的下一问
+     就是「有没有公告」。所以它紧贴主卡、有底色、有图标，不再落在第二节里。
+     有公告时被 `.sig` 横幅顶替：同一个位置，更强的一档。
+     右侧那个箭头是**真链接**（跳到最近记录，看这一轮到底扫了什么）——
+     设计稿上是一个箭头，但箭头若不指向任何地方就是假的交互提示。
+     ⚠ 外层是 `<a>`，所以要显式清掉链接的默认色与下划线。 */
+  .sig-idle{margin-top:14px;display:flex;align-items:center;gap:14px;
+    background:#FBF4E6;border:1px solid #EFE1C4;border-radius:var(--r);
+    padding:15px 20px;box-shadow:var(--shadow);text-decoration:none;color:inherit}
+  .idle-ico{flex:0 0 auto;width:34px;height:34px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:#F4E6C8;color:var(--amber)}
+  .idle-body{flex:1 1 auto;min-width:0}
+  /* 两行都是块级：外层是 flex 项，里面若保持 inline 就不会换行，
+     「已扫描 …」会跟主句挤在同一行尾巴上。 */
+  .idle-t{display:block;font-size:14.5px;font-weight:650;color:#4A3A18;line-height:1.4}
+  .idle-sub{display:block;font-size:12px;color:#8B7548;margin-top:2px}
+  .idle-go{flex:0 0 auto;color:#C3A468;font-size:20px;line-height:1;font-family:var(--mono)}
+  .sig-idle:hover .idle-go{color:var(--amber)}
 
   /* ---------- 每日重置窗口（跨多日的持续规则，不是某一天的预告） ---------- */
-  /* 视觉上刻意比 .sig（预告块）轻：预告才是页首最大视觉重量，这条是补充事实。
-     左边那道 3px 岚青是唯一的强调，用来把它和下面那片灰底卡片区分开。 */
-  /* 上边距**不能省**。顶栏（`header.top`）自带 1px 下边框，而这块是信号区的第一个
-     元素（模板里由 SIGNAL 那个占位符填入、紧跟在 header 之后）。margin-top 为 0 时
-     它的上边框正好压在顶栏那条线上，两条 1px 叠成一条 —— 实测 2026-10-07 线上就是这样。
-     取值与 `.sig-idle` 同为 22px：两者都是浅色补充卡，同屏出现时是 22 / 22 的均匀节奏。
-     （同族里 `.sig` 用的是 12px，所以 22 不是全族统一值，取的是**同量级**的那个。）
-     ⚠ 这条约束已进验收：`scripts/check-layout.mjs` 的 A7b 会量「相邻两个有边框的块
-     之间必须有可见间距」，改回 0 会直接变红。
+  /* 视觉上刻意比 .sig（预告块）轻、也比三张依据卡轻：预告才是页首最大视觉重量，
+     这条是**规则**而非结论，所以排到依据区之后。
+     底色用最淡的一档薄荷（`--mint`），与主卡的渐变同族但明显更弱 —— 主卡仍是
+     这一页唯一「重」的块。
+     ⚠ 上边距**不能省**。顶栏（`header.top`）自带 1px 下边框，而这块可能是信号区的
+     第一个元素；margin-top 为 0 时它的上边框正好压在顶栏那条线上，两条 1px 叠成一条
+     （实测 2026-10-07 线上就是这样）。这条约束已进验收：`scripts/check-layout.mjs`
+     的 A7b 会量「相邻两个有边框的块之间必须有可见间距」，改回 0 会直接变红。
      ⚠ 注释里**不许原样写出占位符**（连注释标记一起）—— `injectTokens` 只替换第一处，
      页脚那道「有占位符没被替换」的检查会因此报错。 */
-  .sig-prog{margin:22px 0 14px;padding:12px 14px;background:var(--paper2);
-    border:1px solid var(--line);border-left:3px solid var(--lan);border-radius:10px}
-  .sp-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
-  .sp-tag{font-size:11.5px;font-weight:600;color:var(--lan);letter-spacing:.04em}
-  .sp-left{margin-left:auto;font-size:11.5px;color:var(--mist)}
+  .sig-prog{margin-top:44px;padding:18px 22px;background:var(--mint);
+    border:1px solid var(--mintline);border-radius:var(--r);box-shadow:var(--shadow);
+    display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px 26px;
+    align-items:center;text-decoration:none;color:inherit}
+  .sp-lead{display:flex;gap:13px;align-items:flex-start;min-width:0}
+  .ico-cal{background:rgba(63,115,118,.12)}
+  .sp-body{min-width:0}
+  .sp-head{margin-bottom:7px}
+  .sp-tag{font-size:14px;font-weight:650;color:var(--lan);letter-spacing:.01em}
+  .sp-left{font-size:11.5px;color:#5E7B76;margin-left:9px}
   .sp-left b{color:var(--ink2)}
-  .sp-rule{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:10px}
+  .sp-rule{font-size:12.5px;color:var(--ink2);line-height:1.65;margin:0}
+  .sp-src{font-size:11px;color:#5E7B76;line-height:1.6;margin:6px 0 0}
+  .sp-side{position:relative;padding-right:22px}
+  /* 时区表在这个位置是**辅助信息**（它说明窗口覆盖到哪一天），所以去掉它自带的
+     下边距，让它与左侧的规则文字同一水平线收尾。 */
+  .sig-prog .sig-win{margin-bottom:0}
+  .sig-prog:hover .sp-go{color:var(--lan)}
+  .sp-go{position:absolute;right:0;top:50%;transform:translateY(-50%);
+    color:#8FB0AC;font-size:20px;line-height:1;font-family:var(--mono)}
 
   /* ---------- 预告里的依据推文 ---------- */
   /* 一条预告 = 一个时间窗口，**支撑它的推文挂在这条预告里面**，不另起一块。
@@ -203,11 +251,6 @@
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 
   /* ---------- Hero ---------- */
-  /* padding 从 46px 收到 30px，理由同 .sig 那一段：倒计时是这一页的主角，
-     它必须在第一屏完整可见（实测口径：counter 的底部 ≤ 视口高度）。 */
-  .hero{padding:30px 0 8px;text-align:center}
-  .hero .label{font-size:12px;letter-spacing:.2em;color:var(--mist);text-transform:uppercase;font-family:var(--mono)}
-
   /* 逐位卷动：每一位是一个 0–9 的竖条，靠 translateY 滚动。
      初始位置由构建脚本写死在行内样式里，所以脚本被禁用时数字也是对的，
      只是不再滚动 —— 属于渐进增强，不是必需品。 */
@@ -226,7 +269,6 @@
     margin:0 13px 0 9px;letter-spacing:.06em;font-weight:400}
   .grp:last-child .unit{margin-right:0}
 
-  .hero .since{font-size:13px;color:var(--mist);font-family:var(--mono)}
   .verdict{
     display:inline-block;margin-top:24px;padding:11px 22px;border-radius:99px;
     font-size:13.5px;border:1px solid var(--line);background:var(--card);
@@ -237,87 +279,344 @@
   .v-long{color:#8A6A28;border-color:rgba(179,86,60,.28);background:rgba(179,86,60,.05)}
   .v-rare{color:var(--cinnabar);border-color:rgba(179,86,60,.42);background:rgba(179,86,60,.08)}
 
+  /* ---------- 第一层：预测总览 ---------- */
+  /* 这一页曾经是「观察站」：最先看到的是「距上次重置过了多久」，而用户要的答案是
+     「下一次什么时候」—— 反方向的两件事挤在同屏，往前看的永远排在往回看的后面。
+     现在结论单独成层，并且**只有这里**给出「预计时间」这个字符串。
+
+     2026-10-08 又收一次：主卡从「左主卡 + 右侧栏」改成**整宽一张**。
+     分栏的代价是主卡被压到 1.75fr（约 610px），而它要放的是全页最大的数字；
+     侧栏那张「凭什么可信」的卡则内容零散、底部永远留一大块空白。改成整宽之后
+     主卡四周留白反而变多，可信度证据下移成三张依据卡（见第二节），
+     两张卡都不用再为对方的尺寸让步。
+
+     主卡与其它卡片的分工靠**底色**（薄荷底 vs 白底）与阴影档位拉开，
+     不靠加边框、加角标、加装饰条 —— 那是营销风的入口。
+
+     ⚠ 类名前缀刻意是 `pc-` 而不是 `pm-`：`.ph .pm`（节奏分段里的数值）是既有类名，
+     用 `.pm` 做卡片会让分段的那个数字凭空长出边框和投影 —— 实测过一次，
+     症状是「14 天 18 小时」被包成一个圆角盒子，而 CSS 里根本找不到谁给它加的。
+     同族冲突要靠前缀隔开，不能靠「反正两个词不在一处」。 */
+  .pred{margin-top:26px}
+
+  /* 主卡：全页唯一的薄荷底 + 唯一的「抬升」阴影档。
+     状态**不上底色**：底色是这张卡的身份证（「这是结论」），若再按状态换底，
+     三种状态就有三种底色，读者反而认不出「结论卡」这个形状了。
+     状态由徽章与置信度条承担 —— 两处都是颜色 + 文字同时给，不靠颜色单独承载信息。 */
+  .pcard{
+    position:relative;overflow:hidden;
+    background:linear-gradient(158deg,var(--mint) 0%,#F2F8F6 58%,var(--mint2) 100%);
+    border:1px solid var(--mintline);border-radius:20px;
+    padding:26px 30px 24px;box-shadow:var(--shadow-lift);
+  }
+  /* 装饰层：右上角一圈弧线 + 一个游标点，外加一句手写体。
+     它是这张卡**唯一**的装饰，且 pointer-events:none + aria-hidden ——
+     不含信息、不参与朗读、不挡点击。做成内联 SVG 而不是背景图：
+     右上角那圈圆必须跟着卡片高度走，背景图做不到。
+     窄屏隐藏（见底部媒体查询）：卡片一窄，它就压到大数字上了。 */
+  .pc-deco{position:absolute;top:0;right:0;width:320px;height:224px;pointer-events:none}
+  .pc-deco svg{display:block;width:100%;height:auto}
+  .pc-script{position:absolute;right:30px;top:46%;font-size:15px;line-height:1.35;
+    font-family:"Snell Roundhand","Bradley Hand","Segoe Script",cursive;
+    color:#A2B8B3;transform:rotate(-3.5deg);text-align:right;pointer-events:none;
+    letter-spacing:.02em}
+
+  /* 卡片头：标题与徽章同一行，副行紧随其下。
+     标题与徽章之间的间距刻意大（14px）：徽章是**状态**，不是标题的尾巴；
+     贴太紧会被读成「下一次重置预测·观察中」这么一个复合名词。 */
+  .pc-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .pc-top h2{font-size:23px;margin:0;font-weight:700;letter-spacing:.01em}
+  .pc-badge{font-size:12px;letter-spacing:.06em;padding:5px 14px;border-radius:99px;
+    background:var(--mist);color:#fff;white-space:nowrap}
+  .pc-badge[data-status="confirmed"]{background:var(--bamboo)}
+  .pc-badge[data-status="likely"]{background:var(--lan)}
+  .pc-badge[data-status="watching"]{background:#6E8C88}
+  .pc-sub{font-size:12.5px;color:#5E7B76;margin-top:6px}
+
+  /* 置信度与依据摘要并排放在卡片底部：左边「有多可信」，右边「算于何时、算了几条」。
+     两者都是**元信息**，与上面的大数字分属不同层级，所以用一条细线隔开。 */
+  .pc-foot{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    margin-top:20px;padding-top:15px;border-top:1px solid rgba(63,115,118,.16)}
+  /* 置信度单独成轴，不并进状态徽章 —— 两者说的不是一件事（见 render.mjs 的说明）。
+     三个小格是正/偏/负的**强度条**，读的人不必记住「高/中/低」对应几格，
+     旁边那两个字才是值。 */
+  .pc-conf{display:inline-flex;align-items:center;gap:9px;
+    font-size:12.5px;color:#5E7B76;white-space:nowrap}
+  .pc-conf b{font-size:15px;color:var(--ink)}
+  .pc-conf[data-level="high"] b{color:var(--bamboo)}
+  .pc-conf[data-level="medium"] b{color:var(--lan)}
+  .conf-bar{display:inline-flex;gap:3px}
+  .conf-bar i{width:16px;height:5px;border-radius:2px;background:rgba(63,115,118,.16)}
+  .pc-conf[data-level="high"] .conf-bar i:nth-child(-n+3){background:var(--bamboo)}
+  .pc-conf[data-level="medium"] .conf-bar i:nth-child(-n+2){background:var(--lan)}
+  .pc-conf[data-level="low"] .conf-bar i:nth-child(-n+1){background:var(--mist)}
+
+  /* 预计时间：日期最大、星期与钟点次之。这是全页的字号之王，所以它周围的留白
+     也最多。字重从 300 提到 600 —— 细体在暖灰底的小字环境里像「注释」，
+     而这块是结论本身，得压得住下面的倒计时。 */
+  .pc-eta{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-top:18px}
+  .pc-eta .dt{font-family:var(--mono);font-size:54px;font-weight:600;line-height:1;
+    letter-spacing:-.03em;color:var(--ink);font-variant-numeric:tabular-nums}
+  .pc-eta .rest{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--ink2);
+    font-variant-numeric:tabular-nums}
+  .pc-cap{font-size:12px;color:var(--mist);margin-top:7px}
+
+  /* 大倒计时。它是「距离预测重置还有」，与第一层之外那条 `.sig-cd`
+     （距公告窗口开启）是两个不同的锚点 —— 后者只在有公告时出现，是注脚。 */
+  .pc-wait{margin:22px 0 0;padding-top:18px;border-top:1px solid rgba(63,115,118,.16)}
+  .pc-wait-cap{font-size:12.5px;letter-spacing:.06em;color:#5E7B76}
+  .pc-wait .counter{justify-content:flex-start;font-size:clamp(28px,6.4vw,62px);margin:8px 0 2px}
+  .pc-wait .counter .unit{margin:0 12px 0 8px}
+  .pc-wait-over{display:none;font-size:14px;color:var(--cinnabar);font-weight:600;margin:12px 0 2px}
+  .pc-wait[data-over="1"] .counter{display:none}
+  .pc-wait[data-over="1"] .pc-wait-over{display:block}
+
+  /* 80% 区间：**结论的必要组成部分**，不是注释 —— 只有它能让「2 天 13 小时」
+     不被误读成一个承诺。所以它紧贴倒计时，数值走主强调色、明显重于其它辅助行。
+     一句尾注「（区间的两端，不是两个候选时刻）」**已按设计稿去掉**：主卡上
+     「距离预测重置还有 + 倒计时」与这行之间已有分区线，区间标签本身也写着
+     「区间」二字，再加一句括号会把这一行拉成两句。 */
+  .pc-band{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .pc-band .k{font-size:12.5px;color:#5E7B76;font-weight:600}
+  .pc-band b{font-family:var(--mono);font-size:15px;font-weight:500;color:var(--lan);
+    font-variant-numeric:tabular-nums}
+  .pc-band .dash{color:var(--lan);opacity:.55}
+
+  .pc-brief{margin:16px 0 0;font-size:13.5px;color:var(--ink2);line-height:1.75;
+    padding-left:13px;border-left:2px solid rgba(63,115,118,.28)}
+  /* 置信度靠左、更新时间靠右：`margin-left:auto` 必须挂在**后面**那个元素上。
+     挂在 `.pc-conf` 上会把「置信度」推到右边、把更新时间留在左边，与设计稿相反。 */
+  .pc-meta{margin-left:auto;font-size:12px;color:#5E7B76;font-family:var(--mono)}
+  .pc-meta b{color:var(--ink2);font-weight:500}
+
+  /* ---------- 第二层：预测依据（三卡） ---------- */
+  /* 为什么是**三张**而不是旧版的四块散文 + 两张数字块：
+     主卡已经回答了「是什么」，这里只需回答「结论凭什么成立」。凭据有三类，
+     各自独立成立、挑着读也行：
+       ① 剩下的等待有多长、区间多宽、各时间窗概率  ← 中位估计
+       ② 这个模型在样本外到底准不准                ← 覆盖率 / 区分度 / 样本量 / 重采样波动
+       ③ 历史节奏本身在怎么变                      ← 分段平均间隔
+     旧版把「为什么这样预测」这类**散文**也摆在这里，于是每张卡都是半句话，
+     读者得先读完一段话才能开始怀疑。现在散文进主卡的依据摘要（一句话），
+     卡片只放数字 —— 「信息太碎」的根因是散文与数字混在同一层。
+     三张卡用同一套骨架：图标 + 标题 → 数字/行 → 底部一句结语。
+     ⚠ 卡②的**结语是分档的**（推算档讲三项达标情况，公告档声明与模型统计无关）——
+     因为公告档下结论的依据是公告本身，把统计说成理由是「拿 A 的理由解释 B 的结论」。 */
+  .bc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+  /* 左右内边距 22 → 18px：三列布局下卡片内容宽只有 ~217px，卡①的区间行
+     与卡②的四行「标签 + 值」都在这个宽度上贴边。设计稿的内边距也在 14–18 之间。 */
+  .bc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:20px 18px;box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .bc-h{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .bc-h h3{font-size:14px;margin:0;font-weight:650;color:var(--ink);letter-spacing:.01em}
+  /* 图标片：三张卡各一个，形状与底色完全一致，只有里面的符号不同。
+     它的作用是让三张卡在扫读时可以被**形状**区分，而不是靠读完标题。 */
+  .ico{flex:0 0 auto;width:28px;height:28px;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(63,115,118,.09);color:var(--lan)}
+  .ico svg{display:block}
+  .bc-sub{font-size:12px;color:var(--mist);font-family:var(--mono);margin:-8px 0 12px}
+  /* 主数字：与主卡的中位剩余等待是同一个量，所以必须**差一个数量级** ——
+     同一个数字在两处并列为「一样大」时，读者会以为它们是两件事。
+     主卡是 62px 的倒计时，这里压到 32px。 */
+  .bc-num{display:flex;align-items:baseline;gap:6px;font-family:var(--mono);
+    font-variant-numeric:tabular-nums}
+  .bc-num b{font-size:32px;font-weight:600;line-height:1;letter-spacing:-.02em;color:var(--ink)}
+  .bc-num small{font-size:14px;color:var(--ink2)}
+  /* 区间行：标签「80% 区间」+ 值。设计稿里两者同一行（它的值是
+     「18 小时 – 6 天 17 小时」，比我们当前的「18 小时 12 分 – 6 天 18 小时」短一截），
+     而三列布局下卡片内容宽只有 ~217px，值自己就占 207px —— 并排需要 267px。
+     所以这里不硬压成一行，而是「放得下就并排、放不下就整块落到下一行」。
+     ⚠ 关键在 `.bc-range b` 的 `white-space:nowrap`：不加它，值会在自己内部
+     断成「… – 6 天 / 18 小时」，右半行只剩半句（841 宽实测如此）。
+     `flex-wrap` + `nowrap` 保证只有两种形态：并排，或整块换行，没有中间态。 */
+  .bc-range{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:12px 0 16px}
+  .bc-range .k{font-size:11.5px;color:var(--mist);flex:0 0 auto}
+  .bc-range b{font-family:var(--mono);font-size:13px;color:var(--lan);
+    font-variant-numeric:tabular-nums;white-space:nowrap}
+  /* 三行竖排：标签 → 数值 → 判定（设计稿的形态）。三者都独占一行、左对齐。
+     数值放大到 20px 并单独占行 —— 它是这一行的主角。旧版是「左标签 / 右小值」
+     的表格式（数值 13px 右对齐），四行并排看下来像一张表而不是四张卡，
+     「偏平」的来源正在这里。
+     ⚠ 三行都必须写死 `line-height`：页面基础行高是 1.7（给正文段落的），
+     套在 20px 的数值上会撑成 34px 行盒，一行三句就多出 40px —— 四行累计
+     让这张卡比同排另外两张高出 160px（实测）。数字块要的是紧凑行高。 */
+  .bc-row{display:block;padding:9px 0;border-bottom:1px solid var(--line)}
+  .bc-row:first-child{padding-top:0}
+  .bc-row:last-child{border-bottom:0;padding-bottom:0}
+  .bc-row .k{display:block;font-size:12px;line-height:1.4;color:var(--ink2)}
+  /* `good` 用主强调色（青绿）而不是 `--bamboo`：设计稿里「50.0%」「81.7%」
+     这两个达标值是青绿的，只有不达标的「≈ 无区分力」才用朱红。绿色留给「自然/生长」
+     那类语义，这里用不到。 */
+  .bc-row .v{display:block;font-family:var(--mono);font-size:20px;font-weight:600;
+    line-height:1.15;color:var(--ink);margin-top:3px;font-variant-numeric:tabular-nums;
+    letter-spacing:-.01em}
+  .bc-row .v.good{color:var(--lan)}
+  .bc-row .v.bad{color:var(--cinnabar)}
+  .bc-row .j{display:block;font-size:11px;line-height:1.5;color:var(--mist);margin-top:3px}
+  /* 结语压在卡底（卡片等高，内容多少不一）—— 空白落在它上方读起来才是「留白」 */
+  .bc-note{font-size:11.5px;color:var(--mist);line-height:1.65;margin:auto 0 0;
+    padding-top:14px;border-top:1px dashed var(--line)}
+  /* 只有**卡③**的结语需要 `keep-all`，别扩大到 `.bc-note`：那句里有
+     「3 天 4 小时」这种「数字 + 单位」，默认折行会断在「小」和「时」之间。
+     `keep-all` 把断点限制在空格处，单位就整块走。
+     而卡②的结语是纯散文（26 个汉字连写、只有一个顿号），keep-all 会把
+     顿号当断点，把它从 2 行撑成 3 行、第一行只剩「样本量、」（实测）。
+     `anywhere` 是兜底：整「词」都放不下时才允许内部断行。 */
+  .bc[data-bc="pace"] .bc-note{word-break:keep-all;overflow-wrap:anywhere}
+  /* 告警版结语：卡①那条「概率未经校正」是**必须留的披露**（它报的是这些数字偏低，
+     不是系统有多好），所以给它一个可以停住视线的底 —— 但要与提示条的琥珀
+     （`#FBF4E6`）明显不同档，否则一条卡内注释看着像一条全站告警。 */
+  .bc-note.is-warn{background:#FBF6EC;border:1px solid #EFE6D2;border-radius:10px;
+    padding:9px 12px;color:#8B7548;margin-top:auto}
+
+  /* ---------- 第三层：历史规律 ---------- */
+  /* 三张图并成一组。它们本来就是**同一个问题**的三个切面（哪一档最容易发生 /
+     到第 X 天前发生多少 / 每次间隔各是几天），旧版却各占一节、各有标题与引导段，
+     读者要自己发现它们是一组。分组之后，三张图共用一行、一个标题、一条题注，
+     节的层数从三降到一 —— 这是「图表缺少统一组织」的正面回答。
+     每列自带小标题与样本量，所以三列可以独立阅读，不依赖上一节。 */
+  .hr-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+  .hr{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:18px 18px 10px;box-shadow:var(--shadow);min-width:0}
+  .hr-h{margin-bottom:10px}
+  .hr-h h3{font-size:13.5px;margin:0;font-weight:650;color:var(--ink);letter-spacing:.01em}
+  .hr-n{display:block;font-size:11.5px;color:var(--mist);margin-top:3px;
+    font-family:var(--mono)}
+  .hr .legend{gap:10px 14px;font-size:11.5px;padding:8px 2px 2px}
+
+  /* ---------- 补充层：已经等了多久 ---------- */
+  /* 往回看的那个数字。它与主卡的大倒计时是**反方向**的两件事，所以分层放置：
+     往前看的在最上面（结论），往回看的在靠下（背景）。旧版把它放在首屏正中央，
+     于是第一眼读到的是「已经等了这么久」，而不是「下一次什么时候」。 */
+  .hero-card{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);
+    gap:24px;align-items:center;background:var(--card);border:1px solid var(--line);
+    border-radius:var(--r);padding:22px 24px;box-shadow:var(--shadow)}
+  .hero-h{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .hero-h h3{font-size:14px;margin:0;font-weight:650;color:var(--ink)}
+  /* 大号文本而不是四个卷轴位：卷轴位要按「秒」逐位滚动，它的拆分是**向下取整**
+     （`parts()`），而断言「页面数字 = API 数字」用的 `spanOf` 是**先四舍五入到秒**
+     再拆 —— 两者在秒的小数部分 ≥ 0.5 时差一秒，会让 A3 随机变红。
+     直接输出 `spanOf` 的串则两边永远同源，且这个量常常是「6 天 17 小时」
+     这种一两个单位的值，逐位滚动本来也读不出更多信息。 */
+  .hero-v{font-family:var(--mono);font-size:clamp(30px,5.6vw,50px);font-weight:600;
+    line-height:1.1;letter-spacing:-.02em;color:var(--ink);
+    font-variant-numeric:tabular-nums}
+  /* 右栏：距上一次重置的对账信息 + 判定。整块是一个**链接**（落到最近记录）——
+     设计稿右上角那个箭头的落点就是它；箭头不指向任何地方就是假的交互提示。
+     `padding-right` 给箭头让位，`position:relative` 供箭头绝对定位。 */
+  .hero-side{position:relative;border-left:1px solid var(--line);padding-left:24px;
+    padding-right:26px;display:grid;gap:8px;text-decoration:none;color:inherit}
+  .hero-k{font-size:11.5px;color:var(--mist);letter-spacing:.06em}
+  .hero-at{font-family:var(--mono);font-size:12.5px;color:var(--ink2)}
+  .hero-go{position:absolute;right:0;top:50%;transform:translateY(-50%);
+    color:var(--mist);font-size:20px;line-height:1;font-family:var(--mono)}
+  .hero-side:hover .hero-go{color:var(--lan)}
+  /* 判定胶囊：`.verdict` 那套（分档配色沿用），但在这一栏里要压到最小 ——
+     它是右栏的第三行，不是一条独立横幅。 */
+  .hero-side .verdict{font-size:11.5px;padding:6px 11px;border-radius:99px}
+
+  /* ---------- 每日重置窗口（辅助规则，不是结论） ---------- */
+  /* 它回答的是「这 N 天里**每一天**都在射程内」，是一条**下界**，不是某一个窗口。
+     旧版把它排在首屏第一块，于是第一眼读到的是「射程范围」；现在它退到依据之后，
+     形态也降成一行的规则说明 + 右侧时区表（样式见上面的 `.sig-prog`）。 */
+
+
   /* ---------- 卡片 ---------- */
-  section{margin-top:56px}
-  .head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-bottom:6px;flex-wrap:wrap}
-  .head h2{font-size:16.5px;margin:0;font-weight:640;letter-spacing:.01em}
+
+  section{margin-top:44px}
+  .head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+    margin-bottom:16px;flex-wrap:wrap}
+  .head-l{display:flex;align-items:center;gap:10px}
+  .head h2{font-size:19px;margin:0;font-weight:700;letter-spacing:.01em}
   .head .hint{font-size:12.5px;color:var(--mist)}
-  .lede{font-size:14px;color:var(--ink2);margin:0 0 22px;max-width:62ch}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 20px 12px;
-    box-shadow:0 1px 2px rgba(31,30,27,.03)}
+  /* 引导段只剩一种用法：三张图共用的一条题注。首屏与依据区都不再有引导段 ——
+     「信息太碎」的直接来源就是每个模块前面都有一段小字，读者得先读完散文
+     才能看到数字。 */
+  .lede{font-size:13px;color:var(--mist);margin:0 0 18px;max-width:70ch}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:20px 18px 12px;box-shadow:var(--shadow)}
 
   /* ---------- 指标条 ---------- */
-  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:1px;background:var(--line);
+  /* 值在上、标签在下（设计稿如此）：这一栏读者扫的是数字，标签只在认不出这个
+     数字时用来解释它。标签占先会把六个数字推到第二眼。
+     格子之间靠 1px 的网格底色当分隔线（不是 border，省掉相邻边重叠的问题）。
+     ⚠ 列数是**写死的 6**，不是 `auto-fit + minmax` —— 后者在 841 宽（内容 793）
+     上只装得下 5 格，第六格会单独掉到第二行、右边空一大片（实测如此）。格数恒定
+     为 6（renderMetrics 产出固定），所以直接写死，窄屏再按 3 / 2 降。 */
+  .metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;background:var(--line);
     border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:26px}
-  .metric{background:var(--card);padding:17px 18px}
-  .metric .k{font-size:11.5px;color:var(--mist);letter-spacing:.06em;margin-bottom:5px}
-  .metric .v{font-family:var(--mono);font-size:25px;font-weight:400;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-  .metric .v small{font-size:.5em;color:var(--mist);margin-left:3px}
+  /* 内边距 18 → 13px、字号 24 → 23px：格里最长的一条「67 天 17 小时」要占 ~106px，
+     而 841 宽下每格只有 131px。原值会把它挤到换行，与相邻几格不在同一基线上。 */
+  .metric{background:var(--card);padding:17px 13px 15px}
+  .metric .v{font-family:var(--mono);font-size:23px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .metric .v small{font-size:.5em;color:var(--ink2);margin-left:3px;font-weight:400}
+  .metric .k{font-size:11.5px;color:var(--mist);letter-spacing:.06em;margin-top:5px}
   .metric .note{font-size:11.5px;color:var(--mist);margin-top:3px}
   .metric.hi .v{color:var(--lan)}
 
-  /* ---------- 预测 ---------- */
-  .fc-asof{font-size:12px;color:var(--mist);margin:0 0 14px;font-family:var(--mono)}
-  .fc-asof b{color:var(--ink2);font-weight:500}
-  .fc{display:grid;grid-template-columns:minmax(190px,250px) 1fr;gap:1px;background:var(--line);
-    border:1px solid var(--line);border-radius:14px;overflow:hidden}
-  .fc-main{background:var(--card);padding:24px 22px}
-  .fc-main .k{font-size:11.5px;color:var(--mist);letter-spacing:.06em}
-  .fc-main .v{font-family:var(--mono);font-size:50px;font-weight:300;line-height:1.05;
-    margin:9px 0 6px;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--lan)}
-  .fc-main .v small{font-size:.3em;color:var(--mist);margin-left:5px}
-  .fc-main .range{font-size:12.5px;color:var(--ink2);line-height:1.6}
-  .fc-bars{background:var(--card);padding:22px 24px}
-  .fc-bar{display:grid;grid-template-columns:62px 1fr 54px;align-items:center;gap:12px;margin-bottom:11px}
-  .fc-bar:last-child{margin-bottom:0}
-  .fc-bar .lb{font-size:12.5px;color:var(--ink2);white-space:nowrap}
-  .fc-bar .track{height:8px;background:var(--paper2);border-radius:99px;overflow:hidden}
-  .fc-bar .track i{display:block;height:100%;background:linear-gradient(90deg,var(--lan),#5B9296);border-radius:99px}
-  .fc-bar .pv{font-family:var(--mono);font-size:12.5px;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
-  .fc-note{font-size:11.5px;color:var(--mist);line-height:1.6;margin:16px 0 0;padding-top:13px;border-top:1px solid var(--line)}
-  .fc-note strong{color:var(--ink2)}
-  .fc-empty{font-size:13px;color:var(--mist);margin:0 0 12px}
-
-  .fc-meta{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
-  .fc-block{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
-  .fc-block h3{font-size:13px;margin:0 0 14px;font-weight:640;color:var(--ink)}
-  .fc-table{width:100%;border-collapse:collapse;font-size:12.5px}
-  .fc-table th{text-align:left;color:var(--mist);font-weight:400;font-size:11.5px;
-    padding:0 8px 8px 0;border-bottom:1px solid var(--line)}
-  .fc-table td{padding:9px 8px 9px 0;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top}
-  .fc-table tr:last-child td{border-bottom:0}
-  .fc-table td.num{font-family:var(--mono);color:var(--ink);white-space:nowrap}
-  /* 第一列不给它收缩的余地：否则「50% 分位覆盖率」会被折成三行 */
-  .fc-table th:first-child,.fc-table td:first-child{width:1%;white-space:nowrap;padding-right:18px}
-  .fc-table td.num.good{color:var(--bamboo);font-weight:600}
-  .fc-table td.num.bad{color:var(--cinnabar);font-weight:600}
-  .fc-foot{font-size:11.5px;color:var(--mist);margin:14px 0 0;line-height:1.65}
-  .ph{display:grid;grid-template-columns:58px 1fr auto;gap:4px 12px;align-items:baseline;
-    padding:9px 0;border-bottom:1px solid var(--line)}
-  .ph:last-of-type{border-bottom:0}
-  .ph .pi{font-size:11px;color:var(--mist);font-family:var(--mono)}
-  .ph .pt{font-size:11.5px;color:var(--mist);font-family:var(--mono)}
-  .ph .pm{font-family:var(--mono);font-size:16px;color:var(--ink);text-align:right}
-  .ph .pm small{font-size:.62em;color:var(--mist);margin-left:2px}
-  .ph .pn{grid-column:2 / 4;font-size:11px;color:var(--mist)}
-  /* 预测区末尾的告警条：样式留用，当前**无产出方**。
-     原先这里放的是模型自评（样本量少 → 估计不稳、校准偏离、外推偏保守），
-     已按 AGENTS.md 文案红线第 2 条移除，改由表格里的数字承担披露（第 3 条）。
-     别看到样式还在就以为它有内容。 */
+  /* ---------- 依据卡内的零件 ---------- */
+  /* 累积概率条：标签 / 轨道 / 百分比三列。百分比列给固定宽度并右对齐 ——
+     长度不一（11.7% vs 100.0%），不固定的话轨道右端会参差不齐。 */
+  .bc-bar{display:grid;grid-template-columns:58px 1fr 46px;align-items:center;gap:11px;
+    margin-bottom:10px}
+  .bc-bar:last-child{margin-bottom:0}
+  .bc-bar .lb{font-size:12px;color:var(--ink2);white-space:nowrap}
+  .bc-bar .track{height:7px;background:var(--paper2);border-radius:99px;overflow:hidden}
+  .bc-bar .track i{display:block;height:100%;background:linear-gradient(90deg,var(--lan),#5B9296);border-radius:99px}
+  .bc-bar .pv{font-family:var(--mono);font-size:12px;color:var(--ink);text-align:right;
+    font-variant-numeric:tabular-nums}
+  /* 节奏分段：**竖排四行**（段号 / 起止 / 平均间隔 / 样本量），不是横排一行。
+     依据卡的列宽只有 ~257px，而那一对起止日期（2025.03.17 → 2026.05.24）自己就
+     要 150px —— 横排时它会与「平均间隔」抢同一行，把后者顶下去、看起来像两段
+     不同的东西（旧版实测如此）。竖排之后每一段都是一个自洽的小块，
+     段与段之间靠一条 1px 分隔线断开。 */
+  .ph{padding:10px 0;border-bottom:1px solid var(--line)}
+  .ph:first-of-type{padding-top:0}
+  .ph:last-of-type{border-bottom:0;padding-bottom:0}
+  .ph .pi{display:block;font-size:11px;color:var(--mist);font-family:var(--mono)}
+  .ph .pt{display:block;font-size:11px;color:var(--mist);font-family:var(--mono);margin-top:2px}
+  .ph .pm{display:block;font-family:var(--mono);font-size:15px;font-weight:600;color:var(--ink);
+    margin-top:4px;white-space:nowrap}
+  .ph .pm small{font-size:.68em;color:var(--ink2);margin-left:3px;font-weight:400}
+  .ph .pn{display:block;font-size:11px;color:var(--mist);margin-top:2px}
+  /* 依据区末尾的告警条：**有产出方**（`renderBasis` 收 `prediction.warnings`），
+     但当前数据下恒为空 —— `predict.mjs` 只声明了这个数组、从不 push。
+     原先里面放的是模型自评（样本量少 → 估计不稳、校准偏离、外推偏保守），
+     已按 AGENTS.md 文案红线第 2 条移除，改由卡里的数字承担披露（第 3 条）。
+     保留渲染落点是为了这类告警真有产出时不会**静默消失**：一条没人渲染的
+     数组，比一条渲染成警示的告警危险得多。 */
   .fc-warn{list-style:none;margin:16px 0 0;padding:0}
   .fc-warn li{font-size:12.5px;color:#8A6A28;background:rgba(179,86,60,.05);
     border:1px solid rgba(179,86,60,.22);border-radius:10px;padding:11px 15px;margin-bottom:9px}
   .fc-warn li::before{content:"⚠ ";color:var(--cinnabar)}
 
   /* ---------- 图表 ---------- */
-  /* svg 标签上已写死 width/height 属性，这里只做响应式收缩。
+  /* SVG 标签上已写死 width/height 属性，这里只做响应式收缩。
      不再依赖 height:auto 去推算高度，避免在部分 WebView 内核里塌成 0 高度。
-     min-width + 外层横向滚动：窄面板下不让图表被压到看不清（否则图内 11px 文字
-     在 400px 宽的面板里会缩到 5px，看着就像一片空白）。 */
-  .chart{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
-  svg{display:block;width:100%;min-width:520px;height:auto}
+     ⚠ 选择器**必须挂 `.chart`**，不能写成裸 `svg`：页面上还有三种小 svg —— 卡里的
+     图标（`.ico`）、提示条的喇叭、主卡右上角的装饰层。裸选择器会把它们一律撑成
+     520px 宽（`min-width` 胜出 `width:100%`），实测整页被几个巨大的青色圆弧盖住。
+     图标靠自己的 width/height 属性定尺寸，不需要这条规则。
+
+     三张历史图是**按目标列宽重新排版**出来的（`render.mjs` 的 `CHART_W`，几何与
+     字号一起重算），不是把宽图等比缩下来 —— 所以这里不再用 `min-width` 去触发
+     容器内部横向滚动（旧版单列大图时用过，代价是图内文字被压到 6px；而三列并排
+     时三个独立滚动条更难看）。
+     ⚠ 要如实说清代价：紧凑排版的设计基准是 **340px 宽的列**，而三列布局下每列
+     只有 ~217px（841 宽实测），图内文字因此约为基础字号的 **0.64 倍（~7px）**。
+     这是三列形态的固有代价 —— 217px 里放 8 个刻度标签，字号再大就会互相压。
+     手机端不缩字的那条路是**小程序**（按 345px 重新排版后 1:1 画到 canvas）。
+     容器**不设** `overflow`：真出现比容器宽的图时让它溢出并被 A7 抓到，
+     比静默地起一个内部滚动条要好。
+     `max-width:380px` 是上限：降到两列 / 一列时列宽会到 380–690px，
+     不封顶的话同一张图在不同断点下的字会忽大忽小；封顶后最多放大 1.46 倍，居中。 */
+  .chart{display:flex;justify-content:center}
+  .chart svg{display:block;width:100%;max-width:380px;height:auto}
   .legend{display:flex;gap:20px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);padding:14px 4px 6px}
   .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:middle}
+  /* 装饰层与图标一律按自己的属性走，绝不被上面的 `.chart` 规则波及 */
+  .pc-deco svg,.ico svg,.idle-ico svg,.hero-h svg,.head-l svg{width:auto;height:auto;min-width:0}
 
   /* ---------- 时间线 ---------- */
   .tl{list-style:none;margin:0;padding:0}
@@ -337,15 +636,48 @@
     display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
   footer a{color:var(--ink2);text-decoration:none;border-bottom:1px dotted var(--mist)}
 
+  /* 三列 → 两列。断点必须落在 **841 以下** —— 设计稿（841 宽）给的就是三列，
+     原先把降列断点写在 1000px，于是在设计稿自己的宽度上就掉成一列，与稿子相反。
+     阈值取 800：再窄下去每列内容宽不足 200px，三张图是按列宽**重新排版**的
+     （render.mjs 的 CHART_W），图内 9–11px 的文字会缩到 7px 上下。 */
+  @media(max-width:800px){
+    .hr-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .bc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    /* 样本摘要 6 → 3（两行三格）。6 连在 800 以下每格只剩 ~124px，
+       「67 天 17 小时」这类值会换行 —— 而在 5 连上换行更糟：会变成 5+1。 */
+    .metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+  }
   @media(max-width:620px){
+    /* 两列 → 单列。并把下面这几处「左右并排」改成上下堆叠 ——
+       它们在 841 宽的设计稿里都是并排形态（见 hero-card / sig-prog），
+       所以阈值同样不能高于 841，否则会把稿子的并排拆开。 */
+    .hr-grid{grid-template-columns:1fr}
+    .bc-grid{grid-template-columns:1fr}
+    /* 已经等了多久：左右两栏并排时右侧只有一行字，拆成上下两块更省高度 */
+    .hero-card{grid-template-columns:1fr;gap:16px}
+    .hero-side{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:15px}
+    .sig-prog{grid-template-columns:1fr;gap:16px}
+    /* 主卡右上角那圈弧线 + 手写体在窄屏会压到大数字上，整块关掉。
+       它是纯装饰，关掉不丢信息。841 宽下卡片还有 793px，弧线（占最右 320px）
+       与左侧的日期块并不重叠，所以稿子里它是**开着**的。 */
+    .pc-deco,.pc-script{display:none}
     header.top{flex-wrap:wrap;gap:10px;padding:20px 0 16px}
-    .metrics{grid-template-columns:repeat(auto-fit,minmax(112px,1fr))}
     .verdict{font-size:12.5px;padding:9px 16px}
     .tl li{grid-template-columns:1fr;gap:6px}
     .wrap{padding:0 16px 60px}
-    .fc{grid-template-columns:1fr}
-    .fc-meta{grid-template-columns:1fr}
-    .fc-main .v{font-size:42px}
+    .pcard{padding:20px 18px 18px;border-radius:18px}
+    .pc-top h2{font-size:19px}
+    .pc-eta .dt{font-size:38px}
+    .pc-eta .rest{font-size:17px}
+    /* 窄屏把卷轴的左右间距收一档。四位数字 + 四个单位在 320px 视口上刚好卡在
+       边界（实测余量不到 20px），而卷轴位的宽度是 em、单位间距是 px ——
+       只有后者能在这里收。 */
+    .pc-wait .counter .unit{margin:0 8px 0 5px}
+    .pc-foot{gap:8px 10px}
+    /* 窄屏「预测于 …北京更新」整行另起、左对齐：留着 margin-left:auto 会把它
+       推到最右独自成行，看起来像掉队的一行。 */
+    .pc-meta{margin-left:0;width:100%}
+    .metric{padding:15px 16px 14px}
     .sw{grid-template-columns:1fr auto;gap:2px 10px;padding:9px 12px}
     /* 窄屏把「时区」提到标签同一行、值独占整行：堆三行时窗口块要 311px，
        而它是预告卡里最高的一块（实测 390×844）。 */
@@ -356,8 +688,7 @@
        链接紧跟在前一个元素后面（不再靠右），换行也不会看成另一条。 */
     .ev-top{flex-wrap:wrap}
     .sig-precision{margin-left:0}
-    .sig-idle-sub{margin-left:0}
-    /* 「还剩 N 天」和「时间窗自…起」是同一类右对齐副行，窄屏一律改成另起一行左对齐：
+    /* 「还剩 N 天」是右对齐副行，窄屏改成另起一行左对齐：
        硬留在右边会被挤成两行、还会把左边的标签顶歪。 */
     .sp-left{margin-left:0}
     /* 倒数条在窄屏必然换行（「距窗口开启」+ 锚点 + 数字挤不进一行）。
@@ -365,6 +696,11 @@
        所以窄屏改成整行居中。 */
     .cd-row{margin-left:0;width:100%;justify-content:center}
     .counter .unit{margin:0 8px 0 6px}
+  }
+  /* 样本摘要 3 → 2：每格要放下「67 天 17 小时」（23px 下 ~101px）加上左右内边距
+     （620 档起是 16px×2），三列在视口 480 以下就开始撑不住。 */
+  @media(max-width:480px){
+    .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
   }
 </style>
 </head>
@@ -377,7 +713,10 @@
       <h1>等 TIBO 按按钮</h1>
       <span class="sub">Reset Observatory</span>
     </div>
-    <span class="pulse"><span class="dot"></span>观测中 · <span id="upd"><!--__UPD__--></span></span>
+    <div class="top-right">
+      <span class="pulse"><span class="dot"></span>观测中 · <span id="upd"><!--__UPD__--></span></span>
+      <span class="top-note">持续追踪 Tibo 的重置节奏</span>
+    </div>
   </header>
 
   <!-- ============ 采集异常（有异常时才出现） ============ -->
@@ -386,65 +725,110 @@
   <!-- ============ 数据陈旧（超过两个采集周期没成功更新时才出现） ============ -->
   <!--__FRESHNESS__-->
 
-  <!-- ============ 信号（有预告时才醒目） ============ -->
+  <!-- ============ 第一层：预测结论（首屏唯一的主角） ============ -->
+  <!--__OUTLOOK__-->
+
+  <!-- 信号区（提示条 / 预告横幅）。**紧贴主卡**：读者看完结论的下一问就是
+       「有没有公告」。两种形态在同一个位置、共用一块地方：没有公告时是一条
+       状态提示（不是空白 —— 空白会让人怀疑检测坏了），有公告时它顶替提示条，
+       并给出窗口、时区与证据。 -->
   <!--__SIGNAL__-->
 
-  <!-- ============ HERO ============ -->
-  <div class="hero" id="hero" data-last="<!--__LAST_AT__-->" data-lastlabel="<!--__LAST_LABEL__-->">
-    <div class="label">距上一次额度重置</div>
-    <div class="counter" id="counter"><!--__COUNTER__--></div>
-    <div class="since" id="since"><!--__SINCE__--></div>
-    <!--__VERDICT__-->
-  </div>
+  <!-- ============ 第二层：预测依据（三张卡） ============ -->
+  <!-- 整段（含自己的标题与说明）由 renderBasis 产出：没有可用预测时它整体返回
+       空串，而不是留下一行「预测依据」标题配一片空白。 -->
+  <!--__BASIS__-->
 
-  <div class="metrics"><!--__METRICS__--></div>
+  <!-- ============ 每日重置窗口（辅助规则，不是结论） ============ -->
+  <!-- 它回答「这 N 天里**每一天**都在射程内」，是一条**下界**。旧版排在首屏
+       第一块，于是第一眼读到的是射程范围；现在退到依据之后，形态降成一行规则。 -->
+  <!--__PROGRAM__-->
 
-  <!-- ============ 时间预测 ============ -->
+  <!-- ============ 第三层：历史规律（三张图并成一组） ============ -->
   <section>
     <div class="head">
-      <h2>还要等多久</h2>
+      <h2>历史规律</h2>
+      <span class="hint">从历史数据中，寻找重置的线索</span>
     </div>
-    <!--__FORECAST__-->
-  </section>
+    <p class="lede"><!--__HIST_CAPTION__--></p>
+    <div class="hr-grid">
+      <div class="hr">
+        <div class="hr-h">
+          <h3>重置通常发生在第几天</h3>
+          <span class="hr-n">n = <!--__HIST_N__--> 次历史间隔</span>
+        </div>
+        <div class="chart"><!--__HISTOGRAM__--></div>
+      </div>
 
-  <!-- ============ 生存曲线 ============ -->
-  <section>
-    <div class="head">
-      <h2>等待生存曲线</h2>
-      <span class="hint">n = <!--__SURVIVAL_N__--> 次历史间隔</span>
-    </div>
-    <p class="lede">
-      纵轴是「到第 X 天为止，历史上百分之多少的重置已经发生」。曲线越陡，说明节奏越集中；
-      右侧的长尾说明存在极少数超长等待。你现在的位置标在曲线上。
-    </p>
-    <div class="card">
-      <div class="chart"><!--__SURVIVAL__--></div>
-    </div>
-  </section>
+      <div class="hr">
+        <div class="hr-h">
+          <h3>等待生存曲线</h3>
+          <span class="hr-n">n = <!--__SURVIVAL_N__--> 次历史间隔</span>
+        </div>
+        <div class="chart"><!--__SURVIVAL__--></div>
+      </div>
 
-  <!-- ============ 点阵分布 ============ -->
-  <section>
-    <div class="head">
-      <h2>每次间隔的离散分布</h2>
-      <span class="hint">按天数排序后分泳道排布，横轴线性等距</span>
-    </div>
-    <p class="lede">
-      每一次重置到下一次重置的间隔天数。平均值被右侧的极端值拉高了 ——
-      这就是为什么用「平均 7 天」倒计时会翻车。
-    </p>
-    <div class="card">
-      <div class="chart"><!--__STRIP__--></div>
-      <div class="legend">
-        <span><i style="background:#3F7376"></i>常规间隔</span>
-        <span><i style="background:#8C8880"></i>偏长间隔</span>
-        <span><i style="background:#B3563C"></i>极端长等待</span>
-        <span><i style="background:#1F1E1B;border-radius:99px"></i>当前所处位置</span>
+      <div class="hr">
+        <div class="hr-h">
+          <h3>每次间隔的离散分布</h3>
+          <span class="hr-n">现在 <!--__STRIP_NOW__--></span>
+        </div>
+        <div class="chart"><!--__STRIP__--></div>
+        <div class="legend">
+          <span><i style="background:#3F7376"></i>常规间隔</span>
+          <span><i style="background:#8C8880"></i>偏长间隔</span>
+          <span><i style="background:#B3563C"></i>极端长等待</span>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ============ 时间线 ============ -->
+  <!-- ============ 第四层：往回看的那个数字（补充，不是结论） ============ -->
   <section>
+    <div class="hero-card">
+      <div>
+        <div class="hero-h">
+          <span class="ico">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3.4 1.7h9.2M3.4 14.3h9.2M4.6 1.7v2.4c0 1.9 3.4 3.2 3.4 4.3s-3.4 2.4-3.4 4.3v1.6M11.4 1.7v2.4c0 1.9-3.4 3.2-3.4 4.3s3.4 2.4 3.4 4.3v1.6"
+                stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <h3>已经等了多久</h3>
+        </div>
+        <div class="hero-v" id="elapsed" data-last="<!--__LAST_AT__-->"><!--__ELAPSED__--></div>
+      </div>
+      <!-- 右栏是个**链接**（落到最近记录，「上次重置」在那里可追溯）——
+           设计稿右上角有个箭头，箭头若不指向任何地方就是假的交互提示。 -->
+      <a class="hero-side" href="#records">
+        <div class="hero-k">距上一次重置</div>
+        <div class="hero-at">上次重置 <!--__LAST_LABEL__--></div>
+        <!--__VERDICT__-->
+        <span class="hero-go" aria-hidden="true">›</span>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <div class="head">
+      <span class="head-l">
+        <span class="ico">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M4.2 2.2h7.6v11.6H4.2z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/>
+            <path d="M6.1 5.4h3.8M6.1 8h3.8M6.1 10.6h2.2" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <h2>样本摘要</h2>
+      </span>
+      <span class="hint">基于公开推文记录</span>
+    </div>
+    <div class="metrics"><!--__METRICS__--></div>
+  </section>
+
+  <!-- ============ 末层：历史记录 ============ -->
+  <!-- `id="records"` 是提示条右侧那个箭头的落点（「到底扫了什么」的唯一入口）。
+       没有它，箭头就是假的交互提示。 -->
+  <section id="records">
     <div class="head">
       <h2>最近记录</h2>
       <span class="hint">原文可追溯</span>
@@ -474,17 +858,30 @@
   for (var d = 0; d < 10; d++) REEL += '<i>' + d + '</i>';
   var pad = function (n) { return (n < 10 ? '0' : '') + n; };
 
-  // ① 距上一次重置（页首）。往回看的那条。
-  var hero = document.getElementById('hero');
-  var last = hero && hero.dataset.last ? new Date(hero.dataset.last).getTime() : NaN;
-  var counter = document.getElementById('counter');
-  var since = document.getElementById('since');
-  var heroGroups = counter ? counter.querySelectorAll('.grp') : null;
-  var heroOk = Number.isFinite(last) && heroGroups && heroGroups.length === 4;
+  // ① 第一层的大倒计时：**距预测重置时刻**。这是这一页的主角，也是改版前
+  //    唯一缺的那块 —— 旧版页首那个跳动的数字数的是「距上一次重置」，往回看。
+  //    锚点、初始值都在构建期写死（`.pm` 的 data-eta / .grp 的 translateY），
+  //    脚本被禁用时数字依然正确，只是不再滚动。
+  var pred = document.getElementById('pred');
+  var pcd = document.getElementById('pcd');
+  var pcdCap = document.getElementById('pcd-cap');
+  var pcdWait = pred ? pred.querySelector('.pc-wait') : null;
+  var pcdGroups = pcd ? pcd.querySelectorAll('.grp') : null;
+  var etaFrom = pred && pred.dataset.eta ? Number(pred.dataset.eta) : NaN;
+  var pcdOk = isFinite(etaFrom) && pcdGroups && pcdGroups.length === 4;
 
-  // ② 距窗口开启（预告卡内）。往前看的那条 —— 网页端此前根本没有它。
-  //    不写成独立的 IIFE：用一个 `if (hero) return` 开头的老写法，会让
-  //    页首一旦缺元素就连带把这块也关掉，两块倒计时不该互相牵连。
+  // ② 「已经等了多久」那个大数字（补充层里往回看的那条）。
+  //    锚点取自**它自己的** data-last，不取主卡的 —— 主卡在没有可用预测时
+  //    整块不出现，而这一块仍然在。挂在主卡上会让它跟着冻住，页面上就出现
+  //    一个不走的钟，而那正是「静默陈旧」最典型的形态。
+  var el = document.getElementById('elapsed');
+  var last = el && el.dataset.last ? new Date(el.dataset.last).getTime() : NaN;
+  var sinceOk = isFinite(last) && !!el;
+
+  // ③ 距公告窗口开启（信号卡内，**只在有预告时出现**）。第三个锚点，
+  //    与上面那条不是一回事：这条数的是「他说的那个窗口什么时候开」。
+  //    不写成独立的 IIFE：用一个 `if (pred) return` 开头的老写法，会让
+  //    首屏一旦缺元素就连带把这块也关掉，几块倒计时不该互相牵连。
   var cds = [];
   var cdNodes = document.querySelectorAll('.sig-cd');
   for (var n = 0; n < cdNodes.length; n++) {
@@ -494,7 +891,7 @@
     cds.push({ el: cdNodes[n], row: row, from: from, groups: row.querySelectorAll('.grp') });
   }
 
-  // ③ 右上角「观测中 · HH:MM:SS」—— 显示**当前北京时间**，跟着真实时钟走。
+  // ④ 右上角「观测中 · HH:MM:SS」—— 显示**当前北京时间**，跟着真实时钟走。
   //    必须显式指定时区：浏览器可能在任何时区，读本机时钟会显示错的时间。
   //    不取数据采集时刻：那是「数据多新」，页脚已写着「最近一次采集 ⋯」，
   //    放这里既是重复，又因为「观测中」是现在进行时，会被读成「现在几点」——
@@ -516,7 +913,7 @@
     }
   }
 
-  // ④ 数据陈旧：数据超过两个采集周期没有**成功**更新时，把这件事说出来。
+  // ⑤ 数据陈旧：数据超过两个采集周期没有**成功**更新时，把这件事说出来。
   //    容器由服务端渲染（承载 data-at / data-stale-after），未超阈值时带 hidden，
   //    构建那一刻就已陈旧的话服务端连 hidden 都不给 —— 脚本被禁用也看得见。
   //    这里只负责两件事：后来才超阈值时去掉 hidden、把「距今多久」填上。
@@ -600,10 +997,10 @@
   function tick() {
     var now = Date.now();
 
-    // ③ 当前北京时间。与两块倒数共用同一次 tick，不额外开定时器。
+    // ④ 当前北京时间。与三块倒数共用同一次 tick，不额外开定时器。
     if (bjClock) upd.textContent = bjClock.format(now);
 
-    // ④ 数据陈旧。年龄是分钟级变化，但仍然挂在同一次 tick 上，不另开定时器。
+    // ⑤ 数据陈旧。年龄是分钟级变化，但仍然挂在同一次 tick 上，不另开定时器。
     if (freshOk) {
       var age = now - freshAt;
       if (age > staleAfterMs) {
@@ -612,17 +1009,34 @@
       }
     }
 
-    if (heroOk) {
-      var ms = now - last;
-      if (ms >= 0) {
-        var p = parts(ms);
-        setGroup(heroGroups[0], String(p.d));
-        setGroup(heroGroups[1], pad(p.h));
-        setGroup(heroGroups[2], pad(p.m));
-        setGroup(heroGroups[3], pad(p.s));
-        since.textContent =
-          '上次重置 ' + hero.dataset.lastlabel + ' · 已过 ' + spanFromMs(ms);
+    // ① 距预测重置时刻。过了那个时刻就换成一句话，而不是继续数负数 ——
+    //    中位数到了不代表不会重置，只代表「一半的样本比这更快」，
+    //    所以那句话说的是「随时可能」+「区间仍有效」，不是一个假承诺。
+    if (pcdOk) {
+      var left = etaFrom - now;
+      var over = left <= 0;
+      if (pcdWait && pcdWait.dataset.over !== (over ? '1' : '0')) {
+        pcdWait.dataset.over = over ? '1' : '0';
+        if (pcdCap) pcdCap.textContent = over ? '已到中位预测时刻' : '距离预测重置还有';
       }
+      if (!over) {
+        var q = parts(left);
+        setGroup(pcdGroups[0], String(q.d));
+        setGroup(pcdGroups[1], pad(q.h));
+        setGroup(pcdGroups[2], pad(q.m));
+        setGroup(pcdGroups[3], pad(q.s));
+      }
+    }
+
+    // ② 「已经等了多久」。走 `spanFromMs`（先把总毫秒 round 到秒再拆），
+    //    与静态渲染的 `spanOf` 同一口径 —— 否则脚本一接管，同一个量就换了副面孔。
+    //    ⚠ 不能借用①那套卷轴位：卷轴位是按 `parts()` **向下取整**拆的，
+    //    与 spanOf 差一秒（秒的小数部分 ≥ 0.5 时），会让 A3「页面数字 = API 数字」
+    //    随机变红。这个量常常只有一两个单位（「6 天 17 小时」），逐位滚动本来
+    //    也读不出更多信息。
+    if (sinceOk) {
+      var ms = now - last;
+      if (ms >= 0) el.textContent = spanFromMs(ms);
     }
 
     for (var i = 0; i < cds.length; i++) {
