@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-08T03:44:55.000Z",
     "last_text": "Confirmed landed across all accounts. How are we doing so far? https://t.co/tzw7dNX4pN",
-    "days_since_last": 0.1945512037037037,
+    "days_since_last": 0.2821459375,
     "avg_interval_days": 6.542161605461392,
     "median_interval_days": 3.096388888888889,
     "sd_interval_days": 10.809150987484236,
@@ -14,19 +14,19 @@
     "reset_count": 53,
     "hit_within_avg": 0.6949152542372882
   },
-  "generated_at": "2026-10-08T08:25:04.403Z",
+  "generated_at": "2026-10-08T10:31:12.568Z",
   "collect": {
-    "mode": "incremental",
+    "mode": "full",
     "source": "browser",
-    "stoppedBy": "known",
+    "stoppedBy": "floor",
     "newTweets": 0,
     "knownCount": 316,
     "reply": {
-      "mode": "incremental",
-      "stoppedBy": "known",
-      "steps": 1,
-      "harvested": 3,
-      "withContext": 3,
+      "mode": "full",
+      "stoppedBy": "floor",
+      "steps": 11,
+      "harvested": 14,
+      "withContext": 14,
       "authorsMissing": 0
     },
     "replyError": null,
@@ -42,11 +42,11 @@
     "added": 0,
     "updated": 0,
     "upstreamCount": 59,
-    "refreshedAt": "2026-10-08T08:24:53.586Z",
+    "refreshedAt": "2026-10-08T10:30:53.360Z",
     "error": null,
     "changed": false,
     "patchedTexts": 0
   },
-  "last_full_at": "2026-10-05T10:30:19.757Z",
+  "last_full_at": "2026-10-08T10:31:12.568Z",
   "errors": []
 }
