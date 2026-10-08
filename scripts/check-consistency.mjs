@@ -166,8 +166,14 @@ const visible = html
   .replace(/<[^>]+>/g, ' ')
   .replace(/\s+/g, ' ');
 
-// 这两项在页面上是「主数字 + 单位」两段（`20` + `小时 41 分`），页面上早已不是
-// digest 里那个浮点天数 —— 所以比 spanOf 出来的整串，而不是 `0.9`。
+// 这两项都比 `spanOf` 出来的整串，而不是 digest 里那个浮点天数（`0.9`）——
+// 页面上写的是「20 小时 41 分」，拿 `0.9` 去比对等于什么都没验。
+//
+// ⚠ 两者**不是同一回事**，别因为长得像就合并：
+//   · 「中位剩余等待」在依据卡里是「主数字 + 单位」两段（`.bc-num` 的 20 + 小时 41 分），
+//     页首那个卷轴倒数（`#pcd`）是另一处，这一条验的是前者；
+//   · 「距上次重置」这条验的只有「历史规律」那道「现在 X」标签 —— 页首那一个
+//     已经是卷轴，正文里提取不出这串字（见下面那条还原断言）。
 check(
   '可见文字含中位剩余等待',
   visible.includes(spanOf(digest.remainingDays.q50).text),
@@ -177,6 +183,56 @@ check(
   '可见文字含距上次重置时长',
   visible.includes(spanOf(digest.sinceDays).text),
   spanOf(digest.sinceDays).text
+);
+
+/* 页首「已经等了多久」现在是**四位卷轴**（天/时/分/秒），每一格的数字都写死在
+ * 行内 `translateY(-N em)` 里 —— 所以它能被**机械还原**，不必靠肉眼，也不必靠
+ * 上面那条 `includes`。
+ *
+ * 为什么不能只留 `includes`：页首那一块现在是卷轴，正文里提取不出「5 小时 44 分」
+ * 这串字（`<i>0</i>…<i>9</i>` 十条竖排会被压成一串数字）。上面那条之所以仍然成立，
+ * 是因为「历史规律」那道「现在 X」标签（`STRIP_NOW`）用的是同一个 `spanOf` ——
+ * 也就是说它验的是**那一道标签**，不是页首。页首是全页最显眼的数字，不能只靠
+ * 「别处也写了同一句话」来担保。
+ *
+ * 口径与 `renderElapsedCounter` 同一个表达式：先 `Math.round(days * 86400)` 再拆。
+ * 换成 `parts()` 那种「先 floor 到秒」会差一秒 —— 只在 23:59:59.6 这类临界点上
+ * 显形，正是断言该挡住的那种「随机变红」。
+ */
+const elapsedBlock = html.match(
+  /<div class="hero-v" id="elapsed" data-last="([^"]+)"[^>]*>([\s\S]*?)<\/div>/
+);
+const reels = elapsedBlock
+  ? [...elapsedBlock[2].matchAll(/data-g="([dhms])">([\s\S]*?)<span class="unit">/g)].reduce(
+      (acc, [, k, body]) => {
+        acc[k] = [...body.matchAll(/translateY\(-(\d+)em\)/g)].map((x) => x[1]).join('');
+        return acc;
+      },
+      {}
+    )
+  : {};
+const sinceSec = Math.max(0, Math.round(digest.sinceDays * 86_400));
+const wantSec = {
+  d: String(Math.floor(sinceSec / 86_400)),
+  h: String(Math.floor((sinceSec % 86_400) / 3_600)),
+  m: String(Math.floor((sinceSec % 3_600) / 60)),
+  s: String(sinceSec % 60),
+};
+check(
+  '页首「已经等了多久」找得到四组卷轴位（下一条的前提）',
+  !!elapsedBlock && ['d', 'h', 'm', 's'].every((k) => typeof reels[k] === 'string'),
+  `块=${!!elapsedBlock} 组=[${Object.keys(reels)}]`
+);
+const reelBad = ['d', 'h', 'm', 's'].filter((k) => Number(reels[k]) !== Number(wantSec[k]));
+check(
+  `页首卷轴位还原 == digest.sinceDays（${wantSec.d}天 ${wantSec.h}时 ${wantSec.m}分 ${wantSec.s}秒）`,
+  reelBad.length === 0,
+  reelBad.map((k) => `${k}：页面 ${reels[k]} vs 期望 ${wantSec[k]}`).join('；')
+);
+check(
+  '页首卷轴的锚点（data-last）与 digest.sinceDays 自洽',
+  !!elapsedBlock && Math.abs(builtAtMs - Date.parse(elapsedBlock[1]) - digest.sinceDays * DAY) < 1_000,
+  elapsedBlock ? `${elapsedBlock[1]} → 距构建 ${((builtAtMs - Date.parse(elapsedBlock[1])) / DAY).toFixed(4)} 天` : '没找到锚点'
 );
 check('可见文字含记录总数', visible.includes(String(digest.records)), String(digest.records));
 check(

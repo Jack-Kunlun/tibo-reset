@@ -13,7 +13,7 @@
  *   2. 数据层形状正确（升序、长度自洽、无 NaN）
  *   3. 桌面宽度下图元全部落在画布内
  *   4. 图内文字不小于可读下限，且序列化后不出现 NaN / undefined
- *   5. 「时长文案」的四处实现口径一致（见第 7 节 —— 这是同一类漂移的第二次守卫）
+ *   5. 「时长文案」的三处实现口径一致（见第 7 节 —— 这是同一类漂移的第二次守卫）
  */
 
 import { readFile } from 'node:fs/promises';
@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 
 import { buildChartData, HIST_BREAKS } from '../src/lib/chart-data.js';
 import { DEFAULT_BREAKS } from '../src/lib/predict.mjs';
-import { spanOf } from '../src/lib/render.mjs';
+import { spanOf, renderElapsedCounter } from '../src/lib/render.mjs';
 import {
   survivalScene,
   stripScene,
@@ -394,22 +394,29 @@ for (const [name, scene] of Object.entries(singleScenes)) {
 
 /* ======================== 7. 时长口径对拍 ======================== */
 
-section('7. 时长口径（四处实现必须同口径）');
+section('7. 时长口径（三处实现必须同口径）');
 
-// 同一段「时长文案」口径在本仓里有**四份**实现，彼此没有共享构建：
+// 同一段「时长文案」口径在本仓里有**三份**实现，彼此没有共享构建：
 //   1. src/lib/render.mjs          spanOf        —— 网页端，**权威口径**
 //   2. miniprogram/utils/format.js spanOf        —— 小程序端，手写副本
-//   3. src/index.html              spanFromMs    —— 页首那行「已过 …」，内联 <script>，每秒重算
-//   4. src/lib/scene.js            fmtSpanShort  —— 图内标签，短口径（只补到下一级就停）
+//   3. src/lib/scene.js            fmtSpanShort  —— 图内标签，短口径（只补到下一级就停）
 //
-// 前三份必须**逐字符同输出**，第四份必须**是前三份输出的前缀**。
+// 前两份必须**逐字符同输出**，第三份必须**是前两份输出的前缀**。
+//
+// 以前还有第四份：`src/index.html` 内联的 `spanFromMs`（页首那行「已过 …」每秒重算）。
+// 2026-10-08 页首改成**四位卷轴**后它就没有调用点了 —— 卷轴的位置由
+// `renderElapsedCounter` 写死在行内样式里、此后由 ticker 逐位改，不再经过任何
+// 「时长文案」函数。于是它连同它的对拍一起删掉：留着一份没人调用的实现，
+// 只会让下一个人以为页首还靠它。
+//
+// ⚠ 这里钉的是**还活着的那几份**。真正会静默出错的从来不是「某一份写错」，
+//   而是「四处里只改了一处」—— 少了一份要改的地方，就不再需要多一份守卫。
 //
 // 为什么值得单开一节：漏改任何一处都**不会报错**，只会让同一份数据在同一个页面上
 // 出现两种读法（页首写「已过 21 小时」、图注写「1 天」），而且只在特定取值区间才显形。
 // 2026-09-30 就是这么漏的 —— 五套测试全绿，页面上却还挂着旧文案，因为那行字由
 // 内联脚本每秒覆写一遍，构建期写进去的静态值根本轮不到显示。
 
-const htmlSrc = await readFile(resolve(ROOT, 'src/index.html'), 'utf8');
 const formatSrc = await readFile(resolve(ROOT, 'miniprogram/utils/format.js'), 'utf8');
 
 /**
@@ -435,14 +442,11 @@ function extractFn(src, name) {
   return null;
 }
 
-const inlineBody = extractFn(htmlSrc, 'spanFromMs');
 const mpBody = extractFn(formatSrc, 'spanOf');
 
-check('抽得到 src/index.html 的 spanFromMs', !!inlineBody, '函数被改名或删除 —— 请同步更新本测试，别让它静默失效');
 check('抽得到 miniprogram/utils/format.js 的 spanOf', !!mpBody, '函数被改名或删除 —— 请同步更新本测试，别让它静默失效');
 
 const evalFn = (body, name) => (body ? new Function(`${body};return ${name};`)() : null);
-const inlineSpan = evalFn(inlineBody, 'spanFromMs');
 const mpSpan = evalFn(mpBody, 'spanOf');
 
 const SEC = 1 / 86_400;
@@ -510,13 +514,6 @@ const diffAgainst = (cases, toText) =>
 const brief = (list) =>
   list.length ? list.slice(0, 3).join('；') + (list.length > 3 ? ` …共 ${list.length} 处` : '') : '';
 
-const inlineDiff = inlineSpan ? diffAgainst(DAYS, (d) => inlineSpan(d * 86_400_000)) : ['未抽到 spanFromMs'];
-check(
-  `src/index.html 的 spanFromMs 与 spanOf 逐例一致（${DAYS.length} 例）`,
-  inlineDiff.length === 0,
-  brief(inlineDiff)
-);
-
 const mpDiff = mpSpan ? diffAgainst(DAYS, (d) => mpSpan(d).text) : ['未抽到 format.js 的 spanOf'];
 check(
   `miniprogram/utils/format.js 的 spanOf 与网页端逐例一致（${DAYS.length} 例）`,
@@ -524,7 +521,7 @@ check(
   brief(mpDiff)
 );
 
-// 第四份是**短口径**：只补到下一级就停（「6 天 17 小时」「20 小时」「41 分」）。
+// 第三份是**短口径**：只补到下一级就停（「6 天 17 小时」「20 小时」「41 分」）。
 // 所以它不必等于权威输出，但必须是权威输出的**前缀** —— 否则图注和正文对不上号。
 const shortDiff = DAYS.map((d) => [d, fmtSpanShort(d), spanOf(d).text]).filter(
   ([, s, full]) => !full.startsWith(s)
@@ -535,13 +532,43 @@ check(
   brief(shortDiff.map(([d, s, full]) => `${d} 天：「${s}」不是「${full}」的前缀`))
 );
 
+/* --- 7.2b 页首卷轴与 spanOf 同口径 ----------------------------------- */
+//
+// 页首「已经等了多久」2026-10-08 改成四位卷轴（天/时/分/秒）。它不是「时长文案」，
+// 但它读的是同一个值：一边把天数 round 到秒后**紧凑输出**（`spanOf`，用于「历史规律」
+// 那道「现在 X」标签），一边 round 到秒后**按单位拆位**（`renderElapsedCounter`）。
+// 两边的 total 若不是同一个表达式，就会在 23:59:59.6 这类临界点上各说各话
+// （页首「23 时 59 分 59 秒」、标签「1 天」）—— 每天 0.6 秒的窗口，手工点不出来。
+// 所以这里不留情面：直接把卷轴位从产物里还原出来，与 spanOf 的 total 逐位对拍。
+const counterOf = (days) => {
+  const out = {};
+  const body = renderElapsedCounter({ sinceDays: days });
+  for (const [, k, inner] of body.matchAll(/data-g="([dhms])">([\s\S]*?)<span class="unit">/g)) {
+    out[k] = [...inner.matchAll(/translateY\(-(\d+)em\)/g)].map((x) => x[1]).join('');
+  }
+  return out;
+};
+const counterBad = DAYS.flatMap((d) => {
+  const t = Math.max(0, Math.round(d * 86_400));
+  const want = {
+    d: String(Math.floor(t / 86_400)),
+    h: String(Math.floor((t % 86_400) / 3_600)),
+    m: String(Math.floor((t % 3_600) / 60)),
+    s: String(t % 60),
+  };
+  const got = counterOf(d);
+  return ['d', 'h', 'm', 's']
+    .filter((k) => Number(got[k]) !== Number(want[k]))
+    .map((k) => `${d} 天：${k} 位卷轴 ${got[k]} vs spanOf 的 ${want[k]}`);
+});
+check(`页首卷轴位与 spanOf 同口径（${DAYS.length} 例）`, counterBad.length === 0, brief(counterBad));
+
 /* --- 7.3 需求本身的断言 --------------------------------------------- */
 
 // 用户的原话：「不要使用 0.2 天这种，更改为小时，分，秒」。
-// 上面各条是「四处实现互相对齐」，这条是「对齐到的那个口径确实是时分秒」。
+// 上面各条是「实现互相对齐」，这条是「对齐到的那个口径确实是时分秒」。
 const decimalBad = DAYS.flatMap((d) => {
   const outs = [spanOf(d).text, fmtSpanShort(d)];
-  if (inlineSpan) outs.push(inlineSpan(d * 86_400_000));
   if (mpSpan) outs.push(mpSpan(d).text);
   return outs.filter((s) => /\d+\.\d+\s*天/.test(s)).map((s) => `${d} 天 → 「${s}」`);
 });

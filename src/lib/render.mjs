@@ -137,6 +137,37 @@ export function renderEtaCounter(o) {
 }
 
 /**
+ * 页首「已经等了多久」的卷轴数字（天 / 时 / 分 / 秒四位）。
+ *
+ * ── 为什么要它（2026-10-08）──────────────────────────────────────────
+ * 这一块此前是一串**静态文本**（`fmtSpan(sinceDays)`，如「5 小时 44 分」）。
+ * 结果是：全页最显眼的那个数字反而不会动，而它下面的主卡倒数、以及小程序端
+ * 同一个数字都在滚。老大原话：「已经等了多久也应该有时间滚动效果」。
+ * 现在与主卡共用同一套卷轴位（`.grp` / `.reel` / `.strip`）—— 同一个量只该有
+ * 一种动法，页首与倒数长得一样，读者不必学第二套视觉。
+ *
+ * ── 口径为什么取 `Math.round(days * 86_400)` 而不是现成的 `parts()` ──
+ * 必须与 `spanOf` **同一个表达式**（它内部就是 `Math.round(days * 86_400)`）。
+ * `parts()` 是先把毫秒**向下取整**到秒再拆，与本式在秒的小数部分 ≥ .5 时差一秒：
+ * 同一个「等了多久」会在页首卷轴上读成「23 时 59 分 59 秒」，而「历史规律」那道
+ * 「现在 X」标签（走 `spanOf`）读成「1 天」—— 每天有 0.6 秒的窗口会这样，
+ * 随手截图撞不上，线上撞上了也解释不清。取同一个 `total`，两边**结构上**不可能
+ * 不一致，而不是靠「通常撞不上」。
+ *
+ * 初始位置（`translateY(-N em)`）在渲染时就写死，所以脚本被禁用时数字依然正确，
+ * 只是不再滚动 —— 与主卡倒数同样的渐进增强。
+ */
+export function renderElapsedCounter(m) {
+  const total = Math.max(0, Math.round(m.sinceDays * 86_400));
+  return (
+    group('d', String(Math.floor(total / 86_400)), '天') +
+    group('h', pad(Math.floor((total % 86_400) / 3_600)), '时') +
+    group('m', pad(Math.floor((total % 3_600) / 60)), '分') +
+    group('s', pad(total % 60), '秒')
+  );
+}
+
+/**
  * 判定分档。页面与 OG 卡片共用这一处阈值 —— 分档口径写在两处迟早会漂。
  * 只返回「档位 + 文案」，颜色交给各自渲染层（页面读 CSS 变量，SVG 要用字面色值）。
  */
@@ -1282,7 +1313,9 @@ export function renderAll(m, prediction, signals, opts = {}) {
 
     // 「已经等了多久」（第一块，排在预测总览之前）与更后面的样本摘要 ——
     // 都是补充材料，不是结论。
-    ELAPSED: fmtSpan(m.sinceDays),
+    // 页首那个数字是**四位卷轴**（与主卡倒数同一套 `.grp / .reel`）：
+    // 全页最显眼的数字不会动，是改版前留下的自相矛盾。
+    ELAPSED: renderElapsedCounter(m),
     LAST_AT: m.lastAt,
     LAST_LABEL: fmtDateTime(m.lastAt),
     // 判定分档的**整块元素**（含 `v-calm/v-watch/...` 那个类）。类名由 `verdictOf`

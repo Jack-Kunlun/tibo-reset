@@ -498,14 +498,30 @@
     border-radius:var(--r);padding:22px 24px;box-shadow:var(--shadow)}
   .hero-h{display:flex;align-items:center;gap:10px;margin-bottom:6px}
   .hero-h h3{font-size:14px;margin:0;font-weight:650;color:var(--ink)}
-  /* 大号文本而不是四个卷轴位：卷轴位要按「秒」逐位滚动，它的拆分是**向下取整**
-     （`parts()`），而断言「页面数字 = API 数字」用的 `spanOf` 是**先四舍五入到秒**
-     再拆 —— 两者在秒的小数部分 ≥ 0.5 时差一秒，会让 A3 随机变红。
-     直接输出 `spanOf` 的串则两边永远同源，且这个量常常是「6 天 17 小时」
-     这种一两个单位的值，逐位滚动本来也读不出更多信息。 */
-  .hero-v{font-family:var(--mono);font-size:clamp(30px,5.6vw,50px);font-weight:600;
+  /* 页首那个数字与别处**共用同一套卷轴位**（`.grp` / `.reel` / `.strip`）——
+     同一个量只该有一种动法，所以它和主卡倒数是同一种形态、同一条缓动曲线。
+     这里只负责密度：这一栏比主卡窄，所以字号小一档、单位间距也收一档。
+
+     宽度不是估的，是无头 Chrome 量出来的（最紧那档 = 320px 视口，栏宽 208px、
+     字号落在下限 28px）：
+       · 天一位数（常见）189px，余 19px
+       · 天两位数（等过 10 天以上）207px，余 1px
+       · 753px 视口 321/642、960px 视口 368/849，都从容
+     数字位是 `0.62em`、单位是 `0.26em` + 左右间距（间距一律 px，不跟字号缩）。
+     **字号下限取 28 与主卡的 `.pc-wait .counter` 同档**：它也是四位卷轴、也在这条
+     边界上（AGENTS.md 记的「实测余量不到 20px」）。再往下压，页首就比同一页的
+     另一个卷轴数字还小，主次反了。
+
+     ⚠ 天真到三位数（等过 100 天）时 320px 那档会**换行**——`flex-wrap:wrap` 是
+     刻意留的兜底：换行只是难看，横向溢出会让手机上出现横向滚动条。`.counter`
+     同族一直这么兜（它自己也是 wrap）。 */
+  .hero-v{display:flex;align-items:baseline;flex-wrap:wrap;
+    font-family:var(--mono);font-size:clamp(28px,5.6vw,50px);font-weight:600;
     line-height:1.1;letter-spacing:-.02em;color:var(--ink);
     font-variant-numeric:tabular-nums}
+  .hero-v .unit{font-size:.26em;line-height:1;color:var(--mist);
+    margin:0 11px 0 8px;letter-spacing:.06em;font-weight:400}
+  .hero-v .grp:last-child .unit{margin-right:0}
   /* 右栏：距上一次重置的对账信息 + 判定。整块是一个**链接**（落到最近记录）——
      设计稿右上角那个箭头的落点就是它；箭头不指向任何地方就是假的交互提示。
      `padding-right` 给箭头让位，`position:relative` 供箭头绝对定位。 */
@@ -700,6 +716,11 @@
        所以窄屏改成整行居中。 */
     .cd-row{margin-left:0;width:100%;justify-content:center}
     .counter .unit{margin:0 8px 0 6px}
+    /* 页首那个四位卷轴同理：数字位是 em（跟着字号一起缩），单位两边的间距是 px
+       （不缩），所以窄屏收得住、也只该收这一样。它比主卡倒数多一位（天两位数
+       时 8 位数字 + 4 个单位），所以这里比 `.counter .unit` 再紧 1px —— 320px
+       视口下这一档的余量只有 5px。 */
+    .hero-v .unit{margin:0 7px 0 4px}
   }
   /* 样本摘要 3 → 2：每格要放下「67 天 17 小时」（23px 下 ~101px）加上左右内边距
      （620 档起是 16px×2），三列在视口 480 以下就开始撑不住。 */
@@ -736,7 +757,11 @@
 
        代价要说清：首屏从此是「事实 + 结论」两块，`pred` 不再独占首屏。它之所以
        不抢结论的位置 —— 它自己不加载荷：没有概率、没有区间，只有一个已经过去的
-       时间与一句历史定位；带推断的那块（`pred`）紧跟其后。 -->
+       时间与一句历史定位；带推断的那块（`pred`）紧跟其后。
+
+       形态是**四位卷轴**（天/时/分/秒），与主卡倒数同一套 `.grp / .reel`：
+       它此前是一串静态文本，于是全页最显眼的数字反而不会动（见 `render.mjs`
+       的 `renderElapsedCounter`）。 -->
   <section>
     <div class="hero-card">
       <div>
@@ -884,9 +909,13 @@
   //    锚点取自**它自己的** data-last，不取主卡的 —— 主卡在没有可用预测时
   //    整块不出现，而这一块仍然在。挂在主卡上会让它跟着冻住，页面上就出现
   //    一个不走的钟，而那正是「静默陈旧」最典型的形态。
+  //    形态与①一样是**四位卷轴**（天/时/分/秒），初始位置由服务端写死在行内样式里。
+  //    这四个 `.grp` 没有就走「只渲染不动」：判据是**找得到 4 组**，不是「元素在」——
+  //    后者在模板被改回纯文本时会静默成立，然后每秒对着一串文字调 setGroup。
   var el = document.getElementById('elapsed');
+  var elGroups = el ? el.querySelectorAll('.grp') : null;
   var last = el && el.dataset.last ? new Date(el.dataset.last).getTime() : NaN;
-  var sinceOk = isFinite(last) && !!el;
+  var sinceOk = isFinite(last) && !!elGroups && elGroups.length === 4;
 
   // ③ 距公告窗口开启（信号卡内，**只在有预告时出现**）。第三个锚点，
   //    与上面那条不是一回事：这条数的是「他说的那个窗口什么时候开」。
@@ -981,29 +1010,6 @@
     };
   }
 
-  /**
-   * 时长文案：与 `src/lib/render.mjs` 的 `spanOf` **同口径**。
-   *
-   * 这是同一套口径的第三份实现 —— 内联在 <script> 里，没法 import 模块。
-   * 三处（render.mjs / miniprogram/utils/format.js / 这里）要一起改；
-   * `scripts/test-shared.mjs` 会把本函数抽出来与 spanOf 对拍，漂了就报红。
-   *
-   * ⚠ 刻意**不复用上面 parts() 的结果**：parts 先 floor 到秒再拆，而 spanOf 是
-   *   先 round 到秒。差这一秒在 23:59:59.6 这种临界点上会让静态值显示「1 天」、
-   *   而脚本一接管就跳成「23 小时 59 分」—— 同一个数字在一秒内换了副面孔。
-   */
-  function spanFromMs(ms) {
-    var t = Math.round(ms / 1000);
-    var D = Math.floor(t / 86400);
-    var H = Math.floor((t % 86400) / 3600);
-    var M = Math.floor((t % 3600) / 60);
-    var S = t % 60;
-    if (D >= 1) return H > 0 ? D + ' 天 ' + H + ' 小时' : D + ' 天';
-    if (H >= 1) return M > 0 ? H + ' 小时 ' + M + ' 分' : H + ' 小时';
-    if (M >= 1) return S > 0 ? M + ' 分 ' + S + ' 秒' : M + ' 分';
-    return S + ' 秒';
-  }
-
   function tick() {
     var now = Date.now();
 
@@ -1038,15 +1044,20 @@
       }
     }
 
-    // ② 「已经等了多久」。走 `spanFromMs`（先把总毫秒 round 到秒再拆），
-    //    与静态渲染的 `spanOf` 同一口径 —— 否则脚本一接管，同一个量就换了副面孔。
-    //    ⚠ 不能借用①那套卷轴位：卷轴位是按 `parts()` **向下取整**拆的，
-    //    与 spanOf 差一秒（秒的小数部分 ≥ 0.5 时），会让 A3「页面数字 = API 数字」
-    //    随机变红。这个量常常只有一两个单位（「6 天 17 小时」），逐位滚动本来
-    //    也读不出更多信息。
+    // ② 「已经等了多久」。与①同一套卷轴位、同一套拆法（都先把总秒 **round** 一次
+    //    再拆）。口径必须与 `render.mjs` 的 `spanOf` 同一个表达式 —— 静态值与
+    //    这里各写一套的话，脚本一接管数字就会换副面孔；而差一秒的那种写法，
+    //    会在 23:59:59.6 这类临界点上让页首与「历史规律」那道「现在 X」标签
+    //    各说各话。
     if (sinceOk) {
-      var ms = now - last;
-      if (ms >= 0) el.textContent = spanFromMs(ms);
+      var sinceMs = now - last;
+      if (sinceMs >= 0) {
+        var t = Math.round(sinceMs / 1000);
+        setGroup(elGroups[0], String(Math.floor(t / 86400)));
+        setGroup(elGroups[1], pad(Math.floor((t % 86400) / 3600)));
+        setGroup(elGroups[2], pad(Math.floor((t % 3600) / 60)));
+        setGroup(elGroups[3], pad(t % 60));
+      }
     }
 
     for (var i = 0; i < cds.length; i++) {
