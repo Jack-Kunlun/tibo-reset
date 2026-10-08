@@ -1,6 +1,54 @@
 {
   "tweets": [
     {
+      "id": "2108046671309685096",
+      "text": "Chungus, we should have thought of that name",
+      "created_at": "2026-10-08T04:07:46.000Z",
+      "url": "https://x.com/thsottiaux/status/2108046671309685096",
+      "inReplyTo": {
+        "account": "mitchellh",
+        "id": "",
+        "text": "I just called Chungus (my OpenAI Dot) on the phone while picking up mexican food and asked it to transfer some Rex benchmarks from last night on my Mac Studio to my MacBook Pro via Tailscale and I just got to my desk and there they are. What a fucking time to be alive.",
+        "created_at": "2026-10-07T18:53:04.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-08T04:11:42.445Z"
+    },
+    {
+      "id": "2108046065857679614",
+      "text": "哈哈",
+      "created_at": "2026-10-08T04:05:22.000Z",
+      "url": "https://x.com/thsottiaux/status/2108046065857679614",
+      "inReplyTo": {
+        "account": "mitchellh",
+        "id": "",
+        "text": "I just called Chungus (my OpenAI Dot) on the phone while picking up mexican food and asked it to transfer some Rex benchmarks from last night on my Mac Studio to my MacBook Pro via Tailscale and I just got to my desk and there they are. What a fucking time to be alive.",
+        "created_at": "2026-10-07T18:53:04.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-08T04:11:42.445Z"
+    },
+    {
+      "id": "2108040921044639779",
+      "text": "Confirmed landed across all accounts. How are we doing so far? https://t.co/tzw7dNX4pN",
+      "created_at": "2026-10-08T03:44:55.000Z",
+      "url": "https://x.com/thsottiaux/status/2108040921044639779",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-08T04:11:42.445Z",
+      "text_full": true
+    },
+    {
       "id": "2108017418136330678",
       "text": "Goodbye Grok models",
       "created_at": "2026-10-08T02:11:32.000Z",
@@ -5003,7 +5051,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-08T03:03:20.396Z",
+  "updated_at": "2026-10-08T04:11:42.446Z",
   "source": "browser",
-  "coverage_since": "2026-10-06T03:35:09.000Z"
+  "coverage_since": "2026-10-07T03:44:55.000Z"
 }

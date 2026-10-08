@@ -1,57 +1,51 @@
 {
   "stats": {
-    "total": 59,
+    "total": 60,
     "first_at": "2025-09-17T04:02:52.000Z",
-    "last_at": "2026-10-07T03:35:09.000Z",
-    "last_text": "We shipped four things that were deemed good to great and some math proofs, but the vote is clear and the community demands a reset. I did calibrate it and it *seems* that the game is rigged in reset's favor, but such are the rules at the moment.\n\nTherefore ... the reset has been https://t.co/mHSI0Pcu4M",
-    "days_since_last": 0.9779097222222223,
-    "avg_interval_days": 6.637599177841634,
-    "median_interval_days": 3.216273148148148,
-    "sd_interval_days": 10.877260568160736,
+    "last_at": "2026-10-08T03:44:55.000Z",
+    "last_text": "Confirmed landed across all accounts. How are we doing so far? https://t.co/tzw7dNX4pN",
+    "days_since_last": 0.018604722222222224,
+    "avg_interval_days": 6.542161605461392,
+    "median_interval_days": 3.096388888888889,
+    "sd_interval_days": 10.809150987484236,
     "longest_wait_days": 67.74240740740741,
     "shortest_wait_days": 0.15936342592592592,
-    "credit_count": 6,
+    "credit_count": 7,
     "reset_count": 53,
-    "hit_within_avg": 0.6896551724137931
+    "hit_within_avg": 0.6949152542372882
   },
-  "generated_at": "2026-10-08T03:03:21.322Z",
+  "generated_at": "2026-10-08T04:11:42.617Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
-    "stoppedBy": "known",
-    "newTweets": 2,
-    "knownCount": 305,
+    "stoppedBy": "floor",
+    "newTweets": 3,
+    "knownCount": 307,
     "reply": {
       "mode": "incremental",
-      "stoppedBy": "known",
-      "steps": 7,
-      "harvested": 14,
-      "withContext": 14,
+      "stoppedBy": "floor",
+      "steps": 6,
+      "harvested": 9,
+      "withContext": 9,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 1,
-      "attempted": 1,
-      "fetched": 1,
+      "candidates": 0,
+      "attempted": 0,
+      "fetched": 0,
       "skipped": 0,
-      "scanned": [
-        {
-          "id": "2107676072871600470",
-          "length": 297,
-          "showMore": false
-        }
-      ]
+      "scanned": []
     }
   },
   "history": {
-    "added": 0,
+    "added": 1,
     "updated": 0,
-    "upstreamCount": 58,
-    "refreshedAt": "2026-10-08T03:02:55.784Z",
+    "upstreamCount": 59,
+    "refreshedAt": "2026-10-08T04:11:28.603Z",
     "error": null,
-    "changed": false,
-    "patchedTexts": 0
+    "changed": true,
+    "patchedTexts": 1
   },
   "last_full_at": "2026-10-05T10:30:19.757Z",
   "errors": []
