@@ -471,6 +471,8 @@ curl -s https://reset.example.com/ | grep -o 'id="gen"[^<]*<[^>]*>[^<]*' | head 
 | 预检容器与生产容器**同时挂 `/srv/tibo-data`** 是安全的 | `server/entrypoint.sh` 只在数据目录**为空**时才铺种子数据（判据是 `ls -A` 为空），已有数据「一个字都不碰」；两个容器都只读渲染。所以第 6.5 步的对照可以直接用真数据，不必另造夹具 |
 | `p.b64` 自己也要比哈希 | 分块 `printf '%s' '<块>' >> p.b64` 丢字符是**不会报错**的 —— 它是追加，不是校验。第 4 步之前先 `sha256sum p.b64` 与本机同文件比对，把「传输」这一步也纳入判据（比对点 4 处 → 5 处）|
 | 预检容器不必接 `--network` | 它只被 `127.0.0.1:8788` 访问，不参与网关解析，所以不用加入 `petcare_petcare-network`。但**必须显式挂同一个数据卷** —— 卷是 bind mount，不在 `docker commit` 的结果里，临时镜像里的 `/app/data` 只是构建期的种子数据；不挂卷就是拿种子数据去对照，白跑 |
+| ⛔ **`wget -q -T 5 -O <文件> <url>` 也被平台拦**（第三轮实测撞到，与上面两条同族） | 一整条 `echo alive; echo probe1; wget -q -T 5 -O /tmp/b.json http://127.0.0.1:8788/api/signals; ls -l /tmp/b.json; head -c 200 /tmp/b.json` 被判 `AccessDeny`，而单独发 `echo alive` 能过、把取数换成 `wget -qO- -T 5 <url> \| head -c 200` 也能过。**下发时一律用 `-qO-` 管道形式，不要用 `-O <文件>` 落盘。** ⚠ 没有进一步二分到具体是哪个片段触发的，别当成精确定位；能确认的只是「同一条里连 `echo alive` 也被拒」= 内容被拦、不是通道不通 |
+| `grep -c` 计数为 0 会让整条命令被记成失败 | `(ss -lntp) \| grep -c 8788` 在没命中时 exit 1，经连接器下发会把整条判定为 `FAILED`，看着像命令出错，其实结果是「0，已释放」。查「有没有」时写成 `grep -c ... \|\| true`，或改用 `grep -q ... && echo yes \|\| echo no` |
 
 ⚠ `docker commit` 会把容器的环境变量一起写进新镜像（含 `INGEST_TOKEN`）—— 这是这条应急
 路径**绕不过去的代价**。原设计是第 8 步仍传 `--env-file /srv/tibo.env`，让「凭据来自哪个
@@ -479,31 +481,37 @@ curl -s https://reset.example.com/ | grep -o 'id="gen"[^<]*<[^>]*>[^<]*' | head 
 核对 —— 新旧容器的 `INGEST_TOKEN` 与 `SITE_URL` 哈希逐字节相同，行为等价。等 SSH 恢复、
 回到常规镜像流程后，这件事自动消失（那时凭据回到 `--env-file`）。
 
-**实测留档**（供下一次估量。两轮记在同一张表里，按**镜像基线**分列 —— 基线 SHA 才是
-「线上 src 长什么样」的唯一标识，比「第几次」可靠）：
+**实测留档**（供下一次估量。三轮记在同一张表里，按**轮次标识**分列 —— 用一个 commit 指代
+「这一轮之后线上 src 长什么样」，比「第几次」可靠。注意第二轮的起点**不是**整份 `2c34f3e`：
+它只改了 render / index 两个文件，signals.mjs 当时仍停在 `2c34f3e` 版）：
 
-| 项 | 基线 `c6a9228` | 基线 `2c34f3e` |
-|---|---|---|
-| 传的文件 | 3 个：`src/lib/signals.mjs`、`src/lib/render.mjs`、`src/index.html` | 2 个：`src/lib/render.mjs`、`src/index.html`（改动量 +35 −27）|
-| 载荷 | 补丁 304 行 / 17104 B → `gzip -9` 7932 B → base64 10576 B → **切 6 块** | 补丁 102 行 / 6522 B → `gzip -9` 3564 B → base64 4752 B → **切 3 块** |
-| 比对 | 4 处：gz、patch、补丁后、容器内 | **5 处**（多一道 `p.b64` 自身的哈希）：全部逐字节相同 |
-| 预检 | 8788 vs 8787：`occurred` **7 → 5**、`program` **无 → 有**、页面新块 0 → 2 处 | 8788 vs 8787：页面「留档超出上限」**1 → 0 处**；`diff` 共出 3 处，其中**代码差异只有两处**（`.sig-prog` 上边距、那行提示），第三处是页面上「已过 N 分 N 秒」的计数（两次抓取时刻不同，不是改动）|
-| 停机窗口 | 见下（当时记的是 `sleep` 的时长）| **0.46 秒** |
-| 新镜像 tag / 回滚点 | `tibo-reset:amd64-20261007` / `tibo-reset-prev` | `tibo-reset:amd64-20261007b` / `tibo-reset-prev`（`tibo-reset:amd64` 原 tag 仍未被动过）|
+| 项 | 第一轮 `c6a9228` | 第二轮 `2c34f3e` | 第三轮 `28f1ada` |
+|---|---|---|---|
+| 传的文件 | 3 个：`src/lib/signals.mjs`、`src/lib/render.mjs`、`src/index.html` | 2 个：`src/lib/render.mjs`、`src/index.html`（改动量 +35 −27）| **1 个**：`src/lib/signals.mjs`（1537 → 1673 行）|
+| 载荷 | 补丁 304 行 / 17104 B → `gzip -9` 7932 B → base64 10576 B → **切 6 块** | 补丁 102 行 / 6522 B → `gzip -9` 3564 B → base64 4752 B → **切 3 块** | 补丁 202 行 / 12345 B → `gzip -9` 5694 B → base64 7593 B → **切 4 块**（1900 × 3 + 1893）|
+| 比对 | 4 处：gz、patch、补丁后、容器内 | **5 处**（多一道 `p.b64` 自身的哈希）：全部逐字节相同 | 5 处 + 补丁行数（202）|
+| 预检 | 8788 vs 8787：`occurred` **7 → 5**、`program` **无 → 有**、页面新块 0 → 2 处 | 8788 vs 8787：页面「留档超出上限」**1 → 0 处**；`diff` 共出 3 处，其中**代码差异只有两处**（`.sig-prog` 上边距、那行提示），第三处是页面上「已过 N 分 N 秒」的计数（两次抓取时刻不同，不是改动）| 8788 vs 8787：`level` **explicit → occurred**、`explicit` **1 → 0**、`occurred` **6 → 7**（新增的正是那条 `19:19:17` 发卡推文，`downgradedFrom` 为空 = 当场判定，不是过期降级）；`hint` / `none` / `rejected` / `scanned` **逐项全等**。页面：explicit 预告块 + 倒数条 + 窗口块整组换成 `sig-idle`（86203 B → 82499 B）|
+| 停机窗口 | 见下（当时记的是 `sleep` 的时长）| **0.46 秒** | **0.51 秒**（容器间隔 0.26 秒）|
+| 新镜像 tag / 回滚点 | `tibo-reset:amd64-20261007` / `tibo-reset-prev` | `tibo-reset:amd64-20261007b` / `tibo-reset-prev` | `tibo-reset:amd64-20261008` / `tibo-reset-prev`（现指 `amd64-20261007b`；`tibo-reset:amd64` 原 tag 仍未被动过）|
 
 ⚠ **「停机窗口」这一格以前记错了口径。** 上面那个「≈9 秒」是 `sleep` 的时长，不是站点不可用
 的时长 —— 它把「等健康检查转绿」也算进去了，而健康检查本来就有自己的间隔。真正的窗口是
 **旧进程停止 → 新进程开始监听**，两个时刻都能直接读出来：
 
 ```
-docker inspect tibo-reset-prev --format '{{.State.FinishedAt}}'   # 2026-10-07T03:53:23.811507369Z
-docker inspect tibo-reset      --format '{{.State.StartedAt}}'    # 2026-10-07T03:53:24.056657488Z
+docker inspect tibo-reset-prev --format '{{.State.FinishedAt}}'   # 第二轮 2026-10-07T03:53:23.811507369Z
+docker inspect tibo-reset      --format '{{.State.StartedAt}}'    # 第二轮 2026-10-07T03:53:24.056657488Z
 docker logs -t --tail 30 tibo-reset                               # 末行「监听 8787」@ 03:53:24.269
 ```
 
-旧停 → 新容器创建 **0.25 秒**，→ 后端开始监听 **0.46 秒**。所以「`stop` / `rename` / `run`
-串在一条命令里」的收益是实的：窗口是**进程重启**级的，不是「人手动几步」级的。下次别再用
-`sleep` 的时长当停机时长记，会系统性高估一个数量级。
+旧停 → 新容器创建 **0.25 秒**，→ 后端开始监听 **0.46 秒**。
+
+第三轮（`28f1ada`）按同一口径再量一次，量级相同：旧停 `03:01:46.578903524` →
+新起 `03:01:46.835809416`（**0.257 秒**）→ 日志「监听 8787」`03:01:47.085374427`（**0.506 秒**）。
+
+所以「`stop` / `rename` / `run` 串在一条命令里」的收益是实的：窗口是**进程重启**级的
+（两次实测都稳定在半个秒上下），不是「人手动几步」级的。下次别再用 `sleep` 的时长当停机
+时长记，会系统性高估一个数量级。
 
 ### 改代码的完整动作
 
