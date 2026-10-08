@@ -13,7 +13,7 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { analyzeTweet, detectSignals, latestEventMs, hasOccurredPart, detectProgram, SOURCE_ZONE, USER_ZONE } from '../src/lib/signals.mjs';
+import { analyzeTweet, detectSignals, latestEventMs, hasOccurredPart, hasOccurredReset, detectProgram, SOURCE_ZONE, USER_ZONE } from '../src/lib/signals.mjs';
 import { renderSignal } from '../src/lib/render.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -1428,6 +1428,99 @@ console.log('\n【13】留档触顶（D-039）：页面上不再出现，数字�
   // 对照：未触顶时两个数本来就相等 —— 证明上一条不是恒绿
   const normal = renderSignal({ ...base, hints: bulk(43, 'h'), counts: { hint: 43, rejected: 0 } });
   check('对照：未触顶时报 43', normal.includes('43 条线索'), (normal.match(/\d+ 条线索/) ?? ['(无)'])[0]);
+}
+
+/* ==== 14. 时间词与重置的句子级绑定（D-040）==== */
+
+console.log('\n【14】寒暄句里的时间词，不当成对重置的承诺（句子级绑定）');
+
+{
+  /* 真实场景（2026-10-08 老大报「重置卡已经到账了，为什么你的预测还是未到账」）：
+   * 10-07 那条 Day 3 推文说的是「今天正在给所有付费账号发一张预留重置卡」，
+   * 却因为正文的 today（"today is also a little celebration day"）与末句的
+   * tomorrow（"See you again tomorrow!"，他从 Day N/ 系列推文里的日常告别语 ——
+   * 前一天那条结尾也是 "See you tomorrow for Day 3!"）被判成「预告明天有一次重置」，
+   * 页面上挂着「距窗口开启 2026.10.08（周四）15:00」。
+   *
+   * 修法是两步、有先后：① 正文里存在一整句构成「已发生」的陈述；② 成立之后，
+   * 才把时间词收缩到「讲重置的那些句子」里。下面每条各守一步，外加三个反例。
+   */
+  const DAY3 =
+    'Day 3/ The big one is GPT-6 in Chat, but today is also a little celebration day ' +
+    'with a new high of 40M active users across Codex and ChatGPT Work. ' +
+    "Loading a banked reset in everyone's paid accounts. See you again tomorrow!";
+  const AT = '2026-10-07T19:19:17.000Z';
+  const day3 = run(DAY3, AT, 'day3');
+
+  check('这条判成 occurred（发卡是既成事实）', day3.level === 'occurred', day3.level);
+  check('窗口被清空（不再指向 10-08）', day3.window === null, JSON.stringify(day3.window));
+  check('occurredAt 是它自己的发布时刻', day3.occurredAt === AT, day3.occurredAt);
+  check(
+    '不是靠「预告过期降级」那条通道救回来的（那要等到 10-09 14:59）',
+    day3.downgradedFrom === undefined,
+    String(day3.downgradedFrom)
+  );
+  // 设计意图的守卫：修复刻意**不动** `hasOccurredReset` —— 它服务的是「这条推文的
+  // 主旨是不是宣告已发生」，按整条判在那个语义下是对的（见它自己的注释）。
+  check('前提未变：hasOccurredReset 对整条仍返回 false', hasOccurredReset(DAY3) === false);
+
+  const sig = detectSignals([{ id: 'day3', text: DAY3, created_at: AT }], {
+    now: new Date('2026-10-08T01:27:40.000Z').getTime(),
+    lastResetAt: new Date('2026-10-07T03:35:09.000Z').getTime(),
+  });
+  check('它进了 occurred（「最近记录」里有这一条）', sig.occurred.some((x) => x.id === 'day3'));
+  check('页首不再挂着那条假预告', !sig.forecasts.some((x) => x.id === 'day3'));
+  check('页首档位落到 occurred', sig.level === 'occurred', sig.level);
+
+  // 对照：09-22 那条同句式发卡（结尾是 "Let's go!" 而不是 "tomorrow"）本来就判 occurred。
+  // 用它守住「不是把所有带 reset 的推文都改成 occurred」。
+  const SEP22 =
+    'GPT-6 Sol and Luna are out. We are loading a banked reset into all accounts of our ' +
+    "Plus, Pro and Business users. Let's go!";
+  check(
+    '对照：09-22 同句式（无时间词）仍是 occurred',
+    run(SEP22, '2026-09-22T18:23:37.000Z', 's22').level === 'occurred'
+  );
+
+  /* 反例①：**真预告不能被吞掉**。这条没有「已发生」的整句 → 第①步不放行 →
+   * 时间词照旧参与判定，窗口必须还在。守住它的是那道前提闸门。 */
+  const fc = run("We'll reset everyone's usage limits next Tuesday.", '2026-10-01T03:00:00.000Z', 'fc1');
+  check('反例①：真预告仍是 explicit', fc.level === 'explicit', fc.level);
+  check(
+    '反例①：窗口还在（下周二）',
+    fc.level === 'explicit' && fc.timeWord === 'next tuesday' && fc.window !== null,
+    String(fc.timeWord)
+  );
+
+  /* 反例②：**只有告别语形态、但没有已发生整句**的推文不能动 —— 这里的 tomorrow
+   * 完全可能就是承诺时点，单看文本分不出「告别」与「约定」。第①步不放行，窗口留住。
+   * 它同时是 `RE_RESET_NOT_YET` 的守卫：「A reset is coming for everyone.」靠
+   * 名词化弱证据（「a reset」）会被读成「刚重置过」，补上未达语态闸门后才判对。 */
+  const fc2 = run('A reset is coming for everyone. See you tomorrow.', '2026-10-01T03:00:00.000Z', 'fc2');
+  check('反例②：没有已发生整句时不收缩，仍是 explicit', fc2.level === 'explicit', fc2.level);
+  check(
+    '反例②：tomorrow 这个窗口留住',
+    fc2.level === 'explicit' && fc2.timeWord === 'tomorrow' && fc2.window !== null,
+    String(fc2.timeWord)
+  );
+  // 反例②的另一半：**窗口过期后**也不能被降级成事实。那是 KI-010 那条降级通道
+  //（`hasOccurredPart`）上的同一个缺口 —— 不补的话，一条真预告会在 29 小时后
+  // 顺着它写成「重置发生过」，把预告读成事实。
+  const fc2Expired = detectSignals([{ id: 'fc2', text: 'A reset is coming for everyone. See you tomorrow.', created_at: '2026-10-01T03:00:00.000Z' }], {
+    now: new Date('2026-10-03T00:00:00.000Z').getTime(), // 窗口（当地 10-02 全天）已过
+    lastResetAt: 0,
+  });
+  check('反例②b：窗口过期后不降级成 occurred', !fc2Expired.occurred.some((x) => x.id === 'fc2'));
+  check('反例②b：过期后整条撤走（纯预告没有「已发生部分」）', fc2Expired.level === 'none', fc2Expired.level);
+
+  /* 反例③：**「讲重置那句」里的时间词不能被剥掉**。这条同时有已发生整句与未来整句，
+   * 第①步会放行收缩 —— 若实现成「凡放行就清空时间词」，它就丢了 next Tuesday。 */
+  const mx = run('Resets all propagated. Another reset is coming next Tuesday.', '2026-10-01T03:00:00.000Z', 'mx1');
+  check(
+    '反例③：混合推文里「讲重置那句」的时间词保留',
+    mx.level === 'explicit' && mx.timeWord === 'next tuesday',
+    mx.level + '/' + String(mx.timeWord)
+  );
 }
 
 /* ================================ 结果 ================================ */

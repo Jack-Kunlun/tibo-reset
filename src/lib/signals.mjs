@@ -125,6 +125,29 @@ const RE_SCOPE = /\b(limits?|usage|allowance|allowances|quota|quotas|rate limits
 const RE_GENEROUS = /\b(fresh|new|another|top(?:ped)?[ -]?up|refill|replenish|more|extra|unlimited|bank(?:ed|s)?)\b/i;
 // 未来语气
 const RE_FUTURE = /\b(will|we'll|i'll|gonna|going to|plan to|planning to|will be|soon|next|later|tomorrow|in \d+)\b/i;
+
+/**
+ * 「重置」本身处于**未达语态**（还没到）。
+ *
+ * 为什么单独列一条：`hasOccurredReset` 的弱证据是 `RE_ANNOUNCE`（「A/the reset」），
+ * 它的唯一闸门是「句中有具体未来时间」（`RE_FUTURE`）—— 而那张表里有
+ * will / soon / next / tomorrow，**却没有 coming / landing / arriving 这些动词**
+ *（`RE_CONTINUE` 里有，但那是「借上下文」专用的，不参与这条判定）。
+ * 于是「A reset is coming for everyone.」会被读成「刚刚重置过」。
+ * `RE_ANNOUNCE` 的注释里那句「靠巧合成立，不是判据成立」，说的就是这件事 ——
+ * 2026-10-08 写 D-040 的用例时把它实测出来了。
+ *
+ * 判据刻意**窄**：只认「be + <未达义动词>」这一个结构，不碰别的句式。
+ *   「A reset is coming / is also landing by midnight」  → 命中，是预告
+ *   「Loading a banked reset in everyone's paid accounts」→ 无 be 结构，不受影响
+ *   「We are loading a banked reset into all accounts」    → loading 无「未达」义，不受影响
+ * 最后一条是关键：`loading` 与 `coming` 在语法上都是 be + V-ing，能分开它们的
+ * 只有动词的语义（load 是动作、come 是趋向），所以词表躲不掉 —— 只能把它**限制在
+ * 一个语义类里**（未达），而不是去补 `RE_FUTURE` 那个通用表：改它会牵动
+ * `hasOccurredReset` → `classifyEvent` → `resets.json` 整条链路。
+ */
+const RE_RESET_NOT_YET =
+  /\b(?:is|are|was|were|'s|will\s+be)\b[^.!?]{0,24}?\b(?:com(?:e|ing)|land(?:ing)?|arriv(?:e|ing)|approach(?:ing)?|inbound|due|expected|scheduled|on\s+the\s+way)\b/i;
 // 已完成的过去式。
 // ⚠ `resets?` 的复数分支是**必须**的，不是顺手写的：句子主语是「Reset(s)」这个
 // 事件名词时，单复数完全取决于他当天怎么写。实测两条同义公告——
@@ -270,12 +293,35 @@ export function hasOccurredReset(text) {
  * 代价：只对「被判 explicit 且预告已过期」的推文调用（通常 0–2 条），
  * 逐句重跑一次分析可以忽略；换来的是一条本来会**静默消失**的事实。
  */
+/**
+ * 把正文拆成句子。
+ *
+ * `minLen` 滤掉「没有承载事实空间的碎片」（"See you soon." 之类）。
+ * ⚠ 判断「某个时间词落在哪一句」时**不能滤** —— 短句里的时间词会因为没有归属
+ * 而被错当成「不在重置句里」。所以默认 0（不滤），只有 `hasOccurredPart` 传 12。
+ */
+function splitSentences(text, minLen = 0) {
+  const parts = String(text ?? '').split(/(?<=[.!?])\s+|\n+/);
+  return minLen > 0 ? parts.filter((s) => s.trim().length > minLen) : parts;
+}
+
 export function hasOccurredPart(tweet, opts = {}) {
-  const text = String(tweet?.text ?? '');
   // 太短的碎片（"See you soon." 之类）不参与 —— 它们没有承载事实的空间，
   // 却会因为一个孤立的 "reset" 命中而让整条降级。
-  const parts = text.split(/(?<=[.!?])\s+|\n+/).filter((s) => s.trim().length > 12);
-  return parts.some((s) => analyzeTweet({ ...tweet, text: s }, opts).level === 'occurred');
+  //
+  // `partScan: false` 是**防递归**：本函数逐句回调 `analyzeTweet`，而
+  // `analyzeTweet` 自己也要做句子级兜底（D-040）。不关掉这一层，两边会互相
+  // 拆同一句话、无限递归。见 analyzeTweet 里 `occurredInScope` 的注释。
+  return (
+    splitSentences(tweet?.text, 12)
+      // 与 `resetSentencesOccurred` 同一道闸门：「重置还没到」的句子不算已发生。
+      // 少了它，一条**真预告**会在窗口过期后顺着本函数被降级成「重置发生过」——
+      // 那是把预告读成事实，与 D-040 要修的是同一个病，只是晚 29 小时发作。
+      .filter((s) => !RE_RESET_NOT_YET.test(s))
+      .some(
+        (s) => analyzeTweet({ ...tweet, text: s }, { ...opts, partScan: false }).level === 'occurred'
+      )
+  );
 }
 
 /**
@@ -719,6 +765,41 @@ function describeWindow(w, sourceZone, userZone) {
 /* ------------------------------- 单条分析 ------------------------------- */
 
 /**
+ * 「讲重置的那些句子」里，有没有一整句在陈述**已经发生**的事。
+ *
+ * 与 `hasOccurredPart` 只差一步：**先按 `RE_RESET` 筛掉不含重置词的句子**。
+ * 这不改变结论 —— `occurred` 的第一道闸门是 `hasOccurredReset`，而它要求
+ * `RE_RESET` 命中，所以不含重置词的句子根本判不出 occurred —— 只是少跑几次分析。
+ *
+ * 它是「整条推文在讲一件已发生的事」的一个**句级等价物**，供 D-040 的兜底用。
+ */
+function resetSentencesOccurred(tweet, opts) {
+  return splitSentences(tweet?.text)
+    .filter((s) => RE_RESET.test(s))
+    // 把「重置还没到」的句子排除掉。少了这一道，「A reset is coming for everyone.」
+    // 会因为名词化弱证据（「a reset」）成立而被当成既成事实 —— 见 RE_RESET_NOT_YET。
+    .filter((s) => !RE_RESET_NOT_YET.test(s))
+    .some(
+      (s) => analyzeTweet({ ...tweet, text: s }, { ...opts, partScan: false }).level === 'occurred'
+    );
+}
+
+/**
+ * 这个时间词有没有出现在「讲重置的句子」里。
+ *
+ * 判据用**所在的句子含不含重置词**，而不是「离它最近的重置词有多远」——
+ * 句子是时态与话题的最小完整单位，跨句的主语省略在推文语料里基本不出现。
+ * 用 `includes` 而不是字符偏移（`parseTimes` 的 `idx` 取的是该词**首次出现**的
+ * 位置，同一个词出现两次时会指错），代价是「同一个词有一处在重置句里」就算通过 ——
+ * 偏保守的一侧，宁可多留一个窗口，也不误删。
+ */
+function timeWordInResetSentence(text, word) {
+  const w = String(word ?? '').toLowerCase();
+  if (!w) return false;
+  return splitSentences(text).some((s) => RE_RESET.test(s) && s.toLowerCase().includes(w));
+}
+
+/**
  * 分析一条推文。
  * @param {{text:string, created_at:string, id?:string, account?:string}} tweet
  */
@@ -738,6 +819,40 @@ export function analyzeTweet(tweet, opts = {}) {
   // 「已发生」的**形态**判据（纯文本，只看句子长得像不像）。真正的结论在
   // 时间解析之后 —— 还要看句中有没有具体的未来时间，见下文 `occurred`。
   const occurredShape = hasOccurredReset(text);
+
+  /* ── 句级兜底（D-040）：整条被「别处的时间词」否决时，回看句子 ──────────
+   *
+   * 症状（2026-10-08 老大报「重置卡已经到账了，都，为什么你的预测还是未到账」）：
+   *   10-07 那条 ——「…Loading a banked reset in everyone's paid accounts.
+   *   See you again tomorrow!」—— 说的是「今天正在给所有付费账号发一张预留
+   *   重置卡」，却被判成「预告明天有一次重置」，页面挂着「距窗口开启
+   *   2026.10.08（周四）15:00」。
+   *
+   * 根因是**时间词与重置动作没有绑定**：`occurredShape` 按**整条推文**看时态
+   * （`hasOccurredReset` 只要正文任何一处命中 `RE_FUTURE` 就返回 false），
+   * 而这条的两处时间词都不在讲重置：
+   *   · 正文的 `today`    —— 「today is also a little celebration day」
+   *   · 末句的 `tomorrow` —— 「See you again tomorrow!」，他从 Day N/ 系列
+   *     推文里的日常告别语（前一天那条结尾也是 "See you tomorrow for Day 3!"）
+   * 于是「正在发卡」这个既成事实被 `future.some(spec > VAGUE_SPEC)` 压掉，
+   * intent ≥ 3 → 升成 explicit。
+   *
+   * 判据分两步，**第二步必须由第一步放行**：
+   *   ① 正文里存在一整句构成「已发生」的陈述（`resetSentencesOccurred`）；
+   *   ② 成立之后，才把时间词收缩到「讲重置的那些句子」里（见下文 `scopedTimes`）。
+   *
+   * ⚠ 为什么要有①这道前提，而不是无条件收缩：否则任何一条真预告都会被削掉窗口 ——
+   *   「A reset is coming. See you tomorrow.」里那个 `tomorrow` 也可能就是承诺时点，
+   *   单看文本分不出「告别」与「约定」。而一旦确认这条推文的主旨是**已发生的事**，
+   *   寒暄句里的时间词作为「重置承诺」的置信度就极低了。
+   *
+   * ⚠ 它与 KI-010 那条降级通道（`hasOccurredPart`）是同一个思路，区别只在**时机**：
+   *   那条要等「预告已过期」才触发（`staleWindowReason` 返回非空），所以实测中
+   *   页面会先挂 29 小时的假预告、再自愈；这条在判定当场就做，不留那个窗口期。
+   *   `opts.partScan !== false` 是防递归（见 `hasOccurredPart` 的注释）。
+   */
+  const occurredInScope =
+    hasReset && opts.partScan !== false && resetSentencesOccurred(tweet, opts);
 
   const ownIntent = (hasReset ? 3 : 0) + (hasScope ? 2 : 0) + (hasGenerous ? 1 : 0);
   const hasAnnounce = RE_ANNOUNCE.test(text);
@@ -795,13 +910,29 @@ export function analyzeTweet(tweet, opts = {}) {
   }
 
   const times = parseTimes(text, refTs, sourceZone);
+
+  /* 时间词收缩到「讲重置的那些句子」里（D-040）。
+   *
+   * 只在①成立（`occurredInScope`，即这条推文确实在讲一件已发生的事）时才收缩 ——
+   * 理由见上面那段注释。收缩**不动 `parseTimes`**：时间词照常解析、`candidateWindow`
+   * 的语义不变，变的只是「哪些时间词够格代表这条推文对重置的承诺」。
+   *
+   * 对 10-07 那条：`times` = [today, tomorrow]，两个都在寒暄句里 → 收缩后为空
+   * → `future` 为空 → `occurred` 成立（`occurredShape` 仍是 false，靠
+   * `occurredInScope` 补上）。于是它回到「已发生」：页面上那条假预告消失，
+   * 「最近记录」里多一条真实的发卡。
+   */
+  const scopedTimes = occurredInScope
+    ? times.filter((w) => timeWordInResetSentence(text, w.word))
+    : times;
+
   // 只保留指向未来的窗口。「未来」的判定分两档：
   //   · 具体表达（下周二 / 明天 / in 2 hours）只要还没结束就算 —— 即使已经过了半天，
   //     它仍然指向未来的那一天，不该丢；
   //   · 含糊表达（this week / weekend）要求**窗口还剩一半以上**，否则说的很可能是
   //     已经过去的那一周/那个周末。放宽到「end 晚于现在」会让寒暄里的 "Enjoy the weekend"
   //     在周日傍晚仍然算作未来窗口（KI-001）。
-  const future = times.filter((w) => {
+  const future = scopedTimes.filter((w) => {
     if (w.to < refTs) return false;
     if (w.spec <= VAGUE_SPEC) return (w.from + w.to) / 2 >= refTs;
     return true;
@@ -826,8 +957,13 @@ export function analyzeTweet(tweet, opts = {}) {
    *
    * 判据用「具体程度 > VAGUE_SPEC」而不是「有没有时间词」：含糊的 this week
    * 不足以推翻一条明确的已完成陈述，只有具体到日/时的未来表达才可以。
+   *
+   * 「已发生的形态」有两个来源，取或：
+   *   · `occurredShape`   —— 整条推文按一个句子看，命中已发生句式
+   *   · `occurredInScope` —— 整条被否决、但「讲重置的那些句子」里有一整句是已发生（D-040）
+   * 第二个来源只有在第一个失败时才有意义，它存在的理由见上面那段的注释。
    */
-  const occurred = occurredShape && !future.some((w) => w.spec > VAGUE_SPEC);
+  const occurred = (occurredShape || occurredInScope) && !future.some((w) => w.spec > VAGUE_SPEC);
 
   const createdZones = dualZone(
     new Date(refTs).toISOString(),

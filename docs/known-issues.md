@@ -714,3 +714,46 @@ const RE_FUTURE_PERFECT =
 **副作用**：`scripts/test-collect-warning.mjs` 传的是空数组（无信号可判），
 按 `test-` 前缀整体豁免，不再逐个判断。
 
+### KI-014 `RE_FUTURE` 表里没有未达动词，名词化弱证据会把预告读成事实
+
+**状态**：已收敛（2026-10-08，见 D-040）。闸门只加在**两处句级判据**上
+（`resetSentencesOccurred` / `hasOccurredPart`）；`hasOccurredReset` 的整条路径
+**仍留着缺口**。实测全库 **0 / 305** 命中，所以目前不产生任何影响 —— 登记它是因为
+它是一处「靠巧合成立」的判据。
+
+**根因**：`src/lib/signals.mjs` 里 `hasOccurredReset` 的**名词化**是一条弱证据
+（`RE_ANNOUNCE` 的「A/the reset」），它唯一的闸门是「句中不能有未来语气」（`RE_FUTURE`）。
+而 `RE_FUTURE` 表里有 will / soon / next / tomorrow，**没有 coming / landing / arriving**。
+于是：
+
+> 「**A reset is coming** for everyone. See you tomorrow.」
+
+逐句判时，「A reset is coming for everyone.」这句自己一个 `RE_FUTURE` 词都没命中
+→ 弱证据成立 → 被读成「刚刚重置过」。
+
+`RE_ANNOUNCE` 的注释里其实早写过同一件事：「早先这一版之所以没暴露，是因为真实那句话里
+恰好有 "See you soon"，命中了 `RE_FUTURE` 才侥幸走了预告分支 —— **靠巧合成立，不是判据
+成立**」。这条 KI 就是那句话的兑现：把巧合去掉，它立刻复现。
+
+**影响范围**（收敛前）：
+
+| 路径 | 后果 |
+|---|---|
+| `analyzeTweet` 的句级兜底（D-040 新增） | 一条真预告被判成 occurred，页面上「最近记录」多一条假的「重置发生过」 |
+| `hasOccurredPart`（KI-010 的过期降级通道） | 同一条推文在窗口过期后被降级成「事实」—— 同一个病，晚 29 小时发作 |
+| `hasOccurredReset` 整条路径（**仍留着**） | `classifyEvent` 会把这类推文的 `kind` 标成 `'reset'`，而信号侧判 explicit —— 同一份数据两个结论 |
+
+**修法**：新增 `RE_RESET_NOT_YET`，只认「be + 未达义动词」这一个结构
+（`com(?:e|ing)` / `land(?:ing)?` / `arriv(?:e|ing)` / `approaching` / `inbound` /
+`due` / `expected` / `scheduled` / `on the way`），加在两处句级判据的拆句处。
+
+词表**必须**按语义类划，不能按语法结构划：`We are loading a banked reset…` 里的 `loading`
+与 `coming` 在语法上都是 be + V-ing，能分开它们的只有动词的语义（load 是动作、come 是趋向）。
+
+**为什么没直接补 `RE_FUTURE`**：它是通用表，被 `hasOccurredReset`（→ `classifyEvent`
+→ `resets.json` 的 `type`）与「含未来语气」的 reasons 文案共用。补它会从信号层扩到
+数据层，超出 D-040 要修的范围。
+
+**回归用例**：`scripts/test-signals.mjs` 的【14】反例② 与反例②b —— 前者守「当场不误判」，
+后者守「过期后不误降级」。反例验证：去掉这道闸门 → 4 项报红。
+

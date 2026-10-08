@@ -4,6 +4,96 @@
 >
 > 完整的技术选型（含部署清单、成本、风险）见 `tech-selection.md`，本文只留决策本身。
 
+## D-040 时间词与重置做句子级绑定：寒暄句里的时间词不算承诺
+
+**背景**：老大报「重置卡已经到账了都，为什么你的预测还是未到账」。
+
+**症状**：主入口信号区挂着
+
+> 明确信号 · Tibo 已预告**下一次**额度重置 · 距窗口开启 2026.10.08（周四）15:00
+
+而这条预告的来源（10-07 19:19Z）说的是「…**Loading a banked reset** in everyone's paid
+accounts. See you again **tomorrow**!」—— **当天正在给所有付费账号发一张预留重置卡**。
+同页下半部还写着「上次重置 2026.10.07 11:35 · 已过 21 小时 52 分」，两处口径打架。
+
+**根因：两处判据都按「整条推文」看时态，而这条推文里两个时间词都与重置无关。**
+
+| 时间词 | 出处 | 权重 |
+|---|---|---|
+| `today` | 「today is also a little celebration day」 | 72 |
+| `tomorrow` | 「See you again tomorrow!」—— 他从 Day N/ 系列推文里的日常告别语（前一天那条结尾也是 "See you tomorrow for Day 3!"） | 86 |
+
+1. `hasOccurredReset` 里 `if (RE_FUTURE.test(t)) return false` —— `tomorrow` 就在 `RE_FUTURE`
+   表里，**一票否决**整条的「已发生」；
+2. `occurred = occurredShape && !future.some((w) => w.spec > VAGUE_SPEC)` —— `today`(72)、
+   `tomorrow`(86) 都过阈值(50)。
+
+**对照证据**（跑真函数的反事实，不是读代码推的）：
+
+| 文本 | occurredShape | 判定 | 窗口 |
+|---|---|---|---|
+| 线上原文（today + tomorrow） | false | explicit | 10-08 |
+| 只留正文 today，去掉末句 | true | explicit | 10-07 |
+| today→the day，留末句 tomorrow | false | explicit | 10-08 |
+| 两个时间词都去掉 | true | **occurred** | 无 |
+| 09-22 同句式（"…loading a banked reset… **Let's go!**"，无时间词） | true | **occurred** | 无 |
+
+**为什么已有机制没兜住**：`hasOccurredPart`（KI-010 的降级通道）**本来能救** ——
+实测对这条返回 `true` —— 但它只挂在「预告已过期」那个分支上（`staleWindowReason` 非空），
+而窗口是 10-08 15:00。后果是**页面先挂 29 小时假预告，到 10-09 14:59 才自愈**；
+更糟的是 10-08 15:00 一开窗，`data-over` 由 0 翻 1，页面会从「距窗口开启」切成
+「**窗口已开启 · 随时可能重置**」，一路挂到明晚 —— 比不修更误导。
+
+**决策**：
+
+1. **时间词与重置做句子级绑定，但带一道前提**：
+   ① 正文里存在一整句构成「已发生」的陈述（`resetSentencesOccurred`）；
+   ② **只有①成立**，才把时间词收缩到「讲重置的那些句子」里（`scopedTimes`）。
+   为什么必须有①：不然任何真预告都会被削掉窗口 ——「A reset is coming. See you tomorrow.」
+   里那个 `tomorrow` 也可能就是承诺时点，单看文本分不出「告别」与「约定」（下面反例②）。
+   而一旦确认这条推文的主旨在**已发生的事**，寒暄句里的时间词作为「重置承诺」的置信度
+   就极低了。这与 KI-010 是同一个思路，区别只在**时机**：那条等过期才触发，这条当场做。
+2. **不动 `hasOccurredReset`**。它服务的是「这条推文的**主旨**是不是宣告已发生」，按整条
+   判在那个语义下是对的（见它自己的注释）。改它会经 `classifyEvent` 牵到 `resets.json`
+   的 `kind` —— 影响面从信号层扩到数据层，超出这次要修的范围。
+3. **补一个 `RE_RESET_NOT_YET`（未达语态）闸门，只加在两处句级判据上**
+   （`resetSentencesOccurred` 与 `hasOccurredPart`）。这是**写用例时实测出来的第二个坑**：
+   「**A reset is coming** for everyone.」靠名词化弱证据（`RE_ANNOUNCE` 的「A/the reset」）
+   会被读成「刚重置过」—— `RE_FUTURE` 表里有 will/soon/next/tomorrow，**却没有
+   coming / landing / arriving**。`RE_ANNOUNCE` 注释里那句「靠巧合成立，不是判据成立」
+   说的正是这件事（真实语料里恰好有 "See you soon" 压着才没暴露）。
+   词表刻意**窄**，只认「be + 未达义动词」这一个结构：
+   `We are loading a banked reset…` 里的 `loading` 与 `coming` 语法上都是 be + V-ing，
+   分开它们的只有语义，所以词表躲不掉 —— 只能把它限制在一个语义类里。
+4. **`hasOccurredPart` 同步加闸门**。不加的话，一条真预告会在窗口过期后顺着 KI-010 那条
+   通道被降级成「重置发生过」—— 同一个病，晚 29 小时发作。
+
+**验证**：
+
+| 项 | 结果 |
+|---|---|
+| 反事实四例 | 见上表；目标那条 explicit → occurred、窗口清空 |
+| 全库 305 条逐条 diff（`analyzeTweet`） | **只有 1 条变化**，正是目标那条；zero 误伤 |
+| `detectSignals` 四个时刻 diff | 10-08 有差异（explicit→occurred、forecasts 少「2026.10.08（周四）」）；**10-09 / 10-12 / 10-20 零差异** |
+| 反例验证（三个方向还原） | 去掉 `occurredInScope` → 4 红；去掉时间词收缩 → 5 红；去掉未达语态闸门 → 4 红（含「过期后」那一半）。恢复后哈希逐字节一致 |
+| 回归用例 | `scripts/test-signals.mjs` 新增【14】14 项，含 3 个反例；全套 **218 项**通过 |
+| 端点确认 | 那条推文 `downgradedFrom === undefined` —— 是**当场**判成 occurred，不走过期降级 |
+
+**被否掉的选项**
+
+| 选项 | 否掉的理由 |
+|---|---|
+| 改 `hasOccurredReset`（把未达语态加进它的否决条件） | 它被 `classifyEvent` 共用 → 会改 `tweets.json` 的 `kind` 与 `resets.json` 的 `type`。这次要修的是信号层判据，不该把数据层一起搅动 |
+| 把 `coming` / `landing` 补进 `RE_FUTURE` | 同上：`RE_FUTURE` 是通用表，被 `hasOccurredReset` 与「含未来语气」的 reasons 文案共用 |
+| 无条件收缩时间词（去掉①那道前提） | 任何真预告都会被削掉窗口 —— 反例② 实测变红 |
+| 不修，等 29 小时自愈 | 中间 29 小时页面在说假话；10-08 15:00 后还会切成「窗口已开启 · 随时可能重置」 |
+| 把 `hasOccurredPart` 的调用提前到「不用等过期」 | 会改 `explicit` 的语义、牵动整条识别链；而本条的修法只需要在**判定当场**多一个句级判据 |
+
+**已知边界（记下来，别当成已解决）**：`RE_RESET_NOT_YET` 只加在两处**句级**判据上，
+`hasOccurredReset` 的整条路径仍留着那个缺口（`hasOccurredReset("A reset is coming…")`
+照旧返回 true）。实测全库 **0 / 305** 命中，所以目前不产生任何影响；但它是理论上存在的
+不一致（同一条推文采集侧标 `kind:'reset'`、信号侧判 explicit）。见 KI-014。
+
 ## D-039 页面不再复述「留档触顶」，并把顶栏正下方那一块的上边距补上
 
 **背景**：老大看到线上页面顶部这行字 ——
