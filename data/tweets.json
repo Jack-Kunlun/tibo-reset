@@ -91,8 +91,8 @@
       "url": "https://x.com/thsottiaux/status/2107913738791596286",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-07T19:29:08.945Z",
       "inReplyTo": {
         "account": "poteto",
@@ -109,8 +109,8 @@
       "url": "https://x.com/thsottiaux/status/2107913674593644711",
       "kind": "credit",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-07T19:29:08.945Z",
       "inReplyTo": {
         "account": "poteto",
@@ -5051,7 +5051,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-08T04:11:42.446Z",
+  "updated_at": "2026-10-08T05:14:30.023Z",
   "source": "browser",
   "coverage_since": "2026-10-07T03:44:55.000Z"
 }
