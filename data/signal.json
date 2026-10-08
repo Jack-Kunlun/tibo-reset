@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-08T14:43:13.758Z",
-  "checkedTweets": 317,
+  "generatedAt": "2026-10-08T19:56:32.669Z",
+  "checkedTweets": 318,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-09T14:43:13.758Z",
-  "windowTo": "2026-10-08T14:43:13.758Z",
+  "windowFrom": "2026-08-09T19:56:32.669Z",
+  "windowTo": "2026-10-08T19:56:32.669Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -87,10 +87,10 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.10.08",
-      "weekday": "周四",
-      "time": "22:43",
-      "text": "2026.10.08（周四）22:43",
+      "date": "2026.10.09",
+      "weekday": "周五",
+      "time": "03:56",
+      "text": "2026.10.09（周五）03:56",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,36 +98,32 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.08",
       "weekday": "周四",
-      "time": "07:43",
-      "text": "2026.10.08（周四）07:43",
+      "time": "12:56",
+      "text": "2026.10.08（周四）12:56",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2108199520836485472",
+    "id": "2108275041276420573",
     "account": "thsottiaux",
-    "text": "Back to work then @poteto . May the b/dots thrive in this world.",
-    "createdAt": "2026-10-08T14:15:08.000Z",
-    "url": "https://x.com/thsottiaux/status/2108199520836485472",
+    "text": "Day 4/ We have improved steering to be instant, leading to the model now reacting much faster to adjustments you make, allowing you to course-correct direction in realtime and not have the model waste effort. Also releasing GPT-6.1 Sol ultrafast. The two work very well together.",
+    "createdAt": "2026-10-08T19:15:14.000Z",
+    "url": "https://x.com/thsottiaux/status/2108275041276420573",
     "reasons": [
-      "上下文：回复 @GergelyOrosz「It was hilarious at first, funny at …」"
+      "含发布/宣传语境（下调置信度）"
     ],
     "viaContext": false,
-    "inReplyTo": {
-      "account": "GergelyOrosz",
-      "id": "",
-      "text": "It was hilarious at first, funny at second but it’s starting to get tiring and borderline annoying, Grok Bot and Codex/Dots not stopping at throwing punches at one another"
-    },
+    "inReplyTo": null,
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.10.08",
-        "weekday": "周四",
-        "time": "22:15",
-        "text": "2026.10.08（周四）22:15",
+        "date": "2026.10.09",
+        "weekday": "周五",
+        "time": "03:15",
+        "text": "2026.10.09（周五）03:15",
         "offset": "UTC+8"
       },
       "b": {
@@ -135,8 +131,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.08",
         "weekday": "周四",
-        "time": "07:15",
-        "text": "2026.10.08（周四）07:15",
+        "time": "12:15",
+        "text": "2026.10.08（周四）12:15",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -1700,7 +1696,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-08T14:43:13.758Z"
+        "checkedAt": "2026-10-08T19:56:32.669Z"
       }
     },
     {
@@ -2494,6 +2490,44 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2108275041276420573",
+      "account": "thsottiaux",
+      "text": "Day 4/ We have improved steering to be instant, leading to the model now reacting much faster to adjustments you make, allowing you to course-correct direction in realtime and not have the model waste effort. Also releasing GPT-6.1 Sol ultrafast. The two work very well together.",
+      "createdAt": "2026-10-08T19:15:14.000Z",
+      "url": "https://x.com/thsottiaux/status/2108275041276420573",
+      "reasons": [
+        "含发布/宣传语境（下调置信度）"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.09",
+          "weekday": "周五",
+          "time": "03:15",
+          "text": "2026.10.09（周五）03:15",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.08",
+          "weekday": "周四",
+          "time": "12:15",
+          "text": "2026.10.08（周四）12:15",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2108199520836485472",
       "account": "thsottiaux",
@@ -10662,59 +10696,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2102290126344974551",
-      "account": "thsottiaux",
-      "text": "Negroni is on you",
-      "createdAt": "2026-09-22T06:53:19.000Z",
-      "url": "https://x.com/thsottiaux/status/2102290126344974551",
-      "reasons": [
-        "上下文：回复 @FintechKristen「Plenty of payment APIs to go around …」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "FintechKristen",
-        "id": "",
-        "text": "Plenty of payment APIs to go around 😘"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.22",
-          "weekday": "周二",
-          "time": "14:53",
-          "text": "2026.09.22（周二）14:53",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.21",
-          "weekday": "周一",
-          "time": "23:53",
-          "text": "2026.09.21（周一）23:53",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 317,
+    "scanned": 318,
     "explicit": 0,
     "occurred": 7,
     "hint": 44,
-    "none": 260,
-    "rejected": 260
+    "none": 261,
+    "rejected": 261
   },
   "truncated": true
 }

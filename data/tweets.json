@@ -1,6 +1,18 @@
 {
   "tweets": [
     {
+      "id": "2108275041276420573",
+      "text": "Day 4/ We have improved steering to be instant, leading to the model now reacting much faster to adjustments you make, allowing you to course-correct direction in realtime and not have the model waste effort. Also releasing GPT-6.1 Sol ultrafast. The two work very well together.",
+      "created_at": "2026-10-08T19:15:14.000Z",
+      "url": "https://x.com/thsottiaux/status/2108275041276420573",
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-08T19:56:32.667Z"
+    },
+    {
       "id": "2108199520836485472",
       "text": "Back to work then @poteto . May the b/dots thrive in this world.",
       "created_at": "2026-10-08T14:15:08.000Z",
@@ -5170,7 +5182,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-08T14:43:13.755Z",
+  "updated_at": "2026-10-08T19:56:32.668Z",
   "source": "browser",
   "coverage_since": "2026-10-07T03:44:55.000Z"
 }
