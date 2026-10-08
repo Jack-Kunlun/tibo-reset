@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-08T11:34:12.613Z",
-  "checkedTweets": 316,
+  "generatedAt": "2026-10-08T14:43:13.758Z",
+  "checkedTweets": 317,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-09T11:34:12.613Z",
-  "windowTo": "2026-10-08T11:34:12.613Z",
+  "windowFrom": "2026-08-09T14:43:13.758Z",
+  "windowTo": "2026-10-08T14:43:13.758Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.08",
       "weekday": "周四",
-      "time": "19:34",
-      "text": "2026.10.08（周四）19:34",
+      "time": "22:43",
+      "text": "2026.10.08（周四）22:43",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,27 +98,27 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.08",
       "weekday": "周四",
-      "time": "04:34",
-      "text": "2026.10.08（周四）04:34",
+      "time": "07:43",
+      "text": "2026.10.08（周四）07:43",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2108086116683526498",
+    "id": "2108199520836485472",
     "account": "thsottiaux",
-    "text": "Ah.. spoiled my Day 17",
-    "createdAt": "2026-10-08T06:44:31.000Z",
-    "url": "https://x.com/thsottiaux/status/2108086116683526498",
+    "text": "Back to work then @poteto . May the b/dots thrive in this world.",
+    "createdAt": "2026-10-08T14:15:08.000Z",
+    "url": "https://x.com/thsottiaux/status/2108199520836485472",
     "reasons": [
-      "上下文：回复 @Angaisb_「Wait I just found out we can customi…」"
+      "上下文：回复 @GergelyOrosz「It was hilarious at first, funny at …」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "Angaisb_",
+      "account": "GergelyOrosz",
       "id": "",
-      "text": "Wait I just found out we can customize ChatGPT's website theme too just like we can in Codex Love it!"
+      "text": "It was hilarious at first, funny at second but it’s starting to get tiring and borderline annoying, Grok Bot and Codex/Dots not stopping at throwing punches at one another"
     },
     "createdZones": {
       "a": {
@@ -126,17 +126,17 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.08",
         "weekday": "周四",
-        "time": "14:44",
-        "text": "2026.10.08（周四）14:44",
+        "time": "22:15",
+        "text": "2026.10.08（周四）22:15",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.10.07",
-        "weekday": "周三",
-        "time": "23:44",
-        "text": "2026.10.07（周三）23:44",
+        "date": "2026.10.08",
+        "weekday": "周四",
+        "time": "07:15",
+        "text": "2026.10.08（周四）07:15",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -1700,7 +1700,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-08T11:34:12.613Z"
+        "checkedAt": "2026-10-08T14:43:13.758Z"
       }
     },
     {
@@ -2494,6 +2494,48 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2108199520836485472",
+      "account": "thsottiaux",
+      "text": "Back to work then @poteto . May the b/dots thrive in this world.",
+      "createdAt": "2026-10-08T14:15:08.000Z",
+      "url": "https://x.com/thsottiaux/status/2108199520836485472",
+      "reasons": [
+        "上下文：回复 @GergelyOrosz「It was hilarious at first, funny at …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "GergelyOrosz",
+        "id": "",
+        "text": "It was hilarious at first, funny at second but it’s starting to get tiring and borderline annoying, Grok Bot and Codex/Dots not stopping at throwing punches at one another"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.08",
+          "weekday": "周四",
+          "time": "22:15",
+          "text": "2026.10.08（周四）22:15",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.08",
+          "weekday": "周四",
+          "time": "07:15",
+          "text": "2026.10.08（周四）07:15",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2108086116683526498",
       "account": "thsottiaux",
@@ -10662,59 +10704,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2102289624945352906",
-      "account": "thsottiaux",
-      "text": "Sergio is indeed on fire",
-      "createdAt": "2026-09-22T06:51:19.000Z",
-      "url": "https://x.com/thsottiaux/status/2102289624945352906",
-      "reasons": [
-        "上下文：回复 @matteing「The team is cooking crazy right now.…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "matteing",
-        "id": "",
-        "text": "The team is cooking crazy right now. The levels are unreal."
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.22",
-          "weekday": "周二",
-          "time": "14:51",
-          "text": "2026.09.22（周二）14:51",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.21",
-          "weekday": "周一",
-          "time": "23:51",
-          "text": "2026.09.21（周一）23:51",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 316,
+    "scanned": 317,
     "explicit": 0,
     "occurred": 7,
     "hint": 44,
-    "none": 259,
-    "rejected": 259
+    "none": 260,
+    "rejected": 260
   },
   "truncated": true
 }
