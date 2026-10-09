@@ -4,14 +4,19 @@
  *
  *   1. dist/index.html           网页（单文件，图表 SVG 已在构建期渲染好）
  *   2. dist/og-image.png         F8 分享卡片预览图（缺中文字体时跳过）
- *   3. miniprogram/data/snapshot.js  小程序首屏数据快照
- *   4. miniprogram/utils/*.js        双端共享模块的同步副本（scene.js / outlook.mjs）
+ *   3. dist/og-meta.json         同一张卡的描述，供运行期填 og:description
+ *   4. miniprogram/data/snapshot.js  小程序首屏数据快照
+ *   5. miniprogram/utils/*.js        双端共享模块的同步副本（scene.js / outlook.mjs）
+ *
+ * 产物的去处不同：dist/index.html 只作**实时渲染失败时的兜底**，共享模块副本入库，
+ * 而 og-image.png + og-meta.json 由 `scripts/push-ingest.mjs` **随数据一起推给后端**
+ * —— 容器里没有 resvg（D-002 运行镜像零依赖），渲染不了这张图。见 server/og.mjs。
  *
  * 为什么小程序要有快照：小程序的 request 合法域名必须 ICP 备案，
  * 域名没配好之前整个页面会白屏。快照让小程序**离线也能出完整首屏**，
  * 联网后再用 /api/state 覆盖 —— 部署失败不会变成事故。
  */
-import { copyFile, readFile, writeFile, mkdir } from 'node:fs/promises';
+import { copyFile, readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -110,7 +115,30 @@ const html = renderPage({
 
 await mkdir(resolve(ROOT, 'dist'), { recursive: true });
 await writeFile(resolve(ROOT, 'dist/index.html'), html, 'utf8');
-if (og) await writeFile(resolve(ROOT, 'dist/og-image.png'), og.png);
+if (og) {
+  await writeFile(resolve(ROOT, 'dist/og-image.png'), og.png);
+  // 描述单独落一个 JSON：容器渲染不了那张图，但 og:description 是纯文本，
+  // 得跟着图一起走 —— 两者必须来自**同一次构建**，否则卡片会「配新图说旧话」。
+  // 由 scripts/push-ingest.mjs 随 data/ 一起 POST（见 server/og.mjs）。
+  await writeFile(
+    resolve(ROOT, 'dist/og-meta.json'),
+    `${JSON.stringify(
+      {
+        description: og.description,
+        builtAt: new Date(now).toISOString(),
+        width: og.width,
+        height: og.height,
+      },
+      null,
+      2
+    )}\n`,
+    'utf8'
+  );
+} else {
+  // 缺中文字体时不出图。顺手把**上一轮**的描述清掉 —— 留着它会让推送把一句
+  // 与新图对不上的话送上去，而那句话是卡片上唯一可读的部分。
+  await rm(resolve(ROOT, 'dist/og-meta.json'), { force: true });
+}
 
 // 图标拷贝成独立文件（理由见 logoDataUri 的注释）。
 // Pages 发布的是整个 dist/（collect.yml 里 upload-pages-artifact 的 path），
@@ -153,6 +181,7 @@ const kb = (s) => (Buffer.byteLength(s) / 1024).toFixed(1) + ' KB';
 console.log(`✓ dist/index.html            ${kb(html)}  ${chartData.count} 条记录 · 图表已预渲染（品牌标已内联）`);
 if (og) {
   console.log(`✓ dist/og-image.png          ${kb(og.png)}  ${og.width}×${og.height} 分享卡片`);
+  console.log(`✓ dist/og-meta.json          卡片描述（随数据推给后端，构成 og:description）`);
 }
 console.log('✓ dist/favicon.png            32×32    浏览器标签页图标');
 console.log('✓ dist/apple-touch-icon.png   180×180  iOS 添加到主屏');

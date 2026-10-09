@@ -20,9 +20,14 @@
  *   ① 命中必须全部落在基线登记的路径上；② 同一路径的 blob 数不得增加。
  *   于是「有人往别的文件里写 /Users/<用户名>/」或「又提交了一版旧内容」都会立刻报红。
  *
- * 覆盖范围：所有 ref 可达的对象（= 会被推送、也会被公开读到的那部分）。
- * 另有【7】段顺带查**不可达对象**——那些只在本地 .git 里，GitHub 上没有，
- * 但拿到这个项目目录的人仍能挖出来。它只提示、不判失败。
+ * 覆盖范围：**会被推送的 ref**（heads / remotes / tags）可达的对象
+ * —— 那才是「会被公开读到的那部分」。
+ *   本地工具的检查点 ref（`refs/codex/turn-diffs/checkpoints/*` 之类）**不算**：
+ *   它们指向的是**工作区快照**（实测是一个 tree，不是提交），`git push` 从不发送它们，
+ *   而工作区里的 `miniprogram/config.js` 本来就长期带着真实域名（那是设计）。
+ *   把它们算成「可达」会让这条防线**常态化报红**，而常态化报红等于没有防线 ——
+ *   实测 2026-10-09：一个 12:45 的检查点就足以让它红，且那条红**无法通过任何改代码消除**。
+ *   它们仍然被【7】段覆盖（不可达对象，只提示、不判失败），所以不是「眼不见为净」。
  */
 
 import { spawnSync } from 'node:child_process';
@@ -64,9 +69,22 @@ if (shallow) {
   process.exit(0);
 }
 
-/** 所有 ref 可达的 oid -> 路径（同一 blob 被多个路径引用时取先出现的那个）。 */
+/**
+ * 「会被推送」的 ref。刻意**不写 `--all`** —— 那会把本地工具的检查点也算进来，
+ * 而那些 ref 既不会被 push，也不在公开仓库里（理由见文件头）。
+ * 万一一个 ref 都没有（异常仓库），退回 `--all`：宁可多查，也不要静默空转。
+ */
+function pushedRefs() {
+  const out =
+    git(['for-each-ref', '--format=%(refname)', 'refs/heads', 'refs/remotes', 'refs/tags']).stdout ||
+    '';
+  const refs = out.split('\n').filter(Boolean);
+  return refs.length ? refs : ['--all'];
+}
+
+/** 可推送的 ref 可达的 oid -> 路径（同一 blob 被多个路径引用时取先出现的那个）。 */
 function reachableObjects() {
-  const out = git(['rev-list', '--all', '--objects']).stdout || '';
+  const out = git(['rev-list', '--objects', ...pushedRefs()]).stdout || '';
   const map = new Map();
   for (const line of out.split('\n')) {
     if (!line) continue;
@@ -228,7 +246,8 @@ function lineOf(s, at) {
 
 /* ============================ 扫描 ============================ */
 
-console.log('扫描范围：所有 ref 可达的对象（即已经/将会被公开读到的那部分）');
+console.log('扫描范围：heads / remotes / tags 可达的对象（即会被 push 出去的那部分）');
+console.log('（本地工具的检查点 ref 不算 —— 它们指向工作区快照，不会被 push；见【7】段的提示）');
 
 const reach = reachableObjects();
 const blobs = readBlobs([...reach.keys()].filter((oid) => reach.get(oid) !== '（提交/树）'));

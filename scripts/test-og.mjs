@@ -6,21 +6,29 @@
  * 最典型的一种是缺中文字体 —— resvg 不会抛错，它只是把每个汉字画成空方框，
  * 页面照样发布，直到有人在微信里分享出去才发现预览图是豆腐块。
  *
- * 校验四件事：
+ * 校验五件事：
  *   1. 缺字体时**不出图**（守卫生效），而不是产出一张坏卡片
  *   2. 出图尺寸正确（1200×630）、无 NaN / undefined
  *   3. 核心数字落在中心 1000×500 安全区内（平台裁切后仍在）
  *   4. og:meta 的三种状态：有域名 / 无域名 / 需要转义
+ *   5. 运行期送来的卡片（server/og.mjs）的形状校验与「推送件优先、dist/ 回落」
+ *
+ * 第 5 项守的是「卡片陈旧」这条静默失败：`dist/` 只在 `docker build` 时更新，
+ * 而线上换容器走 diff + `docker commit` —— 只认 `dist/` 的话卡片会无限期停在旧数值
+ * （2026-10-09 实测滞后 7 天，图上是三个错数字）。所以卡片改为经 `/api/ingest` 送达，
+ * 这里的判据要保证「送来的那份能用」「坏的那份进不来」「没有时还能退回 dist/」。
  */
 
-import { readFile } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { buildChartData } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
 import { OG_H, OG_LAYOUT, OG_W, buildOgImage, detectCjkFont, ogNumbers } from './og-image.mjs';
 import { renderOgMeta } from '../src/lib/render.mjs';
+import { decodeOgPng, readOgMeta, resolveOgMeta, writeOgAsset } from '../server/og.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -170,6 +178,86 @@ console.log('\n【og:meta】');
     '属性值转义：引号不会提前闭合 meta 标签',
     quoted.includes('&quot;') && quoted.includes('&amp;') && !quoted.includes('content="带"')
   );
+}
+
+/* ============ 5. 运行期送来的卡片（server/og.mjs） ============ */
+
+console.log('\n【运行期卡片：形状校验与回落】');
+
+/** 形状合法的最小 PNG（签名 + IHDR 声明的宽高），用于测尺寸判据 */
+function fakePng(width = 1200, height = 630) {
+  const buf = Buffer.alloc(24);
+  buf.write('\x89PNG\r\n\x1a\n', 0, 'latin1');
+  buf.writeUInt32BE(13, 8);
+  buf.write('IHDR', 12, 'latin1');
+  buf.writeUInt32BE(width, 16);
+  buf.writeUInt32BE(height, 20);
+  return buf;
+}
+
+// 上面出图失败（缺字体）时已记过一条失败，这里不能跟着崩 —— 退了整个套件就看不到汇总
+const realPng = og ? og.png : fakePng();
+
+{
+  const tmp = await mkdtemp(join(tmpdir(), 'tibo-og-'));
+  const dataDir = join(tmp, 'data');
+  const distPng = join(tmp, 'dist-og-image.png');
+
+  check('decodeOgPng 认得真 PNG', decodeOgPng(realPng.toString('base64')) !== null);
+  check(
+    'decodeOgPng 拒绝非 PNG 内容（Buffer.from 对坏 base64 不抛错，靠签名挡）',
+    decodeOgPng(Buffer.from('hello').toString('base64')) === null
+  );
+  check('decodeOgPng 拒绝尺寸不符的 PNG', decodeOgPng(fakePng(800, 600).toString('base64')) === null);
+  check('decodeOgPng 拒绝空值', decodeOgPng('') === null && decodeOgPng(undefined) === null);
+
+  check(
+    '没配 SITE_URL → 整体不输出（宁可少两条 meta，也不给抓不到的地址）',
+    (await resolveOgMeta({ dataDir, siteUrl: '', distPng })) === null
+  );
+  check(
+    '两侧都没有 → 不输出 og:image',
+    (await resolveOgMeta({ dataDir, siteUrl: SITE, distPng })) === null
+  );
+
+  // 只有镜像里那份：这是**新容器刚起来、自动化还没推第一轮**时的状态
+  await writeFile(distPng, realPng);
+  const fallback = await resolveOgMeta({ dataDir, siteUrl: SITE, distPng });
+  check(
+    '只有 dist/ 那份时：给出 imageUrl，描述留给兜底文案',
+    fallback?.imageUrl === `${SITE}/og-image.png` && fallback.description === undefined,
+    JSON.stringify(fallback)
+  );
+
+  // 推送来的那份优先
+  await writeOgAsset(dataDir, {
+    png: realPng,
+    description: '推送来的描述',
+    builtAt: '2026-10-09T06:00:00Z',
+  });
+  const pushed = await resolveOgMeta({ dataDir, siteUrl: SITE, distPng });
+  check(
+    '有推送来的那份时：描述取推送的（这才是卡片不再陈旧的关键）',
+    pushed?.description === '推送来的描述' && pushed.imageUrl === `${SITE}/og-image.png`,
+    JSON.stringify(pushed)
+  );
+  check(
+    'readOgMeta 留着 builtAt 与字节数（/api/health 靠它报卡片新鲜度）',
+    (await readOgMeta(dataDir))?.builtAt === '2026-10-09T06:00:00Z' &&
+      (await readOgMeta(dataDir))?.bytes === realPng.length,
+    JSON.stringify(await readOgMeta(dataDir))
+  );
+
+  // meta 在而 PNG 不在（半状态）→ 不能给出一个 404 的地址
+  const orphanDir = join(tmp, 'orphan-data');
+  await mkdir(join(orphanDir, 'og'), { recursive: true });
+  await writeFile(join(orphanDir, 'og', 'meta.json'), JSON.stringify({ description: '孤儿描述' }));
+  check(
+    '只有描述、没有 PNG（半状态）→ 不认它，也不输出一个 404 的地址',
+    (await resolveOgMeta({ dataDir: orphanDir, siteUrl: SITE, distPng: join(tmp, 'nope.png') })) === null
+  );
+
+  await rm(tmp, { recursive: true, force: true });
 }
 
 /* ======================== 结果 ======================== */

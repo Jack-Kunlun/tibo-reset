@@ -12,8 +12,14 @@
  *   数据由本机采集后直接 POST 到 /api/ingest，一天里会变很多次。若页面是构建期快照，
  *   每次数据变化都要重新构建 + 重新部署才生效；而「拿数据渲染页面」这件事后端本来
  *   就会做 —— 它与构建共用 src/lib/page.mjs 同一套代码，不存在两份实现。
- *   实时渲染之后，数据一到、刷新即新，构建只负责 OG 分享图那类**图片**产物。
+ *   实时渲染之后，数据一到、刷新即新。
  *   dist/index.html 仍在，但降级为兜底：渲染出错时退回它，宁可数据旧也不白屏。
+ *
+ * OG 分享图（F8）也与数据一起送达，落点与解析见 server/og.mjs：
+ *   那张图**只能构建期出**（要 resvg + 中文字体），而运行镜像零依赖（D-002），
+ *   所以它由本机构建后经 /api/ingest 送进来，服务端优先发 `data/og/` 那份、
+ *   回落到镜像里的 `dist/og-image.png`。dist/ 那份只在 docker build 时更新，
+ *   而线上换容器走 diff + docker commit —— 只认 dist/ 的话卡片会无限期停在旧数值。
  *
  * 零依赖（只用 node:http），因为要跑在一台只做转发的境内小机器上 —— 装依赖本身就是风险。
  *
@@ -64,6 +70,7 @@ import { derive, logoDataUri, renderPage } from '../src/lib/page.mjs';
 import { createStore } from './store.mjs';
 import { createScheduler } from './scheduler.mjs';
 import { handleIngest } from './ingest.mjs';
+import { ogPaths, readOgMeta, resolveOgMeta } from './og.mjs';
 import {
   createSubscriptionStore,
   handleSubscribe,
@@ -166,11 +173,9 @@ const MIME = {
   '.ico': 'image/x-icon',
 };
 
-async function serveStatic(res, urlPath) {
-  const rel = urlPath === '/' ? 'index.html' : urlPath.replace(/^\/+/, '');
-  const target = resolve(ROOT, 'dist', normalize(rel));
-  // 防目录穿越
-  if (!target.startsWith(resolve(ROOT, 'dist'))) return send(res, 403, { error: 'forbidden' });
+const DIST_DIR = resolve(ROOT, 'dist');
+
+async function sendFile(res, target) {
   try {
     const info = await stat(target);
     if (!info.isFile()) throw new Error('not a file');
@@ -187,6 +192,31 @@ async function serveStatic(res, urlPath) {
       hint: '静态资源不存在。图标与 OG 图由 `npm run build` 生成到 dist/',
     });
   }
+}
+
+async function serveStatic(res, urlPath) {
+  const rel = urlPath === '/' ? 'index.html' : urlPath.replace(/^\/+/, '');
+  const target = resolve(DIST_DIR, normalize(rel));
+  // 防目录穿越
+  if (!target.startsWith(DIST_DIR)) return send(res, 403, { error: 'forbidden' });
+  return sendFile(res, target);
+}
+
+/**
+ * OG 分享图：**优先**运行期推送的那份（数据卷），回落镜像里的 dist/。
+ *
+ * 这是本次修复在服务侧的出口 —— 别的静态资源都没有这一层覆盖，理由见 server/og.mjs：
+ * `dist/` 只在 `docker build` 时更新，而线上换容器走 diff + `docker commit`，
+ * 不重新执行构建；只认 `dist/` 的话，卡片会无限期停在最后一次真正的构建。
+ */
+async function serveOgImage(res) {
+  const pushed = ogPaths(DATA_DIR).png;
+  try {
+    if ((await stat(pushed)).isFile()) return sendFile(res, pushed);
+  } catch {
+    /* 还没推送过（新容器刚起来的那一刻），回落 dist/ */
+  }
+  return sendFile(res, resolve(DIST_DIR, 'og-image.png'));
 }
 
 /* ---------------------------- 网页实时渲染 ---------------------------- */
@@ -211,24 +241,15 @@ async function loadPageAssets() {
   return pageAssets;
 }
 
-// OG meta 里的绝对地址。OG 图是**构建期**产物（图片，接口改不了它），
-// 所以启动后解析一次即可 —— 缺文件就整体不输出，避免给平台一个抓不到的地址。
-let ogMetaResolved = false;
-let ogMeta = null;
-
+// OG meta 里的绝对地址与描述。**不能**再像以前那样「启动时解析一次就缓存」——
+// 卡片现在会随推送变新（server/og.mjs），缓存住就等于把「卡片永远是旧的」
+// 这个 bug 原样搬进新实现。缺卡片时整体不输出，避免给平台一个抓不到的地址。
 async function getOgMeta() {
-  if (ogMetaResolved) return ogMeta;
-  ogMetaResolved = true;
-  if (!SITE_URL) return (ogMeta = null);
-  try {
-    const info = await stat(resolve(ROOT, 'dist/og-image.png'));
-    ogMeta = info.isFile()
-      ? { pageUrl: SITE_URL, imageUrl: `${SITE_URL}/og-image.png` }
-      : null;
-  } catch {
-    ogMeta = null;
-  }
-  return ogMeta;
+  return resolveOgMeta({
+    dataDir: DATA_DIR,
+    siteUrl: SITE_URL,
+    distPng: resolve(DIST_DIR, 'og-image.png'),
+  });
 }
 
 async function renderIndexHtml() {
@@ -310,14 +331,22 @@ const scheduler = createScheduler({
 /* --------------------------------- 路由 --------------------------------- */
 
 const ROUTES = {
-  '/api/health': async () => ({
-    status: 'ok',
-    uptimeSec: Math.round(process.uptime()),
-    dataDir: DATA_DIR,
-    account: SOURCE_ACCOUNT,
-    collectIntervalMin: INTERVAL_MIN,
-    scheduler: scheduler.state,
-  }),
+  '/api/health': async () => {
+    const og = await readOgMeta(DATA_DIR);
+    return {
+      status: 'ok',
+      uptimeSec: Math.round(process.uptime()),
+      dataDir: DATA_DIR,
+      account: SOURCE_ACCOUNT,
+      collectIntervalMin: INTERVAL_MIN,
+      scheduler: scheduler.state,
+      // F8：分享卡是**运行期**产物，它有多新在页面上看不出来（页面文字跟数据走，
+      // 而卡片跟最后一次推送走）。想知道卡片是不是旧的，只能问这里。
+      og: og
+        ? { source: 'pushed', builtAt: og.builtAt, bytes: og.bytes }
+        : { source: 'image-dist' },
+    };
+  },
 
   '/api/state': async (url) => {
     const [statsFile, tweetsFile, prediction, signals, chart] = await Promise.all([
@@ -498,8 +527,10 @@ const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host ?? 'localhost'}`);
   if (url.pathname.startsWith('/api/')) return handleApi(req, res, url);
   // 首屏走实时渲染（两个来源的取舍见 serveIndex 上方注释）；
-  // 图标、OG 图、以及渲染失败时的兜底产物仍从 dist/ 出。
+  // 图标与渲染失败时的兜底产物仍从 dist/ 出。
   if (url.pathname === '/' || url.pathname === '/index.html') return serveIndex(res);
+  // OG 图是唯一一个「数据卷优先」的静态资源（见 serveOgImage）
+  if (url.pathname === '/og-image.png') return serveOgImage(res);
   return serveStatic(res, url.pathname);
 });
 

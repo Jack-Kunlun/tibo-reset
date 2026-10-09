@@ -1,6 +1,6 @@
 # 验收记录（M3）
 
-- 生成时间：2026-10-09T06:23:34.101Z（UTC）
+- 生成时间：2026-10-09T08:46:35.064Z（UTC）
 - 判定方式：`SITE_URL=https://<你的域名> node scripts/acceptance.mjs --write`
 - 构建锚点：本次验收**先重建** dist（SITE_URL=https://<你的域名>），所有断言读的是本次产物
 - 结论：自动判定 **10/10 通过**，另有 1 项需人工确认
@@ -14,7 +14,7 @@
 | A9 | 图元不越界、文字不小于可读下限 | `node scripts/test-miniprogram.mjs` | ✓ 全部 259 项通过 | 通过 |
 | A3 | 页面内联数字与 API 返回一致 | `node scripts/check-consistency.mjs` | ✓ 全部 28 项通过 | 通过 |
 | A6 | 占位符缺失 / 残留时构建失败（不静默产出空白页） | `在仓库副本里破坏模板后跑 npm run build，断言非零退出` | 模板缺少占位符 <!--__SIGNAL__--> ｜ 存在未替换的占位符：<!--__NOPE__--> | 通过 |
-| A8 | 时间显示与机器时区无关 | `同一 BUILD_NOW 下用三个 TZ 各构建一次并逐字节比较` | Shanghai / UTC / New_York 三次构建字节完全一致 · 页面时间为 2026.10.09 13:28（北京时间） | 通过 |
+| A8 | 时间显示与机器时区无关 | `同一 BUILD_NOW 下用三个 TZ 各构建一次并逐字节比较` | Shanghai / UTC / New_York 三次构建字节完全一致 · 页面时间为 2026.10.09 16:37（北京时间） | 通过 |
 | A7 | ≤500px 无横向溢出 | `node scripts/check-layout.mjs（无头 Chrome + iframe 定宽）` | ✓ 7 个宽度页面级均无横向溢出（scrollWidth ≤ clientWidth） | 通过 |
 | A10 | 卡片物料齐备（微信内实际展开需人工确认） | `断言 meta 齐备 + 读 PNG 头取尺寸（构建用 SITE_URL=https://<你的域名>）` | meta 6 项齐全 · 图 1200×630 | 通过 |
 | A10 | 在微信里分享一次、确认预览展开 | `人工：把链接发到微信（文件传输助手即可）看卡片` | 需你手动做一次 | 待人工 |

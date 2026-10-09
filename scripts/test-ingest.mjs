@@ -10,12 +10,14 @@
  * 用 mock 的 req/res 直接调处理器，不起网络：跑得快，且不占端口。
  */
 
+import { existsSync } from 'node:fs';
 import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { handleIngest } from '../server/ingest.mjs';
+import { ogPaths, readOgMeta } from '../server/og.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -224,6 +226,110 @@ section('4. 落盘结果');
 {
   const files = await readdir(dataDir);
   check('没有残留临时文件', !files.some((f) => f.includes('.tmp-')), files.join(', '));
+}
+
+section('5. F8 分享卡片随载荷送达');
+
+/**
+ * 造一张**形状合法**的 PNG：8 字节签名 + IHDR 声明的宽高。
+ * 服务端只做形状校验（不完整解码 —— 详见 server/og.mjs），所以这里不需要真实像素。
+ * 真图那条链路由 test-og.mjs 覆盖。
+ */
+function fakeOgPng(width = 1200, height = 630) {
+  const buf = Buffer.alloc(24);
+  buf.write('\x89PNG\r\n\x1a\n', 0, 'latin1');
+  buf.writeUInt32BE(13, 8);
+  buf.write('IHDR', 12, 'latin1');
+  buf.writeUInt32BE(width, 16);
+  buf.writeUInt32BE(height, 20);
+  return buf;
+}
+
+const T4 = '2026-09-10T03:00:00Z';
+const T5 = '2026-09-10T04:00:00Z';
+const DESC = '距上次重置 1 天 2 小时，中位剩余等待 1 天 19 小时（80% 区间 20 小时–6 天 19 小时）。';
+const ogPath = ogPaths(dataDir);
+/** 带 og 的载荷。og 传 undefined 表示「这一份不带卡片」 */
+const postWithOg = (t, og) => post(JSON.stringify({ ...payload(t), og }));
+
+{
+  // 不带 og 必须照样通 —— 老版本推送脚本、或本机还没构建过时走的就是这条路
+  const res = await postWithOg(T4, undefined);
+  const b = res.json();
+  check(
+    '不带 og 的载荷照常 accepted（og 是可选字段）',
+    res.statusCode === 200 && b?.status === 'accepted' && b?.og === 'absent',
+    JSON.stringify(b)
+  );
+  check('没带 og 时不产生卡片目录', !existsSync(ogPath.dir), 'og 目录被凭空建了出来');
+}
+
+const cardPng = fakeOgPng();
+{
+  const res = await postWithOg(T5, {
+    png: cardPng.toString('base64'),
+    description: DESC,
+    builtAt: T5,
+  });
+  const b = res.json();
+  check('带合法 og → accepted，且响应说明卡片已写', b?.status === 'accepted' && b?.og === 'written', JSON.stringify(b));
+
+  const written = await readFile(ogPath.png);
+  check('PNG 逐字节落盘', Buffer.compare(written, cardPng) === 0, `${written.length} / ${cardPng.length}`);
+  const meta = await readOgMeta(dataDir);
+  check('描述可被运行期读回', meta?.description === DESC, JSON.stringify(meta));
+  check('builtAt 一并留下（/api/health 用它报新鲜度）', meta?.builtAt === T5, String(meta?.builtAt));
+}
+
+// 坏卡片必须整份拒收，且**不能破坏已有的那张**：卡片是页面上唯一对外可见的东西，
+// 「数据更新了、卡片停在旧图」正是这次要根治的静默不一致。
+const badOgCases = [
+  ['png 不是 PNG', { png: Buffer.from('hello').toString('base64'), description: DESC, builtAt: T5 }],
+  ['png 尺寸不是 1200×630', { png: fakeOgPng(800, 600).toString('base64'), description: DESC, builtAt: T5 }],
+  ['png 过小（截断的 base64）', { png: cardPng.subarray(0, 8).toString('base64'), description: DESC, builtAt: T5 }],
+  ['description 缺失', { png: cardPng.toString('base64'), builtAt: T5 }],
+  ['description 全空白', { png: cardPng.toString('base64'), description: '   ', builtAt: T5 }],
+  ['description 超长', { png: cardPng.toString('base64'), description: 'x'.repeat(301), builtAt: T5 }],
+  ['builtAt 非法', { png: cardPng.toString('base64'), description: DESC, builtAt: '昨天' }],
+  ['本身不是对象', 'just a string'],
+  ['png 体积超上限', { png: Buffer.alloc(2 * 1024 * 1024 + 1).toString('base64'), description: DESC, builtAt: T5 }],
+];
+
+let badIdx = 0;
+for (const [name, og] of badOgCases) {
+  // 每条都用一个**更新的**时刻，否则会被幂等判定拦成 stale，测的就不是形状校验了
+  badIdx++;
+  const t = `2026-09-10T1${badIdx}:00:00Z`;
+  const res = await postWithOg(t, og);
+  check(`og ${name} → 拒绝`, res.statusCode >= 400, `实际 ${res.statusCode}`);
+}
+
+{
+  const still = await readFile(ogPath.png);
+  const meta = await readOgMeta(dataDir);
+  check(
+    '坏了 9 次之后，原先那张卡一字未动',
+    Buffer.compare(still, cardPng) === 0 && meta?.description === DESC,
+    `png ${still.length}B / 描述 ${meta?.description?.slice(0, 12)}`
+  );
+}
+
+{
+  // 更旧的载荷带着**另一句**描述推过来 —— 必须整份判 stale，卡片不能被改写
+  const res = await postWithOg('2026-09-10T00:00:00Z', {
+    png: cardPng.toString('base64'),
+    description: '这句不该出现在线上',
+    builtAt: '2026-09-10T00:00:00Z',
+  });
+  const b = res.json();
+  const meta = await readOgMeta(dataDir);
+  check('更旧的载荷 → stale', b?.status === 'stale', JSON.stringify(b));
+  check('stale 载荷的卡片不被改写', meta?.description === DESC, String(meta?.description));
+}
+
+{
+  const files = await readdir(ogPath.dir);
+  check('卡片目录没有残留临时文件', !files.some((f) => f.includes('.tmp-')), files.join(', '));
 }
 
 /* ---------------------------- 清理 ---------------------------- */

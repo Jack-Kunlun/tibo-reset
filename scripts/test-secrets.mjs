@@ -81,6 +81,15 @@ check(
   mustNotIgnore.filter(gitIgnored).join('、') + ' 被误忽略'
 );
 
+// 运行期 OG 分享图（data/og/）。它与上面两类不同：不是秘密，但**漏进仓库同样是不可逆的** ——
+// 本机采集自动化每轮 `git add data`，不排除就每小时提交一个 ~100KB 的二进制，
+// 而 git 历史是永久的。规则只有一行、没有任何代码依赖它，所以在这里钉住。
+check(
+  '运行期 OG 分享图（data/og/）被忽略',
+  gitIgnored('data/og/og-image.png') && gitIgnored('data/og/meta.json'),
+  '规则被删 = 每小时的采集会把分享卡片当数据提交，仓库迅速膨胀且不可逆'
+);
+
 /* ============ docker 侧：.dockerignore 没有 CLI，自己解析模式 ============ */
 
 /**
@@ -126,6 +135,12 @@ check(
 check(
   'F9 订阅名单被排除（含 openid）',
   dockerIgnored('data/subscriptions.json', dockerIgnoreLines)
+);
+// 运行期状态不能当种子打进镜像 —— 否则每次换容器都带着一张旧卡片启动
+check(
+  '运行期 OG 分享图不进镜像层',
+  dockerIgnored('data/og/og-image.png', dockerIgnoreLines),
+  '它是运行期状态（本机构建后经 /api/ingest 送达），打进种子数据只会带来旧卡片'
 );
 // 反向断言：构建必需的 lock 与运行必需的 data 不能被排除掉
 check(

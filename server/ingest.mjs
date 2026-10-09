@@ -15,12 +15,18 @@
  *
  * 写入前必须校验形状：这份数据会直接决定线上页面显示什么，
  * 一条没有 announced_at 的记录就能让整个构建失败，而失败发生在境内服务察觉不到的地方。
+ *
+ * F8 分享卡片（可选的 `og` 字段）走同一条通道、同一次推送：
+ *   容器里没有 resvg（D-002「运行镜像零依赖」），渲染不了那张图 —— 它只能由本机
+ *   构建后送进来。与 data/ 一起送还有一个额外的好处：卡片上的数字与页面上的数字
+ *   来自同一次构建，不可能对不上。落点与解析见 server/og.mjs。
  */
 
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 import { saveJson } from '../src/lib/collect.mjs';
+import { MAX_OG_DESC, decodeOgPng, writeOgAsset } from './og.mjs';
 
 /** 几十条记录的载荷只有几十 KB，8MB 是宽裕到不合理都算不上的上限 */
 const MAX_BODY_BYTES = 8 * 1024 * 1024;
@@ -70,6 +76,20 @@ function validate(payload) {
 
   if (!Array.isArray(payload.tweets?.tweets)) return 'tweets.tweets 不是数组';
   if (!payload.stats || typeof payload.stats !== 'object') return 'stats 缺失';
+
+  // F8 分享卡片。可选 —— 没带就只更新数据（老版本的推送脚本、或本机还没构建过）。
+  // 但**一旦带上就必须是好的**：坏图/坏描述会让卡片停留在「对着旧图说新话」的状态，
+  // 而那正是本项目最怕的静默不一致。所以这里与其余字段同一条判据 —— 不合格就整份拒收。
+  if (payload.og !== undefined && payload.og !== null) {
+    const og = payload.og;
+    if (typeof og !== 'object' || Array.isArray(og)) return 'og 不是对象';
+    if (!decodeOgPng(og.png)) return 'og.png 不是 1200×630 的 PNG（或体积超限）';
+    if (typeof og.description !== 'string' || !og.description.trim()) return 'og.description 缺失或为空';
+    if (og.description.length > MAX_OG_DESC) {
+      return `og.description 有 ${og.description.length} 字，超过上限 ${MAX_OG_DESC}`;
+    }
+    if (!Number.isFinite(Date.parse(og.builtAt))) return 'og.builtAt 不是合法时间';
+  }
 
   return null;
 }
@@ -142,11 +162,28 @@ export async function handleIngest(req, res, { dataDir, token, send, onAccepted 
   });
   if (payload.signals) await saveJson(resolve(dataDir, 'signal.json'), payload.signals);
 
+  // F8 分享卡片。形状已在 validate 里过了，这里再解一次 —— 不是为了双重保险，
+  // 而是不想让「校验用一套判据、写入用另一套」；解不出就当作没带（数据已经落盘，
+  // 不能因为图有问题把整轮更新回滚掉）。
+  let ogWritten = 'absent';
+  if (payload.og) {
+    const png = decodeOgPng(payload.og.png);
+    if (png) {
+      await writeOgAsset(dataDir, {
+        png,
+        description: payload.og.description.trim(),
+        builtAt: payload.og.builtAt,
+      });
+      ogWritten = 'written';
+    }
+  }
+
   send(res, 200, {
     status: 'accepted',
     generatedAt: payload.generatedAt,
     records: payload.resets.records.length,
     tweets: payload.tweets.tweets.length,
+    og: ogWritten,
   });
 
   // 数据已落盘、已应答。订阅推送（F9）是后续动作，**不阻塞 CI**：

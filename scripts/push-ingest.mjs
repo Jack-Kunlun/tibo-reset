@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 /**
- * 把采集产物推给境内服务（GitHub Actions 里的最后一个步骤）。
+ * 把采集产物推给境内服务（本机采集自动化的一步；D-025 之后数据不再经过 CI）。
  *
- * 为什么单独一个脚本而不是写在 workflow 里用 curl：
+ * 推的是三样：`data/` 的三个数据文件、可选的信号结果、以及可选的 F8 分享卡片。
+ * 卡片之所以也走这里，是因为容器零运行时依赖（D-002）渲染不了那张图 —— 见 server/og.mjs。
+ *
+ * 为什么单独一个脚本而不是在调用方拼 curl：
  *   载荷要从四个文件拼出来、要带超时、要把「服务端拒收」和「网络不通」分开报，
  *   写成 curl 就是一大串 shell，还不好在本地复现。脚本本地能跑，CI 只是调用它。
  *
@@ -57,6 +60,22 @@ try {
   console.log('· 没有 data/signal.json，本次不带信号结果');
 }
 
+// F8 分享卡片：与 data/ **同一次构建**的产物，一并送过去。
+// 容器里没有 resvg（D-002「运行镜像零依赖」），渲染不了这张图 —— 它只能由本机
+// 构建后经这条通道送达。落点与解析见 server/og.mjs。
+// 没有就只送数据：`og` 是可选字段，缺它不会让整份载荷被拒。
+let ogNote = 'absent';
+try {
+  const [png, meta] = await Promise.all([
+    readFile(resolve(ROOT, 'dist/og-image.png')),
+    readJson('dist/og-meta.json'),
+  ]);
+  payload.og = { png: png.toString('base64'), description: meta.description, builtAt: meta.builtAt };
+  ogNote = 'written';
+} catch {
+  console.log('· 没有 dist/og-image.png + dist/og-meta.json（先跑 npm run build），本次不带分享卡片');
+}
+
 let res;
 try {
   res = await fetch(URL_, {
@@ -80,7 +99,13 @@ try {
 }
 
 if (res.status === 200 && body.status === 'accepted') {
-  console.log(`✓ 已推送：${body.records} 条记录 / ${body.tweets} 条推文 · ${body.generatedAt}`);
+  // 服务端是老版本时不认识 og 字段（不会回它）—— 那种情况下也一样打印「已推送」，
+  // 只是在末尾如实说明卡片没被更新。
+  const og = body.og ?? ogNote;
+  console.log(
+    `✓ 已推送：${body.records} 条记录 / ${body.tweets} 条推文 · ${body.generatedAt}` +
+      ` · 分享卡片${og === 'written' ? '已更新' : '未更新（本次没带 og）'}`
+  );
   process.exit(0);
 }
 

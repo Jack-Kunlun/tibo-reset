@@ -28,6 +28,12 @@ miniprogram/data/snapshot.js
 # 运行期数据：保留（这是产品本体），只忽略临时文件
 data/*.tmp-*
 
+# 运行期 OG 分享图：由本机构建后经 `POST /api/ingest` 送达，落在**数据卷**里（server/og.mjs）。
+# ⚠ 必须忽略：本机采集自动化每轮都 `git add data`，不排除就会**每小时**把一个
+#   ~100KB 的二进制提交进公开仓库 —— 而 git 历史是永久的，删文件删不掉已 push 的那些。
+#   它也不是数据：是构建产物，和 dist/ 同类。test-secrets.mjs 有断言守着这条规则。
+data/og/
+
 # ⚠ F9 订阅名单含 openid，属于用户个人信息，**绝不能进仓库**。
 #   它和其余 data/ 文件放在同一个目录，而 CI 会 `git add data` ——
 #   不显式排除就会被推到公开仓库里。
