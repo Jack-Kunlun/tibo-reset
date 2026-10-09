@@ -1,6 +1,17 @@
 {
   "tweets": [
     {
+      "id": "2108349826727588000",
+      "text": "Today, we are announcing ChatGPT. It is here: https:// chatgpt.com",
+      "created_at": "2026-10-09T00:12:24.000Z",
+      "url": "https://x.com/thsottiaux/status/2108349826727588000",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-09T01:15:26.727Z"
+    },
+    {
       "id": "2108275041276420573",
       "text": "Day 4/ We have improved steering to be instant, leading to the model now reacting much faster to adjustments you make, allowing you to course-correct direction in realtime and not have the model waste effort. Also releasing GPT-6.1 Sol ultrafast. The two work very well together.",
       "created_at": "2026-10-08T19:15:14.000Z",
@@ -5182,7 +5193,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-08T19:56:32.668Z",
+  "updated_at": "2026-10-09T01:15:26.728Z",
   "source": "browser",
   "coverage_since": "2026-10-07T03:44:55.000Z"
 }

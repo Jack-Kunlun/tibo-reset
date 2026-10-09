@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-08T19:56:32.669Z",
-  "checkedTweets": 318,
+  "generatedAt": "2026-10-09T01:15:26.729Z",
+  "checkedTweets": 319,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-09T19:56:32.669Z",
-  "windowTo": "2026-10-08T19:56:32.669Z",
+  "windowFrom": "2026-08-10T01:15:26.729Z",
+  "windowTo": "2026-10-09T01:15:26.729Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.09",
       "weekday": "周五",
-      "time": "03:56",
-      "text": "2026.10.09（周五）03:56",
+      "time": "09:15",
+      "text": "2026.10.09（周五）09:15",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,19 +98,19 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.08",
       "weekday": "周四",
-      "time": "12:56",
-      "text": "2026.10.08（周四）12:56",
+      "time": "18:15",
+      "text": "2026.10.08（周四）18:15",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2108275041276420573",
+    "id": "2108349826727588000",
     "account": "thsottiaux",
-    "text": "Day 4/ We have improved steering to be instant, leading to the model now reacting much faster to adjustments you make, allowing you to course-correct direction in realtime and not have the model waste effort. Also releasing GPT-6.1 Sol ultrafast. The two work very well together.",
-    "createdAt": "2026-10-08T19:15:14.000Z",
-    "url": "https://x.com/thsottiaux/status/2108275041276420573",
+    "text": "Today, we are announcing ChatGPT. It is here: https:// chatgpt.com",
+    "createdAt": "2026-10-09T00:12:24.000Z",
+    "url": "https://x.com/thsottiaux/status/2108349826727588000",
     "reasons": [
       "含发布/宣传语境（下调置信度）"
     ],
@@ -122,8 +122,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.09",
         "weekday": "周五",
-        "time": "03:15",
-        "text": "2026.10.09（周五）03:15",
+        "time": "08:12",
+        "text": "2026.10.09（周五）08:12",
         "offset": "UTC+8"
       },
       "b": {
@@ -131,17 +131,25 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.08",
         "weekday": "周四",
-        "time": "12:15",
-        "text": "2026.10.08（周四）12:15",
+        "time": "17:12",
+        "text": "2026.10.08（周四）17:12",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "none",
-    "rejected": "无额度相关词",
+    "level": "hint",
+    "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
     "intent": 0,
     "window": null,
-    "candidateWindow": null
+    "candidateWindow": {
+      "word": "today",
+      "precision": "day",
+      "from": "2026-10-08T07:00:00.000Z",
+      "to": "2026-10-09T06:59:00.000Z",
+      "dayNum": 20734,
+      "spec": 72,
+      "note": null
+    }
   },
   "signals": [],
   "occurred": [
@@ -452,6 +460,52 @@
     }
   ],
   "hints": [
+    {
+      "id": "2108349826727588000",
+      "account": "thsottiaux",
+      "text": "Today, we are announcing ChatGPT. It is here: https:// chatgpt.com",
+      "createdAt": "2026-10-09T00:12:24.000Z",
+      "url": "https://x.com/thsottiaux/status/2108349826727588000",
+      "reasons": [
+        "含发布/宣传语境（下调置信度）"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.09",
+          "weekday": "周五",
+          "time": "08:12",
+          "text": "2026.10.09（周五）08:12",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.08",
+          "weekday": "周四",
+          "time": "17:12",
+          "text": "2026.10.08（周四）17:12",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": {
+        "word": "today",
+        "precision": "day",
+        "from": "2026-10-08T07:00:00.000Z",
+        "to": "2026-10-09T06:59:00.000Z",
+        "dayNum": 20734,
+        "spec": 72,
+        "note": null
+      }
+    },
     {
       "id": "2107676261099426030",
       "account": "thsottiaux",
@@ -1696,7 +1750,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-08T19:56:32.669Z"
+        "checkedAt": "2026-10-09T01:15:26.729Z"
       }
     },
     {
@@ -10701,10 +10755,10 @@
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 318,
+    "scanned": 319,
     "explicit": 0,
     "occurred": 7,
-    "hint": 44,
+    "hint": 45,
     "none": 261,
     "rejected": 261
   },
