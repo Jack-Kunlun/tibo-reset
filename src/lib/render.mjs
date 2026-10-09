@@ -1157,9 +1157,13 @@ export function renderDigest(m, prediction, outlook) {
         longest: m.longest,
         shortest: m.shortest,
       },
-      // `q10` 与 `q90` 才是**双侧 80% 区间**的两个端点（0.9 − 0.1 = 0.8）。
-      // `q25` 保留是因为它另有用途（50% 区间的下界）且既有比对按名字取它 ——
-      // 但它**不是** 80% 区间的下界，实测覆盖率只有 68.3%（见 outlook.mjs 的注释）。
+      // `q10` 与 `q90` 才是**双侧 80% 区间**的两个端点（0.9 − 0.1 = 0.8），
+      // 而本摘要要供「页面上显示的那个区间」被逐字核对 —— 所以 `q10` 必须在。
+      // 五个分位数一并给出，是因为摘要是预测的**机器可读副本**（不是「显示值清单」）；
+      // 但谁都**不许**拿 `q25` 当 80% 区间的下界 —— 它只是 50% 区间的下界，
+      // 实测覆盖率 68.3%，不是 80%（见 outlook.mjs 的注释）。
+      // ⚠ 2026-10-09：`check-consistency.mjs` 原先正是这么比的 —— 名字写着「80% 区间」、
+      // 主语却是 q25，于是真正显示的 `q10` 反而没人核对。已改为 [q10, q90]。
       remainingDays: p ? { q10: p.q10, q25: p.q25, q50: p.q50, q75: p.q75, q90: p.q90 } : null,
       horizons: p ? p.horizons.map((h) => ({ label: h.label, p: h.p })) : null,
       phases: prediction ? prediction.phases.map((x) => ({ from: x.from, to: x.to, mean: x.mean, n: x.n })) : null,

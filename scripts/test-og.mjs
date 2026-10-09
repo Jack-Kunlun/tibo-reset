@@ -8,7 +8,7 @@
  *
  * 校验五件事：
  *   1. 缺字体时**不出图**（守卫生效），而不是产出一张坏卡片
- *   2. 出图尺寸正确（1200×630）、无 NaN / undefined
+ *   2. 出图尺寸正确（1200×630）、无 NaN / undefined、「80% 区间」两端取 [q10, q90]
  *   3. 核心数字落在中心 1000×500 安全区内（平台裁切后仍在）
  *   4. og:meta 的三种状态：有域名 / 无域名 / 需要转义
  *   5. 运行期送来的卡片（server/og.mjs）的形状校验与「推送件优先、dist/ 回落」
@@ -17,6 +17,11 @@
  * 而线上换容器走 diff + `docker commit` —— 只认 `dist/` 的话卡片会无限期停在旧数值
  * （2026-10-09 实测滞后 7 天，图上是三个错数字）。所以卡片改为经 `/api/ingest` 送达，
  * 这里的判据要保证「送来的那份能用」「坏的那份进不来」「没有时还能退回 dist/」。
+ *
+ * ⚠ 第 2 项里那条区间断言是 2026-10-09 补的，补的是一个**存在了一整天**的错：
+ *   卡片画的是 q25–q90（约 65% 区间），却在图上与 og:description 里都写「80% 区间」。
+ *   网页与小程序 10-08 就改成了 q10，唯独卡片漏掉 —— 因为**没有任何断言看过卡片这两个端点**。
+ *   缺断言的地方就是没人守的地方：格式再合法，端点错了照样全绿。
  */
 
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -26,6 +31,7 @@ import { fileURLToPath } from 'node:url';
 
 import { buildChartData } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
+import { fmtSpanShort } from '../src/lib/scene.js';
 import { OG_H, OG_LAYOUT, OG_W, buildOgImage, detectCjkFont, ogNumbers } from './og-image.mjs';
 import { renderOgMeta } from '../src/lib/render.mjs';
 import { decodeOgPng, readOgMeta, resolveOgMeta, writeOgAsset } from '../server/og.mjs';
@@ -118,6 +124,33 @@ if (!og) {
     '卡片正文不再出现小数天（图与 og:description 都不许有）',
     !/\d+\.\d+\s*天/.test(og.svg) && !/\d+\.\d+\s*天/.test(og.description),
     (og.svg.match(/\d+\.\d+\s*天/) ?? og.description.match(/\d+\.\d+\s*天/) ?? ['无'])[0]
+  );
+
+  // ---- 「80% 区间」的端点：必须是 [q10, q90] ----
+  //
+  // 这三条补的是一个**存在了一整天、且没有任何断言看过**的错：卡片上写「80% 区间」，
+  // 画的却是 `q25–q90`（约 65% 覆盖率）。10-08 改口径时网页与小程序都改了，卡片漏了，
+  // 而同一天实测卡片「20 小时」vs 页面「6 小时 17 分」。
+  // 它能活下来的原因很具体：**没有任何测试断言过卡片这两个端点** ——
+  // 格式完全合法，所以此前那些「无 NaN / 有站名 / 三个数字都在」的断言照样全绿。
+  const pAll = prediction.prediction;
+  check(
+    '卡片「80% 区间」两端 = [q10, q90]',
+    numbers.loShort === fmtSpanShort(pAll.q10) && numbers.hiShort === fmtSpanShort(pAll.q90),
+    `卡片 ${numbers.loShort}–${numbers.hiShort}；q10–q90 = ${fmtSpanShort(pAll.q10)}–${fmtSpanShort(pAll.q90)}`
+  );
+  // 上一条若是「两个端点刚好同值」就会恒真。这条证明它守得住东西。
+  check(
+    'q10 与 q25 确实是两个不同的端点（证明上一条不是恒真）',
+    fmtSpanShort(pAll.q10) !== fmtSpanShort(pAll.q25),
+    `q10=${fmtSpanShort(pAll.q10)} q25=${fmtSpanShort(pAll.q25)}`
+  );
+  check(
+    '图与 og:description 里的区间是同一对端点（不能各算各的）',
+    og.svg.includes(`80% 区间 ${numbers.loShort}`) &&
+      og.description.includes(`80% 区间 ${numbers.loShort}`) &&
+      og.description.includes(numbers.hiShort),
+    `图上「${numbers.loShort}」/ 描述「${og.description.slice(0, 70)}」`
   );
 }
 

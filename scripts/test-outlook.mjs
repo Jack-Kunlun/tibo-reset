@@ -31,7 +31,7 @@ import { fileURLToPath } from 'node:url';
 import { buildChartData } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
 import { buildOutlook, CONF_MIN_BACKTEST_N, CONF_MAX_MEDIAN_REL } from '../src/lib/outlook.mjs';
-import { renderOutlook, renderBasis, renderBasisSummary } from '../src/lib/render.mjs';
+import { renderOutlook, renderBasis, renderBasisSummary, fmtSpan } from '../src/lib/render.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DAY = 86_400_000;
@@ -125,6 +125,30 @@ check(
 check('q10 与 q25 确实是两个不同的端点', p.q10 !== p.q25, `q10=${p.q10} q25=${p.q25}`);
 check('区间左端不晚于右端', oModel.band.fromAt < oModel.band.toAt);
 check('推算支的置信度上限是「中」（没有承诺就没有「高」）', oModel.confidence !== 'high');
+
+/* --- 2b. 依据区底部那一处「80% 区间」也要守 ---------------------------- */
+//
+// 页面上「80% 区间」**有两个可见落点**：主卡（`.pc-band`，读 `o.band`）与依据区卡①
+// 底部（`.bc-range`，读 `p.q10/q90`）。上面的断言只覆盖了前者 ——
+// 而这两处取数路径不同，主卡绿说明不了依据区绿。
+//
+// 2026-10-09 补这条：同一批里已经有三处（卡片 / 诊断 / 一致性校验）因为
+// 「名字写着 80%、取的却是 q25」而漂了一天，唯独**没有任何断言**看过这一处。
+// 判据用「抽得到 + 抽到的那 200 字里必须是 q10/q90」：抽不到就算失败，
+// 免得改名之后这条静默变恒真（`.` 那个类名是稳定锚点，但它也有可能被改）。
+const basisHtml = renderBasis(oModel, chart, prediction, OUTLOOK_SIGNALS);
+const bcAt = basisHtml.indexOf('class="bc-range"');
+const bc = bcAt < 0 ? '' : basisHtml.slice(bcAt, bcAt + 200);
+
+check(
+  '抽得到依据区底部的 .bc-range（抽不到 = 它被改名/删除，请同步更新本测试）',
+  bcAt >= 0
+);
+check(
+  '依据区底部的「80% 区间」渲染的是 q10–q90',
+  bc.includes(fmtSpan(p.q10)) && bc.includes(fmtSpan(p.q90)) && !bc.includes(fmtSpan(p.q25)),
+  `片段「${bc.replace(/\s+/g, ' ').slice(0, 80)}」；q10=${fmtSpan(p.q10)} / q25=${fmtSpan(p.q25)}`
+);
 
 /* ======================== 3. 公告支的三种粒度 ======================== */
 

@@ -6,7 +6,7 @@
  * 但**桌面那一侧没有任何对应校验** —— 网页端的图画出画布，同样是静默变成一片空白，
  * 只是没人盯着看就不会发现。本脚本补上另一半。
  *
- * 校验五件事：
+ * 校验六件事：
  *   1. 双端共享模块（`scene.js` / `outlook.mjs`）的副本与源逐字一致。
  *      AGENTS.md 规定副本由构建同步、不得手改 —— 这里就是那条规矩的执行者。
  *      注意本脚本要**在 build 之前**跑：跑在之后的话，副本刚被覆盖，校验恒真、等于没有。
@@ -14,6 +14,7 @@
  *   3. 桌面宽度下图元全部落在画布内
  *   4. 图内文字不小于可读下限，且序列化后不出现 NaN / undefined
  *   5. 「时长文案」的三处实现口径一致（见第 7 节 —— 这是同一类漂移的第二次守卫）
+ *   6. 「80% 区间」的六个产出端都取 [q10, q90]（见第 8 节 —— 第三次守卫）
  */
 
 import { readFile } from 'node:fs/promises';
@@ -608,6 +609,84 @@ check(
   '86399.6 秒这条用例真的踩在 floor/round 分歧点上（不是恒真）',
   floorText !== spanOf(86_399.6 * SEC).text,
   `floor 口径给「${floorText}」，round 口径给「${spanOf(86_399.6 * SEC).text}」—— 两者相同说明该用例已失效`
+);
+
+/* --- 8. 「80% 区间」的端点口径：六个产出端都必须取 [q10, q90] -------- */
+//
+// 这是**同一类漂移的第三次守卫**（第一次是 §7 的时长文案，第二次见 D-042）。
+// 同一个名字「80% 区间」在仓库里有六个产出端，而它们各自能从 `prediction` 里挑不同的
+// 分位数 —— 挑错了谁都不报错：名字对、格式对、句子通顺，只是数字属于另一个区间。
+//
+//   | 产出端 | 文件 | 谁看得见 | 改动前的断言 |
+//   | 网页主卡 | `src/lib/outlook.mjs` | 用户 | 有（test-outlook）|
+//   | 小程序 | `miniprogram/utils/view.js` | 用户 | 有（test-miniprogram）|
+//   | 网页依据区 | `src/lib/render.mjs` | 用户 | 无 → 2026-10-09 补 |
+//   | 分享卡片 | `scripts/og-image.mjs` | 用户（微信/飞书预览图）| 无 → 2026-10-09 补 |
+//   | 诊断输出 | `scripts/diagnose.mjs` | 开发者（照着它写文案）| 无 |
+//   | 一致性校验 | `scripts/check-consistency.mjs` | 开发者（A3 门禁自己）| 名字就写错 |
+//
+// 2026-10-08 改口径（`[q25, q90]` → `[q10, q90]`，见 D-042）时只改了前两个；
+// **漏掉的四处恰好都是没人断言过的**。卡片上写「80% 区间 20 小时–6 天 19 小时」，
+// 而页面上写「6 小时 17 分」—— 两张图讲的是同一件事，数字差三倍。
+// 一致性校验那处更绕：名字写着「80% 区间」、比的却是 q25，于是真正显示出来的 q10
+// 反而从来没人核对过；两边都「通过」，而显示值可以各自漂移。
+//
+// 形态选**源码抽取**而不是行为断言：六个产出端的产物各不相同（DOM 片段 / canvas
+// 指令 / SVG 里的一段 `<text>` / 一行控制台文本），行为断言要写六套、各配一套夹具；
+// 而它们要守的其实是同一句话 ——「这个标签后面跟的是哪两个分位数」。
+// ⚠ 抽不到 = 失败：改名或重构会让这条防线静默失效，还长着一副全绿的脸
+//   （与 `extractFn` 的注释同一个道理）。
+
+/** 先剥注释再扫 —— 注释里写的正是「这里曾经用 q25」，不剥掉会把说明文字当成违规。 */
+function stripComments(src) {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .split('\n')
+    // `//` 前面不是 `:` 才算注释，免得把 `https://` 也切掉
+    .map((l) => l.replace(/(^|[^:])\/\/.*$/, '$1'))
+    .join('\n');
+}
+
+const BAND_CONSUMERS = [
+  { name: '网页主卡', file: 'src/lib/outlook.mjs', marker: 'band = { fromAt', span: 160 },
+  { name: '小程序', file: 'miniprogram/utils/view.js', marker: 'range:', span: 120 },
+  { name: '网页依据区', file: 'src/lib/render.mjs', marker: 'class="bc-range"', span: 200 },
+  { name: '分享卡片', file: 'scripts/og-image.mjs', marker: 'loShort:', span: 200 },
+  { name: '诊断输出', file: 'scripts/diagnose.mjs', marker: '80% 区间', span: 150 },
+  { name: '一致性校验', file: 'scripts/check-consistency.mjs', marker: '80% 区间', span: 400 },
+];
+
+const bandSources = new Map();
+for (const f of new Set(BAND_CONSUMERS.map((c) => c.file))) {
+  bandSources.set(f, stripComments(await readFile(resolve(ROOT, f), 'utf8')));
+}
+
+let bandWindows = 0;
+const bandBad = [];
+for (const c of BAND_CONSUMERS) {
+  const src = bandSources.get(c.file);
+  let from = 0;
+  let found = 0;
+  for (;;) {
+    const at = src.indexOf(c.marker, from);
+    if (at < 0) break;
+    found++;
+    bandWindows++;
+    const w = src.slice(at, at + c.span);
+    if (!w.includes('q10')) bandBad.push(`${c.name}「${c.marker}」附近没有 q10 —— 下界不是 80% 区间的下界`);
+    if (!w.includes('q90')) bandBad.push(`${c.name}「${c.marker}」附近没有 q90`);
+    if (w.includes('q25')) bandBad.push(`${c.name}「${c.marker}」附近出现了 q25（65% 区间，不是 80%）`);
+    from = at + c.marker.length;
+  }
+  if (!found) {
+    bandBad.push(`${c.name}：在 ${c.file} 里抽不到「${c.marker}」—— 被改名/重构，请同步更新本测试，别让它静默失效`);
+  }
+}
+
+check(
+  `「80% 区间」的 ${BAND_CONSUMERS.length} 个产出端都取 [q10, q90]（共扫到 ${bandWindows} 处）`,
+  bandBad.length === 0,
+  brief(bandBad)
 );
 
 /* ======================== 结果 ======================== */

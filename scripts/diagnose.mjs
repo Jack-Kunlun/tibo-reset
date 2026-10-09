@@ -138,7 +138,10 @@ for (let i = 0; i < all.prediction.horizons.length; i++) {
   console.log(`   ${h.label.padEnd(12)} ${pct(h.p).padStart(8)}   ${pct(raw.p).padStart(10)}`);
 }
 console.log(`\n   中位剩余   ${all.prediction.q50.toFixed(2)} 天（原始 ${all.rawPrediction.q50.toFixed(2)} 天）`);
-console.log(`   80% 区间   ${all.prediction.q25.toFixed(1)} – ${all.prediction.q90.toFixed(1)} 天`);
+// 双侧 80% 区间的端点是 [q10, q90]（0.9 − 0.1 = 0.8）。这里曾经打 `q25` ——
+// 一个 65% 的区间被这一行标成「80% 区间」。错的不是格式而是口径：读这行的人会照它
+// 去写页面文案（AGENTS.md「用户可见文案的红线」第 4 条）。同一天网页端已改 q10。
+console.log(`   80% 区间   ${all.prediction.q10.toFixed(1)} – ${all.prediction.q90.toFixed(1)} 天`);
 console.log(`   期望剩余   ${all.prediction.expectedRemaining.toFixed(2)} 天`);
 console.log(
   `\n   Bootstrap 90% 区间（7 天概率，${all.uncertainty.iterations} 次重采样）：` +

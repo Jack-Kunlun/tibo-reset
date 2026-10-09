@@ -138,7 +138,13 @@ export function ogNumbers(model, prediction) {
   return {
     elapsed: spanOf(elapsedDays),
     remaining: p ? spanOf(p.q50) : NO_SPAN,
-    loShort: p ? fmtSpanShort(p.q25) : '—',
+    // ⚠ 下界是 `q10`，**不是** `q25` —— 双侧 80% 区间是 [q10, q90]（0.9 − 0.1 = 0.8），
+    // 而 `q25–q90` 只有约 65% 覆盖率。在卡片上写「80% 区间 20 小时–6 天 19 小时」，
+    // 就是在卡片上说一句当时并不成立的话（AGENTS.md「用户可见文案的红线」第 4 条）。
+    // 网页（`src/lib/outlook.mjs`、`src/lib/render.mjs`）与小程序（`utils/view.js`）
+    // 2026-10-08 改口径时就跟着改了，卡片这一路漏了整整一天：同一天实测，
+    // 卡片画的是「20 小时」而页面上写「6 小时 17 分」—— 而卡片是唯一没人断言过的一处。
+    loShort: p ? fmtSpanShort(p.q10) : '—',
     hiShort: p ? fmtSpanShort(p.q90) : '—',
     count: String(model.count),
     medianIntervalShort: fmtSpanShort(model.median),

@@ -128,10 +128,14 @@ check(
   `${digest.remainingDays.q50} vs ${pagePred.prediction.q50}`
 );
 check(
-  '80% 区间一致',
-  near(digest.remainingDays.q25, pagePred.prediction.q25) &&
+  // ⚠ 比的是**页面上显示的那一对端点**：[q10, q90]。
+  // 2026-10-09 更正：这里原先按 `q25` 比，名字却写着「80% 区间」—— 名字与主语不是
+  // 一件事（q25–q90 只有约 65% 覆盖率），更要紧的是**真正显示出来的 `q10` 从来没人比过**：
+  // 页面显示 [q10, q90]、校验比 [q25, q90]，两边都「通过」而显示值可以各自漂移。
+  '80% 区间（显示值 [q10, q90]）一致',
+  near(digest.remainingDays.q10, pagePred.prediction.q10) &&
     near(digest.remainingDays.q90, pagePred.prediction.q90),
-  `${digest.remainingDays.q25}–${digest.remainingDays.q90} vs ${pagePred.prediction.q25}–${pagePred.prediction.q90}`
+  `${digest.remainingDays.q10}–${digest.remainingDays.q90} vs ${pagePred.prediction.q10}–${pagePred.prediction.q90}`
 );
 check(
   '覆盖率校准值一致',
@@ -293,8 +297,9 @@ if (!api) {
     `${api.prediction.prediction.q50} vs ${apiPred.prediction.q50}`
   );
   check(
-    'API 80% 区间 == 重算',
-    near(api.prediction.prediction.q25, apiPred.prediction.q25) &&
+    // 与【①】同一个口径：显示值 = [q10, q90]。这里不写注释会在半年后被「顺手改回 q25」。
+    'API 80% 区间 [q10, q90] == 重算',
+    near(api.prediction.prediction.q10, apiPred.prediction.q10) &&
       near(api.prediction.prediction.q90, apiPred.prediction.q90)
   );
   check(
@@ -333,10 +338,13 @@ if (!api) {
     `页面 ${d1(digest.remainingDays.q50)} vs API ${d1(api.prediction.prediction.q50)}（按 0.1 天精度比）`
   );
   check(
-    '80% 区间显示值一致',
-    d1(digest.remainingDays.q25) === d1(api.prediction.prediction.q25) &&
+    // 名字里带上两端**真正显示出来**的字符串（与上一条同一套做法）：报告写「0.3 天」
+    // 而用户看到的是「6 小时 17 分」，报告本身就在换一个口径说话。
+    // 端点是 [q10, q90] —— 页面显示的就是这一对（2026-10-09 更正，原先比的是 q25）。
+    `80% 区间显示值一致（页面显示「${spanOf(digest.remainingDays.q10).text} – ${spanOf(digest.remainingDays.q90).text}」）`,
+    d1(digest.remainingDays.q10) === d1(api.prediction.prediction.q10) &&
       d1(digest.remainingDays.q90) === d1(api.prediction.prediction.q90),
-    `页面 ${d1(digest.remainingDays.q25)}–${d1(digest.remainingDays.q90)} vs API ${d1(api.prediction.prediction.q25)}–${d1(api.prediction.prediction.q90)}`
+    `页面 ${d1(digest.remainingDays.q10)}–${d1(digest.remainingDays.q90)} vs API ${d1(api.prediction.prediction.q10)}–${d1(api.prediction.prediction.q90)}`
   );
   check(
     '50% 覆盖率显示值一致',
