@@ -157,9 +157,10 @@ const predHtml = pred
    结构照 index.wxml 的那块逐句对齐 —— 预览是手写副本，不对齐就会给出一个真机上
    不存在的页面。
 
-   ⚠ 位置：`.pred` → `.sig` → **预测依据** → 它（2026-10-08 两轮改版的结果）。
+   ⚠ 位置：`.hero` → `.pred` → `.sig`/`.sig-idle` → **它** → `.bc-grid`（预测依据）。
    旧版它在全页最前，于是首屏第一眼读到的是「规则」而不是「下一次什么时候」；
-   中途挪到「信号之后」仍会探进首屏，最后落到「预测依据之后」。 */
+   2026-10-08 中途挪到「预测依据之后」，2026-10-09 老大要求「放在预测下方」，
+   于是提到信号区之后、依据之前。 */
 const progHtml = sig.program?.show
   ? `<div class="prog">
       <div class="prog-head">
@@ -374,12 +375,12 @@ ${normalize}
 
   ${signalHtml}
 
+  ${progHtml}
+
   <div class="sec-head"><span class="t">预测依据</span><span class="h">${esc(
     forecast ? forecast.hint : ''
   )}</span></div>
   ${forecastHtml}
-
-  ${progHtml}
 
   <div class="sec-head"><span class="t">历史规律</span><span class="h">n = ${chart.gapDays.length} 次历史间隔</span></div>
   <div class="lede">三张图看的是同一批历史间隔：哪一档最容易发生、到第 X 天为止发生了多少、每次各是几天。</div>

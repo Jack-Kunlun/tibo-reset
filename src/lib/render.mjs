@@ -288,11 +288,15 @@ const PRECISION_TEXT = {
  * 读者很容易把它读成「在这之前不会重置」—— 而这条规则恰好把这个读法反过来，
  * 所以它必须自己显形，不能靠读者从别处推。
  *
- * ── 为什么排到依据区之后、并在宽屏做成一行 ──────────────────────────
+ * ── 为什么排在预测区之后、依据之前、并在宽屏做成一行 ────────────────
  * 它是一条**规则**，不是结论。旧版排在首屏第一块，于是第一眼读到的是射程范围，
- * 而不是「下一次什么时候」。现在形态降成一行规则 + 右侧时区表，视觉重量低于
- * 三张依据卡。窗口块复用 `windowBlock` —— 同一种形状（当地 + 北京两行）只该有一个
- * 渲染器，页面任何一处时间都同时给两个时区（见 PRD F2）。
+ * 而不是「下一次什么时候」。2026-10-09 老大要求「放在预测下方」，于是它在
+ * **信号区之后、预测依据之前**：仍在结论与信号之下（规则不该抢结论的位置），
+ * 但提到了依据之前 —— 读者读完「预计 10.13」最先要问的是这个日子有多硬，而
+ * 「期间任何一天都可能重置」正是那个前提；「算得准不准」才是三张依据卡回答的。
+ * 形态降成一行规则 + 右侧时区表，视觉重量低于三张依据卡。窗口块复用
+ * `windowBlock` —— 同一种形状（当地 + 北京两行）只该有一个渲染器，页面任何一处
+ * 时间都同时给两个时区（见 PRD F2）。
  */
 export function renderProgram(p) {
   if (!p || !p.window) return '';
@@ -346,8 +350,8 @@ export function renderSignal(sig, opts = {}) {
   //    它是个**跨多日的持续事实**，与下面那条「某一天」的预告不是一回事，
   //    所以先出现；没有它时整块返回空串，页面与从前逐字节一致。
   //
-  //    `inlineProgram:false` 给网页端用 —— 那边把这一块挪到依据区之后的**独立一节**
-  //    （模板里的 PROGRAM 占位符，位置在历史规律之前），同一份事实在页面上只能出现一次。
+  //    `inlineProgram:false` 给网页端用 —— 那边把这一块挪到**信号区之后、预测依据
+  //    之前**的独立一节（模板里的 PROGRAM 占位符），同一份事实在页面上只能出现一次。
   //    默认 true 是为了保持既有调用方的行为不变（test-signals 直接 `renderSignal(sig)`）。
   const prog = opts.inlineProgram === false ? '' : renderProgram(sig.program);
 
@@ -1296,11 +1300,12 @@ export function renderAll(m, prediction, signals, opts = {}) {
     // 就是「有没有公告」。`inlineProgram:false`：每日重置窗口由下面那个独立的
     // PROGRAM 占位符渲染，同一条事实在页面上只出现一次。
     SIGNAL: renderSignal(signals, { inlineProgram: false }),
+    // 每日重置窗口：一条**规则**，排在**信号区之后、预测依据之前**。没有它时
+    // renderProgram 返回空串，占位符位置什么都不留（不会出现一个空壳卡片）。
+    // （键的顺序与页面顺序保持一致 —— 模板里 PROGRAM 确实在 BASIS 之前。）
+    PROGRAM: renderProgram(signals?.program),
     // 第二层：预测依据（三张卡）。
     BASIS: outlook ? renderBasis(outlook, m, prediction, signals) : '',
-    // 每日重置窗口：一条**规则**，排在依据之后。没有它时 renderProgram 返回空串，
-    // 占位符位置什么都不留（不会出现一个空壳卡片）。
-    PROGRAM: renderProgram(signals?.program),
 
     // 第三层：历史规律。三张图并成一组，故共用一条题注、各自带样本量。
     HISTOGRAM: renderHistogram(m),
