@@ -1,6 +1,24 @@
 {
   "tweets": [
     {
+      "id": "2108391597834727636",
+      "text": "i am retired",
+      "created_at": "2026-10-09T02:58:23.000Z",
+      "url": "https://x.com/thsottiaux/status/2108391597834727636",
+      "inReplyTo": {
+        "account": "Deepusleepy",
+        "id": "",
+        "text": "Season 2 coming soon, hurrayyyyyy bring in the fries boys 🍟",
+        "created_at": "2026-10-08T18:52:56.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-09T03:22:46.047Z"
+    },
+    {
       "id": "2108349826727588000",
       "text": "Today, we are announcing ChatGPT. It is here: https:// chatgpt.com",
       "created_at": "2026-10-09T00:12:24.000Z",
@@ -5193,7 +5211,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-09T01:15:26.728Z",
+  "updated_at": "2026-10-09T03:22:46.048Z",
   "source": "browser",
   "coverage_since": "2026-10-07T03:44:55.000Z"
 }

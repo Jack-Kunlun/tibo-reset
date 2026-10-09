@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-09T01:15:26.729Z",
-  "checkedTweets": 319,
+  "generatedAt": "2026-10-09T03:22:46.050Z",
+  "checkedTweets": 320,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-10T01:15:26.729Z",
-  "windowTo": "2026-10-09T01:15:26.729Z",
+  "windowFrom": "2026-08-10T03:22:46.050Z",
+  "windowTo": "2026-10-09T03:22:46.050Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.09",
       "weekday": "周五",
-      "time": "09:15",
-      "text": "2026.10.09（周五）09:15",
+      "time": "11:22",
+      "text": "2026.10.09（周五）11:22",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,32 +98,36 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.08",
       "weekday": "周四",
-      "time": "18:15",
-      "text": "2026.10.08（周四）18:15",
+      "time": "20:22",
+      "text": "2026.10.08（周四）20:22",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2108349826727588000",
+    "id": "2108391597834727636",
     "account": "thsottiaux",
-    "text": "Today, we are announcing ChatGPT. It is here: https:// chatgpt.com",
-    "createdAt": "2026-10-09T00:12:24.000Z",
-    "url": "https://x.com/thsottiaux/status/2108349826727588000",
+    "text": "i am retired",
+    "createdAt": "2026-10-09T02:58:23.000Z",
+    "url": "https://x.com/thsottiaux/status/2108391597834727636",
     "reasons": [
-      "含发布/宣传语境（下调置信度）"
+      "上下文：回复 @Deepusleepy「Season 2 coming soon, hurrayyyyyy br…」"
     ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "Deepusleepy",
+      "id": "",
+      "text": "Season 2 coming soon, hurrayyyyyy bring in the fries boys 🍟"
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.10.09",
         "weekday": "周五",
-        "time": "08:12",
-        "text": "2026.10.09（周五）08:12",
+        "time": "10:58",
+        "text": "2026.10.09（周五）10:58",
         "offset": "UTC+8"
       },
       "b": {
@@ -131,25 +135,17 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.08",
         "weekday": "周四",
-        "time": "17:12",
-        "text": "2026.10.08（周四）17:12",
+        "time": "19:58",
+        "text": "2026.10.08（周四）19:58",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "hint",
-    "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
+    "level": "none",
+    "rejected": "无额度相关词",
     "intent": 0,
     "window": null,
-    "candidateWindow": {
-      "word": "today",
-      "precision": "day",
-      "from": "2026-10-08T07:00:00.000Z",
-      "to": "2026-10-09T06:59:00.000Z",
-      "dayNum": 20734,
-      "spec": 72,
-      "note": null
-    }
+    "candidateWindow": null
   },
   "signals": [],
   "occurred": [
@@ -1750,7 +1746,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-09T01:15:26.729Z"
+        "checkedAt": "2026-10-09T03:22:46.050Z"
       }
     },
     {
@@ -2544,6 +2540,48 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2108391597834727636",
+      "account": "thsottiaux",
+      "text": "i am retired",
+      "createdAt": "2026-10-09T02:58:23.000Z",
+      "url": "https://x.com/thsottiaux/status/2108391597834727636",
+      "reasons": [
+        "上下文：回复 @Deepusleepy「Season 2 coming soon, hurrayyyyyy br…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "Deepusleepy",
+        "id": "",
+        "text": "Season 2 coming soon, hurrayyyyyy bring in the fries boys 🍟"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.09",
+          "weekday": "周五",
+          "time": "10:58",
+          "text": "2026.10.09（周五）10:58",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.08",
+          "weekday": "周四",
+          "time": "19:58",
+          "text": "2026.10.08（周四）19:58",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2108275041276420573",
       "account": "thsottiaux",
@@ -10708,59 +10746,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2102292452329820272",
-      "account": "thsottiaux",
-      "text": "Huge!!",
-      "createdAt": "2026-09-22T07:02:33.000Z",
-      "url": "https://x.com/thsottiaux/status/2102292452329820272",
-      "reasons": [
-        "上下文：回复 @steipete「Proud to say that we did our homewor…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "steipete",
-        "id": "",
-        "text": "Proud to say that we did our homework. They found nothing critical."
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.22",
-          "weekday": "周二",
-          "time": "15:02",
-          "text": "2026.09.22（周二）15:02",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.22",
-          "weekday": "周二",
-          "time": "00:02",
-          "text": "2026.09.22（周二）00:02",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 319,
+    "scanned": 320,
     "explicit": 0,
     "occurred": 7,
     "hint": 45,
-    "none": 261,
-    "rejected": 261
+    "none": 262,
+    "rejected": 262
   },
   "truncated": true
 }
