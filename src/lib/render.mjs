@@ -600,6 +600,24 @@ function fmtMDHM(ts) {
 }
 
 /**
+ * 「一轮扫了多少条、一条都没采信」—— 无公告时它是**依据的一部分**，不是修饰。
+ *
+ * 单独抽出来是因为同一句话必须出现在**两处**：
+ *   · 主卡的读屏句 `pc-brief`（见 `renderOutlook`）
+ *   · 依据摘要面板的**可见**落点 `.am-basis-note`（见 `renderBasisSummary`）
+ * 一处实现、两处消费 —— 否则「扫了多少条」会长出第二份实现；而它一旦只活在读屏
+ * 文本里，视力可见的读者就再也分不清「系统没看见」和「看见了但不够格」。这正是
+ * 2026-10-09 那次改版的教训：整句被 `am-sr-only` 藏起来，可见的依据区换成另一组
+ * 数字（覆盖率 / 平均间隔），这条披露**没有承接者**、视觉上直接消失。
+ * announced 档没有「扫描」可言，返回空串（由调用方决定这里不留痕）。
+ */
+function scanClause(o) {
+  const b = o.brief;
+  if (o.etaKind === 'announced' || b.scanned == null) return '';
+  return `本轮扫描 ${b.scanned} 条推文${b.hints ? `，${b.hints} 条时间线索` : ''}均不足以构成预告`;
+}
+
+/**
  * 一句话依据摘要。**只用 `o.brief` 给的数字原料拼句子** ——
  * 数字同源（outlook.mjs），措辞各端自己写，因为时长口径在两端本来就不同实现。
  *
@@ -617,11 +635,8 @@ function briefLine(o) {
     return `Tibo 已给出公告${bits.length ? `（${bits.join(' · ')}）` : ''}，预计时间取窗口开启时刻。`;
   }
   const n = b.intervals ? `按 ${b.intervals} 次历史间隔的节奏推算` : '按历史间隔的节奏推算';
-  const scan =
-    b.scanned == null
-      ? ''
-      : `本轮扫描 ${b.scanned} 条推文${b.hints ? `，${b.hints} 条时间线索` : ''}均不足以构成预告。`;
-  return `没有公告，${n}。${scan}`;
+  const scan = scanClause(o);
+  return `没有公告，${n}。${scan ? `${scan}。` : ''}`;
 }
 
 /* --------------------------- 卡内图标与装饰 --------------------------- */
@@ -803,11 +818,17 @@ export function renderBasisSummary(o, prediction) {
   const announcedHard = o.brief.announcedHard ?? 0;
   const sourceCount = o.etaKind === 'announced' ? announcedHard || o.brief.announcedSoft || 0 : o.brief.intervals ?? 0;
   const sourceUnit = o.etaKind === 'announced' ? (announcedHard ? '条承诺' : '条同日提及') : '次间隔';
+  // 依据的**边界披露**，必须是**可见**落点（`.am-basis-note`，不许加 `am-sr-only`）：
+  //   · 推算档 → 「扫了多少条、一条都没采信」（`scanClause`）
+  //   · 公告档 → 「依据来自公告本身」，免得读者把右下的统计读成结论的理由
+  // 它与主卡的读屏句（`pc-brief`）是**同一件事的两个家**，共用 `scanClause` 那份措辞。
+  const note = o.etaKind === 'announced' ? '依据来自公告本身，与这些统计无关' : scanClause(o);
   return `<section class="am-panel am-basis" aria-label="预测依据摘要">
     <h2>预测依据</h2>
     <div class="am-basis-row"><span class="am-muted">${o.etaKind === 'announced' ? '公告依据' : '历史推算'}</span><strong class="am-mono">${sourceCount}<small>${sourceUnit}</small></strong></div>
     <div class="am-basis-row"><span class="am-muted">80% 区间覆盖率</span><strong class="am-mono">${Number.isFinite(coverage) ? (coverage * 100).toFixed(1) : '—'}<small>%</small></strong></div>
     <div class="am-basis-row"><span class="am-muted">近期平均间隔</span><strong class="am-mono">${esc(pace.big)}<small>${esc(pace.unit)}</small></strong></div>
+    ${note ? `<p class="am-basis-note">${esc(note)}</p>` : ''}
   </section>`;
 }
 

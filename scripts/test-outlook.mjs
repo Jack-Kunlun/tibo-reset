@@ -153,6 +153,23 @@ check('主卡把公告窗口与模型 80% 区间区分开', renderOutlook(oAnn).
 check('公告主卡保留明确时刻，不能只有日期', /\d{2}:\d{2} 公告窗口开启时刻/.test(renderOutlook(oAnn)));
 check('软公告依据摘要显示同日提及数，不虚构硬承诺', renderBasisSummary(annOutlooks['soft-only'], prediction).includes('3<small>条同日提及') && !renderBasisSummary(annOutlooks['soft-only'], prediction).includes('条承诺'));
 check('推算依据摘要保留真实样本量和回测覆盖率', renderBasisSummary(oModel, prediction).includes(`${oModel.brief.intervals}<small>次间隔`) && renderBasisSummary(oModel, prediction).includes((prediction.calibration.covBand80 * 100).toFixed(1)));
+// 依据的**边界披露**必须有**可见**落点（`.am-basis-note`），且两支分工不同：
+// 推算档报「扫了多少条、一条都没采信」，公告档声明「依据来自公告本身」。
+// ⚠ 这两条与主卡那句 `pc-brief` 是**同一件事的两个家**：元素若被改回 `am-sr-only`
+//   或文字被清空，主卡的读屏句仍会命中，只看主卡发现不了 —— 所以判据必须落在
+//   `am-basis-note` 这个**元素名**上，而不是那句文字本身。
+const modelSummary = renderBasisSummary(oModel, prediction);
+check(
+  '推算依据摘要有可见披露：报出扫描条数与线索数',
+  modelSummary.includes('class="am-basis-note"') && modelSummary.includes(`${oModel.brief.scanned} 条推文`) && modelSummary.includes(`${oModel.brief.hints} 条时间线索`),
+  modelSummary.includes('class="am-basis-note"') ? '有元素但文字不符' : '缺 .am-basis-note'
+);
+const annSummary = renderBasisSummary(oAnn, prediction);
+check(
+  '公告依据摘要的可见披露换成「依据来自公告本身」，不报扫描',
+  annSummary.includes('class="am-basis-note"') && annSummary.includes('依据来自公告本身') && !annSummary.includes('条推文'),
+  `元素=${annSummary.includes('class="am-basis-note"')} 公告句=${annSummary.includes('依据来自公告本身')} 扫描=${annSummary.includes('条推文')}`
+);
 
 /* ======================== 4. 两支的依据不得串味 ======================== */
 

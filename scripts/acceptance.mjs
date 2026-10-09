@@ -149,7 +149,14 @@ const noJs = stripScripts(html);
     ['预计时间', /class="pc-eta"/],
     ['距预测重置的倒数', /id="pcd"/],
     ['80% 区间', /class="pc-band"/],
-    ['一句话依据摘要', /class="pc-brief"/],
+    /* ⚠ 匹配必须**容忍多类名**。这句话现在挂在主卡上、但视觉隐藏在 `.am-sr-only` 里
+       （留给读屏），实得是 `class="pc-brief am-sr-only"`；写死 `/class="pc-brief"/`
+       会在类名一变就误报「内容缺失」—— 2026-10-09 就是这么红的。 */
+    ['一句话依据摘要', /class="pc-brief(?: |")/],
+    /* 与上一条**同一件事的可见落点**：推算档写「扫了多少条、一条都没采信」，公告档写
+       「依据来自公告本身」。判据要求元素存在**且紧跟文字**（`">` 后直接是内容、没有
+       第二个类名）—— 谁把它改回 `am-sr-only`，或把文字清空，这里都会红。 */
+    ['依据边界披露（可见）', /class="am-basis-note">[^<]{4,}/],
     ['预测更新时间', /预测于/],
     /* 提示条：**空状态**那一行（没有公告时页面上不能是空白）。
        它是「有没有公告」这个问题的答案，所以必须有落点。 */
@@ -265,10 +272,16 @@ console.log('\n【A8】时间显示不随机器时区变化');
     const c = readFileSync(join(sandbox, 'dist/index.html'), 'utf8');
 
     const built = z1.code === 0 && z2.code === 0 && z3.code === 0;
-    ok = built && a === b && a === c;
-    const shown = (a.match(/id="gen">([^<]*)</) ?? [, '?'])[1];
+    /* ⚠ 取值必须**容忍标签上的其它属性**：模板是 `<span id="gen" class="am-mono">`，
+       写成 `/id="gen">/` 会在多一个属性时静默取不到（实得 `?`）—— 2026-10-09 D-050 给
+       它加了 `class="am-mono"`，此后留档里就一直写着「页面时间为 ?」。而三份字节相互比较
+       在「三边都取不到」时照样成立，所以取值失败**不会自己变红** —— 必须显式判它，
+       否则页脚时间整块消失也能一路全绿。 */
+    const shown = (a.match(/id="gen"[^>]*>([^<]*)</) ?? [, '?'])[1];
+    const shownOk = shown !== '?' && shown.trim() !== '';
+    ok = built && a === b && a === c && shownOk;
     detail = built
-      ? `Shanghai / UTC / New_York 三次构建${a === b && a === c ? '字节完全一致' : '存在差异'} · 页面时间为 ${shown}（北京时间）`
+      ? `Shanghai / UTC / New_York 三次构建${a === b && a === c ? '字节完全一致' : '存在差异'} · 页面时间为 ${shownOk ? shown : '取值失败（正则与模板对不上）'}（北京时间）`
       : `构建失败：${(z1.err || z2.err || z3.err).slice(-120)}`;
   } finally {
     rmSync(sandbox, { recursive: true, force: true });

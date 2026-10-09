@@ -97,6 +97,9 @@
   #observatory .am-basis-row:first-of-type{border-top:0}
   #observatory .am-basis-row strong{font-size:21px;font-weight:500;letter-spacing:-.045em;white-space:nowrap}
   #observatory .am-basis-row strong small{font-size:11px;font-weight:400;letter-spacing:0;margin-left:3px}
+  /* 依据的边界披露：必须**可见**。刻意不加边框 —— 上面 `.am-basis-row` 自带 1px 上边框，
+     这里再加一条就会与它凑成「相邻两个有边框的块」，被 A7b 判成贴线（见 check-layout.mjs）。 */
+  #observatory .am-basis-note{margin-top:12px;color:var(--am-muted);font-size:11px}
   #observatory .am-disclosure{font-size:12px;color:var(--am-muted);margin-top:14px}
   #observatory .am-disclosure summary{list-style:none;display:flex;align-items:center;gap:7px}
   #observatory .am-disclosure summary:after{content:"↗";color:var(--am-accent)}

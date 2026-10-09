@@ -336,6 +336,22 @@ check('页面隐藏时清除时钟并停下装饰动效', page.data.pageVisible 
     check('连续切换只采用最后一次展开的真实高度', page.data.programOpen && page.data.programHeight === 281, String(page.data.programHeight));
     page.onToggleProgram();
     check('收起回到零高度，内容节点可保留播放过渡', !page.data.programOpen && page.data.programHeight === 0);
+
+    /* 上面三条都只在「同一页内开关」这一面。守卫还有**后半条** ——
+       `measure !== this._programMeasure` —— 它只在**页面卸载之后回调才到达**时才
+       起作用：那时 `programOpen` 仍为 `true`（`onUnload` 不会清 data），前半个条件
+       挡不住，只有 measure 变了才能拦住这次迟到写入。
+       ⚠ 少了这条用例，后半条守卫就是**恒绿**的：早先实测「只摘掉 measure 一半」
+       时上面三条全绿，摘掉整条才变红 —— 说明它此前完全没有覆盖。 */
+    page.onToggleProgram();
+    const lateMeasure = measurements.length - 1;
+    page.onUnload();
+    measurements[lateMeasure]([{ height: 512 }]);
+    check(
+      '页面卸载后迟到的测量不再写回（这条只认 measure 守卫，不认 programOpen）',
+      page.data.programHeight === 0,
+      String(page.data.programHeight)
+    );
   } finally {
     wx.createSelectorQuery = originalQuery;
   }
