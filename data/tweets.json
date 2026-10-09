@@ -1,6 +1,39 @@
 {
   "tweets": [
     {
+      "id": "2108650026671231468",
+      "text": "Send feedback to @keyanzhang and @sharifshameem !",
+      "created_at": "2026-10-09T20:05:17.000Z",
+      "url": "https://x.com/thsottiaux/status/2108650026671231468",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-09T20:07:43.558Z"
+    },
+    {
+      "id": "2108646052178092403",
+      "text": "Day 5 (dots edition)/ You can now create and text your dot entirely from the ChatGPT mobile app. Impressed so many created them via the desktop/web app previously. Time to scale!",
+      "created_at": "2026-10-09T19:49:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2108646052178092403",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-09T20:07:43.558Z"
+    },
+    {
+      "id": "2108645667451318747",
+      "text": "Day 5/ Composer predictions in the desktop app. Often leads to a double take with how on point they are. Included in the Pro plans without consuming usage.",
+      "created_at": "2026-10-09T19:47:58.000Z",
+      "url": "https://x.com/thsottiaux/status/2108645667451318747",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-09T20:07:43.558Z"
+    },
+    {
       "id": "2108428560822424062",
       "text": "This was all client-side + network for playground only. Shipped optimized rendering logic that can keep up with ultrafast, try again",
       "created_at": "2026-10-09T05:25:16.000Z",
@@ -5229,7 +5262,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-09T05:28:36.217Z",
+  "updated_at": "2026-10-09T20:07:43.560Z",
   "source": "browser",
   "coverage_since": "2026-10-07T03:44:55.000Z"
 }
