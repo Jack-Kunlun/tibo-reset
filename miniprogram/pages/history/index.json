@@ -1,7 +1,9 @@
 {
   "usingComponents": {},
   "navigationBarTitleText": "重置历史",
+  "navigationBarBackgroundColor": "#F5F4FB",
+  "navigationBarTextStyle": "black",
   "enablePullDownRefresh": true,
   "backgroundTextStyle": "dark",
-  "backgroundColor": "#FAF8F4"
+  "backgroundColor": "#F5F4FB"
 }

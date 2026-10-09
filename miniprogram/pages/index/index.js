@@ -11,10 +11,10 @@ import config from '../../config.js';
 import { loadState, snapshotState } from '../../utils/api.js';
 import { copyText } from '../../utils/clipboard.js';
 import { indexShareTitle, isSinglePage } from '../../utils/share.js';
-import { buildGauge, buildSignal, buildMetrics, buildForecast, buildOutlookView, predCountdown } from '../../utils/view.js';
-import { survivalScene, stripScene, histogramScene } from '../../utils/scene.js';
+import { buildGauge, buildSignal, buildMetrics, buildForecast, buildOutlookView, predCountdown, readoutParts } from '../../utils/view.js';
+import { survivalScene, stripScene, histogramScene, rhythmScene } from '../../utils/scene.js';
 import { drawScene, setupCanvas } from '../../utils/draw.js';
-import { elapsed, fmtSpan, reelGroups, verdict as makeVerdict, fmtDateTime, fmtClock, fmtClockSec, toTs } from '../../utils/format.js';
+import { elapsed, reelGroups, verdict as makeVerdict, fmtDateTime, fmtClock, fmtClockSec, toTs } from '../../utils/format.js';
 import {
   ACTION_LABEL,
   DONE_LABEL,
@@ -27,6 +27,98 @@ const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
 /** 本地记住「已开启一次提醒」。服务端不提供查询 —— 一次性订阅本来就不该有长期状态 */
 const REMIND_KEY = 'tibo_remind_once_v1';
+
+function navigationLayout(singlePage = false) {
+  let info = {};
+  let menu = null;
+  try {
+    info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
+  } catch (e) {
+    info = {};
+  }
+  try {
+    menu = wx.getMenuButtonBoundingClientRect ? wx.getMenuButtonBoundingClientRect() : null;
+  } catch (e) {
+    menu = null;
+  }
+  const width = Number(info && (info.windowWidth || info.screenWidth)) || 375;
+  const statusBarHeight = Number(info && info.statusBarHeight) || 20;
+  const menuLeft = Number(menu && menu.left);
+  const menuBottom = Number(menu && menu.bottom);
+  const validMenuLeft = Number.isFinite(menuLeft) && menuLeft > 0 && menuLeft < width;
+  const validMenuBottom = Number.isFinite(menuBottom) && menuBottom > statusBarHeight;
+  const validMenuRect = validMenuLeft && validMenuBottom;
+  const capsuleReserve = validMenuRect ? Math.max(0, width - menuLeft + 10) : 96;
+  const capsuleHeight = validMenuRect ? Math.max(0, menuBottom - statusBarHeight + 6) : 44;
+  return {
+    // 朋友圈单页模式自带顶部安全空间；custom 导航下不能再把状态栏/胶囊留白叠一遍。
+    statusBarHeight: singlePage ? 0 : statusBarHeight,
+    capsuleReserve: singlePage ? 0 : capsuleReserve,
+    brandHeight: singlePage ? 44 : Math.max(44, capsuleHeight),
+  };
+}
+
+function recordRows(chart) {
+  const records = Array.isArray(chart && chart.records) ? chart.records : [];
+  return records
+    .slice(-17)
+    .reverse()
+    .map((r, i) => {
+      const ts = toTs(r && r.at);
+      return {
+        key: (r && r.id) || (r && r.at) || `record-${i}`,
+        date: Number.isFinite(ts) ? fmtDateTime(ts).slice(5) : '时间未知',
+        type: r && r.type === 'credit' ? '发券型' : '额度重置',
+        text: (r && r.text) || '',
+        url: (r && r.url) || '',
+      };
+    });
+}
+
+function trendRows(chart) {
+  const gaps = Array.isArray(chart && chart.gapDays) ? chart.gapDays : [];
+  const records = Array.isArray(chart && chart.records) ? chart.records : [];
+  const start = Math.max(0, gaps.length - 7);
+  return gaps.slice(start).map((value, i) => {
+    const record = records[start + i + 1];
+    const ts = toTs(record && record.at);
+    return {
+      value: Number(value),
+      label: Number.isFinite(ts) ? fmtDateTime(ts).slice(5, 10) : '',
+    };
+  }).filter((point) => Number.isFinite(point.value) && point.value >= 0);
+}
+
+function basisRows(pred, forecast) {
+  if (!pred || !forecast || !forecast.backtest) return [];
+  const coverage = (forecast.backtest.rows || []).find((row) => row.k === '80% 区间覆盖率');
+  const phaseRows = forecast.pace && Array.isArray(forecast.pace.phases) ? forecast.pace.phases : [];
+  const recentPhase = phaseRows.length ? phaseRows[phaseRows.length - 1] : null;
+  const announcement = pred.briefData || {};
+  const announced = pred.etaKind === 'announced';
+  const announcementParts = [];
+  if (announcement.announcedHard > 0) announcementParts.push(`${announcement.announcedHard} 条硬承诺`);
+  if (announcement.announcedSoft > 0) announcementParts.push(`${announcement.announcedSoft} 条同日提及`);
+  return [
+    {
+      key: 'source',
+      label: announced ? '公告依据' : '历史推算',
+      value: announced
+        ? announcementParts.join(' · ') || '公告窗口已确认'
+        : `${Number.isFinite(announcement.intervals) ? announcement.intervals : '—'} 次间隔`,
+    },
+    {
+      key: 'coverage',
+      label: '80% 区间覆盖率',
+      value: coverage ? coverage.v : '—',
+    },
+    {
+      key: 'pace',
+      label: '近期平均间隔',
+      value: recentPhase ? `${recentPhase.mean}${recentPhase.unit.replace(/\s+/g, '')}` : '—',
+    },
+  ].map((row) => ({ ...row, parts: readoutParts(row.value) }));
+}
 
 Page({
   data: {
@@ -42,6 +134,23 @@ Page({
     /** 直方图有没有数据 —— 没有就不渲染 canvas（`setupCanvas` 找不到节点会静默返回 null） */
     histShow: false,
     survivalN: 0,
+    basisRows: [],
+    trend: [],
+    trendCount: 0,
+    trendFirst: '',
+    trendLast: '',
+    recentRecords: [],
+    moreRecords: [],
+    moreRecordsCount: 0,
+    moreRecordsOpen: false,
+    detailsOpen: false,
+    programOpen: false,
+    signalDetailsOpen: false,
+    motionEnabled: true,
+    pageVisible: false,
+    nav: { statusBarHeight: 20, capsuleReserve: 96, brandHeight: 44 },
+    entering: false,
+    ripple: { show: false, x: 0, y: 0 },
     updText: '',
     genText: '',
     account: 'thsottiaux',
@@ -66,10 +175,14 @@ Page({
     this.lastAt = null;
     this._timer = null;
     this._painting = false;
+    this._paintAgain = false;
     this._reminding = false;
+    this._rippleTimer = null;
+    this._hasShown = false;
     // 单页模式判断要**在 initRemind 之前**完成 —— 它决定 F9 入口显不显示
     // （单页模式无登录态，wx.login 不可用，提醒链路整条走不通）。
-    this.setData({ singlePage: isSinglePage() });
+    const singlePage = isSinglePage();
+    this.setData({ singlePage, pageVisible: false, nav: navigationLayout(singlePage) });
     this.initRemind();
     // 首屏先铺内置快照，**不等网络** —— 接口回来再覆盖（见 utils/api.js 的三级降级）。
     //
@@ -90,6 +203,8 @@ Page({
   },
 
   onShow() {
+    this.setData({ pageVisible: true, entering: !this._hasShown && this.data.motionEnabled });
+    this._hasShown = true;
     this.startTicker();
     // 超过刷新间隔就静默刷新一次，避免用户切回来看到旧数据
     if (this._lastLoad && Date.now() - this._lastLoad > config.refreshIntervalMs) {
@@ -99,10 +214,13 @@ Page({
 
   onHide() {
     this.stopTicker();
+    this.clearRippleTimer();
+    this.setData({ pageVisible: false, entering: false, ripple: { show: false, x: 0, y: 0 } });
   },
 
   onUnload() {
     this.stopTicker();
+    this.clearRippleTimer();
   },
 
   onPullDownRefresh() {
@@ -123,8 +241,9 @@ Page({
 
   apply({ state, degraded, reason }) {
     const chart = state.chart;
-    const lastAt = chart ? new Date(chart.lastAt).getTime() : null;
-    const genTs = state.generatedAt ? new Date(state.generatedAt).getTime() : Date.now();
+    const lastAt = chart ? toTs(chart.lastAt) : null;
+    const parsedGenTs = toTs(state.generatedAt);
+    const genTs = Number.isFinite(parsedGenTs) ? parsedGenTs : Date.now();
 
     // 预测总览的**锚点**：取预测自己的 `asOf`，不用 `Date.now()`。
     // `q50` 是按 `asOf` 那一刻算出来的，换个时刻当锚点就会得到另一个 ETA ——
@@ -135,12 +254,15 @@ Page({
 
     this.chart = chart;
     this.lastAt = lastAt;
+    this.trend = trendRows(chart);
     // 换了一批数据，倒计时的去重键必须作废 —— 否则新窗口的第一秒不会渲染
     this._pcdKey = null;
 
     // 预测总览先算出来，随后的依据卡要读它的 `checks`（三项判据）与 `evidence`
     // （阈值 / 重采样波动）——「过没过」只能有一份来源，所以这个顺序不能反。
     const outlook = buildOutlookView(chart, state.prediction, state.signals, predNow);
+    const forecast = buildForecast(state.prediction, outlook);
+    const records = recordRows(chart);
 
     this.setData(
       {
@@ -150,8 +272,20 @@ Page({
         pred: outlook,
         // 直方图有没有东西可画。`total` 为 0 时不着 canvas —— 空白画布比没有画布更像故障
         histShow: Boolean(chart && chart.hist && chart.hist.total),
-        forecast: buildForecast(state.prediction, outlook),
+        forecast,
         survivalN: chart ? chart.gapDays.length : 0,
+        basisRows: basisRows(outlook, forecast),
+        trend: this.trend,
+        trendCount: this.trend.length,
+        trendFirst: this.trend.length ? this.trend[0].label : '',
+        trendLast: this.trend.length ? this.trend[this.trend.length - 1].label : '',
+        recentRecords: records.slice(0, 3),
+        moreRecords: records.slice(3, 17),
+        moreRecordsCount: Math.min(14, Math.max(0, records.length - 3)),
+        moreRecordsOpen: false,
+        detailsOpen: false,
+        programOpen: false,
+        signalDetailsOpen: false,
         genText: fmtDateTime(genTs),
         // 「观测中」后面是**当前北京时间**，由 tick 每秒推进（见 tick）。
         // 降级态是例外：那时要传达的正是「这是什么时候的快照」，显示数据时刻才有信息量。
@@ -159,7 +293,7 @@ Page({
         account: state.account || 'thsottiaux',
         degraded: !!degraded,
         notice: degraded ? reason || '当前展示的不是实时数据' : '',
-        since: lastAt ? `上次重置 ${fmtDateTime(lastAt)} · ${this.sinceText(lastAt)}` : '',
+        since: Number.isFinite(lastAt) ? `上次 ${fmtDateTime(lastAt).slice(5)} · 北京时间` : '',
         verdict: makeVerdict(chart ? chart.pct : 0),
       },
       () => {
@@ -167,13 +301,6 @@ Page({
         this.paint();
       }
     );
-  },
-
-  sinceText(lastAt) {
-    const el = elapsed(lastAt);
-    // 不足一天时给到「小时 + 分」，不再只写「已过不足一天」——
-    // 那句话在「已过 20 小时」和「已过 10 分钟」两种情形下一模一样，信息量为零。
-    return `已过 ${fmtSpan(el.ms / 86400000)}`;
   },
 
   /* ------------------------------ 滚动计时 ------------------------------ */
@@ -247,12 +374,29 @@ Page({
   /* ------------------------------ 图表 ------------------------------ */
 
   async paint() {
-    if (!this.ready || !this.chart || this._painting) return;
+    if (!this.ready || !this.chart) return;
+    if (this._painting) {
+      // 快照、onReady 和联网数据可能接连到达，不能丢掉视图更新后的最后一次绘制。
+      this._paintAgain = true;
+      return;
+    }
     this._painting = true;
     const chart = this.chart;
     try {
-      // 顺序与页面顺序一致（直方图 → 生存曲线 → 点阵）。三张图共用同一个
-      // `drawScene`，没有各自的分支 —— 图元类型只有 line / circle / poly / text。
+      // 首屏先画近七次间隔折线；展开区仍保留原有三张历史图。
+      const trend = await setupCanvas(this, '#trend');
+      if (trend) {
+        drawScene(
+          trend.ctx,
+          rhythmScene(chart, {
+            width: Math.round(trend.width),
+            height: Math.round(trend.height),
+          }),
+          trend.dpr
+        );
+      }
+
+      // 展开区原有三张图共用同一个 drawScene，图元类型只有 line / circle / poly / text。
       const hist = await setupCanvas(this, '#hist');
       if (hist) {
         drawScene(
@@ -296,6 +440,10 @@ Page({
       console.warn('图表绘制失败：', e && e.message);
     } finally {
       this._painting = false;
+      if (this._paintAgain) {
+        this._paintAgain = false;
+        return this.paint();
+      }
     }
   },
 
@@ -371,6 +519,63 @@ Page({
   },
 
   /* ------------------------------ 交互 ------------------------------ */
+
+  onToggleProgram() {
+    this.setData({ programOpen: !this.data.programOpen });
+  },
+
+  onToggleSignalDetails() {
+    if (!this.data.signal || !this.data.signal.show) return;
+    this.setData({ signalDetailsOpen: !this.data.signalDetailsOpen });
+  },
+
+  onToggleMoreRecords() {
+    this.setData({ moreRecordsOpen: !this.data.moreRecordsOpen });
+  },
+
+  onToggleDetails() {
+    const detailsOpen = !this.data.detailsOpen;
+    this.setData({ detailsOpen }, () => {
+      if (detailsOpen) this.paint();
+    });
+  },
+
+  onHeroTouch(e) {
+    if (!this.data.pageVisible) return;
+    const touch = (e && e.touches && e.touches[0]) || (e && e.changedTouches && e.changedTouches[0]);
+    if (!touch) return;
+    const clientX = Number.isFinite(touch.clientX) ? touch.clientX : touch.pageX;
+    const clientY = Number.isFinite(touch.clientY) ? touch.clientY : touch.pageY;
+    if (!Number.isFinite(clientX) || !Number.isFinite(clientY)) return;
+
+    wx.createSelectorQuery()
+      .in(this)
+      .select('#forecast')
+      .boundingClientRect()
+      .exec((res) => {
+        const rect = res && res[0];
+        if (!rect || !this.data.pageVisible) return;
+        this.setData({
+          ripple: {
+            show: true,
+            x: clientX - rect.left,
+            y: clientY - rect.top,
+          },
+        });
+        this.clearRippleTimer();
+        this._rippleTimer = setTimeout(() => {
+          this._rippleTimer = null;
+          this.setData({ ripple: { show: false, x: 0, y: 0 } });
+        }, 900);
+      });
+  },
+
+  clearRippleTimer() {
+    if (this._rippleTimer) {
+      clearTimeout(this._rippleTimer);
+      this._rippleTimer = null;
+    }
+  },
 
   /**
    * 展开/收起「依据 N 条推文」。

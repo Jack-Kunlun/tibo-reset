@@ -88,7 +88,7 @@ export function injectTokens(template, parts) {
  */
 export function renderPage({ template, model, prediction, signals, og, collect, logoUri }) {
   const parts = renderAll(model, prediction, signals, { og, collect });
-  parts.LOGO_URI = logoUri;
+  if (template.includes(tokenOf('LOGO_URI'))) parts.LOGO_URI = logoUri;
   return injectTokens(template, parts);
 }
 

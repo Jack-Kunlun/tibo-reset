@@ -5,10 +5,10 @@
   ],
   "window": {
     "backgroundTextStyle": "dark",
-    "navigationBarBackgroundColor": "#FAF8F4",
+    "navigationBarBackgroundColor": "#F5F4FB",
     "navigationBarTitleText": "等 TIBO 按按钮",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#FAF8F4",
+    "backgroundColor": "#F5F4FB",
     "enablePullDownRefresh": false
   },
   "style": "v2",

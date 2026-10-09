@@ -31,7 +31,7 @@ import { fileURLToPath } from 'node:url';
 import { buildChartData } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
 import { buildOutlook, CONF_MIN_BACKTEST_N, CONF_MAX_MEDIAN_REL } from '../src/lib/outlook.mjs';
-import { renderOutlook, renderBasis } from '../src/lib/render.mjs';
+import { renderOutlook, renderBasis, renderBasisSummary } from '../src/lib/render.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DAY = 86_400_000;
@@ -149,6 +149,10 @@ for (const [label, f, status, level, reason] of annCases) {
 const oAnn = annOutlooks['hard-date'];
 check('公告支的 ETA 取窗口开启时刻', oAnn.etaAt === NOW + 2 * DAY, `etaAt=${oAnn.etaAt}`);
 check('公告支的区间就是公告窗口本身', oAnn.band.fromAt === NOW + 2 * DAY && oAnn.band.toAt === NOW + 9 * DAY);
+check('主卡把公告窗口与模型 80% 区间区分开', renderOutlook(oAnn).includes('公告窗口') && !renderOutlook(oAnn).includes('80% 预测区间') && renderOutlook(oModel).includes('80% 预测区间'));
+check('公告主卡保留明确时刻，不能只有日期', /\d{2}:\d{2} 公告窗口开启时刻/.test(renderOutlook(oAnn)));
+check('软公告依据摘要显示同日提及数，不虚构硬承诺', renderBasisSummary(annOutlooks['soft-only'], prediction).includes('3<small>条同日提及') && !renderBasisSummary(annOutlooks['soft-only'], prediction).includes('条承诺'));
+check('推算依据摘要保留真实样本量和回测覆盖率', renderBasisSummary(oModel, prediction).includes(`${oModel.brief.intervals}<small>次间隔`) && renderBasisSummary(oModel, prediction).includes((prediction.calibration.covBand80 * 100).toFixed(1)));
 
 /* ======================== 4. 两支的依据不得串味 ======================== */
 

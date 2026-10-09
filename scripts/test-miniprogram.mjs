@@ -77,7 +77,8 @@ function makeWx(record) {
       };
       return q;
     },
-    getWindowInfo: () => ({ pixelRatio: 3 }),
+    getWindowInfo: () => ({ pixelRatio: 3, windowWidth: 375, statusBarHeight: 24 }),
+    getMenuButtonBoundingClientRect: () => ({ left: 270, bottom: 64 }),
     getSystemInfoSync: () => ({ pixelRatio: 3 }),
     // 单页模式判断用（utils/share.js）。两个接口**分开打桩**，因为语义不同：
     // getEnterOptionsSync 反映「这一次」怎么进来，getLaunchOptionsSync 只反映冷启动
@@ -142,9 +143,15 @@ globalThis.Page = (cfg) => {
 };
 globalThis.App = () => {};
 globalThis.getApp = () => ({ globalData: {} });
-// 计时器换成手动驱动，否则 Node 进程会被 setInterval 吊住
-globalThis.setInterval = () => 0;
-globalThis.clearInterval = () => {};
+// 计时器换成可追踪的句柄，否则 Node 进程会被 setInterval 吊住；同时核对页面隐藏时清理。
+let intervalId = 0;
+const activeIntervals = new Set();
+globalThis.setInterval = () => {
+  const id = ++intervalId;
+  activeIntervals.add(id);
+  return id;
+};
+globalThis.clearInterval = (id) => activeIntervals.delete(id);
 
 /* ------------------------------ 加载页面 ------------------------------ */
 
@@ -219,6 +226,52 @@ await new Promise((r) => setTimeout(r, 30));
 
 check('onLoad / onReady 未抛异常', true);
 
+{
+  const originalQuery = wx.createSelectorQuery;
+  const drawPage = { ...page, _painting: false, _paintAgain: false };
+  let releaseFirst;
+  let trendQueries = 0;
+  let trendCanvas;
+  wx.createSelectorQuery = () => {
+    let selector;
+    const query = {
+      in: () => query,
+      select: (value) => { selector = value; return query; },
+      fields: () => query,
+      exec: (callback) => {
+        if (selector === '#trend' && ++trendQueries === 1) {
+          releaseFirst = callback;
+          return;
+        }
+        const node = makeFakeCanvas();
+        if (selector === '#trend') trendCanvas = node;
+        callback([{ node, width: 341, height: 160 }]);
+      },
+    };
+    return query;
+  };
+  try {
+    const firstPaint = drawPage.paint();
+    await drawPage.paint();
+    // 首次查询时节点还没挂载，随后 setData 完成后的绘制不能被「正在画」吞掉。
+    releaseFirst([null]);
+    await firstPaint;
+    check('视图更新与绘制重叠时，补画已挂载的历史节奏图', trendQueries === 2 && trendCanvas?.width === 1023, `${trendQueries} / ${trendCanvas?.width}`);
+  } finally {
+    wx.createSelectorQuery = originalQuery;
+  }
+}
+check(
+  '自定义导航读取状态栏和胶囊边界',
+  page.data.nav.statusBarHeight === 24 && page.data.nav.capsuleReserve === 115 && page.data.nav.brandHeight === 46,
+  JSON.stringify(page.data.nav)
+);
+
+page.onShow();
+check('页面显示时开启唯一的真实时钟', page.data.pageVisible === true && activeIntervals.size === 1, `${page.data.pageVisible} / ${activeIntervals.size}`);
+page.onHide();
+check('页面隐藏时清除时钟并停下装饰动效', page.data.pageVisible === false && activeIntervals.size === 0, `${page.data.pageVisible} / ${activeIntervals.size}`);
+
 // 首屏不依赖网络 —— 这是「域名没备案也不会白屏」这条设计的可验证形式：
 // 发第一次请求时，快照已经渲染过了。若哪天有人把首屏改成等接口回来再渲染，这条会立刻红。
 check(
@@ -262,7 +315,7 @@ check(
   JSON.stringify(d.counter)
 );
 check('时/分/秒固定两位（防止宽度跳动）', d.counter.slice(1).every((g) => g.digits.length === 2), JSON.stringify(d.counter.slice(1)));
-check('since 文案已生成', typeof d.since === 'string' && d.since.includes('上次重置'), d.since);
+check('since 文案已生成并明确北京时间', typeof d.since === 'string' && d.since.startsWith('上次 ') && d.since.endsWith('北京时间'), d.since);
 check('判定文案已生成', !!d.verdict.text && !!d.verdict.tail, JSON.stringify(d.verdict));
 
 // 手动推进一秒，确认数字真的会变（滚动动画的前提）
@@ -282,9 +335,7 @@ check('指标 6 项', d.metrics.length === 6, `实际 ${d.metrics.length}`);
 check('指标无空值', d.metrics.every((m) => m.v !== '' && m.v != null && m.note), JSON.stringify(d.metrics));
 check('预测已生成', !!d.forecast);
 
-/* 依据区现在是**三张卡**，每张卡各自回答一个问题：
-   `wait` 多久 / `backtest` 准不准 / `pace` 节奏在往哪走。
-   断言据此按卡分节，而不是像旧版那样在 `forecast` 下平铺一堆字段。 */
+/* 详细区保留三张辅助卡，首屏则用三行来自真实预测与回测结果的数字摘要。 */
 check(
   '依据区三张卡都在（多久 / 准不准 / 节奏）',
   !!d.forecast.wait && !!d.forecast.backtest && !!d.forecast.pace,
@@ -393,6 +444,12 @@ check(
 const ov = d.pred;
 check('预测总览已生成（带推断的那块）', !!ov, JSON.stringify(ov));
 check(
+  '日期用逐位数组呈现，值与真实预测日期一致',
+  Array.isArray(ov.dateDigits) && ov.dateDigits.map((digit) => digit.value).join('') === ov.md,
+  `${ov.md} / ${(ov.dateDigits || []).map((digit) => digit.value).join('')}`
+);
+check('日期圆点有独立窄位可供排版', ov.dateDigits.some((digit) => digit.value === '.') && ov.dateDigits.every((digit) => digit.key && digit.delay), JSON.stringify(ov.dateDigits));
+check(
   '① 下一次什么时候：日期 + 星期 + 时刻三件都在',
   /^\d{1,2}\.\d{1,2}$/.test(ov.md) && /^周[一二三四五六日]$/.test(ov.wd) && /^\d{2}:\d{2}$/.test(ov.hm),
   `${ov.md} ${ov.wd} ${ov.hm}`
@@ -424,6 +481,22 @@ check(
   /\d{2}\.\d{2} \d{2}:\d{2}/.test(ov.updatedText),
   ov.updatedText
 );
+
+{
+  const rows = d.basisRows;
+  const coverage = d.forecast.backtest.rows.find((row) => row.k === '80% 区间覆盖率');
+  const phase = d.forecast.pace.phases[d.forecast.pace.phases.length - 1];
+  const announcedParts = [];
+  if (ov.briefData.announcedHard > 0) announcedParts.push(`${ov.briefData.announcedHard} 条硬承诺`);
+  if (ov.briefData.announcedSoft > 0) announcedParts.push(`${ov.briefData.announcedSoft} 条同日提及`);
+  const sourceValue = ov.etaKind === 'announced'
+    ? announcedParts.join(' · ') || '公告窗口已确认'
+    : `${ov.briefData.intervals} 次间隔`;
+  check('首屏保留三行真实预测依据摘要', rows.length === 3, JSON.stringify(rows));
+  check('依据摘要的来源行与当前预测模式一致', rows[0].value === sourceValue, `${rows[0].value} / ${sourceValue}`);
+  check('覆盖率行复用回测的 80% 区间值', rows[1].value === coverage.v, `${rows[1].value} / ${coverage.v}`);
+  check('近期节奏行复用最新分段均值', rows[2].value === `${phase.mean}${phase.unit.replace(/\s+/g, '')}`, rows[2].value);
+}
 check(
   '总览里没有 undefined / NaN',
   !JSON.stringify(ov).includes('undefined') && !JSON.stringify(ov).includes('NaN'),
@@ -474,12 +547,12 @@ check(
 
 check(
   'tick() 之后总览的倒计时已挂上（否则首屏那一块是空的）',
-  !!page.data.pred.cd && Array.isArray(page.data.pred.cd.groups) && page.data.pred.cd.groups.length === 4,
+  !!page.data.pred.cd && Array.isArray(page.data.pred.cd.groups) && page.data.pred.cd.groups.length === 2,
   JSON.stringify(page.data.pred.cd)
 );
 check(
-  '倒计时 4 组依次是天/时/分/秒',
-  (page.data.pred.cd.groups || []).map((g) => g.unit).join('') === '天时分秒',
+  '倒计时只显示相邻的最高两组单位',
+  ['天时', '时分', '分秒'].includes((page.data.pred.cd.groups || []).map((g) => g.unit).join('')),
   JSON.stringify(page.data.pred.cd.groups)
 );
 // 去重：同一秒内重复 tick 不该再发一次 setData。整块卡片随倒计时重排会掉帧，
@@ -489,6 +562,15 @@ check(
   page.tick();
   page.tick();
   check('同一秒内不重复推送倒计时（避免整块重排）', renders.length === n0, `多推了 ${renders.length - n0} 次`);
+}
+
+{
+  const { predCountdown } = await import(resolve(ROOT, 'miniprogram/utils/view.js'));
+  const anchor = 1_000_000;
+  const units = (delta) => predCountdown({ etaAt: anchor + delta, etaKind: 'model' }, anchor).groups.map((g) => g.unit).join('');
+  check('超过一天显示天/小时', units(26 * 3600_000) === '天时', units(26 * 3600_000));
+  check('一小时以上显示小时/分钟', units(90 * 60_000) === '时分', units(90 * 60_000));
+  check('不足一小时显示分钟/秒', units(30 * 60_000) === '分秒', units(30 * 60_000));
 }
 // 过点之后的措辞必须分档：公告档不能说「已到中位预测时刻」—— 那时根本没有中位预测。
 // 直接喂一个「已经过点」的 ETA，而不是等它真的过期（那要等到数据换代）。
@@ -532,8 +614,8 @@ check(
   `model=「${overModelLabel}」/ announced=「${overAnnLabel}」`
 );
 check(
-  '还没到 ETA 时说的是「距离预测重置还有」',
-  /距离预测重置还有/.test(page.data.pred.cd.label),
+  '还没到 ETA 时说的是「预计还需等待」',
+  /预计还需等待/.test(page.data.pred.cd.label),
   page.data.pred.cd.label
 );
 
@@ -625,7 +707,7 @@ check('降级时给出明示（不假装是实时数据）', d.degraded === true
 console.log('\n【7】图表几何（多个屏幕宽度）');
 
 const { buildChartData } = await import(resolve(ROOT, 'src/lib/chart-data.js'));
-const { survivalScene, stripScene, sceneBounds } = await import(resolve(ROOT, 'src/lib/scene.js'));
+const { survivalScene, stripScene, rhythmScene, sceneBounds } = await import(resolve(ROOT, 'src/lib/scene.js'));
 
 const records = JSON.parse(await readFile(resolve(ROOT, 'data/resets.json'), 'utf8')).records;
 const chart = buildChartData(records, Date.now());
@@ -634,6 +716,7 @@ const WIDTHS = [320, 341, 375, 414];
 const SIZES = [
   { name: '生存曲线', fn: survivalScene, height: 208 },
   { name: '点阵分布', fn: stripScene, height: 230 },
+  { name: '近七次历史节奏', fn: rhythmScene, height: 160 },
 ];
 
 for (const w of WIDTHS) {
@@ -659,6 +742,14 @@ const pctOf = (scene) => {
   return t ? t.s : null;
 };
 check('宽/紧凑两种布局给出同一个当前百分位', pctOf(wide) === pctOf(compact), `${pctOf(wide)} vs ${pctOf(compact)}`);
+
+const rhythm = rhythmScene(chart, { width: 341, height: 160 });
+const rhythmLine = rhythm.elements.find((el) => el.k === 'poly' && el.stroke === '#6150d4');
+check(
+  '近七次节奏只使用最近七段完整间隔',
+  !!rhythmLine && rhythmLine.pts.length === Math.min(7, chart.gapDays.length),
+  `输入 ${chart.gapDays.length} 段 / 折线 ${rhythmLine ? rhythmLine.pts.length : 0} 点`
+);
 
 /* --------------------------- 8. 明确信号路径 --------------------------- */
 
@@ -1417,7 +1508,42 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
   // 点了复制会弹「请前往小程序使用完整服务」—— 真机上不报错，也测不出来。
   const wxmlIndex = await readFile(resolve(ROOT, 'miniprogram/pages/index/index.wxml'), 'utf8');
   const wxmlHistory = await readFile(resolve(ROOT, 'miniprogram/pages/history/index.wxml'), 'utf8');
+  const indexJson = JSON.parse(await readFile(resolve(ROOT, 'miniprogram/pages/index/index.json'), 'utf8'));
+  const historyJson = JSON.parse(await readFile(resolve(ROOT, 'miniprogram/pages/history/index.json'), 'utf8'));
+  const indexJs = await readFile(resolve(ROOT, 'miniprogram/pages/index/index.js'), 'utf8');
+  const indexWxss = (await readFile(resolve(ROOT, 'miniprogram/pages/index/index.wxss'), 'utf8')).replace(/\/\*[\s\S]*?\*\//g, '');
 
+  check(
+    '首页采用自定义导航且单页模式显式 squeezed',
+    indexJson.navigationStyle === 'custom' && indexJson.singlePage && indexJson.singlePage.navigationBarFit === 'squeezed',
+    JSON.stringify(indexJson)
+  );
+  check(
+    '历史页保留原生导航并使用极光背景',
+    !historyJson.navigationStyle && historyJson.navigationBarBackgroundColor === '#F5F4FB' && historyJson.navigationBarTextStyle === 'black',
+    JSON.stringify(historyJson)
+  );
+  check(
+    '朋友圈单页布局不叠加状态栏与胶囊留白，品牌仍占位',
+    /statusBarHeight:\s*singlePage\s*\?\s*0/.test(indexJs) && /capsuleReserve:\s*singlePage\s*\?\s*0/.test(indexJs) && /brandHeight:\s*singlePage\s*\?\s*44/.test(indexJs),
+    '检查 navigationLayout(singlePage) 分支'
+  );
+  check(
+    '胶囊矩形无效时回退安全留白',
+    /validMenuLeft\s*=\s*Number\.isFinite\(menuLeft\)\s*&&\s*menuLeft\s*>\s*0\s*&&\s*menuLeft\s*<\s*width/.test(indexJs) &&
+      /validMenuBottom\s*=\s*Number\.isFinite\(menuBottom\)\s*&&\s*menuBottom\s*>\s*statusBarHeight/.test(indexJs) &&
+      /validMenuRect\s*=\s*validMenuLeft\s*&&\s*validMenuBottom/.test(indexJs) &&
+      /capsuleReserve\s*=\s*validMenuRect\s*\?[^:]+:\s*96/.test(indexJs) &&
+      /capsuleHeight\s*=\s*validMenuRect\s*\?[^:]+:\s*44/.test(indexJs),
+    '左右边界、底部边界同时有效时才使用胶囊尺寸'
+  );
+  const cssAttributeSelector = [...indexWxss.matchAll(/([^{}]+)\{[^{}]*\}/g)].find((match) => match[1].includes('['));
+  check('首页 WXSS 不含开发者工具禁用的属性选择器', !cssAttributeSelector, cssAttributeSelector ? cssAttributeSelector[1].trim() : '');
+  check(
+    '首页日期由独立数字位渲染，未放回单个紧缩文本',
+    /wx:for="\{\{pred\.dateDigits\}\}"/.test(wxmlIndex) && !/class="eta-date[^>]*>\s*\{\{pred\.md\}\}/.test(wxmlIndex),
+    '逐位循环与真实日期字段'
+  );
   const tagWith = (src, attr) => src.match(new RegExp(`<[a-z-]+[^>]*${attr}[^>]*>`, 'g')) || [];
 
   const copyTags = [...tagWith(wxmlIndex, 'onCopySource'), ...tagWith(wxmlHistory, 'onCopy')];
@@ -1566,8 +1692,8 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
   // 它必须留在下面那条前置断言里 —— 用旧锚点会 `-1`，而 `-1` 恰好能让「排在之前」
   // 那类比较**看起来**成立（`-1 < x` 恒真），所以「找得到」那条必须留着。
   const iHero = at('class="hero"');
-  const iPred = at('class="pred"');
-  const iSig = at('class="sig"');
+  const iPred = at('class="pred ');
+  const iSig = at('class="sig ');
   const iProg = at('class="prog"');
   // 2026-10-08 第二轮：依据区从 `.fc`（一块 `card fc-meta`）扩成 `.bc-grid`（三张卡），
   // 并在它后面**新增**了一组 `.hr-grid`（历史规律：三张图从「各占一节」收成一组）。

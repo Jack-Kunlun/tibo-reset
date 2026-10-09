@@ -9,896 +9,419 @@
      且 Safari 对 data: 图标的支持长期不稳定。两个 png 由 scripts/build.mjs 拷进 dist/。 -->
 <link rel="icon" type="image/png" sizes="32x32" href="./favicon.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
-<meta name="theme-color" content="#FAF8F4" />
+<meta name="theme-color" content="#f5f4fb" />
 <!--__OG_META__-->
 <style>
-  /* 设计令牌（2026-10-08 重构）。
-     两处口径变化，都不是审美偏好，是「读起来像什么产品」的问题：
-       · 底色从近白（#FAF8F4）压到**柔和暖灰**（#EFEEE9）。近白底 + 白卡 = 卡片
-         靠阴影才浮得起来，一屏几十张白卡就成了碎片堆叠；暖灰底让白卡自己成形。
-       · 主卡改用**薄荷底**而不是更白的白底。它要明显强于其它模块，而「更白」
-         在白底上已经到顶了 —— 只能靠加装饰，那就成了营销风。换底色是唯一
-         既拉开层级又不加装饰的路子。
-     圆角与阴影也收敛成三个令牌：全页只用 r / r-s / shadow 三档，
-     不同模块各写一个半径值正是「不够精致」的来源。 */
-  :root{
-    --paper:#EFEEE9; --paper2:#F5F4EF; --card:#FFFFFF;
-    --mint:#E9F2F0; --mint2:#DBEBE8; --mintline:#CFE2DE;
-    --ink:#1F1E1B; --ink2:#4A4842; --mist:#8C8880;
-    --line:#E4E1D8;
-    --lan:#3F7376; --bamboo:#5F8455; --cinnabar:#B3563C; --amber:#9C6B22;
-    --r:16px; --r-s:10px;
-    --shadow:0 1px 2px rgba(31,30,27,.035),0 10px 26px -18px rgba(31,30,27,.28);
-    --shadow-lift:0 1px 2px rgba(31,30,27,.04),0 18px 44px -26px rgba(31,30,27,.34);
-    --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
-    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
-    /* 卷轴数字的垂直微调：mono 字体的 ascent 留白会让数字看起来偏高 */
-    --reel-nudge:0em;
+
+  #observatory{--am-accent:#6150d4;--am-ink:#292741;--am-muted:#73708a;--am-line:#e6e2f1;--am-glow:.8;--am-speed:1;position:relative;isolation:isolate;box-sizing:border-box;padding:0 34px 28px;background:#f5f4fb;color:var(--am-ink);font:14px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;overflow-wrap:break-word}
+  #observatory *{box-sizing:border-box}
+  #observatory h1,#observatory h2,#observatory p{margin:0}
+  #observatory a{color:inherit;text-decoration:none}
+  #observatory a:hover{text-decoration:underline;text-underline-offset:4px}
+  #observatory .am-mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+  #observatory .am-small{font-size:12px}
+  #observatory .am-tiny{font-size:11px}
+  #observatory .am-muted{color:var(--am-muted)}
+  #observatory .am-sky{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;opacity:var(--am-glow)}
+  #observatory .am-cloud{position:absolute;filter:blur(38px);border-radius:50%;will-change:transform}
+  #observatory .am-cloud-mint{width:74%;height:570px;left:-26%;top:-130px;background:radial-gradient(ellipse,#b8e6db 0,#d8f1eb 35%,transparent 70%)}
+  #observatory .am-cloud-violet{width:90%;height:700px;right:-30%;top:-80px;background:radial-gradient(ellipse,#cdb9ef 0,#e0d7f8 40%,transparent 72%)}
+  #observatory .am-cloud-blue{width:90%;height:600px;left:8%;top:390px;background:radial-gradient(ellipse,#c3d9f5 0,#e8e5fa 40%,transparent 74%)}
+  #observatory .am-header{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:25px 0 22px;border-bottom:1px solid #dddbea}
+  #observatory .am-brand{display:flex;align-items:center;gap:11px;min-width:0}
+  #observatory .am-logo{width:38px;height:38px;display:grid;place-items:center;flex:none;color:#fff;background:linear-gradient(140deg,#8173cf,#493b84);border:1px solid #9383d2;border-radius:12px;box-shadow:0 6px 15px #53459126,inset 0 1px 0 #ffffff6b}
+  #observatory .am-logo svg{width:20px;height:20px}
+  #observatory .am-brand b{font-size:17px;font-weight:600;letter-spacing:-.03em;white-space:nowrap}
+  #observatory .am-brand .am-tiny{letter-spacing:.13em;color:var(--am-muted)}
+  #observatory .am-tools{display:flex;align-items:center;gap:12px;font-size:12px}
+  #observatory .am-pause{font:inherit;color:var(--am-muted);border:1px solid var(--am-line);padding:6px 11px;background:#fff;border-radius:99px;box-shadow:0 2px 4px #5848aa06}
+  #observatory .am-live{display:flex;align-items:center;gap:7px;padding:6px 11px;border:1px solid #e1d9f4;border-radius:99px;background:#fff;color:var(--am-accent);white-space:nowrap}
+  #observatory .am-dot{width:6px;height:6px;border-radius:50%;background:var(--am-accent);box-shadow:0 0 0 4px #eae5fa;display:inline-block;flex:none}
+  #observatory .am-context{display:flex;justify-content:space-between;gap:8px 18px;align-items:center;flex-wrap:wrap;padding:17px 2px;color:var(--am-muted);font-size:12px}
+  #observatory .am-context b{font-weight:500;color:var(--am-ink);margin-left:10px}
+  #observatory .pred{perspective:1200px;position:relative}
+  #observatory .pcard{--am-mx:50%;--am-my:35%;position:relative;isolation:isolate;border-radius:27px;background:linear-gradient(130deg,#fff 0%,#f6f3ff 47%,#f0fbf8 100%);border:1px solid #fff;padding:24px 27px 0;box-shadow:0 2px 3px #6150ac06,0 23px 50px -26px #7666b76b,inset 0 0 0 1px #e5ddf3;transform:rotateX(var(--am-rx,0deg)) rotateY(var(--am-ry,0deg));transition:transform .25s ease-out,box-shadow .3s;transform-style:preserve-3d}
+  #observatory .pcard:before{content:"";position:absolute;inset:1px;border-radius:inherit;z-index:-1;background:radial-gradient(370px circle at var(--am-mx) var(--am-my),#fff9 0,#dcd0fb45 30%,transparent 70%);pointer-events:none}
+  #observatory .pcard-top{display:flex;justify-content:space-between;align-items:center;gap:12px;position:relative;z-index:1}
+  #observatory .am-kicker{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.15em;color:var(--am-accent);font-weight:500}
+  #observatory .am-kicker:before{content:"";width:14px;height:2px;background:var(--am-accent)}
+  #observatory .pc-conf{display:inline-flex;gap:7px;align-items:center;border-radius:99px;padding:5px 11px;background:#eeebfb;color:var(--am-accent);font-size:12px;white-space:nowrap}
+  #observatory .pc-conf svg{width:13px;height:13px}
+  #observatory .am-stage{position:relative;isolation:isolate;display:flex;align-items:center;flex-direction:column;justify-content:center;text-align:center;padding:29px 6px 25px;min-height:312px}
+  #observatory .am-stage h2{font-size:18px;font-weight:500;letter-spacing:.01em;position:relative;z-index:1}
+  #observatory .am-orbit-field{position:absolute;inset:-25px -27px -5px;overflow:hidden;pointer-events:none;z-index:-1}
+  #observatory .am-orbit-plane{position:absolute;width:550px;aspect-ratio:1;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-19deg) scaleY(.43);opacity:.76}
+  #observatory .am-orbit-plane.am-inner{width:370px;transform:translate(-50%,-50%) rotate(24deg) scaleY(.52);opacity:.65}
+  #observatory .am-orbit-plane.am-outer{width:710px;transform:translate(-50%,-50%) rotate(-19deg) scaleY(.43);opacity:.34}
+  #observatory .am-orbit-ring{position:absolute;inset:0;border-radius:50%;border:1px solid #b5a5d7}
+  #observatory .am-orbit-spin{position:absolute;inset:0;border-radius:50%}
+  #observatory .am-orbit-spin:before{content:"";position:absolute;width:8px;height:8px;left:calc(50% - 4px);top:-4px;border-radius:50%;background:#9c7be2;box-shadow:0 0 0 5px #c1ace724,0 0 22px 6px #b8a0f2;transform:scaleY(2)}
+  #observatory .am-inner .am-orbit-spin:before{background:#66bba9;box-shadow:0 0 0 5px #8cdbc52b,0 0 25px 7px #91d6c6}
+  #observatory .am-stage-glow{position:absolute;width:310px;height:145px;left:calc(50% - 155px);top:41%;border-radius:50%;background:radial-gradient(ellipse,#b9e7dc90,transparent 70%);filter:blur(20px);z-index:-1}
+  #observatory .am-star{position:absolute;width:3px;height:3px;border-radius:50%;background:#a995d3;box-shadow:0 0 9px #b6a7e5;opacity:.65}
+  #observatory .am-star:nth-of-type(1){left:15%;top:24%}
+  #observatory .am-star:nth-of-type(2){left:82%;top:32%;background:#78b8aa}
+  #observatory .am-star:nth-of-type(3){left:24%;top:72%}
+  #observatory .am-star:nth-of-type(4){left:73%;top:78%}
+  #observatory .am-date{display:flex;align-items:center;justify-content:center;margin:9px 0 1px;font-size:105px;line-height:1.15;letter-spacing:-.065em;font-weight:500;perspective:600px;position:relative;z-index:1}
+  #observatory .am-digit-cell{display:inline-block;overflow:hidden;perspective:500px;padding:0 .015em;margin:0 -.015em}
+  #observatory .am-digit{display:block;transform-origin:center bottom;background:linear-gradient(135deg,#33345e 8%,var(--am-accent) 63%,#438d87 100%);background-clip:text;-webkit-background-clip:text;color:transparent}
+  #observatory .am-date .am-dot-digit{width:.37em;letter-spacing:0}
+  #observatory .am-stage .am-small{position:relative;z-index:1;color:var(--am-muted)}
+  #observatory .pc-wait{display:flex;gap:15px;align-items:baseline;justify-content:center;flex-wrap:wrap;margin-top:19px;color:var(--am-muted);font-size:12px;position:relative;z-index:1}
+  #observatory .pc-wait strong{font-size:27px;font-weight:500;letter-spacing:-.045em;color:var(--am-ink)}
+  #observatory .pc-band{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px 16px;border-top:1px solid #e2dff0;padding:15px 0;font-size:12px;position:relative;z-index:1}
+  #observatory .pc-band b{font-weight:500;margin-left:12px;color:var(--am-ink)}
+  #observatory .am-signal{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:7px 15px;background:#fafaff;border:1px solid #e0d9f0;border-radius:14px;padding:14px 18px;margin-top:15px;font-size:12px}
+  #observatory .am-signal>span:first-child{display:flex;align-items:center;gap:9px}
+  #observatory .am-signal svg{width:15px;height:15px;color:var(--am-accent)}
+  #observatory .am-main{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:17px;margin-top:20px;align-items:stretch}
+  #observatory .am-panel{position:relative;border:1px solid #e3ddef;border-radius:18px;padding:20px;background:#fff;box-shadow:0 3px 14px -12px #6b5ba83d;min-width:0;transition:transform .25s,box-shadow .25s,border-color .25s}
+  #observatory .am-panel h2{font-size:14px;font-weight:600}
+  #observatory .am-panel-head{display:flex;justify-content:space-between;align-items:baseline;gap:9px;flex-wrap:wrap}
+  #observatory .am-chart{display:block;width:100%;height:196px;margin-top:12px}
+  #observatory .am-side{display:flex;flex-direction:column;gap:16px;min-width:0}
+  #observatory .sig-prog{padding:16px 18px}
+  #observatory .sig-prog summary{display:flex;gap:11px;align-items:center;list-style:none;font-size:13px}
+  #observatory summary::-webkit-details-marker{display:none}
+  #observatory .sig-prog summary:after{content:"＋";font-size:17px;color:var(--am-muted);margin-left:auto}
+  #observatory .sig-prog[open] summary:after{content:"−"}
+  #observatory .am-icon{height:31px;width:31px;display:grid;place-items:center;flex:none;color:var(--am-accent);background:#eeebfb;border-radius:9px}
+  #observatory .am-icon svg{width:15px;height:15px}
+  #observatory .sig-prog-note{margin-top:8px!important;padding-left:42px;color:var(--am-muted);font-size:11px}
+  #observatory .am-detail{padding-top:13px;color:var(--am-muted);font-size:12px}
+  #observatory .am-detail p+p{margin-top:7px}
+  #observatory .am-basis{flex:1;padding-top:17px;padding-bottom:12px}
+  #observatory .am-basis h2{margin-bottom:5px}
+  #observatory .am-basis-row{display:flex;align-items:baseline;justify-content:space-between;gap:13px;padding:11px 0;border-top:1px solid var(--am-line);font-size:12px}
+  #observatory .am-basis-row:first-of-type{border-top:0}
+  #observatory .am-basis-row strong{font-size:21px;font-weight:500;letter-spacing:-.045em;white-space:nowrap}
+  #observatory .am-basis-row strong small{font-size:11px;font-weight:400;letter-spacing:0;margin-left:3px}
+  #observatory .am-disclosure{font-size:12px;color:var(--am-muted);margin-top:14px}
+  #observatory .am-disclosure summary{list-style:none;display:flex;align-items:center;gap:7px}
+  #observatory .am-disclosure summary:after{content:"↗";color:var(--am-accent)}
+  #observatory .am-records{margin-top:18px}
+  #observatory .am-record-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:23px;margin-top:15px}
+  #observatory .am-record{min-width:0;display:block;font-size:12px}
+  #observatory .am-record+.am-record{border-left:1px solid var(--am-line);padding-left:23px}
+  #observatory .am-record-top{display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;font-size:11px;color:var(--am-muted)}
+  #observatory .am-record p{margin-top:6px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+  #observatory .am-footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;margin-top:25px;padding-top:20px;border-top:1px solid #dedbe9;color:var(--am-muted);font-size:11px}
+  #observatory .am-ripple-field{position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none;z-index:0}
+  #observatory .am-tap-ring{position:absolute;border:1px solid #9f86d13d;box-shadow:0 0 35px #b69de923;border-radius:50%;height:230px;width:230px;margin:-115px 0 0 -115px;pointer-events:none;z-index:0;animation:am-tap .85s ease-out forwards}
+  @keyframes am-mint{0%{transform:translate3d(0,0,0) rotate(-10deg) scale(1)}50%{transform:translate3d(18%,13%,0) rotate(5deg) scale(1.15)}100%{transform:translate3d(2%,25%,0) rotate(-8deg) scale(1.05)}}
+  @keyframes am-violet{0%{transform:translate3d(0,0,0) rotate(8deg) scale(1.1)}50%{transform:translate3d(-18%,22%,0) rotate(-8deg) scale(1)}100%{transform:translate3d(-4%,-5%,0) rotate(3deg) scale(1.12)}}
+  @keyframes am-blue{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-8%,-18%,0) scale(1.15)}100%{transform:translate3d(9%,4%,0) scale(.95)}}
+  @keyframes am-orbit{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  @keyframes am-flip{from{transform:translateY(.82em) rotateX(-75deg);filter:blur(4px)}to{transform:translateY(0) rotateX(0);filter:blur(0)}}
+  @keyframes am-tap{from{transform:scale(.25);opacity:.65}to{transform:scale(1.7);opacity:0}}
+  @media(prefers-reduced-motion:no-preference){
+    #observatory .am-cloud-mint{animation:am-mint calc(22s / var(--am-speed)) ease-in-out infinite alternate}
+    #observatory .am-cloud-violet{animation:am-violet calc(26s / var(--am-speed)) ease-in-out infinite alternate}
+    #observatory .am-cloud-blue{animation:am-blue calc(31s / var(--am-speed)) ease-in-out infinite alternate}
+    #observatory .am-orbit-spin{animation:am-orbit calc(27s / var(--am-speed)) linear infinite}
+    #observatory .am-inner .am-orbit-spin{animation-duration:calc(18s / var(--am-speed));animation-direction:reverse}
+    #observatory .am-outer .am-orbit-spin{animation-duration:calc(42s / var(--am-speed));animation-direction:reverse}
+    #observatory:not([data-entered="true"]) .am-digit{animation:am-flip .9s cubic-bezier(.16,.8,.25,1) both;animation-delay:calc(var(--am-index) * 85ms)}
   }
-  *{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
-  body{
-    margin:0; background:var(--paper); color:var(--ink);
-    font-family:var(--sans); font-size:15px; line-height:1.7;
+  #observatory[data-running="false"] .am-cloud,#observatory[data-running="false"] .am-orbit-spin,#observatory[data-visible="false"] .am-cloud,#observatory[data-visible="false"] .am-orbit-spin{animation-play-state:paused}
+  #observatory[data-running="false"] .am-digit{animation:none;filter:none;transform:none}
+  #observatory[data-running="false"] .am-tap-ring{display:none}
+  @media(hover:hover) and (prefers-reduced-motion:no-preference){
+    #observatory[data-running="true"] .am-panel:hover{transform:translateY(-3px);border-color:#cbbce8;box-shadow:0 13px 25px -19px #7964a95c}
+    #observatory .am-pause:hover{color:var(--am-accent);border-color:#c7bae9}
   }
-  .wrap{max-width:960px;margin:0 auto;padding:0 24px 80px}
-
-  /* ---------- 顶栏 ---------- */
-  header.top{
-    display:flex;align-items:flex-end;justify-content:space-between;gap:16px;
-    padding:22px 0 18px;border-bottom:1px solid var(--line);
+  @media(prefers-reduced-motion:reduce){
+    #observatory *,#observatory *:before,#observatory *:after{animation:none!important;transition:none!important}
+    #observatory .pcard{transform:none!important}
   }
-  .brand{display:flex;align-items:baseline;gap:12px}
-  /* 品牌标。源图是**不透明黑底**的方形图，这里只加圆角裁切与极轻投影，不做抠底 ——
-     图形本体是白色描边，抠掉黑底等于把线一起抹掉。圆角把「黑方块」变成「App 图标」。 */
-  .brand-logo{
-    width:32px;height:32px;flex:0 0 auto;display:block;align-self:center;
-    border-radius:9px;box-shadow:0 1px 3px rgba(31,30,27,.18);
+  @media(max-width:700px){
+    #observatory{padding:0 20px 24px}
+    #observatory .am-header{gap:10px;padding:21px 0 18px}
+    #observatory .am-brand{gap:9px}
+    #observatory .am-brand b{font-size:14px}
+    #observatory .am-brand .am-tiny{display:none}
+    #observatory .am-logo{width:31px;height:31px;border-radius:10px}
+    #observatory .am-tools{gap:7px;font-size:11px}
+    #observatory .am-pause{padding:6px 9px}
+    #observatory .am-live{display:none}
+    #observatory .am-context{font-size:11px;padding:15px 0;gap:4px}
+    #observatory .am-context b{margin-left:5px}
+    #observatory .am-context>span:last-child{width:100%}
+    #observatory .pcard{padding:21px 19px 0;border-radius:23px}
+    #observatory .am-kicker{letter-spacing:.05em}
+    #observatory .pc-conf{font-size:11px;padding:4px 8px}
+    #observatory .pc-conf svg{display:none}
+    #observatory .am-stage{min-height:298px;padding:26px 0}
+    #observatory .am-stage h2{font-size:16px}
+    #observatory .am-date{font-size:83px;margin-top:12px}
+    #observatory .am-stage>.am-small{font-size:11px}
+    #observatory .pc-wait{gap:8px;font-size:11px;margin-top:22px}
+    #observatory .pc-wait strong{font-size:24px}
+    #observatory .am-orbit-plane{width:390px}
+    #observatory .am-orbit-plane.am-inner{width:270px}
+    #observatory .am-orbit-plane.am-outer{width:530px}
+    #observatory .pc-band{font-size:11px;padding:13px 0}
+    #observatory .pc-band b{margin-left:0;display:block;margin-top:3px}
+    #observatory .pc-band>span:last-child{display:none}
+    #observatory .am-signal{padding:13px 14px;font-size:11px;gap:4px}
+    #observatory .am-main{grid-template-columns:1fr;gap:15px;margin-top:17px}
+    #observatory .am-side{order:1;gap:14px}
+    #observatory .am-history{order:2}
+    #observatory .am-panel{padding:17px 16px}
+    #observatory .am-record-grid{grid-template-columns:1fr;gap:13px;margin-top:14px}
+    #observatory .am-record+.am-record{border-left:0;border-top:1px solid var(--am-line);padding-left:0;padding-top:13px}
+    #observatory .am-cloud{filter:blur(25px)}
+    #observatory .am-footer{gap:5px}
   }
-  .brand h1{font-size:21px;margin:0;font-weight:700;letter-spacing:.01em}
-  .brand .sub{font-size:11.5px;color:var(--mist);letter-spacing:.16em;text-transform:uppercase;font-family:var(--mono)}
-  /* 右上角是**两行**：状态胶囊 + 一句这页在干什么。
-     旧版只有胶囊，于是「持续追踪」这件事没有任何地方交代 —— 读者看到的
-     只是一个会跳的钟点，看不出它背后有采集与检测在跑。 */
-  .top-right{display:flex;flex-direction:column;align-items:flex-end;gap:7px;text-align:right}
-  .top-note{font-size:12px;color:var(--mist)}
-  .pulse{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--lan);
-    background:var(--mint);border:1px solid var(--mintline);padding:5px 13px;
-    border-radius:99px;white-space:nowrap}
-  /* 「观测中」后面是每秒走的钟点。不用等宽数字的话，秒位一跳整块胶囊就左右晃。 */
-  .pulse #upd{font-variant-numeric:tabular-nums}
-  .dot{width:7px;height:7px;border-radius:50%;background:var(--bamboo);box-shadow:0 0 0 0 rgba(95,132,85,.5);animation:bp 2.4s infinite}
-  @keyframes bp{0%{box-shadow:0 0 0 0 rgba(95,132,85,.45)}70%{box-shadow:0 0 0 8px rgba(95,132,85,0)}100%{box-shadow:0 0 0 0 rgba(95,132,85,0)}}
-
-  /* ---------- 采集异常提示 ---------- */
-  /* 只在 stats.json.errors 非空时才被渲染出来（renderCollectWarning 返回空串）。
-     刻意比信号横幅弱一档：它是「数据可信度声明」，不是头条。
-     注意这里的动效不依赖 animation-fill-mode —— 动画不跑时圆点照样可见。 */
-  .cwarn{
-    margin-top:18px;padding:13px 18px;border-radius:12px;
-    border:1px solid rgba(179,86,60,.3);border-left:5px solid var(--cinnabar);
-    background:rgba(179,86,60,.055);
+  @media(max-width:370px){
+    #observatory{padding-left:16px;padding-right:16px}
+    #observatory .am-brand b{font-size:13px}
+    #observatory .am-tools{font-size:11px}
+    #observatory .am-pause{padding-left:8px;padding-right:8px}
+    #observatory .pcard{padding-left:16px;padding-right:16px}
+    #observatory .am-date{font-size:73px}
+    #observatory .pcard-top{gap:8px}
   }
-  .cwarn-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-  .cwarn-dot{width:7px;height:7px;border-radius:50%;background:var(--cinnabar);flex:0 0 auto;animation:bpc 2.4s infinite}
-  @keyframes bpc{0%{box-shadow:0 0 0 0 rgba(179,86,60,.45)}70%{box-shadow:0 0 0 7px rgba(179,86,60,0)}100%{box-shadow:0 0 0 0 rgba(179,86,60,0)}}
-  .cwarn-h b{font-size:13px;color:#7A3421;letter-spacing:.03em}
-  .cwarn-when{font-size:12px;color:var(--mist);font-family:var(--mono)}
-  .cwarn-b{margin:7px 0 0;font-size:13px;color:var(--ink2);line-height:1.65}
-  .cwarn-l{margin:8px 0 0;padding-left:18px;font-size:12.5px;color:var(--mist);
-    font-family:var(--mono);word-break:break-word}
-  .cwarn-l li{margin:2px 0}
-
-  /* ---------- 信号横幅 ---------- */
-  /* 尺寸整体收过两轮：这不是审美问题，是首屏问题 —— 预告卡每高 1px，
-     下面的倒计时就往下 1px。第一轮（D-018）为放下 4 条依据推文收了 ~70px；
-     第二轮（D-019）为放下「距窗口开启」这条倒数条又收了 21px。实测 1280×720
-     视口下倒计时底部从 712px 回到 691px，重新拿到 29px 余量。
-     两轮的详细数字都记在 decisions.md 里。 */
-  .sig{
-    margin-top:12px;padding:14px 20px;border-radius:14px;
-    border:1px solid rgba(179,86,60,.34);border-left:4px solid var(--cinnabar);
-    background:linear-gradient(180deg,rgba(179,86,60,.075),rgba(179,86,60,.02));
+  @media(pointer:coarse){
+    #observatory .am-pause{min-height:44px}
+    #observatory summary{min-height:44px}
   }
-  .sig[data-level="hint"]{
-    border-color:rgba(63,115,118,.32);border-left-color:var(--lan);
-    background:linear-gradient(180deg,rgba(63,115,118,.07),rgba(63,115,118,.02));
+
+  :root{--sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;--ink:#292741;--ink2:#56516e;--mist:#73708a;--line:#e6e2f1;--card:#fff;--paper2:#f5f3fb;--lan:#6150d4;--bamboo:#438d87;--cinnabar:#a14b45;--amber:#8a672a}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;background:#f5f4fb}
+  body{margin:0;background:#f5f4fb}
+  button,summary,a{-webkit-tap-highlight-color:transparent}
+  button,summary{cursor:pointer}button:disabled{cursor:default}
+  [hidden]{display:none!important}
+  #observatory.wrap{max-width:1024px;margin:0 auto;min-height:100vh}
+  #observatory .am-brand h1{font-size:17px;font-weight:600;letter-spacing:-.03em;margin:0;white-space:nowrap}
+  #observatory .pulse #upd{font-variant-numeric:tabular-nums}
+  #observatory .pulse{font-family:var(--sans)}
+  #observatory .am-context{margin:0}
+  #observatory .am-context-left{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  #observatory .hero-v{display:inline-flex;align-items:baseline;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--am-ink);font-weight:500;line-height:1;gap:5px}
+  #observatory .grp,#observatory .reels{display:inline-flex;align-items:baseline}
+  #observatory .reel{display:inline-block;width:.62em;height:1em;overflow:hidden;vertical-align:baseline}
+  #observatory .reel .strip{display:block;transition:transform .55s cubic-bezier(.18,.86,.24,1)}
+  #observatory .reel .strip i{display:block;height:1em;line-height:1;font-style:normal;text-align:center}
+  #observatory .unit{font-size:1em;margin-left:4px;font-weight:400}
+  #observatory .pred{margin:0}
+  #observatory .pc-conf{display:inline-flex;align-items:center;gap:7px}
+  #observatory .pc-conf[data-level="low"]{color:#8a672a;background:#f7efdf}
+  #observatory .pc-conf[data-level="high"]{color:#328775;background:#e5f4ee}
+  #observatory .am-stage h2{font-size:18px;font-weight:500;position:relative;z-index:1}
+  #observatory .pc-eta{position:relative;z-index:1}
+  #observatory .pc-wait{display:flex;align-items:baseline;justify-content:center;gap:15px;flex-wrap:wrap;margin-top:19px;color:var(--am-muted);font-size:12px;position:relative;z-index:1}
+  #observatory .counter{font-family:var(--mono);font-size:27px;font-weight:500;letter-spacing:-.045em;color:var(--am-ink);line-height:1;display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;justify-content:center}
+  #observatory .counter .unit{margin-left:6px}
+  #observatory #pcd .grp{display:none}
+  #observatory #pcd[data-scale="d"] [data-g="d"],#observatory #pcd[data-scale="d"] [data-g="h"],#observatory #pcd[data-scale="h"] [data-g="h"],#observatory #pcd[data-scale="h"] [data-g="m"],#observatory #pcd[data-scale="m"] [data-g="m"],#observatory #pcd[data-scale="m"] [data-g="s"],#observatory #pcd[data-scale="s"] [data-g="s"]{display:inline-flex}
+  #observatory .pc-wait-over{display:none;color:var(--am-ink);font-size:20px}
+  #observatory .pc-wait[data-over="1"] #pcd{display:none}
+  #observatory .pc-wait[data-over="1"] .pc-wait-over{display:inline}
+  #observatory .pc-band b{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+  #observatory .pc-badge,#observatory .am-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+  #observatory .sig-idle{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:15px;border:1px solid #e0d9f0;border-radius:14px;background:#fafaff;padding:14px 18px;font-size:12px;text-decoration:none}
+  #observatory .idle-ico{color:var(--am-accent);display:flex;flex:none}
+  #observatory .idle-ico svg{width:15px;height:15px}
+  #observatory .idle-body{display:contents}
+  #observatory .idle-sub{margin-left:auto;color:var(--am-muted);font-size:11px}
+  #observatory .idle-go{display:none}
+  #observatory .am-main>.am-side{grid-column:2;grid-row:1}
+  #observatory .am-main>.am-history{grid-column:1;grid-row:1}
+  #observatory .sig-prog{position:relative;border:1px solid #e3ddef;border-radius:18px;padding:16px 18px;background:#fff;min-width:0;box-shadow:0 3px 14px -12px #6b5ba83d}
+  #observatory .sig-prog summary{display:flex;gap:11px;align-items:center;list-style:none;font-size:13px}
+  #observatory .sig-prog summary:after{content:"＋";font-size:17px;color:var(--am-muted);margin-left:auto}
+  #observatory .sig-prog[open] summary:after{content:"−"}
+  #observatory .sig-prog p{margin:0 0 8px}
+  #observatory .sp-source{color:var(--am-accent);display:inline-block;margin-top:10px}
+  #observatory .am-history{container-type:inline-size}
+  #observatory .am-trends{margin-top:12px}
+  #observatory .am-trend{display:block;width:100%;height:auto}
+  #observatory .am-trend text{font:11px var(--sans)}
+  #observatory .am-trend .am-value-label{fill:var(--am-accent)}
+  #observatory .am-trend-mobile,#observatory .am-trend-narrow{display:none}
+  @container(max-width:430px){#observatory .am-trend-wide{display:none}#observatory .am-trend-mobile{display:block}}
+  @container(max-width:275px){#observatory .am-trend-mobile{display:none}#observatory .am-trend-narrow{display:block}}
+  #observatory .am-disclosure>summary{min-height:28px}
+  #observatory .am-disclosure[open]>summary{margin-bottom:14px}
+  #observatory .basis-detail .head{display:none}
+  #observatory .basis-detail>section{margin:0}
+  #observatory .bc-grid{display:grid;gap:16px}
+  #observatory .bc{padding:15px 0;border-top:1px solid var(--am-line)}
+  #observatory .bc:first-child{border-top:0;padding-top:0}
+  #observatory .bc-h{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  #observatory .bc-h h3{margin:0;font-size:13px;font-weight:600}
+  #observatory .ico{color:var(--am-accent);display:inline-flex}
+  #observatory .bc-num{font-family:var(--mono);font-size:25px;color:var(--am-ink);margin-bottom:8px}
+  #observatory .bc-num b{font-weight:500}
+  #observatory .bc-num small{font-size:12px;margin-left:6px}
+  #observatory .bc-range{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:11px;margin-bottom:12px}
+  #observatory .bc-range b{font-weight:500}
+  #observatory .bc-bar{display:grid;grid-template-columns:58px 1fr 46px;gap:11px;align-items:center;font-size:11px;margin:10px 0}
+  #observatory .track{height:7px;background:#f0edf8;border-radius:99px;overflow:hidden}
+  #observatory .track i{display:block;height:100%;background:var(--am-accent);border-radius:inherit}
+  #observatory .pv{text-align:right;font-family:var(--mono)}
+  #observatory .bc-sub{font-size:11px;margin-bottom:10px}
+  #observatory .bc-row{display:grid;grid-template-columns:1fr auto;gap:3px 12px;padding:9px 0;border-top:1px solid var(--am-line)}
+  #observatory .bc-row .v{font-family:var(--mono);color:var(--am-ink)}
+  #observatory .bc-row .j{grid-column:1/-1;font-size:11px}
+  #observatory .good{color:#438d87!important}#observatory .bad,#observatory .is-warn{color:#936e3b!important}
+  #observatory .bc-note{font-size:11px;margin-top:12px;padding-top:10px;border-top:1px solid var(--am-line)}
+  #observatory .ph{display:grid;grid-template-columns:1fr auto;gap:3px 8px;font-size:11px;padding:9px 0;border-bottom:1px solid var(--am-line)}
+  #observatory .ph .pt,#observatory .ph .pn{grid-column:1/-1}
+  #observatory .ph .pm{font-size:15px;font-family:var(--mono);grid-column:2;grid-row:1}
+  #observatory .ph small{font-size:11px;margin-left:4px}
+  #observatory .fc-warn{padding-left:18px;font-size:12px}
+  #observatory .am-more{margin-top:18px}
+  #observatory .am-more>summary{list-style:none;display:flex;gap:8px;align-items:center;font-size:12px;color:var(--am-muted)}
+  #observatory .am-more>summary:after{content:"＋";margin-left:auto;font-size:17px}
+  #observatory .am-more[open]>summary:after{content:"−"}
+  #observatory .am-more-body{padding-top:20px}
+  #observatory .head{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline;margin-bottom:14px}
+  #observatory .head h2{font-size:14px;font-weight:600;margin:0}
+  #observatory .hint,#observatory .lede{font-size:11px;color:var(--am-muted)}
+  #observatory .lede{margin-bottom:15px}
+  #observatory .hr-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+  #observatory .hr{min-width:0}
+  #observatory .hr-h h3{font-size:12px;font-weight:500;margin:0 0 4px}
+  #observatory .hr-n{display:block;font-size:11px;color:var(--am-muted);margin-bottom:12px}
+  #observatory .chart{display:flex;justify-content:center}
+  #observatory .chart svg{display:block;width:100%;height:auto;max-width:380px}
+  #observatory .chart [stroke="#3F7376"]{stroke:var(--am-accent)}
+  #observatory .chart [fill="#3F7376"]{fill:var(--am-accent)}
+  #observatory .legend{display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--am-muted);margin-top:8px}
+  #observatory .legend i{display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:4px}
+  #observatory .metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin:20px 0}
+  #observatory .metric{min-width:0}
+  #observatory .metric .v{font:22px var(--mono);letter-spacing:-.04em}
+  #observatory .metric .v small{font:11px var(--sans);margin-left:3px}
+  #observatory .metric .k,#observatory .metric .note{font-size:11px;color:var(--am-muted)}
+  #observatory .metric .k{margin-top:5px}
+  #observatory .verdict{font-size:12px;margin:12px 0;color:var(--am-muted)}
+  #observatory .verdict b{font-weight:500;color:var(--am-accent)}
+  #observatory .tl{list-style:none;padding:0;margin:0}
+  #observatory .tl li{display:grid;grid-template-columns:120px 1fr;gap:18px;padding:15px 0;border-top:1px solid var(--am-line)}
+  #observatory .tl .when{font:11px/1.6 var(--mono);color:var(--am-muted)}
+  #observatory .tl .when b{display:block;font-weight:500;color:var(--am-ink)}
+  #observatory .tl p{font-size:12px;margin:5px 0}
+  #observatory .tl .body a{font-size:11px;color:var(--am-accent)}
+  #observatory .tag{font-size:11px;color:var(--am-accent)}
+  #observatory .cwarn{margin:18px 0 0;border:1px solid #e9d8ba;border-left:4px solid #a78549;background:#fffbf3;border-radius:14px;padding:13px 18px}
+  #observatory .cwarn-h{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;font-size:12px;color:#82622e}
+  #observatory .cwarn-h b{font-weight:600}
+  #observatory .cwarn-when{font-size:11px;color:#8a795b}
+  #observatory .cwarn-b,#observatory .cwarn-l{font-size:12px;color:#79684e;margin-top:7px;overflow-wrap:anywhere}
+  #observatory .cwarn-l{padding-left:18px}
+  #observatory .sig{margin-top:15px;border:1px solid #d8c8ed;border-radius:18px;background:#faf7ff;padding:18px 20px;font-size:12px}
+  #observatory .sig-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  #observatory .sig-badge{border-radius:99px;background:#ede5fb;color:var(--am-accent);padding:3px 9px;font-size:11px}
+  #observatory .sig-title{font-weight:600;font-size:14px}
+  #observatory .sig-precision{font-size:11px;color:var(--am-muted);margin-left:auto}
+  #observatory .sig-meta{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--am-muted);margin-top:10px}
+  #observatory .sig-meta a{color:var(--am-accent)}
+  #observatory .sig-quote{margin:12px 0;background:#fff;border:1px solid var(--am-line);border-radius:10px;padding:12px;font-size:12px}
+  #observatory .sig-note{color:#8a672a}
+  #observatory .win{margin:12px 0;border:1px solid var(--am-line);border-radius:10px;overflow:hidden;background:#fff}
+  #observatory .sw{display:grid;grid-template-columns:90px 1fr auto;gap:8px;padding:10px 12px;border-bottom:1px solid var(--am-line);align-items:baseline;font-size:11px}
+  #observatory .sw-v{font-family:var(--mono);overflow-wrap:anywhere;word-break:keep-all;color:var(--am-ink)}
+  #observatory .sw-z{color:var(--am-muted);white-space:nowrap}
+  #observatory .sw-foot{font-size:11px;color:var(--am-muted);padding:8px 12px}
+  #observatory .sig-prog .sw{grid-template-columns:1fr auto;gap:4px 8px}
+  #observatory .sig-prog .sw-v{grid-column:1/-1;grid-row:2}
+  #observatory .sig-prog .sw-z{grid-column:2;grid-row:1}
+  #observatory .sig-cd{margin-bottom:12px}
+  #observatory .cd-anchor,#observatory .cd-cap{font-size:11px;color:var(--am-muted);margin-right:8px}
+  #observatory .cd-row{font-family:var(--mono);display:flex;gap:6px;margin-top:6px}
+  #observatory .cd-over{display:none}
+  #observatory .sig-cd[data-over="1"] .cd-row,#observatory .sig-cd[data-over="1"] .cd-cap{display:none}
+  #observatory .sig-cd[data-over="1"] .cd-over{display:block}
+  #observatory .sig-ev{margin:12px 0;border-top:1px solid var(--am-line);padding-top:12px}
+  #observatory .sig-ev summary{list-style:none;font-size:12px}
+  #observatory .sig-ev summary:after{content:" ＋";color:var(--am-accent)}
+  #observatory .sig-ev[open] summary:after{content:" −"}
+  #observatory .sig-ev ol{margin:12px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  #observatory .ev{padding:12px;background:#fff;border:1px solid var(--am-line);border-radius:10px;min-width:0}
+  #observatory .ev-top{display:flex;gap:7px;align-items:baseline;flex-wrap:wrap;font-size:11px;color:var(--am-muted)}
+  #observatory .ev-role{color:var(--am-accent)}
+  #observatory .ev-text{font-size:12px;margin:8px 0;overflow-wrap:anywhere}
+  #observatory .ev-meta,#observatory .sig-chain,#observatory .sig-clock{font-size:11px;color:var(--am-muted)}
+  #observatory[data-running="false"] .reel .strip{transition:none}
+  @media(max-width:700px){
+    #observatory .am-brand h1{font-size:14px}#observatory .am-header{align-items:center}
+    #observatory .am-tools{flex:none}#observatory .hero-v{font-size:11px;gap:4px}
+    #observatory .am-context-left{gap:6px}#observatory .am-context>span:last-child{width:100%}
+    #observatory .am-stage h2{font-size:16px}#observatory .pc-wait{gap:8px;font-size:11px;margin-top:22px}
+    #observatory .counter{font-size:24px;gap:7px}#observatory .counter .unit{margin-left:4px}
+    #observatory .pc-band b{white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
+    #observatory .idle-sub{width:100%;margin-left:0}#observatory .sig-idle{padding:13px 14px;gap:4px 9px;font-size:11px}
+    #observatory .am-main>.am-side,#observatory .am-main>.am-history{grid-column:1;grid-row:auto}
+    #observatory .am-side{order:1}#observatory .am-history{order:2}
+    #observatory .sig-prog{padding:16px}#observatory .am-context-left{width:100%}
+    #observatory .hr-grid{grid-template-columns:1fr;gap:25px}#observatory .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+    #observatory .sw{grid-template-columns:1fr auto;gap:4px 8px}#observatory .sw-v{grid-column:1/-1;grid-row:2}
+    #observatory .sw-z{grid-column:2;grid-row:1}#observatory .sig-ev ol{grid-template-columns:1fr}
+    #observatory .sig-precision{margin-left:0}#observatory .tl li{grid-template-columns:1fr;gap:6px}
   }
-  /* 多条预告并排时给彼此留出间距 */
-  .sig + .sig{margin-top:16px}
-  .sig-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}
-  .sig-badge{font-size:11.5px;letter-spacing:.1em;padding:3px 11px;border-radius:99px;
-    background:var(--cinnabar);color:#fff}
-  .sig[data-level="hint"] .sig-badge{background:var(--lan)}
-  .sig-title{font-size:16px;font-weight:650}
-  .sig-precision{font-size:12px;color:var(--mist);margin-left:auto}
-  /* ---------- 距窗口开启 ---------- */
-  /* 挂在窗口块上方。注意页首那个跳动的数字是「距上一次重置」——**往回看**的；
-     往前看的这个此前只在小程序里有，网页端根本没有（见 decisions.md 的 D-019）。
-     标签里挂**北京时间的锚点**：只给一个跳动的数字、不写它数到哪一刻，
-     读的人没法核对，那正是「你这时间也不对啊」的来源。
-     卷轴样式直接复用页首那套（.grp / .reel / .reels 都是全局类），
-     同一种数字只该有一种动法。 */
-  .sig-cd{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
-    margin:0 0 8px;padding:8px 14px;border-radius:10px;
-    background:var(--card);border:1px solid var(--line)}
-  .cd-cap{font-size:11.5px;letter-spacing:.1em;color:var(--mist);flex:0 0 auto}
-  .cd-anchor{font-family:var(--mono);font-size:11.5px;color:var(--ink2);flex:0 0 auto}
-  /* 数字排在最后一行、靠右 —— 与页首的大倒计时拉开主次：那个是主角，这个是注脚。 */
-  .cd-row{display:flex;align-items:baseline;margin-left:auto;
-    font-family:var(--mono);font-variant-numeric:tabular-nums;
-    font-size:26px;line-height:1;font-weight:300;letter-spacing:-.01em}
-  .cd-over{display:none;margin-left:auto;font-size:12.5px;color:var(--cinnabar);font-weight:600}
-  .sig-cd[data-over="1"] .cd-row{display:none}
-  .sig-cd[data-over="1"] .cd-over{display:block}
-  .cd-row .unit{font-size:.45em;line-height:1;color:var(--mist);
-    margin:0 9px 0 5px;letter-spacing:.06em;font-weight:400}
-  .cd-row .grp:last-child .unit{margin-right:0}
-  .sig-win{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
-    border-radius:10px;overflow:hidden;margin-bottom:9px}
-  .sw{display:grid;grid-template-columns:104px 1fr auto;gap:12px;align-items:baseline;
-    background:var(--card);padding:10px 14px}
-  .sw-k{font-size:12px;color:var(--mist)}
-  /* 值里是一段「起 — 止」的日期区间，中间只有空格是断点，所以 `keep-all` 只做一件事：
-     不让它断在「周」和「六」之间（841 宽实测会断成三行、末行只剩「六）」）。
-     `anywhere` 兜底：真放不下时退回默认行为，不会溢出。
-     窄屏这一格会独占整行（见下方媒体查询），那时它本来就只有一行。 */
-  .sw-v{font-family:var(--mono);font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;
-    word-break:keep-all;overflow-wrap:anywhere}
-  .sw-z{font-family:var(--mono);font-size:11.5px;color:var(--mist);white-space:nowrap}
-  .sw-foot{background:var(--card);padding:8px 14px;font-size:12px;color:var(--ink2)}
-  .sig-quote{margin:0 0 12px;padding:13px 16px;background:var(--card);border:1px solid var(--line);
-    border-radius:10px;font-size:13.5px;color:var(--ink2);line-height:1.65}
-  .sig-meta{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--mist)}
-  .sig-meta a{color:var(--lan);text-decoration:none;border-bottom:1px dotted currentColor}
-  .sig-note{color:#8A6A28}
-  /* 提示条：主卡正下方的**空状态**条。
-     它不是「信号区的一种弱形态」，而是首屏的一部分 —— 读者看完结论的下一问
-     就是「有没有公告」。所以它紧贴主卡、有底色、有图标，不再落在第二节里。
-     有公告时被 `.sig` 横幅顶替：同一个位置，更强的一档。
-     右侧那个箭头是**真链接**（跳到最近记录，看这一轮到底扫了什么）——
-     设计稿上是一个箭头，但箭头若不指向任何地方就是假的交互提示。
-     ⚠ 外层是 `<a>`，所以要显式清掉链接的默认色与下划线。 */
-  .sig-idle{margin-top:14px;display:flex;align-items:center;gap:14px;
-    background:#FBF4E6;border:1px solid #EFE1C4;border-radius:var(--r);
-    padding:15px 20px;box-shadow:var(--shadow);text-decoration:none;color:inherit}
-  .idle-ico{flex:0 0 auto;width:34px;height:34px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;
-    background:#F4E6C8;color:var(--amber)}
-  .idle-body{flex:1 1 auto;min-width:0}
-  /* 两行都是块级：外层是 flex 项，里面若保持 inline 就不会换行，
-     「已扫描 …」会跟主句挤在同一行尾巴上。 */
-  .idle-t{display:block;font-size:14.5px;font-weight:650;color:#4A3A18;line-height:1.4}
-  .idle-sub{display:block;font-size:12px;color:#8B7548;margin-top:2px}
-  .idle-go{flex:0 0 auto;color:#C3A468;font-size:20px;line-height:1;font-family:var(--mono)}
-  .sig-idle:hover .idle-go{color:var(--amber)}
+  @media(max-width:370px){#observatory .am-brand h1{font-size:13px}}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}#observatory .reel .strip{transition:none!important}}
 
-  /* ---------- 每日重置窗口（跨多日的持续规则，不是某一天的预告） ---------- */
-  /* 视觉上刻意比 .sig（预告块）轻、也比三张依据卡轻：预告才是页首最大视觉重量，
-     这条是**规则**而非结论。
-     底色用最淡的一档薄荷（`--mint`），与主卡的渐变同族但明显更弱 —— 主卡仍是
-     这一页唯一「重」的块。
-     位置：信号区之后、预测依据之前（2026-10-09 改，见模板里那段注释）。
-     ⚠ 上边距**不能省**。顶栏（`header.top`）自带 1px 下边框，而这块是**带边框的块**，
-     与它上面那一条 `.sig`（同样带边框）之间必须有可见间距 —— margin-top 为 0 时两条
-     1px 会叠成一条（实测 2026-10-07 线上就是这样）。这条约束已进验收：
-     `scripts/check-layout.mjs` 的 A7b 会量「相邻两个有边框的块之间必须有可见间距」，
-     改回 0 会直接变红。它取的 44px 与 `section` 的区块间距同值，不用为这次挪位单独调。
-     ⚠ 注释里**不许原样写出占位符**（连注释标记一起）—— `injectTokens` 只替换第一处，
-     页脚那道「有占位符没被替换」的检查会因此报错。 */
-  .sig-prog{margin-top:44px;padding:18px 22px;background:var(--mint);
-    border:1px solid var(--mintline);border-radius:var(--r);box-shadow:var(--shadow);
-    display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px 26px;
-    align-items:center;text-decoration:none;color:inherit}
-  .sp-lead{display:flex;gap:13px;align-items:flex-start;min-width:0}
-  .ico-cal{background:rgba(63,115,118,.12)}
-  .sp-body{min-width:0}
-  .sp-head{margin-bottom:7px}
-  .sp-tag{font-size:14px;font-weight:650;color:var(--lan);letter-spacing:.01em}
-  .sp-left{font-size:11.5px;color:#5E7B76;margin-left:9px}
-  .sp-left b{color:var(--ink2)}
-  .sp-rule{font-size:12.5px;color:var(--ink2);line-height:1.65;margin:0}
-  .sp-src{font-size:11px;color:#5E7B76;line-height:1.6;margin:6px 0 0}
-  .sp-side{position:relative;padding-right:22px}
-  /* 时区表在这个位置是**辅助信息**（它说明窗口覆盖到哪一天），所以去掉它自带的
-     下边距，让它与左侧的规则文字同一水平线收尾。 */
-  .sig-prog .sig-win{margin-bottom:0}
-  .sig-prog:hover .sp-go{color:var(--lan)}
-  .sp-go{position:absolute;right:0;top:50%;transform:translateY(-50%);
-    color:#8FB0AC;font-size:20px;line-height:1;font-family:var(--mono)}
-
-  /* ---------- 预告里的依据推文 ---------- */
-  /* 一条预告 = 一个时间窗口，**支撑它的推文挂在这条预告里面**，不另起一块。
-     旧版把同一个结论拆成「横幅 + 另有 N 条 + 折叠证据」三处，读的人得自己拼；
-     那行「另有 N 条不重复列出」陈述的还是「我做了去重」这个实现细节（见 D-018）。
-     宽屏默认展开 —— 证据是这条预告的可追溯性，不是可选项。但页首堆砌的亏吃过
-     （D-014），所以每条只占两行：元信息一行、原文一行（clamp 到两行），两列并排。
-     窄屏默认收起（见页面脚本）：单列铺开 4 条会把倒计时顶出第一屏，实测
-     390×844 下预告卡高 1152px。收起时「依据 N 条推文」那行仍然可见，
-     归属关系不丢，只是详情要点一下。脚本被禁用时保持展开 —— 退化成「都在」。 */
-  .sig-ev{margin:0 0 10px;border:1px solid var(--line);border-radius:10px;
-    background:var(--paper2);overflow:hidden}
-  .ev-head{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;
-    padding:9px 14px;font-size:12px;color:var(--ink2);cursor:pointer;
-    list-style:none;transition:background .15s ease}
-  .ev-head::-webkit-details-marker{display:none}
-  .ev-head::before{content:"▸";color:var(--mist);font-size:11px;flex:0 0 auto;
-    transition:transform .18s ease}
-  .sig-ev[open] .ev-head{border-bottom:1px solid var(--line)}
-  .sig-ev[open] .ev-head::before{transform:rotate(90deg)}
-  .ev-head:hover{background:rgba(63,115,118,.045)}
-  .ev-head b{color:var(--ink);font-weight:650}
-  .ev-hint{font-size:11.5px;color:var(--mist)}
-  .ev-list{list-style:none;margin:0;padding:9px 14px 11px;display:grid;gap:8px}
-  @media (min-width:760px){.ev-list{grid-template-columns:1fr 1fr;gap:8px 22px}}
-  .ev-item{padding-left:11px;border-left:2px solid var(--mist);min-width:0}
-  .ev-item[data-weight="hard"]{border-left-color:var(--lan)}
-  .ev-top{display:flex;gap:11px;align-items:baseline;flex-wrap:nowrap;
-    font-size:11.5px;color:var(--mist);min-width:0}
-  .ev-when{font-family:var(--mono);font-variant-numeric:tabular-nums;flex:0 0 auto}
-  .ev-tag{font-size:10.5px;letter-spacing:.08em;padding:1px 8px;border-radius:99px;
-    flex:0 0 auto;background:rgba(140,136,128,.16);color:var(--mist)}
-  .ev-tag[data-weight="hard"]{background:rgba(63,115,118,.14);color:var(--lan)}
-  /* 来源与时间词允许被压缩：它们短小但会长（「↩ @udiWertheimer」「coming in tuesday」），
-     一旦把这行顶断，「原推 ↗」就被甩到下一行，看起来像另一个条目的东西。
-     压成省略号比换行好 —— 完整值在 title 里，原推里也有。 */
-  .ev-via,.ev-word{flex:0 1 auto;min-width:0;overflow:hidden;
-    text-overflow:ellipsis;white-space:nowrap}
-  .ev-via{color:var(--ink2)}
-  .ev-word{font-family:var(--mono);color:var(--ink2)}
-  .ev-flag{font-size:10.5px;color:#8A6A28;flex:0 0 auto}
-  .ev-link{flex:0 0 auto;font-size:11.5px;color:var(--lan);text-decoration:none;
-    border-bottom:1px dotted currentColor;white-space:nowrap}
-  .ev-quote{margin:3px 0 0;font-size:12.5px;color:var(--ink2);line-height:1.5;
-    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-
-  /* ---------- Hero ---------- */
-  /* 逐位卷动：每一位是一个 0–9 的竖条，靠 translateY 滚动。
-     初始位置由构建脚本写死在行内样式里，所以脚本被禁用时数字也是对的，
-     只是不再滚动 —— 属于渐进增强，不是必需品。 */
-  .counter{
-    display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;
-    font-family:var(--mono);font-variant-numeric:tabular-nums;
-    font-size:clamp(38px,8.4vw,84px);line-height:1;font-weight:300;
-    letter-spacing:-.01em;margin:15px 0 8px;
-  }
-  .grp{display:inline-flex;align-items:baseline}
-  .reels{display:inline-flex;align-items:baseline;position:relative;top:var(--reel-nudge)}
-  .reel{display:inline-block;width:.62em;height:1em;overflow:hidden;vertical-align:baseline}
-  .reel .strip{display:block;transition:transform .55s cubic-bezier(.18,.86,.24,1)}
-  .reel .strip i{display:block;height:1em;line-height:1;font-style:normal;text-align:center}
-  .counter .unit{font-size:.24em;line-height:1;color:var(--mist);
-    margin:0 13px 0 9px;letter-spacing:.06em;font-weight:400}
-  .grp:last-child .unit{margin-right:0}
-
-  .verdict{
-    display:inline-block;margin-top:24px;padding:11px 22px;border-radius:99px;
-    font-size:13.5px;border:1px solid var(--line);background:var(--card);
-  }
-  .verdict b{font-weight:650}
-  .v-calm{color:var(--bamboo);border-color:rgba(95,132,85,.3);background:rgba(95,132,85,.06)}
-  .v-watch{color:var(--lan);border-color:rgba(63,115,118,.3);background:rgba(63,115,118,.055)}
-  .v-long{color:#8A6A28;border-color:rgba(179,86,60,.28);background:rgba(179,86,60,.05)}
-  .v-rare{color:var(--cinnabar);border-color:rgba(179,86,60,.42);background:rgba(179,86,60,.08)}
-
-  /* ---------- 第二层：预测总览 ---------- */
-  /* 带推断的那一块，**只有这里**给出「预计时间」这个字符串。
-     它上面是「已经等了多久」—— 一个不含推断的事实（见上一节）。顺序改过两次：
-     最早这一页是「观察站」，最先看到的是「距上次重置过了多久」，而用户要的答案
-     「下一次什么时候」被压在下面，于是结论提到最前；2026-10-08 又把「已经等了多久」
-     挪到结论**之前** —— 事实在前、推断在后，读者先知道自己在哪，再看要去哪。
-
-     2026-10-08 又收一次：主卡从「左主卡 + 右侧栏」改成**整宽一张**。
-     分栏的代价是主卡被压到 1.75fr（约 610px），而它要放的是全页最大的数字；
-     侧栏那张「凭什么可信」的卡则内容零散、底部永远留一大块空白。改成整宽之后
-     主卡四周留白反而变多，可信度证据下移成三张依据卡（见第二节），
-     两张卡都不用再为对方的尺寸让步。
-
-     主卡与其它卡片的分工靠**底色**（薄荷底 vs 白底）与阴影档位拉开，
-     不靠加边框、加角标、加装饰条 —— 那是营销风的入口。
-
-     ⚠ 类名前缀刻意是 `pc-` 而不是 `pm-`：`.ph .pm`（节奏分段里的数值）是既有类名，
-     用 `.pm` 做卡片会让分段的那个数字凭空长出边框和投影 —— 实测过一次，
-     症状是「14 天 18 小时」被包成一个圆角盒子，而 CSS 里根本找不到谁给它加的。
-     同族冲突要靠前缀隔开，不能靠「反正两个词不在一处」。 */
-  .pred{margin-top:26px}
-
-  /* 主卡：全页唯一的薄荷底 + 唯一的「抬升」阴影档。
-     状态**不上底色**：底色是这张卡的身份证（「这是结论」），若再按状态换底，
-     三种状态就有三种底色，读者反而认不出「结论卡」这个形状了。
-     状态由徽章与置信度条承担 —— 两处都是颜色 + 文字同时给，不靠颜色单独承载信息。 */
-  .pcard{
-    position:relative;overflow:hidden;
-    background:linear-gradient(158deg,var(--mint) 0%,#F2F8F6 58%,var(--mint2) 100%);
-    border:1px solid var(--mintline);border-radius:20px;
-    padding:26px 30px 24px;box-shadow:var(--shadow-lift);
-  }
-  /* 装饰层：右上角一圈弧线 + 一个游标点，外加一句手写体。
-     它是这张卡**唯一**的装饰，且 pointer-events:none + aria-hidden ——
-     不含信息、不参与朗读、不挡点击。做成内联 SVG 而不是背景图：
-     右上角那圈圆必须跟着卡片高度走，背景图做不到。
-     窄屏隐藏（见底部媒体查询）：卡片一窄，它就压到大数字上了。 */
-  .pc-deco{position:absolute;top:0;right:0;width:320px;height:224px;pointer-events:none}
-  .pc-deco svg{display:block;width:100%;height:auto}
-  .pc-script{position:absolute;right:30px;top:46%;font-size:15px;line-height:1.35;
-    font-family:"Snell Roundhand","Bradley Hand","Segoe Script",cursive;
-    color:#A2B8B3;transform:rotate(-3.5deg);text-align:right;pointer-events:none;
-    letter-spacing:.02em}
-
-  /* 卡片头：标题与徽章同一行，副行紧随其下。
-     标题与徽章之间的间距刻意大（14px）：徽章是**状态**，不是标题的尾巴；
-     贴太紧会被读成「下一次重置预测·观察中」这么一个复合名词。 */
-  .pc-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  .pc-top h2{font-size:23px;margin:0;font-weight:700;letter-spacing:.01em}
-  .pc-badge{font-size:12px;letter-spacing:.06em;padding:5px 14px;border-radius:99px;
-    background:var(--mist);color:#fff;white-space:nowrap}
-  .pc-badge[data-status="confirmed"]{background:var(--bamboo)}
-  .pc-badge[data-status="likely"]{background:var(--lan)}
-  .pc-badge[data-status="watching"]{background:#6E8C88}
-  .pc-sub{font-size:12.5px;color:#5E7B76;margin-top:6px}
-
-  /* 置信度与依据摘要并排放在卡片底部：左边「有多可信」，右边「算于何时、算了几条」。
-     两者都是**元信息**，与上面的大数字分属不同层级，所以用一条细线隔开。 */
-  .pc-foot{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
-    margin-top:20px;padding-top:15px;border-top:1px solid rgba(63,115,118,.16)}
-  /* 置信度单独成轴，不并进状态徽章 —— 两者说的不是一件事（见 render.mjs 的说明）。
-     三个小格是正/偏/负的**强度条**，读的人不必记住「高/中/低」对应几格，
-     旁边那两个字才是值。 */
-  .pc-conf{display:inline-flex;align-items:center;gap:9px;
-    font-size:12.5px;color:#5E7B76;white-space:nowrap}
-  .pc-conf b{font-size:15px;color:var(--ink)}
-  .pc-conf[data-level="high"] b{color:var(--bamboo)}
-  .pc-conf[data-level="medium"] b{color:var(--lan)}
-  .conf-bar{display:inline-flex;gap:3px}
-  .conf-bar i{width:16px;height:5px;border-radius:2px;background:rgba(63,115,118,.16)}
-  .pc-conf[data-level="high"] .conf-bar i:nth-child(-n+3){background:var(--bamboo)}
-  .pc-conf[data-level="medium"] .conf-bar i:nth-child(-n+2){background:var(--lan)}
-  .pc-conf[data-level="low"] .conf-bar i:nth-child(-n+1){background:var(--mist)}
-
-  /* 预计时间：日期最大、星期与钟点次之。这是全页的字号之王，所以它周围的留白
-     也最多。字重从 300 提到 600 —— 细体在暖灰底的小字环境里像「注释」，
-     而这块是结论本身，得压得住下面的倒计时。 */
-  .pc-eta{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-top:18px}
-  .pc-eta .dt{font-family:var(--mono);font-size:54px;font-weight:600;line-height:1;
-    letter-spacing:-.03em;color:var(--ink);font-variant-numeric:tabular-nums}
-  .pc-eta .rest{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--ink2);
-    font-variant-numeric:tabular-nums}
-  .pc-cap{font-size:12px;color:var(--mist);margin-top:7px}
-
-  /* 大倒计时。它是「距离预测重置还有」，与第一层之外那条 `.sig-cd`
-     （距公告窗口开启）是两个不同的锚点 —— 后者只在有公告时出现，是注脚。 */
-  .pc-wait{margin:22px 0 0;padding-top:18px;border-top:1px solid rgba(63,115,118,.16)}
-  .pc-wait-cap{font-size:12.5px;letter-spacing:.06em;color:#5E7B76}
-  .pc-wait .counter{justify-content:flex-start;font-size:clamp(28px,6.4vw,62px);margin:8px 0 2px}
-  .pc-wait .counter .unit{margin:0 12px 0 8px}
-  .pc-wait-over{display:none;font-size:14px;color:var(--cinnabar);font-weight:600;margin:12px 0 2px}
-  .pc-wait[data-over="1"] .counter{display:none}
-  .pc-wait[data-over="1"] .pc-wait-over{display:block}
-
-  /* 80% 区间：**结论的必要组成部分**，不是注释 —— 只有它能让「2 天 13 小时」
-     不被误读成一个承诺。所以它紧贴倒计时，数值走主强调色、明显重于其它辅助行。
-     一句尾注「（区间的两端，不是两个候选时刻）」**已按设计稿去掉**：主卡上
-     「距离预测重置还有 + 倒计时」与这行之间已有分区线，区间标签本身也写着
-     「区间」二字，再加一句括号会把这一行拉成两句。 */
-  .pc-band{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:16px}
-  .pc-band .k{font-size:12.5px;color:#5E7B76;font-weight:600}
-  .pc-band b{font-family:var(--mono);font-size:15px;font-weight:500;color:var(--lan);
-    font-variant-numeric:tabular-nums}
-  .pc-band .dash{color:var(--lan);opacity:.55}
-
-  .pc-brief{margin:16px 0 0;font-size:13.5px;color:var(--ink2);line-height:1.75;
-    padding-left:13px;border-left:2px solid rgba(63,115,118,.28)}
-  /* 置信度靠左、更新时间靠右：`margin-left:auto` 必须挂在**后面**那个元素上。
-     挂在 `.pc-conf` 上会把「置信度」推到右边、把更新时间留在左边，与设计稿相反。 */
-  .pc-meta{margin-left:auto;font-size:12px;color:#5E7B76;font-family:var(--mono)}
-  .pc-meta b{color:var(--ink2);font-weight:500}
-
-  /* ---------- 第二层：预测依据（三卡） ---------- */
-  /* 为什么是**三张**而不是旧版的四块散文 + 两张数字块：
-     主卡已经回答了「是什么」，这里只需回答「结论凭什么成立」。凭据有三类，
-     各自独立成立、挑着读也行：
-       ① 剩下的等待有多长、区间多宽、各时间窗概率  ← 中位估计
-       ② 这个模型在样本外到底准不准                ← 覆盖率 / 区分度 / 样本量 / 重采样波动
-       ③ 历史节奏本身在怎么变                      ← 分段平均间隔
-     旧版把「为什么这样预测」这类**散文**也摆在这里，于是每张卡都是半句话，
-     读者得先读完一段话才能开始怀疑。现在散文进主卡的依据摘要（一句话），
-     卡片只放数字 —— 「信息太碎」的根因是散文与数字混在同一层。
-     三张卡用同一套骨架：图标 + 标题 → 数字/行 → 底部一句结语。
-     ⚠ 卡②的**结语是分档的**（推算档讲三项达标情况，公告档声明与模型统计无关）——
-     因为公告档下结论的依据是公告本身，把统计说成理由是「拿 A 的理由解释 B 的结论」。 */
-  .bc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-  /* 左右内边距 22 → 18px：三列布局下卡片内容宽只有 ~217px，卡①的区间行
-     与卡②的四行「标签 + 值」都在这个宽度上贴边。设计稿的内边距也在 14–18 之间。 */
-  .bc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
-    padding:20px 18px;box-shadow:var(--shadow);display:flex;flex-direction:column}
-  .bc-h{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-  .bc-h h3{font-size:14px;margin:0;font-weight:650;color:var(--ink);letter-spacing:.01em}
-  /* 图标片：三张卡各一个，形状与底色完全一致，只有里面的符号不同。
-     它的作用是让三张卡在扫读时可以被**形状**区分，而不是靠读完标题。 */
-  .ico{flex:0 0 auto;width:28px;height:28px;border-radius:9px;
-    display:flex;align-items:center;justify-content:center;
-    background:rgba(63,115,118,.09);color:var(--lan)}
-  .ico svg{display:block}
-  .bc-sub{font-size:12px;color:var(--mist);font-family:var(--mono);margin:-8px 0 12px}
-  /* 主数字：与主卡的中位剩余等待是同一个量，所以必须**差一个数量级** ——
-     同一个数字在两处并列为「一样大」时，读者会以为它们是两件事。
-     主卡是 62px 的倒计时，这里压到 32px。 */
-  .bc-num{display:flex;align-items:baseline;gap:6px;font-family:var(--mono);
-    font-variant-numeric:tabular-nums}
-  .bc-num b{font-size:32px;font-weight:600;line-height:1;letter-spacing:-.02em;color:var(--ink)}
-  .bc-num small{font-size:14px;color:var(--ink2)}
-  /* 区间行：标签「80% 区间」+ 值。设计稿里两者同一行（它的值是
-     「18 小时 – 6 天 17 小时」，比我们当前的「18 小时 12 分 – 6 天 18 小时」短一截），
-     而三列布局下卡片内容宽只有 ~217px，值自己就占 207px —— 并排需要 267px。
-     所以这里不硬压成一行，而是「放得下就并排、放不下就整块落到下一行」。
-     ⚠ 关键在 `.bc-range b` 的 `white-space:nowrap`：不加它，值会在自己内部
-     断成「… – 6 天 / 18 小时」，右半行只剩半句（841 宽实测如此）。
-     `flex-wrap` + `nowrap` 保证只有两种形态：并排，或整块换行，没有中间态。 */
-  .bc-range{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:12px 0 16px}
-  .bc-range .k{font-size:11.5px;color:var(--mist);flex:0 0 auto}
-  .bc-range b{font-family:var(--mono);font-size:13px;color:var(--lan);
-    font-variant-numeric:tabular-nums;white-space:nowrap}
-  /* 三行竖排：标签 → 数值 → 判定（设计稿的形态）。三者都独占一行、左对齐。
-     数值放大到 20px 并单独占行 —— 它是这一行的主角。旧版是「左标签 / 右小值」
-     的表格式（数值 13px 右对齐），四行并排看下来像一张表而不是四张卡，
-     「偏平」的来源正在这里。
-     ⚠ 三行都必须写死 `line-height`：页面基础行高是 1.7（给正文段落的），
-     套在 20px 的数值上会撑成 34px 行盒，一行三句就多出 40px —— 四行累计
-     让这张卡比同排另外两张高出 160px（实测）。数字块要的是紧凑行高。 */
-  .bc-row{display:block;padding:9px 0;border-bottom:1px solid var(--line)}
-  .bc-row:first-child{padding-top:0}
-  .bc-row:last-child{border-bottom:0;padding-bottom:0}
-  .bc-row .k{display:block;font-size:12px;line-height:1.4;color:var(--ink2)}
-  /* `good` 用主强调色（青绿）而不是 `--bamboo`：设计稿里「50.0%」「81.7%」
-     这两个达标值是青绿的，只有不达标的「≈ 无区分力」才用朱红。绿色留给「自然/生长」
-     那类语义，这里用不到。 */
-  .bc-row .v{display:block;font-family:var(--mono);font-size:20px;font-weight:600;
-    line-height:1.15;color:var(--ink);margin-top:3px;font-variant-numeric:tabular-nums;
-    letter-spacing:-.01em}
-  .bc-row .v.good{color:var(--lan)}
-  .bc-row .v.bad{color:var(--cinnabar)}
-  .bc-row .j{display:block;font-size:11px;line-height:1.5;color:var(--mist);margin-top:3px}
-  /* 结语压在卡底（卡片等高，内容多少不一）—— 空白落在它上方读起来才是「留白」 */
-  .bc-note{font-size:11.5px;color:var(--mist);line-height:1.65;margin:auto 0 0;
-    padding-top:14px;border-top:1px dashed var(--line)}
-  /* 只有**卡③**的结语需要 `keep-all`，别扩大到 `.bc-note`：那句里有
-     「3 天 4 小时」这种「数字 + 单位」，默认折行会断在「小」和「时」之间。
-     `keep-all` 把断点限制在空格处，单位就整块走。
-     而卡②的结语是纯散文（26 个汉字连写、只有一个顿号），keep-all 会把
-     顿号当断点，把它从 2 行撑成 3 行、第一行只剩「样本量、」（实测）。
-     `anywhere` 是兜底：整「词」都放不下时才允许内部断行。 */
-  .bc[data-bc="pace"] .bc-note{word-break:keep-all;overflow-wrap:anywhere}
-  /* 告警版结语：卡①那条「概率未经校正」是**必须留的披露**（它报的是这些数字偏低，
-     不是系统有多好），所以给它一个可以停住视线的底 —— 但要与提示条的琥珀
-     （`#FBF4E6`）明显不同档，否则一条卡内注释看着像一条全站告警。 */
-  .bc-note.is-warn{background:#FBF6EC;border:1px solid #EFE6D2;border-radius:10px;
-    padding:9px 12px;color:#8B7548;margin-top:auto}
-
-  /* ---------- 第三层：历史规律 ---------- */
-  /* 三张图并成一组。它们本来就是**同一个问题**的三个切面（哪一档最容易发生 /
-     到第 X 天前发生多少 / 每次间隔各是几天），旧版却各占一节、各有标题与引导段，
-     读者要自己发现它们是一组。分组之后，三张图共用一行、一个标题、一条题注，
-     节的层数从三降到一 —— 这是「图表缺少统一组织」的正面回答。
-     每列自带小标题与样本量，所以三列可以独立阅读，不依赖上一节。 */
-  .hr-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-  .hr{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
-    padding:18px 18px 10px;box-shadow:var(--shadow);min-width:0}
-  .hr-h{margin-bottom:10px}
-  .hr-h h3{font-size:13.5px;margin:0;font-weight:650;color:var(--ink);letter-spacing:.01em}
-  .hr-n{display:block;font-size:11.5px;color:var(--mist);margin-top:3px;
-    font-family:var(--mono)}
-  .hr .legend{gap:10px 14px;font-size:11.5px;padding:8px 2px 2px}
-
-  /* ---------- 第一块：已经等了多久 ---------- */
-  /* 它现在排在**最前**（2026-10-08 改版）。上一版按「往前看的在上、往回看的在下」
-     把它压到页尾，那条规则的前提是「结论必须独占首屏」。前提变了：首屏先给一个
-     **已发生的事实**（不含推断），结论紧跟其后 —— 读者先知道自己在哪，再看要去哪。
-     两个数字互为参照，谁在前都读得通；选事实在前，是因为它没有歧义。
-     它带边框、`section` 又有 44px 上边距，所以与顶栏那条 1px 线不会贴在一起。 */
-  .hero-card{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);
-    gap:24px;align-items:center;background:var(--card);border:1px solid var(--line);
-    border-radius:var(--r);padding:22px 24px;box-shadow:var(--shadow)}
-  .hero-h{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-  .hero-h h3{font-size:14px;margin:0;font-weight:650;color:var(--ink)}
-  /* 页首那个数字与别处**共用同一套卷轴位**（`.grp` / `.reel` / `.strip`）——
-     同一个量只该有一种动法，所以它和主卡倒数是同一种形态、同一条缓动曲线。
-     这里只负责密度：这一栏比主卡窄，所以字号小一档、单位间距也收一档。
-
-     宽度不是估的，是无头 Chrome 量出来的（最紧那档 = 320px 视口，栏宽 208px、
-     字号落在下限 28px）：
-       · 天一位数（常见）189px，余 19px
-       · 天两位数（等过 10 天以上）207px，余 1px
-       · 753px 视口 321/642、960px 视口 368/849，都从容
-     数字位是 `0.62em`、单位是 `0.26em` + 左右间距（间距一律 px，不跟字号缩）。
-     **字号下限取 28 与主卡的 `.pc-wait .counter` 同档**：它也是四位卷轴、也在这条
-     边界上（AGENTS.md 记的「实测余量不到 20px」）。再往下压，页首就比同一页的
-     另一个卷轴数字还小，主次反了。
-
-     ⚠ 天真到三位数（等过 100 天）时 320px 那档会**换行**——`flex-wrap:wrap` 是
-     刻意留的兜底：换行只是难看，横向溢出会让手机上出现横向滚动条。`.counter`
-     同族一直这么兜（它自己也是 wrap）。 */
-  .hero-v{display:flex;align-items:baseline;flex-wrap:wrap;
-    font-family:var(--mono);font-size:clamp(28px,5.6vw,50px);font-weight:600;
-    line-height:1.1;letter-spacing:-.02em;color:var(--ink);
-    font-variant-numeric:tabular-nums}
-  .hero-v .unit{font-size:.26em;line-height:1;color:var(--mist);
-    margin:0 11px 0 8px;letter-spacing:.06em;font-weight:400}
-  .hero-v .grp:last-child .unit{margin-right:0}
-  /* 右栏：距上一次重置的对账信息 + 判定。整块是一个**链接**（落到最近记录）——
-     设计稿右上角那个箭头的落点就是它；箭头不指向任何地方就是假的交互提示。
-     `padding-right` 给箭头让位，`position:relative` 供箭头绝对定位。 */
-  .hero-side{position:relative;border-left:1px solid var(--line);padding-left:24px;
-    padding-right:26px;display:grid;gap:8px;text-decoration:none;color:inherit}
-  .hero-k{font-size:11.5px;color:var(--mist);letter-spacing:.06em}
-  .hero-at{font-family:var(--mono);font-size:12.5px;color:var(--ink2)}
-  .hero-go{position:absolute;right:0;top:50%;transform:translateY(-50%);
-    color:var(--mist);font-size:20px;line-height:1;font-family:var(--mono)}
-  .hero-side:hover .hero-go{color:var(--lan)}
-  /* 判定胶囊：`.verdict` 那套（分档配色沿用），但在这一栏里要压到最小 ——
-     它是右栏的第三行，不是一条独立横幅。 */
-  .hero-side .verdict{font-size:11.5px;padding:6px 11px;border-radius:99px}
-
-  /* ---------- 每日重置窗口（辅助规则，不是结论） ---------- */
-  /* 它回答的是「这 N 天里**每一天**都在射程内」，是一条**下界**，不是某一个窗口。
-     旧版把它排在首屏第一块，于是第一眼读到的是「射程范围」；现在它退到预测区之后，
-     形态也降成一行的规则说明 + 右侧时区表（样式见上面的 `.sig-prog`）。
-     2026-10-09 起它在**信号区之后、预测依据之前** —— 仍在结论与信号之下（规则不是
-     结论），但提到了依据之前（它划的是「结论的边界」，不是「结论算得准不准」）。 */
-
-
-  /* ---------- 卡片 ---------- */
-
-  section{margin-top:44px}
-  .head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
-    margin-bottom:16px;flex-wrap:wrap}
-  .head-l{display:flex;align-items:center;gap:10px}
-  .head h2{font-size:19px;margin:0;font-weight:700;letter-spacing:.01em}
-  .head .hint{font-size:12.5px;color:var(--mist)}
-  /* 引导段只剩一种用法：三张图共用的一条题注。首屏与依据区都不再有引导段 ——
-     「信息太碎」的直接来源就是每个模块前面都有一段小字，读者得先读完散文
-     才能看到数字。 */
-  .lede{font-size:13px;color:var(--mist);margin:0 0 18px;max-width:70ch}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
-    padding:20px 18px 12px;box-shadow:var(--shadow)}
-
-  /* ---------- 指标条 ---------- */
-  /* 值在上、标签在下（设计稿如此）：这一栏读者扫的是数字，标签只在认不出这个
-     数字时用来解释它。标签占先会把六个数字推到第二眼。
-     格子之间靠 1px 的网格底色当分隔线（不是 border，省掉相邻边重叠的问题）。
-     ⚠ 列数是**写死的 6**，不是 `auto-fit + minmax` —— 后者在 841 宽（内容 793）
-     上只装得下 5 格，第六格会单独掉到第二行、右边空一大片（实测如此）。格数恒定
-     为 6（renderMetrics 产出固定），所以直接写死，窄屏再按 3 / 2 降。 */
-  .metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;background:var(--line);
-    border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:26px}
-  /* 内边距 18 → 13px、字号 24 → 23px：格里最长的一条「67 天 17 小时」要占 ~106px，
-     而 841 宽下每格只有 131px。原值会把它挤到换行，与相邻几格不在同一基线上。 */
-  .metric{background:var(--card);padding:17px 13px 15px}
-  .metric .v{font-family:var(--mono);font-size:23px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-  .metric .v small{font-size:.5em;color:var(--ink2);margin-left:3px;font-weight:400}
-  .metric .k{font-size:11.5px;color:var(--mist);letter-spacing:.06em;margin-top:5px}
-  .metric .note{font-size:11.5px;color:var(--mist);margin-top:3px}
-  .metric.hi .v{color:var(--lan)}
-
-  /* ---------- 依据卡内的零件 ---------- */
-  /* 累积概率条：标签 / 轨道 / 百分比三列。百分比列给固定宽度并右对齐 ——
-     长度不一（11.7% vs 100.0%），不固定的话轨道右端会参差不齐。 */
-  .bc-bar{display:grid;grid-template-columns:58px 1fr 46px;align-items:center;gap:11px;
-    margin-bottom:10px}
-  .bc-bar:last-child{margin-bottom:0}
-  .bc-bar .lb{font-size:12px;color:var(--ink2);white-space:nowrap}
-  .bc-bar .track{height:7px;background:var(--paper2);border-radius:99px;overflow:hidden}
-  .bc-bar .track i{display:block;height:100%;background:linear-gradient(90deg,var(--lan),#5B9296);border-radius:99px}
-  .bc-bar .pv{font-family:var(--mono);font-size:12px;color:var(--ink);text-align:right;
-    font-variant-numeric:tabular-nums}
-  /* 节奏分段：**竖排四行**（段号 / 起止 / 平均间隔 / 样本量），不是横排一行。
-     依据卡的列宽只有 ~257px，而那一对起止日期（2025.03.17 → 2026.05.24）自己就
-     要 150px —— 横排时它会与「平均间隔」抢同一行，把后者顶下去、看起来像两段
-     不同的东西（旧版实测如此）。竖排之后每一段都是一个自洽的小块，
-     段与段之间靠一条 1px 分隔线断开。 */
-  .ph{padding:10px 0;border-bottom:1px solid var(--line)}
-  .ph:first-of-type{padding-top:0}
-  .ph:last-of-type{border-bottom:0;padding-bottom:0}
-  .ph .pi{display:block;font-size:11px;color:var(--mist);font-family:var(--mono)}
-  .ph .pt{display:block;font-size:11px;color:var(--mist);font-family:var(--mono);margin-top:2px}
-  .ph .pm{display:block;font-family:var(--mono);font-size:15px;font-weight:600;color:var(--ink);
-    margin-top:4px;white-space:nowrap}
-  .ph .pm small{font-size:.68em;color:var(--ink2);margin-left:3px;font-weight:400}
-  .ph .pn{display:block;font-size:11px;color:var(--mist);margin-top:2px}
-  /* 依据区末尾的告警条：**有产出方**（`renderBasis` 收 `prediction.warnings`），
-     但当前数据下恒为空 —— `predict.mjs` 只声明了这个数组、从不 push。
-     原先里面放的是模型自评（样本量少 → 估计不稳、校准偏离、外推偏保守），
-     已按 AGENTS.md 文案红线第 2 条移除，改由卡里的数字承担披露（第 3 条）。
-     保留渲染落点是为了这类告警真有产出时不会**静默消失**：一条没人渲染的
-     数组，比一条渲染成警示的告警危险得多。 */
-  .fc-warn{list-style:none;margin:16px 0 0;padding:0}
-  .fc-warn li{font-size:12.5px;color:#8A6A28;background:rgba(179,86,60,.05);
-    border:1px solid rgba(179,86,60,.22);border-radius:10px;padding:11px 15px;margin-bottom:9px}
-  .fc-warn li::before{content:"⚠ ";color:var(--cinnabar)}
-
-  /* ---------- 图表 ---------- */
-  /* SVG 标签上已写死 width/height 属性，这里只做响应式收缩。
-     不再依赖 height:auto 去推算高度，避免在部分 WebView 内核里塌成 0 高度。
-     ⚠ 选择器**必须挂 `.chart`**，不能写成裸 `svg`：页面上还有三种小 svg —— 卡里的
-     图标（`.ico`）、提示条的喇叭、主卡右上角的装饰层。裸选择器会把它们一律撑成
-     520px 宽（`min-width` 胜出 `width:100%`），实测整页被几个巨大的青色圆弧盖住。
-     图标靠自己的 width/height 属性定尺寸，不需要这条规则。
-
-     三张历史图是**按目标列宽重新排版**出来的（`render.mjs` 的 `CHART_W`，几何与
-     字号一起重算），不是把宽图等比缩下来 —— 所以这里不再用 `min-width` 去触发
-     容器内部横向滚动（旧版单列大图时用过，代价是图内文字被压到 6px；而三列并排
-     时三个独立滚动条更难看）。
-     ⚠ 要如实说清代价：紧凑排版的设计基准是 **340px 宽的列**，而三列布局下每列
-     只有 ~217px（841 宽实测），图内文字因此约为基础字号的 **0.64 倍（~7px）**。
-     这是三列形态的固有代价 —— 217px 里放 8 个刻度标签，字号再大就会互相压。
-     手机端不缩字的那条路是**小程序**（按 345px 重新排版后 1:1 画到 canvas）。
-     容器**不设** `overflow`：真出现比容器宽的图时让它溢出并被 A7 抓到，
-     比静默地起一个内部滚动条要好。
-     `max-width:380px` 是上限：降到两列 / 一列时列宽会到 380–690px，
-     不封顶的话同一张图在不同断点下的字会忽大忽小；封顶后最多放大 1.46 倍，居中。 */
-  .chart{display:flex;justify-content:center}
-  .chart svg{display:block;width:100%;max-width:380px;height:auto}
-  .legend{display:flex;gap:20px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);padding:14px 4px 6px}
-  .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:middle}
-  /* 装饰层与图标一律按自己的属性走，绝不被上面的 `.chart` 规则波及 */
-  .pc-deco svg,.ico svg,.idle-ico svg,.hero-h svg,.head-l svg{width:auto;height:auto;min-width:0}
-
-  /* ---------- 时间线 ---------- */
-  .tl{list-style:none;margin:0;padding:0}
-  .tl li{display:grid;grid-template-columns:118px 1fr;gap:18px;padding:16px 4px;border-bottom:1px solid var(--line)}
-  .tl li:last-child{border-bottom:0}
-  .tl .when{font-family:var(--mono);font-size:12.5px;color:var(--mist);padding-top:2px}
-  .tl .when b{display:block;color:var(--ink);font-size:14px;font-weight:500;margin-bottom:2px}
-  .tl .body p{margin:0 0 7px;font-size:14px;color:var(--ink2)}
-  .tl .body a{color:var(--lan);text-decoration:none;font-size:12px;font-family:var(--mono);border-bottom:1px dotted currentColor}
-  .tl .body a:hover{color:var(--ink)}
-  .tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:99px;margin-bottom:7px;letter-spacing:.03em}
-  .tag.r{background:rgba(63,115,118,.09);color:var(--lan)}
-  .tag.c{background:rgba(95,132,85,.1);color:var(--bamboo)}
-
-  /* ---------- 页脚 ---------- */
-  footer{margin-top:64px;padding-top:26px;border-top:1px solid var(--line);font-size:12.5px;color:var(--mist);
-    display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
-  footer a{color:var(--ink2);text-decoration:none;border-bottom:1px dotted var(--mist)}
-
-  /* 三列 → 两列。断点必须落在 **841 以下** —— 设计稿（841 宽）给的就是三列，
-     原先把降列断点写在 1000px，于是在设计稿自己的宽度上就掉成一列，与稿子相反。
-     阈值取 800：再窄下去每列内容宽不足 200px，三张图是按列宽**重新排版**的
-     （render.mjs 的 CHART_W），图内 9–11px 的文字会缩到 7px 上下。 */
-  @media(max-width:800px){
-    .hr-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .bc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-    /* 样本摘要 6 → 3（两行三格）。6 连在 800 以下每格只剩 ~124px，
-       「67 天 17 小时」这类值会换行 —— 而在 5 连上换行更糟：会变成 5+1。 */
-    .metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
-  }
-  @media(max-width:620px){
-    /* 两列 → 单列。并把下面这几处「左右并排」改成上下堆叠 ——
-       它们在 841 宽的设计稿里都是并排形态（见 hero-card / sig-prog），
-       所以阈值同样不能高于 841，否则会把稿子的并排拆开。 */
-    .hr-grid{grid-template-columns:1fr}
-    .bc-grid{grid-template-columns:1fr}
-    /* 已经等了多久：左右两栏并排时右侧只有一行字，拆成上下两块更省高度 */
-    .hero-card{grid-template-columns:1fr;gap:16px}
-    .hero-side{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:15px}
-    .sig-prog{grid-template-columns:1fr;gap:16px}
-    /* 主卡右上角那圈弧线 + 手写体在窄屏会压到大数字上，整块关掉。
-       它是纯装饰，关掉不丢信息。841 宽下卡片还有 793px，弧线（占最右 320px）
-       与左侧的日期块并不重叠，所以稿子里它是**开着**的。 */
-    .pc-deco,.pc-script{display:none}
-    header.top{flex-wrap:wrap;gap:10px;padding:20px 0 16px}
-    .verdict{font-size:12.5px;padding:9px 16px}
-    .tl li{grid-template-columns:1fr;gap:6px}
-    .wrap{padding:0 16px 60px}
-    .pcard{padding:20px 18px 18px;border-radius:18px}
-    .pc-top h2{font-size:19px}
-    .pc-eta .dt{font-size:38px}
-    .pc-eta .rest{font-size:17px}
-    /* 窄屏把卷轴的左右间距收一档。四位数字 + 四个单位在 320px 视口上刚好卡在
-       边界（实测余量不到 20px），而卷轴位的宽度是 em、单位间距是 px ——
-       只有后者能在这里收。 */
-    .pc-wait .counter .unit{margin:0 8px 0 5px}
-    .pc-foot{gap:8px 10px}
-    /* 窄屏「预测于 …北京更新」整行另起、左对齐：留着 margin-left:auto 会把它
-       推到最右独自成行，看起来像掉队的一行。 */
-    .pc-meta{margin-left:0;width:100%}
-    .metric{padding:15px 16px 14px}
-    .sw{grid-template-columns:1fr auto;gap:2px 10px;padding:9px 12px}
-    /* 窄屏把「时区」提到标签同一行、值独占整行：堆三行时窗口块要 311px，
-       而它是预告卡里最高的一块（实测 390×844）。 */
-    .sw-k{grid-column:1;grid-row:1}
-    .sw-z{grid-column:2;grid-row:1;text-align:right;margin-bottom:0}
-    .sw-v{grid-column:1/-1;grid-row:2;font-size:13.5px}
-    /* 窄屏下面窄，硬压成一行会把来源和时间词都截秃；这里允许换行，
-       链接紧跟在前一个元素后面（不再靠右），换行也不会看成另一条。 */
-    .ev-top{flex-wrap:wrap}
-    .sig-precision{margin-left:0}
-    /* 「还剩 N 天」是右对齐副行，窄屏改成另起一行左对齐：
-       硬留在右边会被挤成两行、还会把左边的标签顶歪。 */
-    .sp-left{margin-left:0}
-    /* 倒数条在窄屏必然换行（「距窗口开启」+ 锚点 + 数字挤不进一行）。
-       换行后数字独占一行，`margin-left:auto` 会把它推到最右、看起来像掉队，
-       所以窄屏改成整行居中。 */
-    .cd-row{margin-left:0;width:100%;justify-content:center}
-    .counter .unit{margin:0 8px 0 6px}
-    /* 页首那个四位卷轴同理：数字位是 em（跟着字号一起缩），单位两边的间距是 px
-       （不缩），所以窄屏收得住、也只该收这一样。它比主卡倒数多一位（天两位数
-       时 8 位数字 + 4 个单位），所以这里比 `.counter .unit` 再紧 1px —— 320px
-       视口下这一档的余量只有 5px。 */
-    .hero-v .unit{margin:0 7px 0 4px}
-  }
-  /* 样本摘要 3 → 2：每格要放下「67 天 17 小时」（23px 下 ~101px）加上左右内边距
-     （620 档起是 16px×2），三列在视口 480 以下就开始撑不住。 */
-  @media(max-width:480px){
-    .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
-  }
 </style>
+
 </head>
 <body>
-<div class="wrap">
-
-  <header class="top">
-    <div class="brand">
-      <img class="brand-logo" src="<!--__LOGO_URI__-->" alt="" width="32" height="32" />
-      <h1>等 TIBO 按按钮</h1>
-      <span class="sub">Reset Observatory</span>
-    </div>
-    <div class="top-right">
-      <span class="pulse"><span class="dot"></span>观测中 · <span id="upd"><!--__UPD__--></span></span>
-      <span class="top-note">持续追踪 Tibo 的重置节奏</span>
-    </div>
+<div id="observatory" class="wrap" data-running="false" data-visible="true" data-entered="true">
+  <div class="am-sky" aria-hidden="true"><div class="am-cloud am-cloud-mint"></div><div class="am-cloud am-cloud-violet"></div><div class="am-cloud am-cloud-blue"></div></div>
+  <header class="am-header top">
+    <div class="am-brand"><span class="am-logo" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M7 3.6c-3.8 2-5.2 6.7-3.1 10.5M17 20.4c3.8-2 5.2-6.7 3.1-10.5"/><ellipse cx="12" cy="12" rx="11" ry="4.4" transform="rotate(-50 12 12)"/><circle cx="20" cy="4" r="2" fill="currentColor" stroke="none"/></svg></span><div><h1>等 TIBO 按按钮</h1><div class="am-tiny am-mono">RESET OBSERVATORY</div></div></div>
+    <div class="am-tools"><button class="am-pause" id="motion-toggle" type="button" aria-pressed="false" hidden>暂停动效</button><span class="am-live pulse"><i class="am-dot" aria-hidden="true"></i>观测中 · <span id="upd"><!--__UPD__--></span></span></div>
   </header>
-
-  <!-- ============ 采集异常（有异常时才出现） ============ -->
   <!--__COLLECT_WARNING__-->
-
-  <!-- ============ 数据陈旧（超过两个采集周期没成功更新时才出现） ============ -->
   <!--__FRESHNESS__-->
-
-  <!-- ============ 第一层：已经等了多久 ============ -->
-  <!-- 2026-10-08 改版：它从页尾提到**最前**。它回答的是这一页最直白的那个问题，
-       而且是一个**已发生的事实**（不含任何模型推断）—— 读者先用它知道「我现在
-       处在什么位置」，再看下面的「下一次什么时候」才有参照物。
-
-       代价要说清：首屏从此是「事实 + 结论」两块，`pred` 不再独占首屏。它之所以
-       不抢结论的位置 —— 它自己不加载荷：没有概率、没有区间，只有一个已经过去的
-       时间与一句历史定位；带推断的那块（`pred`）紧跟其后。
-
-       形态是**四位卷轴**（天/时/分/秒），与主卡倒数同一套 `.grp / .reel`：
-       它此前是一串静态文本，于是全页最显眼的数字反而不会动（见 `render.mjs`
-       的 `renderElapsedCounter`）。 -->
-  <section>
-    <div class="hero-card">
-      <div>
-        <div class="hero-h">
-          <span class="ico">
-            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M3.4 1.7h9.2M3.4 14.3h9.2M4.6 1.7v2.4c0 1.9 3.4 3.2 3.4 4.3s-3.4 2.4-3.4 4.3v1.6M11.4 1.7v2.4c0 1.9-3.4 3.2-3.4 4.3s3.4 2.4 3.4 4.3v1.6"
-                stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-            </svg>
-          </span>
-          <h3>已经等了多久</h3>
-        </div>
-        <div class="hero-v" id="elapsed" data-last="<!--__LAST_AT__-->"><!--__ELAPSED__--></div>
+  <section class="am-context" aria-label="距上次重置">
+    <div class="am-context-left"><span>距上次重置</span><div class="hero-v" id="elapsed" data-last="<!--__LAST_AT__-->" role="timer"><!--__ELAPSED__--></div></div>
+    <span><a href="#records">上次 <span class="am-mono"><!--__LAST_LABEL__--></span> · 北京时间</a></span>
+  </section>
+  <main>
+    <!--__OUTLOOK__-->
+    <!--__SIGNAL__-->
+    <div class="am-main">
+      <div class="am-side">
+        <!--__PROGRAM__-->
+        <!--__BASIS_SUMMARY__-->
       </div>
-      <!-- 右栏是个**链接**（落到最近记录，「上次重置」在那里可追溯）——
-           设计稿右上角有个箭头，箭头若不指向任何地方就是假的交互提示。 -->
-      <a class="hero-side" href="#records">
-        <div class="hero-k">距上一次重置</div>
-        <div class="hero-at">上次重置 <!--__LAST_LABEL__--></div>
+      <section class="am-panel am-history">
+        <div class="am-panel-head"><h2>历史重置节奏</h2><span class="am-tiny am-muted">最近 7 次间隔 · 天</span></div>
+        <div class="am-trends"><!--__RHYTHM__--></div>
+        <details class="am-disclosure"><summary>回测与预测边界</summary><div class="am-detail basis-detail"><!--__BASIS__--></div></details>
+      </section>
+    </div>
+    <section class="am-panel am-records" id="records">
+      <div class="am-panel-head"><h2>最近记录</h2><span class="am-tiny am-muted">原文可追溯 ↗</span></div>
+      <div class="am-record-grid"><!--__RECENT_RECORDS__--></div>
+    </section>
+    <details class="am-panel am-more">
+      <summary>历史规律与更多记录</summary>
+      <div class="am-more-body">
+        <div class="head"><h2>历史规律</h2><span class="hint">从历史数据中，寻找重置的线索</span></div>
+        <p class="lede"><!--__HIST_CAPTION__--></p>
+        <div class="hr-grid">
+          <div class="hr"><div class="hr-h"><h3>重置通常发生在第几天</h3><span class="hr-n">n = <!--__HIST_N__--> 次历史间隔</span></div><div class="chart"><!--__HISTOGRAM__--></div></div>
+          <div class="hr"><div class="hr-h"><h3>等待生存曲线</h3><span class="hr-n">n = <!--__SURVIVAL_N__--> 次历史间隔</span></div><div class="chart"><!--__SURVIVAL__--></div></div>
+          <div class="hr"><div class="hr-h"><h3>每次间隔的离散分布</h3><span class="hr-n">现在 <!--__STRIP_NOW__--></span></div><div class="chart"><!--__STRIP__--></div><div class="legend"><span><i style="background:#6150d4"></i>常规间隔</span><span><i style="background:#8C8880"></i>偏长间隔</span><span><i style="background:#B3563C"></i>极端长等待</span></div></div>
+        </div>
         <!--__VERDICT__-->
-        <span class="hero-go" aria-hidden="true">›</span>
-      </a>
-    </div>
-  </section>
-
-  <!-- ============ 第二层：预测结论 ============ -->
-  <!--__OUTLOOK__-->
-
-  <!-- 信号区（提示条 / 预告横幅）。**紧贴主卡**：读者看完结论的下一问就是
-       「有没有公告」。两种形态在同一个位置、共用一块地方：没有公告时是一条
-       状态提示（不是空白 —— 空白会让人怀疑检测坏了），有公告时它顶替提示条，
-       并给出窗口、时区与证据。 -->
-  <!--__SIGNAL__-->
-
-  <!-- ============ 每日重置窗口（辅助规则，不是结论） ============ -->
-  <!-- 2026-10-09 改版：它从「预测依据之后」提到**预测区之下、依据之前**
-       （老大原话「放在预测下方」）—— 位置与 2026-10-08 之前那次「信号之后」相近，
-       但那时它上面没有「已经等了多久」，所以贴的是首屏；现在它上面多了 `.pred`
-       与整块 `.hero`，已经落到首屏之外。
-
-       它回答「这 N 天里**每一天**都在射程内」，是一条**下界**。之所以仍在结论与
-       信号之下：它是规则、不是结论，第一眼该读到的仍是「下一次什么时候」。
-       之所以提到依据之前：读者读到「预计 10.13」后最先要问的是**这个日子有多硬**，
-       而这条规则正是「期间任何一天都可能重置」那个前提 —— 它属于问题的边界，
-       不属于「结论算得准不准」（那才是三张依据卡回答的）。 -->
-  <!--__PROGRAM__-->
-
-  <!-- ============ 第二层：预测依据（三张卡） ============ -->
-  <!-- 整段（含自己的标题与说明）由 renderBasis 产出：没有可用预测时它整体返回
-       空串，而不是留下一行「预测依据」标题配一片空白。 -->
-  <!--__BASIS__-->
-
-  <!-- ============ 第三层：历史规律（三张图并成一组） ============ -->
-  <section>
-    <div class="head">
-      <h2>历史规律</h2>
-      <span class="hint">从历史数据中，寻找重置的线索</span>
-    </div>
-    <p class="lede"><!--__HIST_CAPTION__--></p>
-    <div class="hr-grid">
-      <div class="hr">
-        <div class="hr-h">
-          <h3>重置通常发生在第几天</h3>
-          <span class="hr-n">n = <!--__HIST_N__--> 次历史间隔</span>
-        </div>
-        <div class="chart"><!--__HISTOGRAM__--></div>
+        <div class="head"><h2>样本摘要</h2><span class="hint">基于公开推文记录</span></div>
+        <div class="metrics"><!--__METRICS__--></div>
+        <div class="head"><h2>更多记录</h2><span class="hint">最近 14 次</span></div>
+        <ul class="tl"><!--__TIMELINE__--></ul>
       </div>
-
-      <div class="hr">
-        <div class="hr-h">
-          <h3>等待生存曲线</h3>
-          <span class="hr-n">n = <!--__SURVIVAL_N__--> 次历史间隔</span>
-        </div>
-        <div class="chart"><!--__SURVIVAL__--></div>
-      </div>
-
-      <div class="hr">
-        <div class="hr-h">
-          <h3>每次间隔的离散分布</h3>
-          <span class="hr-n">现在 <!--__STRIP_NOW__--></span>
-        </div>
-        <div class="chart"><!--__STRIP__--></div>
-        <div class="legend">
-          <span><i style="background:#3F7376"></i>常规间隔</span>
-          <span><i style="background:#8C8880"></i>偏长间隔</span>
-          <span><i style="background:#B3563C"></i>极端长等待</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="head">
-      <span class="head-l">
-        <span class="ico">
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M4.2 2.2h7.6v11.6H4.2z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/>
-            <path d="M6.1 5.4h3.8M6.1 8h3.8M6.1 10.6h2.2" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-          </svg>
-        </span>
-        <h2>样本摘要</h2>
-      </span>
-      <span class="hint">基于公开推文记录</span>
-    </div>
-    <div class="metrics"><!--__METRICS__--></div>
-  </section>
-
-  <!-- ============ 末层：历史记录 ============ -->
-  <!-- `id="records"` 是提示条右侧那个箭头的落点（「到底扫了什么」的唯一入口）。
-       没有它，箭头就是假的交互提示。 -->
-  <section id="records">
-    <div class="head">
-      <h2>最近记录</h2>
-      <span class="hint">原文可追溯</span>
-    </div>
-    <div class="card" style="padding:6px 20px"><ul class="tl"><!--__TIMELINE__--></ul></div>
-  </section>
-
-  <footer>
-    <!-- 刻意不写采集频率：读者要知道的是「数据多新」，那个由后面的时刻回答。
-         频率是内部信息，写在这里只会变成一个需要跟着改、还可能说错的数字。 -->
-    <div>数据：公开推文记录，自动采集 · 最近一次采集 <span id="gen"><!--__GEN__--></span> 北京</div>
-    <div>由 <a href="#">山风岚自起</a> 建造</div>
-  </footer>
+    </details>
+  </main>
+  <footer class="am-footer"><span>公开推文记录 · 最近一次采集 <span id="gen" class="am-mono"><!--__GEN__--></span> 北京</span><span>预测于 <span class="am-mono"><!--__PREDICTED_AT__--></span> 北京</span></footer>
 </div>
-
-<!-- 页面内联数字的机器可读副本（A3 一致性比对）。与页面可见文字出自同一次渲染，
-     含构建锚点 builtAt —— 没有它，静态页面与实时 API 的比对只能靠容差糊。
-     校验：scripts/check-consistency.mjs -->
 <script type="application/json" id="data-digest"><!--__DIGEST__--></script>
-
-<!-- 页面出厂即完整渲染（含两张图表的 SVG）。下面的脚本只负责让倒计时继续滚动，
-     属于可选增强：脚本被禁用时数字依然正确，只是不再跳动。 -->
 <script>
 (function () {
   var DAY = 86400000;
@@ -1045,10 +568,12 @@
       var over = left <= 0;
       if (pcdWait && pcdWait.dataset.over !== (over ? '1' : '0')) {
         pcdWait.dataset.over = over ? '1' : '0';
-        if (pcdCap) pcdCap.textContent = over ? '已到中位预测时刻' : '距离预测重置还有';
+        if (pcdCap) pcdCap.textContent = over ? '已到预测时刻' : '预计还需等待';
       }
       if (!over) {
         var q = parts(left);
+        pcd.dataset.scale = q.d > 0 ? 'd' : q.h > 0 ? 'h' : q.m > 0 ? 'm' : 's';
+        pcd.setAttribute('aria-label', q.d + ' 天 ' + q.h + ' 小时 ' + q.m + ' 分 ' + q.s + ' 秒');
         setGroup(pcdGroups[0], String(q.d));
         setGroup(pcdGroups[1], pad(q.h));
         setGroup(pcdGroups[2], pad(q.m));
@@ -1065,6 +590,7 @@
       var sinceMs = now - last;
       if (sinceMs >= 0) {
         var t = Math.round(sinceMs / 1000);
+        el.setAttribute('aria-label', Math.floor(t / 86400) + ' 天 ' + Math.floor((t % 86400) / 3600) + ' 时 ' + Math.floor((t % 3600) / 60) + ' 分 ' + (t % 60) + ' 秒');
         setGroup(elGroups[0], String(Math.floor(t / 86400)));
         setGroup(elGroups[1], pad(Math.floor((t % 86400) / 3600)));
         setGroup(elGroups[2], pad(Math.floor((t % 3600) / 60)));
@@ -1122,6 +648,76 @@
   sync();
   if (mq.addEventListener) mq.addEventListener('change', sync);
   else if (mq.addListener) mq.addListener(sync);
+})();
+</script>
+<script>
+(function () {
+  var root = document.getElementById('observatory');
+  var button = document.getElementById('motion-toggle');
+  var hero = document.getElementById('pred');
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var playing = true;
+  var frame = 0;
+  var intersecting = true;
+  try { playing = localStorage.getItem('reset-observatory-motion') !== 'off'; } catch (e) {}
+  function clearPointer() {
+    cancelAnimationFrame(frame);
+    if (!hero) return;
+    ['--am-rx','--am-ry','--am-mx','--am-my'].forEach(function (key) { hero.style.removeProperty(key); });
+  }
+  function renderMotion() {
+    var enabled = playing && !reduced.matches;
+    root.dataset.running = String(enabled);
+    button.textContent = reduced.matches ? '已减少动效' : enabled ? '暂停动效' : '启用动效';
+    button.disabled = reduced.matches;
+    button.setAttribute('aria-pressed', String(!enabled));
+    if (!enabled) clearPointer();
+  }
+  button.addEventListener('click', function () {
+    playing = !playing;
+    try { localStorage.setItem('reset-observatory-motion', playing ? 'on' : 'off'); } catch (e) {}
+    renderMotion();
+  });
+  button.hidden = false;
+  if (reduced.addEventListener) reduced.addEventListener('change', renderMotion);
+  else if (reduced.addListener) reduced.addListener(renderMotion);
+  renderMotion();
+  if (playing && !reduced.matches) {
+    root.dataset.entered = 'false';
+    setTimeout(function () { root.dataset.entered = 'true'; }, 1500);
+  }
+  function visibility() { root.dataset.visible = String(intersecting && !document.hidden); }
+  document.addEventListener('visibilitychange', visibility);
+  if (hero && 'IntersectionObserver' in window) new IntersectionObserver(function (entries) {
+    intersecting = entries[0].isIntersecting;
+    visibility();
+  }).observe(hero);
+  visibility();
+  if (!hero) return;
+  hero.addEventListener('pointermove', function (event) {
+    if (!playing || reduced.matches || event.pointerType === 'touch') return;
+    cancelAnimationFrame(frame);
+    var r = hero.getBoundingClientRect();
+    var px = (event.clientX - r.left) / r.width, py = (event.clientY - r.top) / r.height;
+    frame = requestAnimationFrame(function () {
+      hero.style.setProperty('--am-rx', (py - .5) * -2.4 + 'deg');
+      hero.style.setProperty('--am-ry', (px - .5) * 2.4 + 'deg');
+      hero.style.setProperty('--am-mx', px * 100 + '%');
+      hero.style.setProperty('--am-my', py * 100 + '%');
+    });
+  });
+  hero.addEventListener('pointerleave', clearPointer);
+  hero.addEventListener('pointerdown', function (event) {
+    if (!playing || reduced.matches) return;
+    var field = hero.querySelector('.am-ripple-field');
+    var r = hero.getBoundingClientRect();
+    var ring = document.createElement('span');
+    ring.className = 'am-tap-ring';
+    ring.style.left = (event.clientX - r.left) + 'px';
+    ring.style.top = (event.clientY - r.top) + 'px';
+    field.appendChild(ring);
+    setTimeout(function () { ring.remove(); }, 900);
+  });
 })();
 </script>
 </body>

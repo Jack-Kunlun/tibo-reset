@@ -20,6 +20,15 @@ const PRECISION_TEXT = {
   instant: '具体时刻前后',
 };
 
+// 数字与单位分开设字号，避免整段读数以大字挤占标签空间；预览复用同一份分段。
+export function readoutParts(value) {
+  return (String(value ?? '').match(/\d+(?:\.\d+)?|[^\d]+/g) || []).map((text, index) => ({
+    key: index,
+    text,
+    numeric: /^\d/.test(text),
+  }));
+}
+
 /* ------------------------------ 信号 ------------------------------ */
 
 /**
@@ -391,16 +400,32 @@ export function buildOutlookView(chart, pred, sig, now) {
      *  两档的**措辞必须能分开**，所以给它一个自己的字段，别让页面从 status 反推。 */
     etaKind: o.etaKind,
     status: o.status,
+    statusClass: `status-${o.status}`,
     statusLabel: o.statusLabel,
     statusNote: o.statusNote,
     confidence: o.confidence,
+    confidenceClass: `confidence-${o.confidence}`,
     confidenceLabel: o.confidenceLabel,
     /** 置信度条按 1/2/3 档拉开宽度，与网页端 `.conf-bar` 的 <i><i><i> 同义 */
     confidenceW: Math.round((o.confidenceRank / 3) * 100),
     etaNote: o.etaNote,
+    // 三行依据只拿共享 outlook 判定给出的数字；端上不从散文摘要里反解析。
+    briefData: {
+      intervals: b.intervals,
+      announcedHard: b.announcedHard,
+      announcedSoft: b.announcedSoft,
+    },
     md: eta.md,
+    dateDigits: [...eta.md].map((value, index) => ({
+      key: `${index}-${value}`,
+      value,
+      delay: `${(index * 0.055).toFixed(3)}s`,
+    })),
     wd: eta.wd,
     hm: eta.hm,
+    etaDetail: o.etaKind === 'announced'
+      ? `${eta.wd} · ${eta.hm} · 北京时间 · ${o.etaNote}`
+      : `${eta.wd} · 北京时间 · 历史中位推算`,
     /** 倒计时锚点（时间戳直通，页面每秒据此重算，不做字符串反解析） */
     etaAt: o.etaAt,
     cd: null,
@@ -437,12 +462,16 @@ export function buildOutlookView(chart, pred, sig, now) {
 export function predCountdown(pred, now) {
   if (!pred || !Number.isFinite(pred.etaAt)) return null;
   const cd = countdown(pred.etaAt, now);
+  const allGroups = countdownGroups(cd);
+  // 主卡只显示相邻的两个时间单位：一天以上为「天 / 时」，一小时以上为
+  // 「时 / 分」，更短则为「分 / 秒」。完整精度仍由锚点计算，展示不再铺四列。
+  const groups = cd.d >= 1 ? allGroups.slice(0, 2) : cd.h >= 1 ? allGroups.slice(1, 3) : allGroups.slice(2, 4);
   const over =
     pred.etaKind === 'announced' ? '公告窗口已开启 · 随时可能重置' : '已到中位预测时刻 · 随时可能重置';
   return {
     over: cd.over,
-    groups: countdownGroups(cd),
-    label: cd.over ? over : '距离预测重置还有',
+    groups,
+    label: cd.over ? over : '预计还需等待',
   };
 }
 

@@ -82,3 +82,19 @@
   color: #8C8880;
   font-size: 25rpx;
 }
+
+/* 历史页沿用首页的极光浅紫底色，同时保留原生返回导航。 */
+.sum,
+.day,
+.gap,
+.empty { color: #858198; }
+
+.list { border-color: #E3DDEF; }
+.row { border-bottom-color: #EBE7F2; }
+.when,
+.txt { color: #292741; }
+.tag.c {
+  background: rgba(97, 80, 168, 0.1);
+  color: #6150A8;
+}
+.lnk { color: #6150A8; }

@@ -534,6 +534,52 @@ export function histogramScene(data, opts = {}) {
   return { width: W, height: H, elements: el };
 }
 
+/** 最近七次已完成间隔；日期统一用北京日历，网页和小程序共用同一套坐标。 */
+export function rhythmScene(data, opts = {}) {
+  const W = Math.max(200, Math.round(opts.width ?? 310));
+  const H = Math.max(150, Math.round(opts.height ?? 196));
+  const size = 11 * (opts.fontScale ?? 1);
+  const accent = opts.accent ?? '#6150d4';
+  const muted = '#73708a';
+  const values = (data?.gapDays ?? []).slice(-7);
+  const records = (data?.records ?? []).slice(-values.length);
+  const dateLabel = (record) => {
+    const date = new Date(Date.parse(record?.at ?? '') + 8 * 3_600_000);
+    return Number.isFinite(date.getTime()) ? `${String(date.getUTCMonth() + 1).padStart(2, '0')}.${String(date.getUTCDate()).padStart(2, '0')}` : '—';
+  };
+  const labels = records.map(dateLabel);
+  const max = Math.max(1, ...values);
+  const base = 10 ** Math.floor(Math.log10(max / 2));
+  const step = [1, 2, 5, 10].map((n) => n * base).find((n) => n >= max / 2);
+  const ceiling = max * 1.1;
+  const L = 64, R = 18, T = 22, B = 45;
+  const X = (i) => L + (W - L - R) * (values.length === 1 ? .5 : i / (values.length - 1));
+  const Y = (v) => H - B - v / ceiling * (H - T - B);
+  const el = [text(10, 12, '天', { fill: muted, size })];
+  for (let t = 0; t <= ceiling; t += step) {
+    el.push(line(L, Y(t), W - R, Y(t), { stroke: '#e4e1ee', w: 1 }));
+    el.push(text(L - 12, Y(t) + 4, Number(t.toFixed(2)), { anchor: 'end', fill: muted, size }));
+  }
+  if (values.length) {
+    const points = values.map((v, i) => [X(i), Y(v)]);
+    el.push(poly([...points, [X(values.length - 1), Y(0)], [X(0), Y(0)]], {
+      grad: { y0: T, y1: Y(0), color: accent, a0: .15, a1: .015 },
+    }));
+    el.push(poly(points, { stroke: accent, w: 2, lineJoin: 'round' }));
+    values.forEach((v, i) => {
+      const last = i === values.length - 1;
+      if (last) el.push(circle(X(i), Y(v), 9, { fill: accent, op: .1 }));
+      el.push(circle(X(i), Y(v), last ? 3.5 : 2.5, { fill: accent }));
+      if (i === 0 || last) el.push(text(X(i), Y(v) - 12, v.toFixed(2), { anchor: i === 0 ? 'start' : 'end', fill: accent, size }));
+      if (W > 430 || i === 0 || last || i % (W < 275 ? 3 : 2) === 0) {
+        el.push(text(X(i), H - 25, labels[i] ?? '—', { anchor: i === 0 ? 'start' : last ? 'end' : 'middle', fill: muted, size }));
+      }
+    });
+  }
+  el.push(text(W - R, H - 4, '重置日期', { anchor: 'end', fill: muted, size }));
+  return { width: W, height: H, elements: el };
+}
+
 /* ------------------------------- 自检工具 ------------------------------- */
 
 /** 场景内所有元素的包围盒，用于「坐标越界」自动校验 */

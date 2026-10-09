@@ -18,7 +18,7 @@
 
 import { fmtDateIn, fmtDateTimeIn, partsIn, dualZone } from './chart-data.js';
 import { buildOutlook } from './outlook.mjs';
-import { survivalScene, stripScene, histogramScene } from './scene.js';
+import { survivalScene, stripScene, histogramScene, rhythmScene } from './scene.js';
 import { sceneToSvgTag } from './svg.mjs';
 
 const CJK = 'Asia/Shanghai';
@@ -118,7 +118,7 @@ const reel = (digit) =>
 const reels = (str) => [...str].map((ch) => reel(Number(ch))).join('');
 
 const group = (key, str, unit) =>
-  `<span class="grp" data-g="${key}"><span class="reels">${reels(str)}</span><span class="unit">${unit}</span></span>`;
+  `<span class="grp" data-g="${key}"><span class="reels" aria-hidden="true">${reels(str)}</span><span class="unit">${unit}</span></span>`;
 
 /** 把一段毫秒拆成 天/时/分/秒 四个卷轴组。两块倒数共用这一处拆法。 */
 function groupsFromMs(ms) {
@@ -133,7 +133,7 @@ function groupsFromMs(ms) {
 
 /** 距预测重置时刻的倒数。锚点、口径与 `.sig-cd` 那套一致，只是这里是主角。 */
 export function renderEtaCounter(o) {
-  return groupsFromMs(o.etaAt - o.now);
+  return groupsFromMs(o.etaAt - o.now).replace('<span class="unit">时', '<span class="unit">小时');
 }
 
 /**
@@ -294,7 +294,7 @@ const PRECISION_TEXT = {
  * **信号区之后、预测依据之前**：仍在结论与信号之下（规则不该抢结论的位置），
  * 但提到了依据之前 —— 读者读完「预计 10.13」最先要问的是这个日子有多硬，而
  * 「期间任何一天都可能重置」正是那个前提；「算得准不准」才是三张依据卡回答的。
- * 形态降成一行规则 + 右侧时区表，视觉重量低于三张依据卡。窗口块复用
+ * 极光观测台把规则收进可展开的一行，位置仍在信号之后、依据之前。窗口块复用
  * `windowBlock` —— 同一种形状（当地 + 北京两行）只该有一个渲染器，页面任何一处
  * 时间都同时给两个时区（见 PRD F2）。
  */
@@ -309,21 +309,12 @@ export function renderProgram(p) {
       : `共 <b>${esc(String(p.days))}</b> 天${
           p.daysLeft == null ? '' : ` · 还剩 <b>${esc(String(p.daysLeft))}</b> 天`
         }`;
-  // 整卡是链接（有原推时）—— 右侧那个箭头若不指向任何地方，就是假的交互提示。
-  // 没有原推时退化成 `<section>`，箭头也一并去掉：同样不许留下空指向的箭头。
-  const tag = p.url ? 'a' : 'section';
-  const attrs = p.url
-    ? ` class="sig-prog" href="${attr(p.url)}" target="_blank" rel="noopener"`
-    : ' class="sig-prog"';
+  // 时间与原文可展开核对；链接与 summary 分开，避免一次触摸同时展开和跳走。
   return `
-  <${tag}${attrs}>
-    <div class="sp-lead">
-      <span class="ico ico-cal">${ICON.cal}</span>
-      <div class="sp-body">
-        <div class="sp-head">
-          <span class="sp-tag">每日重置窗口</span>
-          ${days ? `<span class="sp-left">${days}</span>` : ''}
-        </div>
+  <details class="sig-prog">
+    <summary><span class="am-icon">${ICON.cal}</span><b>每日重置窗口</b></summary>
+    <div class="am-detail">
+        ${days ? `<p class="sp-left">${days}</p>` : ''}
         <p class="sp-rule">每天要么发一个改进、要么给一次完整重置 —— 期间任何一天都可能重置</p>
         ${
           cz
@@ -332,13 +323,10 @@ export function renderProgram(p) {
               )} 当地</p>`
             : ''
         }
-      </div>
-    </div>
-    <div class="sp-side">
       ${windowBlock(p.window)}
-      ${p.url ? '<span class="sp-go" aria-hidden="true">›</span>' : ''}
+      ${p.url ? `<a class="sp-source" href="${attr(p.url)}" target="_blank" rel="noopener noreferrer">查看原文 ↗</a>` : ''}
     </div>
-  </${tag}>`;
+  </details>`;
 }
 
 export function renderSignal(sig, opts = {}) {
@@ -387,19 +375,16 @@ export function renderSignal(sig, opts = {}) {
     // `data/signal.json` 里）。它回答的是「系统到底看了多长一段」——
     // 没有这个数，「一条都没检测到」和「根本没去看」在页面上长得一模一样。
     //
-    // ⚠ 它是「**最少**回看多少天」：真实时间窗取「now − lookbackDays」与
-    //   「上次重置 − 缓冲」里更早的那个，所以可能更长。措辞用「N 天内」而不是
-    //   「最近 N 天」，与小程序端（view.js / preview 脚本）保持同一句。
-    const look = Number.isFinite(sig.lookbackDays) ? `已扫描 ${sig.lookbackDays} 天内的公开发言` : '';
-    const extra = hints ? `${hints} 条线索不成窗口` : '';
-    const sub = [look, extra].filter(Boolean).join(' · ');
+    // 计数取扫描总数与未截断的 counts；紧凑提示不把回看天数误说成固定数据范围。
+    const extra = hints ? ` · ${hints} 条线索未形成窗口` : '';
+    const sub = `${sig.checkedTweets} 条公开发言${extra}`;
     // 整条是一个**真链接**（落到最近记录）—— 右侧那个箭头若指向空处，就是假的
     // 交互提示。落点 `#records` 是模板里那个 section 的 id。
     return `${prog}
     <a class="sig-idle" href="#records">
       <span class="idle-ico" aria-hidden="true">${ICON.bell}</span>
       <span class="idle-body">
-        <span class="idle-t">最近 <b>${sig.checkedTweets}</b> 条推文中没有检测到重置预告</span>
+        <span class="idle-t">没有检测到重置预告</span>
         ${sub ? `<span class="idle-sub">${esc(sub)}</span>` : ''}
       </span>
       <span class="idle-go" aria-hidden="true">›</span>
@@ -672,14 +657,11 @@ const ICON = {
  * 装饰层 aria-hidden 且 pointer-events:none，不含信息、不挡点击。
  * 颜色是固定值而不是 CSS 变量：它要的是「比底更淡一层」，与状态色无关。
  */
-const OUTLOOK_DECO = `<svg viewBox="0 0 320 224" fill="none" aria-hidden="true">
-        <circle cx="288" cy="30" r="92" fill="#CBE2DD" opacity=".45"/>
-        <circle cx="288" cy="30" r="92" stroke="#B7D5CF" opacity=".55"/>
-        <path d="M14 178C92 178 166 152 212 98" stroke="#A9C9C3" stroke-width="1.3" opacity=".75"/>
-        <circle cx="212" cy="98" r="5.5" fill="#3F7376"/>
-        <path d="M252 148l6.5-11 6.5 11-6.5 11z" fill="#C3DCD7" opacity=".8"/>
-        <path d="M166 58l4.5-8 4.5 8-4.5 8z" fill="#CFE3DE" opacity=".85"/>
-      </svg>`;
+const OUTLOOK_DECO = `<div class="am-orbit-field" aria-hidden="true">
+  <div class="am-stage-glow"></div>
+  ${[' am-outer', '', ' am-inner'].map((cls) => `<div class="am-orbit-plane${cls}"><div class="am-orbit-ring"></div><div class="am-orbit-spin"></div></div>`).join('')}
+  <i class="am-star"></i><i class="am-star"></i><i class="am-star"></i><i class="am-star"></i>
+</div>`;
 
 
 
@@ -714,13 +696,15 @@ export function renderOutlook(o, m, prediction, signals, collect) {
   const eta = etaStamp(o.etaDate);
   const over = o.etaAt - o.now <= 0;
 
+  const left = Math.max(0, o.etaAt - o.now);
+  const scale = left >= DAY ? 'd' : left >= 3_600_000 ? 'h' : left >= 60_000 ? 'm' : 's';
+  const dateDigits = [...eta.md].map((ch, i) => `<span class="am-digit-cell${ch === '.' ? ' am-dot-digit' : ''}" aria-hidden="true"><span class="am-digit" style="--am-index:${i}">${ch}</span></span>`).join('');
   const band =
     o.band && Number.isFinite(o.band.fromAt) && Number.isFinite(o.band.toAt)
       ? `<div class="pc-band">
-          <span class="k">80% 区间</span>
-          <b>${esc(fmtMDHM(o.band.fromAt))}</b>
-          <span class="dash">–</span>
-          <b>${esc(fmtMDHM(o.band.toAt))}</b>
+          <span><span class="k">${o.etaKind === 'announced' ? '公告窗口' : '80% 预测区间'}</span>
+          <b class="am-mono">${esc(fmtMDHM(o.band.fromAt))} — ${esc(fmtMDHM(o.band.toAt))}</b></span>
+          <span class="am-tiny am-muted">${o.etaKind === 'model' ? '历史推算 · 仅供参考' : esc(o.statusLabel)}</span>
         </div>`
       : '';
 
@@ -729,39 +713,27 @@ export function renderOutlook(o, m, prediction, signals, collect) {
     <div class="pcard" id="pred" data-status="${esc(o.status)}" data-eta="${o.etaAt}" data-over="${
       over ? 1 : 0
     }">
-      <div class="pc-deco">${OUTLOOK_DECO}</div>
-      <div class="pc-script" aria-hidden="true">Still waiting<br>for Tibo...</div>
-
-      <div class="pc-top">
+      <div class="pcard-top">
+        <span class="am-kicker">NEXT RESET</span>
+        <span class="pc-conf" data-level="${esc(o.confidence)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 7V4h3m10 0h3v3m0 10v3h-3M7 20H4v-3M5 12h14"/></svg>置信度 · ${esc(o.confidenceLabel)}</span>
+      </div>
+      <div class="am-stage">
+        ${OUTLOOK_DECO}
         <h2>下一次重置预测</h2>
+        <div class="pc-eta"><div class="am-date am-mono" aria-label="${attr(eta.md)}">${dateDigits}</div></div>
+        <span class="am-small">${esc(eta.wd)} · 北京时间 · ${o.etaKind === 'model' ? '历史中位推算' : `${esc(eta.hm)} ${esc(o.etaNote)}`}</span>
         <span class="pc-badge" data-status="${esc(o.status)}">${esc(o.statusLabel)}</span>
-      </div>
-      <div class="pc-sub">${esc(o.etaNote)}${o.etaKind === 'model' ? ' · 仅供参考' : ''}</div>
-
-      <div class="pc-eta">
-        <span class="dt">${esc(eta.md)}</span>
-        <span class="rest">${esc(eta.wd)} ${esc(eta.hm)}</span>
-      </div>
-
-      <div class="pc-wait" data-over="${over ? 1 : 0}">
-        <div class="pc-wait-cap" id="pcd-cap">${
-          over ? '已到中位预测时刻' : '距离预测重置还有'
-        }</div>
-        <div class="counter" id="pcd">${renderEtaCounter(o)}</div>
-        <div class="pc-wait-over">已到预测时刻，随时可能重置 —— 上方区间仍在有效范围内</div>
+        <div class="pc-wait" data-over="${over ? 1 : 0}">
+          <span class="pc-wait-cap" id="pcd-cap">${over ? '已到预测时刻' : '预计还需等待'}</span>
+          <div class="counter" id="pcd" data-scale="${scale}" role="timer" aria-label="${attr(fmtSpan(left / DAY))}">${renderEtaCounter(o)}</div>
+          <span class="pc-wait-over">随时可能重置</span>
+        </div>
       </div>
 
       ${band}
 
-      <p class="pc-brief">${esc(briefLine(o))}</p>
-
-      <div class="pc-foot">
-        <span class="pc-conf" data-level="${esc(o.confidence)}">
-          置信度 <b>${esc(o.confidenceLabel)}</b>
-          <span class="conf-bar"><i></i><i></i><i></i></span>
-        </span>
-        <span class="pc-meta">预测于 <b>${esc(fmtMDHM(o.now))}</b> 北京更新</span>
-      </div>
+      <p class="pc-brief am-sr-only">${esc(briefLine(o))}</p>
+      <div class="am-ripple-field" aria-hidden="true"></div>
     </div>
   </section>`;
 }
@@ -820,6 +792,44 @@ export function renderBasis(o, m, prediction, signals) {
     <div class="bc-grid">${cards.join('')}</div>
     ${warns}
   </section>`;
+}
+
+/** 首屏只展示三项读数，完整概率与回测判据仍在下方展开区。 */
+export function renderBasisSummary(o, prediction) {
+  if (!o) return '';
+  const recent = prediction?.phases?.at(-1);
+  const pace = recent ? spanOf(recent.mean) : { big: '—', unit: '' };
+  const coverage = prediction?.calibration?.covBand80;
+  const announcedHard = o.brief.announcedHard ?? 0;
+  const sourceCount = o.etaKind === 'announced' ? announcedHard || o.brief.announcedSoft || 0 : o.brief.intervals ?? 0;
+  const sourceUnit = o.etaKind === 'announced' ? (announcedHard ? '条承诺' : '条同日提及') : '次间隔';
+  return `<section class="am-panel am-basis" aria-label="预测依据摘要">
+    <h2>预测依据</h2>
+    <div class="am-basis-row"><span class="am-muted">${o.etaKind === 'announced' ? '公告依据' : '历史推算'}</span><strong class="am-mono">${sourceCount}<small>${sourceUnit}</small></strong></div>
+    <div class="am-basis-row"><span class="am-muted">80% 区间覆盖率</span><strong class="am-mono">${Number.isFinite(coverage) ? (coverage * 100).toFixed(1) : '—'}<small>%</small></strong></div>
+    <div class="am-basis-row"><span class="am-muted">近期平均间隔</span><strong class="am-mono">${esc(pace.big)}<small>${esc(pace.unit)}</small></strong></div>
+  </section>`;
+}
+
+/** 按三个实际显示宽度在服务端排版，浏览器只选择图形，不另算一份图表。 */
+export function renderRecentRhythm(m) {
+  const values = m.gapDays.slice(-7);
+  const dates = m.records.slice(-values.length).map((r) => fmtDate(r.at).slice(5));
+  const labels = values.map((v, i) => `${dates[i]}：${v.toFixed(2)} 天`).join('，');
+  return ['wide', 'mobile', 'narrow'].map((size, i) => {
+    const svg = sceneToSvgTag(rhythmScene(m, { width: [490, 310, 246][i], height: 196, fontScale: 1 }), { role: 'img', label: labels });
+    return svg.replace('<svg ', `<svg class="am-trend am-trend-${size}" `)
+      .replace(/id="g(\d+)"/g, `id="rhythm-${size}-$1"`)
+      .replace(/url\(#g(\d+)\)/g, `url(#rhythm-${size}-$1)`);
+  }).join('');
+}
+
+export function renderRecentRecords(m) {
+  return m.records.slice(-3).reverse().map((r) => {
+    const tag = r.url ? 'a' : 'div';
+    const link = r.url ? ` href="${attr(r.url)}" target="_blank" rel="noopener noreferrer"` : '';
+    return `<${tag} class="am-record"${link}><div class="am-record-top"><span class="am-mono">${fmtDate(r.at).slice(5)} ${fmtTime(r.at)}</span><span>${r.type === 'credit' ? '发券型' : '普通重置'}${r.url ? ' ↗' : ''}</span></div><p>${esc(r.text || '（无原文）')}</p></${tag}>`;
+  }).join('');
 }
 
 /** 卡①：中位剩余等待 —— 多长时间、区间多宽、各个时间窗的累积概率。 */
@@ -1306,6 +1316,10 @@ export function renderAll(m, prediction, signals, opts = {}) {
     PROGRAM: renderProgram(signals?.program),
     // 第二层：预测依据（三张卡）。
     BASIS: outlook ? renderBasis(outlook, m, prediction, signals) : '',
+    BASIS_SUMMARY: renderBasisSummary(outlook, prediction),
+    RHYTHM: renderRecentRhythm(m),
+    RECENT_RECORDS: renderRecentRecords(m),
+    PREDICTED_AT: fmtMDHM(m.now),
 
     // 第三层：历史规律。三张图并成一组，故共用一条题注、各自带样本量。
     HISTOGRAM: renderHistogram(m),
@@ -1322,7 +1336,7 @@ export function renderAll(m, prediction, signals, opts = {}) {
     // 全页最显眼的数字不会动，是改版前留下的自相矛盾。
     ELAPSED: renderElapsedCounter(m),
     LAST_AT: m.lastAt,
-    LAST_LABEL: fmtDateTime(m.lastAt),
+    LAST_LABEL: fmtDateTime(m.lastAt).slice(5),
     // 判定分档的**整块元素**（含 `v-calm/v-watch/...` 那个类）。类名由 `verdictOf`
     // 给，模板拿不到分档结果，所以这里必须把外壳一起渲染出来 —— 只给内文的话，
     // 页面上就只剩一句没有配色的裸文本（验收 A1 的「判定文案」判据会直接红）。

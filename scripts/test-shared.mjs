@@ -27,6 +27,7 @@ import {
   survivalScene,
   stripScene,
   histogramScene,
+  rhythmScene,
   sceneBounds,
   fmtSpanShort,
 } from '../src/lib/scene.js';
@@ -266,6 +267,26 @@ for (const width of [900, 1000, 1180]) {
     check(`${width}px · ${name} 画布宽度等于传入值`, scene.width === width, `实际 ${scene.width}`);
   }
 }
+
+section('3b. 三端近期节奏图');
+
+for (const width of [246, 310, 490]) {
+  for (const [name, input] of Object.entries({
+    实际记录: data,
+    零间隔: { gapDays: [0], records: [{ at: '2026-10-08T17:00:00Z' }] },
+    空记录: { gapDays: [], records: [] },
+    长短交替: { gapDays: [0.01, 67.7, 0.1, 65, 0, 3, 67.7], records: data.records.slice(-7) },
+  })) {
+    const scene = rhythmScene(input, { width, height: 196, fontScale: 1 });
+    const b = sceneBounds(scene);
+    check(`${width}px · ${name} 节奏图不越界`, b.minX >= -TOL && b.minY >= -TOL && b.maxX <= width + TOL && b.maxY <= 196 + TOL, JSON.stringify(b));
+    check(`${width}px · ${name} 节奏图无无效坐标`, !/NaN|undefined|Infinity/.test(sceneToSvgTag(scene)));
+  }
+}
+const beijingRhythm = rhythmScene({ gapDays: [1], records: [{ at: '2026-10-08T17:00:00Z' }] });
+check('节奏图用北京日期标注间隔终点，不受本机时区影响', beijingRhythm.elements.some((e) => e.k === 'text' && e.s === '10.09'));
+const latestRhythm = rhythmScene(data);
+check('节奏图只取最近七次已完成间隔', latestRhythm.elements.filter((e) => e.k === 'circle' && e.r < 4).length === Math.min(7, data.gapDays.length));
 
 /* ======================== 4. 文字可读下限 ======================== */
 
