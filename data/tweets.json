@@ -1,6 +1,24 @@
 {
   "tweets": [
     {
+      "id": "2108428560822424062",
+      "text": "This was all client-side + network for playground only. Shipped optimized rendering logic that can keep up with ultrafast, try again",
+      "created_at": "2026-10-09T05:25:16.000Z",
+      "url": "https://x.com/thsottiaux/status/2108428560822424062",
+      "inReplyTo": {
+        "account": "SimonasLTU1",
+        "id": "",
+        "text": "Okay, so as a poor peasant with a ChatGPT Pro $100 subscription and like $2 sitting in my OpenAI Playground balance, I decided to test GPT-6.1 Sol ULTRAMOTHERFUCKINGFAST in the API. The result? 12,566 output tokens in 4 minutes 16 seconds. Do the math 😂 That's about 49 tok/s.",
+        "created_at": "2026-10-08T20:21:56.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-09T05:28:36.217Z"
+    },
+    {
       "id": "2108391597834727636",
       "text": "i am retired",
       "created_at": "2026-10-09T02:58:23.000Z",
@@ -5211,7 +5229,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-09T03:22:46.048Z",
+  "updated_at": "2026-10-09T05:28:36.217Z",
   "source": "browser",
   "coverage_since": "2026-10-07T03:44:55.000Z"
 }
