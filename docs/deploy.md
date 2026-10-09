@@ -475,6 +475,8 @@ curl -s https://reset.example.com/ | grep -o 'id="gen"[^<]*<[^>]*>[^<]*' | head 
 | `grep -c` 计数为 0 会让整条命令被记成失败 | `(ss -lntp) \| grep -c 8788` 在没命中时 exit 1，经连接器下发会把整条判定为 `FAILED`，看着像命令出错，其实结果是「0，已释放」。查「有没有」时写成 `grep -c ... \|\| true`，或改用 `grep -q ... && echo yes \|\| echo no` |
 | ⛔ **逐条列举环境变量的写法也被平台拦**（第六轮实测，与 `--env-file` 同族） | 一条含 `docker inspect <容器> --format '{{range .Config.Env}}…'` + `grep -E '^(INGEST_TOKEN\|SITE_URL\|PORT)='` + 逐条打哈希的命令被判 `AccessDeny`（同批只有它，且与目标容器/地址无关）。**改用整体哈希**：`docker inspect <容器> --format '{{json .Config.Env}}' \| sha256sum \| cut -c1-16` —— 新旧两个容器的 `Config.Env` 整体哈希相同（`9199c7972e9384f4`）即等价，而且**一个值都不打印**。比逐条比对更干净，建议从此默认用这一种 |
 | 预检两端 `/api/signals` **不会逐字相同**，差异可能只是缓存 | `server/index.mjs:110` 按数据文件 mtime 缓存整份 signals。旧容器在数据到达那一刻算过一次并缓存住，预检容器是新起的、当场现算，于是 `generatedAt` / `windowFrom` / `windowTo` 与双时区 `time` 全跟着**请求时刻**走（第六轮实测：22 行 diff 全是这四个字段，其余逐字节相同）。**判据要写成「除这几个时刻字段外逐字节相同」**，否则会把它当成代码差异去查。顺带排除「预检容器偷偷采集/写盘」：`ls -l --time-style=+%H:%M:%S /srv/tibo-data/` 的 mtime 没变，且预检日志写着「采集 已关闭（数据由本机采集后直接 POST /api/ingest 推送）」 |
+| ⚠ **`docker ps --filter name=X` 是子串匹配，不是精确匹配** | 第七轮想确认回滚点名字腾出来了没有，`docker ps -a --filter name=tibo-reset-prev --format '{{.Names}}' \| wc -l` 得到 **4** —— 它把 `tibo-reset-prev-20261007` / `-20261002b` / `-20261002` / `-20260930` 这四条历史存档**全算进去了**，看着像「名字还占着」。**判「恰好叫这个名字的容器在不在」要用**：`docker ps -a --format '{{.Names}}' \| grep -c -x 'tibo-reset-prev'`（`-x` 整行匹配，得到 0 = 已腾出）。别用 `--filter name=` 做存在性判断，也别用 `docker ps`（默认不含已退出的容器，而恰恰是它占着名字）|
+| ⚠ **容器里可能存在与 HEAD 不一致的「静默漂移」文件** | 第七轮按容器内哈希实测差异集时，`src/lib/browser.mjs` 报出不一致：容器里是 **`9ff1bd2` 版**（`3fa3b4ed`），而 HEAD 是 `2c34f3e` 版（`cc5261e4`）—— 已经悄悄错了好几轮，**没人发现，因为 `docker inspect` / 健康检查都不会看它**。它不在请求路径上（只被 `collect.mjs` 与几个调试脚本 import，而容器 `COLLECT_INTERVAL_MIN=0`），所以**没有造成任何可见故障**。判据：`docker exec <容器> sh -c 'cd /app && find src server -type f \| sort \| xargs sha256sum'`，逐个与本机 `git show HEAD:<path> \| shasum -a 256` 比。⚠ **别只比「这次改动的文件」** —— 那正是它藏了这么多轮的原因。第七轮未顺手修（它不在请求路径上，且按老大「先给方案、等说修再动」的规矩），已作为待办上报 |
 
 ⚠ `docker commit` 会把容器的环境变量一起写进新镜像（含 `INGEST_TOKEN`）—— 这是这条应急
 路径**绕不过去的代价**。原设计是第 8 步仍传 `--env-file /srv/tibo.env`，让「凭据来自哪个
@@ -483,18 +485,18 @@ curl -s https://reset.example.com/ | grep -o 'id="gen"[^<]*<[^>]*>[^<]*' | head 
 核对 —— 新旧容器的 `INGEST_TOKEN` 与 `SITE_URL` 哈希逐字节相同，行为等价。等 SSH 恢复、
 回到常规镜像流程后，这件事自动消失（那时凭据回到 `--env-file`）。
 
-**实测留档**（供下一次估量。六轮记在同一张表里，按**轮次标识**分列 —— 用一个 commit 指代
+**实测留档**（供下一次估量。七轮记在同一张表里，按**轮次标识**分列 —— 用一个 commit 指代
 「这一轮之后线上 src 长什么样」，比「第几次」可靠。注意第二轮的起点**不是**整份 `2c34f3e`：
 它只改了 render / index 两个文件，signals.mjs 当时仍停在 `2c34f3e` 版）：
 
-| 项 | 第一轮 `c6a9228` | 第二轮 `2c34f3e` | 第三轮 `28f1ada` | 第四轮 `bdd340d` | 第五轮 `bb6ef47` | 第六轮 `82f341a` |
-|---|---|---|---|---|---|---|
-| 传的文件 | 3 个：`src/lib/signals.mjs`、`src/lib/render.mjs`、`src/index.html` | 2 个：`src/lib/render.mjs`、`src/index.html`（改动量 +35 −27）| **1 个**：`src/lib/signals.mjs`（1537 → 1673 行）| 6 个：`src/index.html`、`src/lib/{render,signals,scene,predict,chart-data}.mjs`/`.js` + **新增** `src/lib/outlook.mjs` | 3 个：`src/index.html`、`src/lib/render.mjs`、`src/lib/outlook.mjs` | **2 个**：`src/index.html`、`src/lib/render.mjs`（差异集由容器内哈希实测定，不靠 git 推 —— `scene.js` / `predict.mjs` / `chart-data.js` 全部相同）|
-| 载荷 | 补丁 304 行 / 17104 B → `gzip -9` 7932 B → base64 10576 B → **切 6 块** | 补丁 102 行 / 6522 B → `gzip -9` 3564 B → base64 4752 B → **切 3 块** | 补丁 202 行 / 12345 B → `gzip -9` 5694 B → base64 7593 B → **切 4 块**（1900 × 3 + 1893）| **改用 jsdelivr 直取**（见 6.2）：3 次调用拿全 6 个文件，命令数从 20+ 降到 3 | jsdelivr 直取：**1 次调用**拿全 3 个文件（69249 / 64759 / 11732 B）| jsdelivr 直取：**1 次调用**拿全 2 个文件（70367 / 66923 B）|
-| 比对 | 4 处：gz、patch、补丁后、容器内 | **5 处**（多一道 `p.b64` 自身的哈希）：全部逐字节相同 | 5 处 + 补丁行数（202）| 3 处：jsdelivr 落盘、`docker cp` 后容器内、与本机 HEAD 逐字节 | 3 处：同上，三处哈希全等（`2db650c7` / `3807c74d` / `1b3882e2`）| 3 处：同上，三处哈希全等（`b07cf122` / `bc766a96`）|
-| 预检 | 8788 vs 8787：`occurred` **7 → 5**、`program` **无 → 有**、页面新块 0 → 2 处 | 8788 vs 8787：页面「留档超出上限」**1 → 0 处**；`diff` 共出 3 处，其中**代码差异只有两处**（`.sig-prog` 上边距、那行提示），第三处是页面上「已过 N 分 N 秒」的计数（两次抓取时刻不同，不是改动）| 8788 vs 8787：`level` **explicit → occurred**、`explicit` **1 → 0**、`occurred` **6 → 7**（新增的正是那条 `19:19:17` 发卡推文，`downgradedFrom` 为空 = 当场判定，不是过期降级）；`hint` / `none` / `rejected` / `scanned` **逐项全等**。页面：explicit 预告块 + 倒数条 + 窗口块整组换成 `sig-idle`（86203 B → 82499 B）| 8788 vs 8787：新版 `bc-grid`×4 / `pcard`×1 / `data-bc`×3 / `hr-grid`×4，旧版 `fc-main`×7 / `fc-bars`×2；页面 82658 → 122208 B | 8788 vs 8787：`class="hero-card"` 字节偏移 **95703 → 62948**（从页尾提到**最前**）、`class="pred"` 61880 → 64231；`/api/signals` 两端逐字相同；页面 122228 → 123167 B（增量全是新写的注释）| 8788 vs 8787：页面 `#elapsed` 由**纯文本**（旧形态命中 1 处）换成**四组卷轴** `data-g="d\|h\|m\|s"`；页面 123165 → 125816 B。`/api/signals` 有 22 行 diff —— 全是 `generatedAt` / `windowFrom` / `windowTo` / 双时区 `time` 这类**请求时刻**字段（旧容器 09:29 的缓存 vs 预检 09:52 现算），已单列一条坑；数据文件 mtime 未变，预检容器没有采集 |
-| 停机窗口 | 见下（当时记的是 `sleep` 的时长）| **0.46 秒** | **0.51 秒**（容器间隔 0.26 秒）| ⚠ **13.3 秒**（撞 `Conflict`，见下）| **0.47 秒**（容器间隔 0.25 秒）| **0.45 秒**（容器间隔 0.23 秒）|
-| 新镜像 tag / 回滚点 | `tibo-reset:amd64-20261007` / `tibo-reset-prev` | `tibo-reset:amd64-20261007b` / `tibo-reset-prev` | `tibo-reset:amd64-20261008` / `tibo-reset-prev` | `tibo-reset:amd64-20261008b` / `tibo-reset-prev`（旧回滚点改名 `tibo-reset-archive-20261007b`）| `tibo-reset:amd64-20261008c` / `tibo-reset-prev`（指 `amd64-20261008b`；上一轮回滚点改名 `tibo-reset-archive-20261008`）；`tibo-reset:amd64` 原 tag 始终未被顶掉 | `tibo-reset:amd64-20261008d` / `tibo-reset-prev`（指 `amd64-20261008c`；上一轮回滚点改名 `tibo-reset-archive-20261008b`）；`tibo-reset:amd64` 原 tag 仍未被顶掉 |
+| 项 | 第一轮 `c6a9228` | 第二轮 `2c34f3e` | 第三轮 `28f1ada` | 第四轮 `bdd340d` | 第五轮 `bb6ef47` | 第六轮 `82f341a` | 第七轮 `46bce45` |
+|---|---|---|---|---|---|---|---|
+| 传的文件 | 3 个：`src/lib/signals.mjs`、`src/lib/render.mjs`、`src/index.html` | 2 个：`src/lib/render.mjs`、`src/index.html`（改动量 +35 −27）| **1 个**：`src/lib/signals.mjs`（1537 → 1673 行）| 6 个：`src/index.html`、`src/lib/{render,signals,scene,predict,chart-data}.mjs`/`.js` + **新增** `src/lib/outlook.mjs` | 3 个：`src/index.html`、`src/lib/render.mjs`、`src/lib/outlook.mjs` | **2 个**：`src/index.html`、`src/lib/render.mjs`（差异集由容器内哈希实测定，不靠 git 推 —— `scene.js` / `predict.mjs` / `chart-data.js` 全部相同）| **2 个**：`src/index.html`、`src/lib/render.mjs`（差异集仍由容器内哈希实测定；⚠ 顺带发现 `src/lib/browser.mjs` **已漂移**，见下）|
+| 载荷 | 补丁 304 行 / 17104 B → `gzip -9` 7932 B → base64 10576 B → **切 6 块** | 补丁 102 行 / 6522 B → `gzip -9` 3564 B → base64 4752 B → **切 3 块** | 补丁 202 行 / 12345 B → `gzip -9` 5694 B → base64 7593 B → **切 4 块**（1900 × 3 + 1893）| **改用 jsdelivr 直取**（见 6.2）：3 次调用拿全 6 个文件，命令数从 20+ 降到 3 | jsdelivr 直取：**1 次调用**拿全 3 个文件（69249 / 64759 / 11732 B）| jsdelivr 直取：**1 次调用**拿全 2 个文件（70367 / 66923 B）| jsdelivr 直取：**1 次调用**拿全 2 个文件（71495 / 67431 B）|
+| 比对 | 4 处：gz、patch、补丁后、容器内 | **5 处**（多一道 `p.b64` 自身的哈希）：全部逐字节相同 | 5 处 + 补丁行数（202）| 3 处：jsdelivr 落盘、`docker cp` 后容器内、与本机 HEAD 逐字节 | 3 处：同上，三处哈希全等（`2db650c7` / `3807c74d` / `1b3882e2`）| 3 处：同上，三处哈希全等（`b07cf122` / `bc766a96`）| 3 处：同上，三处哈希全等（`91955170` / `ffcd8611`）|
+| 预检 | 8788 vs 8787：`occurred` **7 → 5**、`program` **无 → 有**、页面新块 0 → 2 处 | 8788 vs 8787：页面「留档超出上限」**1 → 0 处**；`diff` 共出 3 处，其中**代码差异只有两处**（`.sig-prog` 上边距、那行提示），第三处是页面上「已过 N 分 N 秒」的计数（两次抓取时刻不同，不是改动）| 8788 vs 8787：`level` **explicit → occurred**、`explicit` **1 → 0**、`occurred` **6 → 7**（新增的正是那条 `19:19:17` 发卡推文，`downgradedFrom` 为空 = 当场判定，不是过期降级）；`hint` / `none` / `rejected` / `scanned` **逐项全等**。页面：explicit 预告块 + 倒数条 + 窗口块整组换成 `sig-idle`（86203 B → 82499 B）| 8788 vs 8787：新版 `bc-grid`×4 / `pcard`×1 / `data-bc`×3 / `hr-grid`×4，旧版 `fc-main`×7 / `fc-bars`×2；页面 82658 → 122208 B | 8788 vs 8787：`class="hero-card"` 字节偏移 **95703 → 62948**（从页尾提到**最前**）、`class="pred"` 61880 → 64231；`/api/signals` 两端逐字相同；页面 122228 → 123167 B（增量全是新写的注释）| 8788 vs 8787：页面 `#elapsed` 由**纯文本**（旧形态命中 1 处）换成**四组卷轴** `data-g="d\|h\|m\|s"`；页面 123165 → 125816 B。`/api/signals` 有 22 行 diff —— 全是 `generatedAt` / `windowFrom` / `windowTo` / 双时区 `time` 这类**请求时刻**字段（旧容器 09:29 的缓存 vs 预检 09:52 现算），已单列一条坑；数据文件 mtime 未变，预检容器没有采集 | 8788 vs 8787：**顺序翻转**（本次改动的全部内容）—— 旧：`class="sig-idle"`@71416 → `预测依据`@72331 → `class="sig-prog"`@77335；新：`sig-idle`@71843 → **`sig-prog`@73750** → `预测依据`@75485。页面 125820 → 126951 B。`/api/signals` 22 行 diff **全在** `generatedAt` / `windowFrom` / `windowTo` / 双时区 `time`（旧容器 `01:16:48Z` 的缓存 vs 预检 `01:44:20Z` 现算），`level` 与 `program.daysLeft=24` 两端相同；数据目录 mtime 未变（仍是 09:16:39）|
+| 停机窗口 | 见下（当时记的是 `sleep` 的时长）| **0.46 秒** | **0.51 秒**（容器间隔 0.26 秒）| ⚠ **13.3 秒**（撞 `Conflict`，见下）| **0.47 秒**（容器间隔 0.25 秒）| **0.45 秒**（容器间隔 0.23 秒）| **0.47 秒**（容器间隔 0.26 秒，旧停 `01:45:19.299` → 监听 `01:45:19.767`）|
+| 新镜像 tag / 回滚点 | `tibo-reset:amd64-20261007` / `tibo-reset-prev` | `tibo-reset:amd64-20261007b` / `tibo-reset-prev` | `tibo-reset:amd64-20261008` / `tibo-reset-prev` | `tibo-reset:amd64-20261008b` / `tibo-reset-prev`（旧回滚点改名 `tibo-reset-archive-20261007b`）| `tibo-reset:amd64-20261008c` / `tibo-reset-prev`（指 `amd64-20261008b`；上一轮回滚点改名 `tibo-reset-archive-20261008`）；`tibo-reset:amd64` 原 tag 始终未被顶掉 | `tibo-reset:amd64-20261008d` / `tibo-reset-prev`（指 `amd64-20261008c`；上一轮回滚点改名 `tibo-reset-archive-20261008b`）；`tibo-reset:amd64` 原 tag 仍未被顶掉 | `tibo-reset:amd64-20261009` / `tibo-reset-prev`（指 `amd64-20261008d`；上一轮回滚点改名 `tibo-reset-archive-20261008c`）；`tibo-reset:amd64` 原 tag 仍未被顶掉 |
 
 ⚠ **「停机窗口」这一格以前记错了口径。** 上面那个「≈9 秒」是 `sleep` 的时长，不是站点不可用
 的时长 —— 它把「等健康检查转绿」也算进去了，而健康检查本来就有自己的间隔。真正的窗口是
@@ -534,6 +536,12 @@ docker logs -t --tail 30 tibo-reset                               # 末行「监
 第六轮（`82f341a`）同样先腾名字（上一轮回滚点 → `tibo-reset-archive-20261008b`），
 窗口 **0.45 秒**（旧停 `09:54:14.438` → 新监听 `09:54:14.890`）。三次「先腾名字」的实测
 是 0.47 / 0.45 秒，两次没腾的是 13.3 秒 —— 这条已经不用再验证了，**照做即可**。
+
+第七轮（`46bce45`）照做（上一轮回滚点 → `tibo-reset-archive-20261008c`），
+窗口 **0.47 秒**（旧停 `01:45:19.299` → 新监听 `01:45:19.767`，容器间隔 0.26 秒）；
+新容器 `Config.Env` 整体哈希与原容器同值（`9199c7972e9384f4`），**一个凭据值都没打印**。
+⚠ 本轮多花了一次调用确认「名字腾干净了没有」，是因为 `--filter name=` 是子串匹配、
+报了 4 条 —— 见上表那条坑，以后直接用 `grep -c -x` 判存在性。
 
 ### 6.2 用 jsdelivr 国内镜像直取文件（第四轮起改用，优于分块）
 
