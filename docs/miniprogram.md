@@ -18,7 +18,7 @@
 
 ```
 miniprogram/
-  app.js                入口：只做一件事 —— 预热数据（不阻塞首屏）
+  app.js                入口：预热数据 + 注册更新提示（不阻塞首屏）
   app.json              页面注册与导航栏配色（宣纸白 #FAF8F4）
   config.js             ★ 上线前要改的运行时配置（域名 / 开关 / 模板 ID）
   data/snapshot.js      ★ 构建产物：离线首屏数据快照，勿手改（**不入库**，见第二节第 2 步）
@@ -30,6 +30,7 @@ miniprogram/
   utils/api.js          快照 / 网络 / 本地缓存三合一
   utils/subscribe.js    F9：一次性订阅的客户端封装
   utils/share.js        分享标题 + 单页模式（朋友圈）适配，见 D-031
+  utils/update.js       微信代码包更新：下载就绪提示、确认重启与失败反馈
   pages/index/          观测台首页（含 F9 提醒入口）
   pages/history/        重置历史
 ```
@@ -110,7 +111,8 @@ miniprogram/
 ## 六、本机能做的校验（不需要开发者工具）
 
 ```bash
-node scripts/test-miniprogram.mjs   # 218 项：图元坐标不越界、字号不低于可读下限、F9 链路、视觉模型、分享与单页模式
+node scripts/test-miniprogram.mjs   # App 生命周期、图元、F9、视觉模型、分享与单页模式
+npm run test:update                # 更新就绪 / 稍后 / 后台返回 / 失败 / 旧微信兼容
 npm run preview:mp                  # 生成 dist/miniprogram-preview.html
 npm run preview:mp -- --demo-signal # 同上，但注入一条合成预告，点亮「信号明确态」
 node --check miniprogram/pages/index/index.js    # 逐文件语法检查
@@ -145,7 +147,7 @@ node --check miniprogram/pages/index/index.js    # 逐文件语法检查
 
 | 17 | 预测依据区与每日重置窗口的四个图标（等待 / 回测 / 趋势 / 日历） | 走 base64 SVG 背景图（小程序不能内联 `<svg>`，wxss 读不到本地图片路径）。某些内核不渲染 SVG 背景图时会退化成一个 52rpx 的浅青圆角方块 —— 占位仍在、排版不塌、信息不丢，但看得出差异。真机上见到方块就去掉该条规则的 `background-image`、改用位图 |
 
-第 9 条是唯一无法在 Mac 上替代的一项，也是这张清单存在的理由。
+第 9 条需要在真机检查；代码包跨版本切换另见第九节。
 
 第 13–17 条同理 —— 分享入口、单页模式与图标渲染都依赖微信宿主，`npm run check` 只能验到
 「代码接上了没有」（第 13 节测试），**验不到宿主里的真实表现**。第 16 条不必真的发朋友圈：
@@ -170,3 +172,26 @@ node --check miniprogram/pages/index/index.js    # 逐文件语法检查
 
 设计上刻意**没有**换成深色底或加高饱和色块 —— 那会和整站的水墨宣纸基调打架。
 「不素」是靠**晕染、大字、动效**做出来的，不是靠换配色。
+
+---
+
+## 九、小程序更新提示
+
+App 启动时注册一次微信 `UpdateManager`，微信负责检查与下载更新。收到
+`onUpdateReady` 后才显示「更新已就绪」：选择「立即重启」会调用 `applyUpdate()`，
+由微信重启并应用新代码包；「稍后」继续当前页面，下次返回前台再提醒。
+后台收到下载完成通知会等回到前台再提示；同次前台不反复弹窗，朋友圈单页不弹重启提示。
+下载失败只提示检查网络、稍后重新打开，不自动重启、不清缓存、不要求删除小程序。
+宿主不支持更新接口时继续正常显示页面。
+
+本机验证分两层：
+
+1. `npm run test:update` 验证宿主回调与确认流程；`node scripts/test-miniprogram.mjs`
+   同时验证 App 的启动、前后台与单页模式接线。
+2. 微信开发者工具的编译设置开启「下次编译模拟更新」，分别模拟成功与失败。
+   成功时点「稍后」确认页面继续可用，再返回前台点「立即重启」；失败时只出现失败说明。
+   模拟通过仍不能代替正式版跨版本验收：需要先安装带本功能的正式版，再发布后续版本，
+   在 iOS、安卓验证实际下载、提示和重启。当前设备上运行的不带此逻辑的旧包，无法被此改动追溯添加提示。
+
+接口语义依据[微信官方 API 声明](https://github.com/wechat-miniprogram/api-typings/blob/master/types/wx/lib.wx.api.d.ts)
+与 [UpdateManager 文档](https://developers.weixin.qq.com/miniprogram/dev/api/base/update/UpdateManager.html)。

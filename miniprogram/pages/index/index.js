@@ -145,6 +145,7 @@ Page({
     moreRecordsOpen: false,
     detailsOpen: false,
     programOpen: false,
+    programHeight: 0,
     signalDetailsOpen: false,
     motionEnabled: true,
     pageVisible: false,
@@ -176,6 +177,7 @@ Page({
     this._timer = null;
     this._painting = false;
     this._paintAgain = false;
+    this._programMeasure = 0;
     this._reminding = false;
     this._rippleTimer = null;
     this._hasShown = false;
@@ -221,6 +223,7 @@ Page({
   onUnload() {
     this.stopTicker();
     this.clearRippleTimer();
+    this._programMeasure++;
   },
 
   onPullDownRefresh() {
@@ -285,6 +288,7 @@ Page({
         moreRecordsOpen: false,
         detailsOpen: false,
         programOpen: false,
+        programHeight: 0,
         signalDetailsOpen: false,
         genText: fmtDateTime(genTs),
         // 「观测中」后面是**当前北京时间**，由 tick 每秒推进（见 tick）。
@@ -521,7 +525,17 @@ Page({
   /* ------------------------------ 交互 ------------------------------ */
 
   onToggleProgram() {
-    this.setData({ programOpen: !this.data.programOpen });
+    const programOpen = !this.data.programOpen;
+    const measure = ++this._programMeasure;
+    this.setData({ programOpen, ...(programOpen ? {} : { programHeight: 0 }) }, () => {
+      if (!programOpen) return;
+      // 内容保持挂载，按实际高度展开；关闭时不移除节点，过渡才能完整播放。
+      wx.createSelectorQuery().in(this).select('.prog-body').boundingClientRect().exec((res) => {
+        if (!this.data.programOpen || measure !== this._programMeasure) return;
+        const height = res?.[0]?.height;
+        if (Number.isFinite(height) && height > 0) this.setData({ programHeight: Math.ceil(height) });
+      });
+    });
   },
 
   onToggleSignalDetails() {

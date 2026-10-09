@@ -1,11 +1,12 @@
 /**
  * 小程序入口。
  *
- * 这里只做一件事：预热数据。真正的渲染在页面里，
- * 因为首屏必须**先出图再联网**，不能等网络。
+ * 数据预热与代码包更新都不阻塞首屏；真正的渲染在页面里。
  */
 
 import { loadState } from './utils/api.js';
+import { isSinglePage } from './utils/share.js';
+import { createUpdatePrompt } from './utils/update.js';
 
 App({
   globalData: {
@@ -16,7 +17,16 @@ App({
   },
 
   onLaunch() {
+    this._updatePrompt = createUpdatePrompt();
     this.warmup();
+  },
+
+  onShow() {
+    this._updatePrompt?.onShow(!isSinglePage());
+  },
+
+  onHide() {
+    this._updatePrompt?.onHide();
   },
 
   /** 预取一次数据，失败也不抛（页面自己还有回落路径） */

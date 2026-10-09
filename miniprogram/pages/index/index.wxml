@@ -13,14 +13,11 @@
           <view class="brand-mark"><view class="brand-core"></view></view>
           <view class="brand-copy">
             <text class="h1">等 TIBO 按按钮</text>
-            <text class="sub">RESET OBSERVATORY</text>
+            <view class="pulse {{degraded ? 'warn' : ''}}">
+              <text class="dot"></text>
+              <text>{{updText}}</text>
+            </view>
           </view>
-        </view>
-      </view>
-      <view class="top-tools">
-        <view class="pulse {{degraded ? 'warn' : ''}}">
-          <text class="dot"></text>
-          <text>{{updText}}</text>
         </view>
       </view>
     </view>
@@ -30,7 +27,10 @@
     <!-- 已经过去的时间是事实，使用紧凑卷轴放在预测之前。 -->
     <view class="hero" id="elapsed">
       <view class="elapsed-line">
-        <text class="label">距上次重置</text>
+        <view class="elapsed-copy">
+          <text class="label">距上次重置</text>
+          <text class="since">{{since}}</text>
+        </view>
         <view class="counter">
           <view class="grp" wx:for="{{counter}}" wx:key="unit" wx:for-item="g">
             <view class="reels">
@@ -44,7 +44,6 @@
           </view>
         </view>
       </view>
-      <text class="since">{{since}}</text>
     </view>
 
     <!-- 预测是视觉主卡。日期、倒计时与区间均来自 outlook 视图模型。 -->
@@ -152,32 +151,47 @@
 
     <!-- 每日计划与某一天的预告分开呈现，默认收起，只在需要时查看时区和来源。 -->
     <view wx:if="{{signal.program.show}}" class="prog">
-      <view class="prog-head" bindtap="onToggleProgram">
-        <view class="program-icon"><text>28</text></view>
+      <view class="prog-head" bindtap="onToggleProgram" role="button" aria-expanded="{{programOpen}}">
+        <view class="program-icon"><text>{{signal.program.days}}</text></view>
         <view class="program-copy">
           <text class="prog-tag">每日重置窗口</text>
           <text class="prog-left">共 {{signal.program.days}} 天 · 还剩 {{signal.program.daysLeft}} 天</text>
         </view>
-        <text class="prog-toggle">{{programOpen ? '−' : '＋'}}</text>
+        <view class="prog-toggle {{programOpen ? 'is-open' : ''}}" aria-hidden="true"><view class="prog-chevron"></view></view>
       </view>
-      <view wx:if="{{programOpen}}" class="prog-body">
-        <text class="prog-rule">每天要么发一个改进、要么给一次完整重置 —— 期间任何一天都可能重置</text>
-        <view wx:if="{{signal.program.window}}" class="win">
-          <view class="wrow">
-            <text class="k">Tibo 当地时间</text>
-            <text class="v">{{signal.program.window.sourceZone}}</text>
-            <text class="z">{{signal.program.window.srcOffset}}</text>
+      <view class="prog-reveal {{programOpen ? 'is-open' : ''}}" style="height:{{programHeight}}px" aria-hidden="{{!programOpen}}">
+        <view class="prog-body">
+          <view class="prog-intro">
+            <text class="prog-rule">每天发布一项改进，或进行完整重置。</text>
+            <text class="prog-rule-note">期间任何一天都可能重置</text>
           </view>
-          <view class="wrow">
-            <text class="k">北京时间</text>
-            <text class="v">{{signal.program.window.userZone}}</text>
-            <text class="z">{{signal.program.window.usrOffset}}</text>
+          <view wx:if="{{signal.program.window}}" class="prog-zones">
+            <view class="prog-zone prog-zone-primary">
+              <view class="prog-zone-head"><text>北京时间</text><text class="prog-offset">{{signal.program.window.usrOffset}}</text></view>
+              <view class="prog-time-row" wx:for="{{signal.program.beijingRange}}" wx:key="label">
+                <text class="prog-time-label">{{item.label}}</text>
+                <view class="prog-time-value"><text>{{item.date}}</text><text class="prog-time-clock">{{item.time}}</text><text class="prog-weekday">{{item.weekday}}</text></view>
+              </view>
+            </view>
+            <view class="prog-zone prog-zone-local">
+              <view class="prog-zone-head"><text>Tibo 当地时间</text><text class="prog-offset">{{signal.program.window.srcOffset}}</text></view>
+              <view class="prog-local-range">
+                <block wx:for="{{signal.program.localRange}}" wx:key="key">
+                  <text wx:if="{{index}}" class="prog-range-dash">—</text>
+                  <view class="prog-local-date"><text>{{item.date}}</text><text class="prog-weekday">{{item.weekday}}</text></view>
+                </block>
+              </view>
+            </view>
+            <text class="prog-zone-note">{{signal.program.window.diffText}}</text>
           </view>
-          <text class="wfoot">{{signal.program.window.diffText}}{{signal.program.window.rangeNote ? ' · ' + signal.program.window.rangeNote : ''}}</text>
-        </view>
-        <view class="prog-meta">
-          <text wx:if="{{signal.program.announcedText}}">发布于 {{signal.program.announcedText}}</text>
-          <text wx:if="{{signal.program.url && !singlePage}}" class="prog-link" data-url="{{signal.program.url}}" bindtap="onCopySource">复制原推链接</text>
+          <view class="prog-source">
+            <view class="prog-source-head">
+              <text>来源 · 发布于</text>
+              <text wx:if="{{signal.program.url && !singlePage}}" class="prog-source-link" data-url="{{signal.program.url}}" bindtap="onCopySource">复制原推链接 ↗</text>
+            </view>
+            <text wx:if="{{signal.program.announcedBeijing}}" class="prog-published">北京 {{signal.program.announcedBeijing}}</text>
+            <text wx:if="{{signal.program.announcedLocal}}" class="prog-published">当地 {{signal.program.announcedLocal}}</text>
+          </view>
         </view>
       </view>
     </view>

@@ -122,12 +122,30 @@ function programView(p) {
   // 端上自己算要依赖 Intl，部分安卓机型不可用；而且网页端读的是同一份，
   // 两边各算一次正是本项目反复吃过亏的地方。
   const cz = p.createdZones;
+  const beijingRange = [
+    { label: '开始', at: p.window.fromTs ?? p.window.from },
+    { label: '结束', at: p.window.toTs ?? p.window.to },
+  ].map(({ label, at }) => {
+    const ts = toTs(at);
+    if (!Number.isFinite(ts)) return { label, date: '—', weekday: '', time: '' };
+    const parts = beijingParts(ts);
+    return { label, date: `${parts.year}.${parts.month}.${parts.day}`, weekday: parts.weekday, time: `${parts.hour}:${parts.minute}` };
+  });
+  // 当地窗口保持原文的日历日粒度，不把跨度补成他没有承诺过的钟点。
+  const localRange = String(p.window.sourceZone || '').split(/\s+[–—]\s+/).map((text, key) => {
+    const parts = /^(.*)（(.*)）$/.exec(text);
+    return { key, date: parts ? parts[1] : text, weekday: parts ? parts[2] : '' };
+  });
   return {
     show: true,
     days: p.days ?? 0,
     daysLeft: p.daysLeft ?? 0,
     window: windowView(p.window),
+    beijingRange,
+    localRange,
     announcedText: cz ? `${cz.a.text} 北京 · ${cz.b.text} 当地` : '',
+    announcedBeijing: cz?.a?.text || '',
+    announcedLocal: cz?.b?.text || '',
     url: p.url || '',
   };
 }

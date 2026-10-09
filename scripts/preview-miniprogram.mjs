@@ -209,16 +209,21 @@ const signalDetailHtml = sig.show
   : '';
 
 const progHtml = sig.program && sig.program.show
-  ? '<div class="prog"><div class="prog-head" id="program-toggle">' +
-      '<span class="program-icon">28</span><span class="program-copy"><span class="prog-tag">每日重置窗口</span>' +
+  ? '<div class="prog"><div class="prog-head" id="program-toggle" role="button" aria-expanded="false">' +
+      '<span class="program-icon">' + esc(sig.program.days) + '</span><span class="program-copy"><span class="prog-tag">每日重置窗口</span>' +
         '<span class="prog-left">共 ' + esc(sig.program.days) + ' 天 · 还剩 ' + esc(sig.program.daysLeft) + ' 天</span></span>' +
-      '<span class="prog-toggle" id="program-mark">＋</span></div>' +
-      '<div class="prog-body" id="program-body" hidden>' +
-        '<span class="prog-rule">每天要么发一个改进、要么给一次完整重置 —— 期间任何一天都可能重置</span>' +
-        windowHtml(sig.program.window, 'program-window') +
-        '<div class="prog-meta">' + (sig.program.announcedText ? '<span>发布于 ' + esc(sig.program.announcedText) + '</span>' : '') +
-          (sig.program.url ? '<a class="prog-link" href="' + escAttr(sig.program.url) + '" target="_blank" rel="noopener">打开原推</a>' : '') + '</div>' +
-      '</div></div>'
+      '<span class="prog-toggle" id="program-mark"><span class="prog-chevron"></span></span></div>' +
+      '<div class="prog-reveal" id="program-body" aria-hidden="true"><div class="prog-body">' +
+        '<div class="prog-intro"><span class="prog-rule">每天发布一项改进，或进行完整重置。</span><span class="prog-rule-note">期间任何一天都可能重置</span></div>' +
+        '<div class="prog-zones"><div class="prog-zone prog-zone-primary"><div class="prog-zone-head"><span>北京时间</span><span class="prog-offset">' + esc(sig.program.window.usrOffset) + '</span></div>' +
+          sig.program.beijingRange.map((point) => '<div class="prog-time-row"><span class="prog-time-label">' + esc(point.label) + '</span><span class="prog-time-value"><span>' + esc(point.date) + '</span><span class="prog-time-clock">' + esc(point.time) + '</span><span class="prog-weekday">' + esc(point.weekday) + '</span></span></div>').join('') + '</div>' +
+          '<div class="prog-zone prog-zone-local"><div class="prog-zone-head"><span>Tibo 当地时间</span><span class="prog-offset">' + esc(sig.program.window.srcOffset) + '</span></div><div class="prog-local-range">' +
+          sig.program.localRange.map((point, i) => (i ? '<span class="prog-range-dash">—</span>' : '') + '<span class="prog-local-date"><span>' + esc(point.date) + '</span><span class="prog-weekday">' + esc(point.weekday) + '</span></span>').join('') + '</div></div>' +
+          '<span class="prog-zone-note">' + esc(sig.program.window.diffText) + '</span></div>' +
+        '<div class="prog-source"><div class="prog-source-head"><span>来源 · 发布于</span>' +
+          (sig.program.url ? '<a class="prog-source-link" href="' + escAttr(sig.program.url) + '" target="_blank" rel="noopener">打开原推 ↗</a>' : '') + '</div>' +
+          '<span class="prog-published">北京 ' + esc(sig.program.announcedBeijing) + '</span><span class="prog-published">当地 ' + esc(sig.program.announcedLocal) + '</span></div>' +
+      '</div></div></div>'
   : '';
 
 const basisHtml = basisRows.map((r) =>
@@ -277,7 +282,7 @@ const normalize = [
   'body{margin:0;background:#e9e7f0;padding:24px 0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}',
   '.phone{width:375px;max-width:100%;margin:0 auto;background:#f5f4fb;min-height:100vh;box-shadow:0 8px 40px rgba(0,0,0,.18)}',
   '.phone{position:relative}.preview-capsule{position:absolute;z-index:5;top:31px;right:9px;width:88px;height:32px;display:flex;align-items:center;justify-content:space-around;border:1px solid #d8d6df;border-radius:99px;background:rgba(255,255,255,.94);color:#292741;font-size:13px;line-height:1}.preview-capsule i{height:18px;border-left:1px solid #d8d6df}',
-  '.prog-body[hidden],.signal-detail[hidden],.more-records[hidden],.detail-area[hidden],.tap-ring[hidden]{display:none}',
+  '.signal-detail[hidden],.more-records[hidden],.detail-area[hidden],.tap-ring[hidden]{display:none}',
   '.detail-area{display:block}.trend-chart{height:160px}',
 ].join('');
 
@@ -288,10 +293,9 @@ const html = '<!DOCTYPE html>\n' +
 '<div class="phone"><div class="preview-capsule" aria-hidden="true"><span>•••</span><i></i><span>◉</span></div><div class="wrap motion-on" id="mini-page"><div class="aurora-sky" aria-hidden="true">' +
 '<div class="aurora-cloud cloud-mint"></div><div class="aurora-cloud cloud-violet"></div><div class="aurora-cloud cloud-blue"></div></div>' +
 '<div class="page-content"><div class="top" style="padding-top:24px"><div class="brand-line" style="min-height:46px;padding-right:115px"><div class="brand"><span class="brand-mark"><i class="brand-core"></i></span>' +
-'<span class="brand-copy"><span class="h1">等 TIBO 按按钮</span><span class="sub">RESET OBSERVATORY</span></span></div>' +
-' </div><div class="top-tools"><span class="pulse"><i class="dot"></i><span>观测中 · <span id="upd">' + esc(fmtClockSec(now)) + '</span></span></span></div></div>' +
-'<div class="hero" id="elapsed"><div class="elapsed-line"><span class="label">距上次重置</span><div class="counter" id="counter">' + counterHtml + '</div></div>' +
-'<span class="since">上次 ' + esc(fmtDateTime(lastAt).slice(5)) + ' · 北京时间</span></div>' +
+'<span class="brand-copy"><span class="h1">等 TIBO 按按钮</span><span class="pulse"><i class="dot"></i><span>观测中 · <span id="upd">' + esc(fmtClockSec(now)) + '</span></span></span></span></div></div></div>' +
+'<div class="hero" id="elapsed"><div class="elapsed-line"><div class="elapsed-copy"><span class="label">距上次重置</span>' +
+'<span class="since">上次 ' + esc(fmtDateTime(lastAt).slice(5)) + ' · 北京时间</span></div><div class="counter" id="counter">' + counterHtml + '</div></div></div>' +
 predHtml + signalHtml + signalDetailHtml + progHtml +
 '<div class="basis card"><div class="section-head"><span class="section-title">预测依据</span></div>' +
 basisHtml + '</div>' +
@@ -323,7 +327,7 @@ forecastHtml + '<div class="bc-note pred-brief"><b>预测判据：</b>' + esc(pr
 "function renderCounter(now){const el=elapsed(lastAt,now);return reelGroups(el).map(g=>'<div class=\"grp\"><div class=\"reels\">'+g.digits.map(d=>'<div class=\"reel\"><div class=\"strip\" style=\"transform:translateY(-'+d+'em)\">'+digits.split('').map(n=>'<div class=\"dg\">'+n+'</div>').join('')+'</div></div>').join('')+'</div><span class=\"unit\">'+g.unit+'</span></div>').join('')}" +
 "function tick(){const now=Date.now(),pcd=document.getElementById('pcd'),upd=document.getElementById('upd'),counter=document.getElementById('counter');if(pcd){const cd=predCountdown({etaAt:Number(pcd.dataset.eta),etaKind:pcd.dataset.kind},now);if(cd){pcd.innerHTML=cd.groups.map(g=>'<div class=\"pcd-g\"><span class=\"pcd-v\">'+g.v+'</span><span class=\"pcd-u\">'+g.unit+'</span></div>').join('');pcd.parentElement.querySelector('.pcd-cap').textContent=cd.label;pcd.parentElement.classList.toggle('is-over',cd.over)}}if(upd)upd.textContent=fmtClockSec(now);if(counter)counter.innerHTML=renderCounter(now)}" +
 "let timer=null;function syncMotion(){const visible=!document.hidden;root.classList.toggle('motion-on',visible);root.classList.toggle('motion-off',!visible)}" +
-"document.getElementById('program-toggle')?.addEventListener('click',()=>{const body=document.getElementById('program-body'),mark=document.getElementById('program-mark');body.hidden=!body.hidden;mark.textContent=body.hidden?'＋':'−'});" +
+"document.getElementById('program-toggle')?.addEventListener('click',()=>{const toggle=document.getElementById('program-toggle'),body=document.getElementById('program-body'),mark=document.getElementById('program-mark'),open=!body.classList.contains('is-open');body.classList.toggle('is-open',open);mark.classList.toggle('is-open',open);toggle.setAttribute('aria-expanded',String(open));body.setAttribute('aria-hidden',String(!open));body.style.height=open?Math.ceil(body.querySelector('.prog-body').getBoundingClientRect().height)+'px':'0px'});" +
 "document.getElementById('signal-toggle')?.addEventListener('click',()=>{const body=document.getElementById('signal-details');if(body)body.hidden=!body.hidden});" +
 "document.getElementById('more-toggle')?.addEventListener('click',e=>{const body=document.getElementById('more-records');body.hidden=!body.hidden;e.currentTarget.querySelector('span').textContent=body.hidden?'再看 '+Math.min(14,Math.max(0,chart.records.length-3))+' 条':'收起较早记录';e.currentTarget.lastElementChild.textContent=body.hidden?'＋':'−'});" +
 "document.getElementById('detail-toggle').addEventListener('click',e=>{const body=document.getElementById('detail-area');body.hidden=!body.hidden;e.currentTarget.querySelector('span').textContent=body.hidden?'展开回测、历史图与统计':'收起详细观测数据';e.currentTarget.lastElementChild.textContent=body.hidden?'＋':'−';if(!body.hidden)requestAnimationFrame(paintDetails)});" +

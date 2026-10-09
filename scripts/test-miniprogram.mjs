@@ -72,6 +72,7 @@ function makeWx(record) {
         in: () => q,
         select: () => q,
         fields: () => q,
+        boundingClientRect: () => q,
         // 返回一个假的 canvas 节点：宽度 341、高度按选择器给
         exec: (cb) => cb([{ node: makeFakeCanvas(), width: 341, height: 208 }]),
       };
@@ -141,7 +142,8 @@ let captured = null;
 globalThis.Page = (cfg) => {
   captured = cfg;
 };
-globalThis.App = () => {};
+let capturedApp = null;
+globalThis.App = (cfg) => { capturedApp = cfg; };
 globalThis.getApp = () => ({ globalData: {} });
 // 计时器换成可追踪的句柄，否则 Node 进程会被 setInterval 吊住；同时核对页面隐藏时清理。
 let intervalId = 0;
@@ -175,6 +177,48 @@ const wxRecord = {
   launchScene: 1001,
 };
 globalThis.wx = makeWx(wxRecord);
+
+await import(resolve(ROOT, 'miniprogram/app.js'));
+{
+  const pageHost = globalThis.wx;
+  const events = {};
+  const modals = [];
+  let warmups = 0;
+  let applies = 0;
+  let managers = 0;
+  globalThis.wx = {
+    ...pageHost,
+    getUpdateManager() {
+      managers++;
+      return {
+        onUpdateReady: (cb) => { events.ready = cb; },
+        onUpdateFailed: (cb) => { events.failed = cb; },
+        applyUpdate: () => { applies++; },
+      };
+    },
+    showModal: (opts) => modals.push(opts),
+  };
+  const app = { ...capturedApp, warmup() { warmups++; } };
+  app.onLaunch();
+  check('App 启动注册更新监听，同时保留数据预热', warmups === 1 && typeof events.ready === 'function' && typeof events.failed === 'function');
+  wxRecord.enterScene = 1154;
+  app.onShow();
+  events.ready();
+  check('App 朋友圈单页入口不弹重启提示', modals.length === 0);
+  app.onHide();
+  wxRecord.enterScene = 1001;
+  app.onShow();
+  check('App 普通入口会提示已下载的更新', modals.length === 1);
+  modals[0].success({ cancel: true });
+  modals[0].complete();
+  app.onHide();
+  app.onShow();
+  check('App 再次回前台会提醒，更新管理器只注册一次', modals.length === 2 && managers === 1);
+  modals[1].success({ confirm: true });
+  modals[1].complete();
+  check('App 确认后调用微信 applyUpdate', applies === 1);
+  globalThis.wx = pageHost;
+}
 
 await import(PAGE_PATH);
 if (!captured) {
@@ -271,6 +315,31 @@ page.onShow();
 check('页面显示时开启唯一的真实时钟', page.data.pageVisible === true && activeIntervals.size === 1, `${page.data.pageVisible} / ${activeIntervals.size}`);
 page.onHide();
 check('页面隐藏时清除时钟并停下装饰动效', page.data.pageVisible === false && activeIntervals.size === 0, `${page.data.pageVisible} / ${activeIntervals.size}`);
+
+{
+  const originalQuery = wx.createSelectorQuery;
+  const measurements = [];
+  wx.createSelectorQuery = () => {
+    const query = { in: () => query, select: () => query, boundingClientRect: () => query, exec: (callback) => measurements.push(callback) };
+    return query;
+  };
+  try {
+    page.onToggleProgram();
+    page.onToggleProgram();
+    measurements[0]([{ height: 320 }]);
+    check('快速关闭后，迟到的测量不会重新撑开每日窗口', !page.data.programOpen && page.data.programHeight === 0);
+    page.onToggleProgram();
+    page.onToggleProgram();
+    page.onToggleProgram();
+    measurements[1]([{ height: 400 }]);
+    measurements[2]([{ height: 280.5 }]);
+    check('连续切换只采用最后一次展开的真实高度', page.data.programOpen && page.data.programHeight === 281, String(page.data.programHeight));
+    page.onToggleProgram();
+    check('收起回到零高度，内容节点可保留播放过渡', !page.data.programOpen && page.data.programHeight === 0);
+  } finally {
+    wx.createSelectorQuery = originalQuery;
+  }
+}
 
 // 首屏不依赖网络 —— 这是「域名没备案也不会白屏」这条设计的可验证形式：
 // 发第一次请求时，快照已经渲染过了。若哪天有人把首屏改成等接口回来再渲染，这条会立刻红。
@@ -974,6 +1043,8 @@ check('剩余天数是整数且落在区间内', Number.isInteger(progSig.progra
 const progVm = buildSignal(progSig);
 check('端上带出每日重置窗口', progVm.program?.show === true, JSON.stringify(progVm.program));
 check('窗口块有当地/北京两行（复用 windowView）', Boolean(progVm.program?.window?.sourceZone && progVm.program?.window?.userZone), JSON.stringify(progVm.program?.window));
+check('北京时间卡片的开始、结束均取真实窗口端点', progVm.program.beijingRange.every((point, i) => `${point.date} ${point.time}` === fmt.fmtDateTime(i ? progSig.program.window.toTs : progSig.program.window.fromTs)), JSON.stringify(progVm.program.beijingRange));
+check('当地日期范围保留原文粒度，不补入钟点', progVm.program.localRange.map((point) => `${point.date}（${point.weekday}）`).join(' – ') === progSig.program.window.sourceZone && progVm.program.localRange.every((point) => !/\d{1,2}:\d{2}/.test(point.date)), JSON.stringify(progVm.program.localRange));
 /* 宣布时刻也必须是**双时区**，而且文本来自数据层（`buildProgram` 的 createdZones），
  * 端点只拼不改 —— 端上自己换算要依赖 Intl，部分安卓机型不可用。
  * 钉完整串而不是「含『当地』」：窗口块里本来就有「当地」，那种断言是恒绿。 */
