@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-09T20:07:43.561Z",
-  "checkedTweets": 324,
+  "generatedAt": "2026-10-10T04:36:02.593Z",
+  "checkedTweets": 327,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-10T20:07:43.561Z",
-  "windowTo": "2026-10-09T20:07:43.561Z",
+  "windowFrom": "2026-08-11T04:36:02.593Z",
+  "windowTo": "2026-10-10T04:36:02.593Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.10",
       "weekday": "周六",
-      "time": "04:07",
-      "text": "2026.10.10（周六）04:07",
+      "time": "12:36",
+      "text": "2026.10.10（周六）12:36",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,19 +98,19 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.09",
       "weekday": "周五",
-      "time": "13:07",
-      "text": "2026.10.09（周五）13:07",
+      "time": "21:36",
+      "text": "2026.10.09（周五）21:36",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2108650026671231468",
+    "id": "2108777962053292398",
     "account": "thsottiaux",
-    "text": "Send feedback to @keyanzhang and @sharifshameem !",
-    "createdAt": "2026-10-09T20:05:17.000Z",
-    "url": "https://x.com/thsottiaux/status/2108650026671231468",
+    "text": "Your ChatGPT subscription is now also a Devin subscription",
+    "createdAt": "2026-10-10T04:33:40.000Z",
+    "url": "https://x.com/thsottiaux/status/2108777962053292398",
     "reasons": [],
     "viaContext": false,
     "inReplyTo": null,
@@ -120,8 +120,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.10",
         "weekday": "周六",
-        "time": "04:05",
-        "text": "2026.10.10（周六）04:05",
+        "time": "12:33",
+        "text": "2026.10.10（周六）12:33",
         "offset": "UTC+8"
       },
       "b": {
@@ -129,8 +129,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.09",
         "weekday": "周五",
-        "time": "13:05",
-        "text": "2026.10.09（周五）13:05",
+        "time": "21:33",
+        "text": "2026.10.09（周五）21:33",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -457,10 +457,15 @@
       "createdAt": "2026-10-09T19:47:58.000Z",
       "url": "https://x.com/thsottiaux/status/2108645667451318747",
       "reasons": [
-        "命中额度词 limits/usage/credits"
+        "命中额度词 limits/usage/credits",
+        "上下文：回复 @kunchenguid「my dot has been running astra non-st…」"
       ],
       "viaContext": false,
-      "inReplyTo": null,
+      "inReplyTo": {
+        "account": "kunchenguid",
+        "id": "",
+        "text": "my dot has been running astra non-stop for almost 72 hrs now it seems there’s no quota limit right now so it’s free astra + 8 cpu + 10G RAM i don’t think this will last long so if you haven’t made use of it yet i highly recommend taking advantage before it ends"
+      },
       "createdZones": {
         "a": {
           "label": "北京时间",
@@ -1778,7 +1783,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-09T20:07:43.561Z"
+        "checkedAt": "2026-10-10T04:36:02.593Z"
       }
     },
     {
@@ -2573,14 +2578,134 @@
   ],
   "rejected": [
     {
+      "id": "2108777962053292398",
+      "account": "thsottiaux",
+      "text": "Your ChatGPT subscription is now also a Devin subscription",
+      "createdAt": "2026-10-10T04:33:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2108777962053292398",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.10",
+          "weekday": "周六",
+          "time": "12:33",
+          "text": "2026.10.10（周六）12:33",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.09",
+          "weekday": "周五",
+          "time": "21:33",
+          "text": "2026.10.09（周五）21:33",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2108773866281795814",
+      "account": "thsottiaux",
+      "text": "Dot goes brrrrrrr",
+      "createdAt": "2026-10-10T04:17:23.000Z",
+      "url": "https://x.com/thsottiaux/status/2108773866281795814",
+      "reasons": [
+        "上下文：回复 @kunchenguid「my dot has been running astra non-st…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "kunchenguid",
+        "id": "",
+        "text": "my dot has been running astra non-stop for almost 72 hrs now it seems there’s no quota limit right now so it’s free astra + 8 cpu + 10G RAM i don’t think this will last long so if you haven’t made use of it yet i highly recommend taking advantage before it ends"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.10",
+          "weekday": "周六",
+          "time": "12:17",
+          "text": "2026.10.10（周六）12:17",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.09",
+          "weekday": "周五",
+          "time": "21:17",
+          "text": "2026.10.09（周五）21:17",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2108773703064657936",
+      "account": "thsottiaux",
+      "text": "Dots got a pretty big upgrade",
+      "createdAt": "2026-10-10T04:16:44.000Z",
+      "url": "https://x.com/thsottiaux/status/2108773703064657936",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.10",
+          "weekday": "周六",
+          "time": "12:16",
+          "text": "2026.10.10（周六）12:16",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.09",
+          "weekday": "周五",
+          "time": "21:16",
+          "text": "2026.10.09（周五）21:16",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
       "id": "2108650026671231468",
       "account": "thsottiaux",
       "text": "Send feedback to @keyanzhang and @sharifshameem !",
       "createdAt": "2026-10-09T20:05:17.000Z",
       "url": "https://x.com/thsottiaux/status/2108650026671231468",
-      "reasons": [],
+      "reasons": [
+        "上下文：回复 @kunchenguid「my dot has been running astra non-st…」"
+      ],
       "viaContext": false,
-      "inReplyTo": null,
+      "inReplyTo": {
+        "account": "kunchenguid",
+        "id": "",
+        "text": "my dot has been running astra non-stop for almost 72 hrs now it seems there’s no quota limit right now so it’s free astra + 8 cpu + 10G RAM i don’t think this will last long so if you haven’t made use of it yet i highly recommend taking advantage before it ends"
+      },
       "createdZones": {
         "a": {
           "label": "北京时间",
@@ -10647,143 +10772,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2102497184805720459",
-      "account": "thsottiaux",
-      "text": "It’s good to want it all",
-      "createdAt": "2026-09-22T20:36:06.000Z",
-      "url": "https://x.com/thsottiaux/status/2102497184805720459",
-      "reasons": [
-        "上下文：回复 @viticci「I want Grok Bot, but with GPT-6 mode…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "viticci",
-        "id": "",
-        "text": "I want Grok Bot, but with GPT-6 models, and with Claude's taste, and with Muse's speed, and with GPT-Live voice is that too much to ask these days"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.23",
-          "weekday": "周三",
-          "time": "04:36",
-          "text": "2026.09.23（周三）04:36",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.22",
-          "weekday": "周二",
-          "time": "13:36",
-          "text": "2026.09.22（周二）13:36",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2102484207163584745",
-      "account": "thsottiaux",
-      "text": "u2!",
-      "createdAt": "2026-09-22T19:44:31.000Z",
-      "url": "https://x.com/thsottiaux/status/2102484207163584745",
-      "reasons": [
-        "上下文：回复 @viticci「I want Grok Bot, but with GPT-6 mode…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "viticci",
-        "id": "",
-        "text": "I want Grok Bot, but with GPT-6 models, and with Claude's taste, and with Muse's speed, and with GPT-Live voice is that too much to ask these days"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.23",
-          "weekday": "周三",
-          "time": "03:44",
-          "text": "2026.09.23（周三）03:44",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.22",
-          "weekday": "周二",
-          "time": "12:44",
-          "text": "2026.09.22（周二）12:44",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2102466463156285686",
-      "account": "thsottiaux",
-      "text": "披萨更胜一筹",
-      "createdAt": "2026-09-22T18:34:01.000Z",
-      "url": "https://x.com/thsottiaux/status/2102466463156285686",
-      "reasons": [
-        "上下文：回复 @viticci「I want Grok Bot, but with GPT-6 mode…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "viticci",
-        "id": "",
-        "text": "I want Grok Bot, but with GPT-6 models, and with Claude's taste, and with Muse's speed, and with GPT-Live voice is that too much to ask these days"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.23",
-          "weekday": "周三",
-          "time": "02:34",
-          "text": "2026.09.23（周三）02:34",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.22",
-          "weekday": "周二",
-          "time": "11:34",
-          "text": "2026.09.22（周二）11:34",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 324,
+    "scanned": 327,
     "explicit": 0,
     "occurred": 7,
     "hint": 46,
-    "none": 265,
-    "rejected": 265
+    "none": 268,
+    "rejected": 268
   },
   "truncated": true
 }

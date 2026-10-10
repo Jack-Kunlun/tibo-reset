@@ -1,15 +1,62 @@
 {
   "tweets": [
     {
+      "id": "2108777962053292398",
+      "text": "Your ChatGPT subscription is now also a Devin subscription",
+      "created_at": "2026-10-10T04:33:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2108777962053292398",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-10T04:36:02.591Z"
+    },
+    {
+      "id": "2108773866281795814",
+      "text": "Dot goes brrrrrrr",
+      "created_at": "2026-10-10T04:17:23.000Z",
+      "url": "https://x.com/thsottiaux/status/2108773866281795814",
+      "inReplyTo": {
+        "account": "kunchenguid",
+        "id": "",
+        "text": "my dot has been running astra non-stop for almost 72 hrs now it seems there’s no quota limit right now so it’s free astra + 8 cpu + 10G RAM i don’t think this will last long so if you haven’t made use of it yet i highly recommend taking advantage before it ends",
+        "created_at": "2026-10-09T05:37:10.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-10T04:36:02.591Z"
+    },
+    {
+      "id": "2108773703064657936",
+      "text": "Dots got a pretty big upgrade",
+      "created_at": "2026-10-10T04:16:44.000Z",
+      "url": "https://x.com/thsottiaux/status/2108773703064657936",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-10T04:36:02.591Z"
+    },
+    {
       "id": "2108650026671231468",
       "text": "Send feedback to @keyanzhang and @sharifshameem !",
       "created_at": "2026-10-09T20:05:17.000Z",
       "url": "https://x.com/thsottiaux/status/2108650026671231468",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
-      "first_seen": "2026-10-09T20:07:43.558Z"
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-09T20:07:43.558Z",
+      "inReplyTo": {
+        "account": "kunchenguid",
+        "id": "",
+        "text": "my dot has been running astra non-stop for almost 72 hrs now it seems there’s no quota limit right now so it’s free astra + 8 cpu + 10G RAM i don’t think this will last long so if you haven’t made use of it yet i highly recommend taking advantage before it ends",
+        "created_at": "2026-10-09T05:37:10.000Z",
+        "url": ""
+      }
     },
     {
       "id": "2108646052178092403",
@@ -29,9 +76,16 @@
       "url": "https://x.com/thsottiaux/status/2108645667451318747",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
-      "first_seen": "2026-10-09T20:07:43.558Z"
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-09T20:07:43.558Z",
+      "inReplyTo": {
+        "account": "kunchenguid",
+        "id": "",
+        "text": "my dot has been running astra non-stop for almost 72 hrs now it seems there’s no quota limit right now so it’s free astra + 8 cpu + 10G RAM i don’t think this will last long so if you haven’t made use of it yet i highly recommend taking advantage before it ends",
+        "created_at": "2026-10-09T05:37:10.000Z",
+        "url": ""
+      }
     },
     {
       "id": "2108428560822424062",
@@ -5262,7 +5316,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-09T20:07:43.560Z",
+  "updated_at": "2026-10-10T04:36:02.592Z",
   "source": "browser",
   "coverage_since": "2026-10-07T03:44:55.000Z"
 }
