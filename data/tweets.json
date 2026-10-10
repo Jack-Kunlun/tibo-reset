@@ -1,6 +1,42 @@
 {
   "tweets": [
     {
+      "id": "2108780620583403652",
+      "text": "What the heck",
+      "created_at": "2026-10-10T04:44:13.000Z",
+      "url": "https://x.com/thsottiaux/status/2108780620583403652",
+      "inReplyTo": {
+        "account": "ConnorTalksAI",
+        "id": "",
+        "text": "You are sitting next to Tibo and get 3 words… What do you say?",
+        "created_at": "2026-10-09T20:03:14.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-10T05:38:57.008Z"
+    },
+    {
+      "id": "2108778939057664357",
+      "text": "Folks. Why do you think we picked 300k for context length for Codex. We ran the numbers and it’s better. We can run it at 1M too but it would just cost more of the usage. Good defaults are important.",
+      "created_at": "2026-10-10T04:37:32.000Z",
+      "url": "https://x.com/thsottiaux/status/2108778939057664357",
+      "inReplyTo": {
+        "account": "rohit3a",
+        "id": "",
+        "text": "Did some digging and apparently setting /autocompact to 400k would have saved me 29% of my weekly usage without lobotomizing Claude.",
+        "created_at": "2026-10-08T19:26:20.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-10T05:38:57.008Z"
+    },
+    {
       "id": "2108777962053292398",
       "text": "Your ChatGPT subscription is now also a Devin subscription",
       "created_at": "2026-10-10T04:33:40.000Z",
@@ -5316,7 +5352,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-10T04:36:02.592Z",
+  "updated_at": "2026-10-10T05:38:57.010Z",
   "source": "browser",
   "coverage_since": "2026-10-07T03:44:55.000Z"
 }
