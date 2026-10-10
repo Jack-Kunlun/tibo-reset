@@ -1,6 +1,17 @@
 {
   "tweets": [
     {
+      "id": "2108840070648397933",
+      "text": "Blinked and it’s already Saturday",
+      "created_at": "2026-10-10T08:40:27.000Z",
+      "url": "https://x.com/thsottiaux/status/2108840070648397933",
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-10T08:47:23.302Z"
+    },
+    {
       "id": "2108780620583403652",
       "text": "What the heck",
       "created_at": "2026-10-10T04:44:13.000Z",
@@ -83,8 +94,8 @@
       "url": "https://x.com/thsottiaux/status/2108650026671231468",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-09T20:07:43.558Z",
       "inReplyTo": {
         "account": "kunchenguid",
@@ -112,8 +123,8 @@
       "url": "https://x.com/thsottiaux/status/2108645667451318747",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-09T20:07:43.558Z",
       "inReplyTo": {
         "account": "kunchenguid",
@@ -5352,7 +5363,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-10T05:38:57.010Z",
+  "updated_at": "2026-10-10T08:47:23.303Z",
   "source": "browser",
   "coverage_since": "2026-10-07T03:44:55.000Z"
 }
