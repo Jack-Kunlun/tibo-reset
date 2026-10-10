@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-10T21:15:46.988Z",
-  "checkedTweets": 332,
+  "generatedAt": "2026-10-10T22:18:27.577Z",
+  "checkedTweets": 334,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-11T21:15:46.988Z",
-  "windowTo": "2026-10-10T21:15:46.988Z",
+  "windowFrom": "2026-08-11T22:18:27.577Z",
+  "windowTo": "2026-10-10T22:18:27.577Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.11",
       "weekday": "周日",
-      "time": "05:15",
-      "text": "2026.10.11（周日）05:15",
+      "time": "06:18",
+      "text": "2026.10.11（周日）06:18",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,36 +98,32 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.10",
       "weekday": "周六",
-      "time": "14:15",
-      "text": "2026.10.10（周六）14:15",
+      "time": "15:18",
+      "text": "2026.10.10（周六）15:18",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2109021594576470290",
+    "id": "2109045392684032299",
     "account": "thsottiaux",
-    "text": "👀",
-    "createdAt": "2026-10-10T20:41:46.000Z",
-    "url": "https://x.com/thsottiaux/status/2109021594576470290",
+    "text": "Global reset by EOD. May the tokens do good things for you.",
+    "createdAt": "2026-10-10T22:16:20.000Z",
+    "url": "https://x.com/thsottiaux/status/2109045392684032299",
     "reasons": [
-      "上下文：回复 @ryanvogel「tibo is just a director level devrel…」"
+      "命中重置词 reset"
     ],
     "viaContext": false,
-    "inReplyTo": {
-      "account": "ryanvogel",
-      "id": "",
-      "text": "tibo is just a director level devrel"
-    },
+    "inReplyTo": null,
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.10.11",
         "weekday": "周日",
-        "time": "04:41",
-        "text": "2026.10.11（周日）04:41",
+        "time": "06:16",
+        "text": "2026.10.11（周日）06:16",
         "offset": "UTC+8"
       },
       "b": {
@@ -135,15 +131,15 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.10",
         "weekday": "周六",
-        "time": "13:41",
-        "text": "2026.10.10（周六）13:41",
+        "time": "15:16",
+        "text": "2026.10.10（周六）15:16",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "none",
-    "rejected": "无额度相关词",
-    "intent": 0,
+    "level": "hint",
+    "rejected": "有额度意图但没给出时间，只能作线索",
+    "intent": 3,
     "window": null,
     "candidateWindow": null
   },
@@ -456,6 +452,82 @@
     }
   ],
   "hints": [
+    {
+      "id": "2109045392684032299",
+      "account": "thsottiaux",
+      "text": "Global reset by EOD. May the tokens do good things for you.",
+      "createdAt": "2026-10-10T22:16:20.000Z",
+      "url": "https://x.com/thsottiaux/status/2109045392684032299",
+      "reasons": [
+        "命中重置词 reset"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.11",
+          "weekday": "周日",
+          "time": "06:16",
+          "text": "2026.10.11（周日）06:16",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.10",
+          "weekday": "周六",
+          "time": "15:16",
+          "text": "2026.10.10（周六）15:16",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "有额度意图但没给出时间，只能作线索",
+      "intent": 3,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2109045220411351517",
+      "account": "thsottiaux",
+      "text": "Day 6/ Reset",
+      "createdAt": "2026-10-10T22:15:39.000Z",
+      "url": "https://x.com/thsottiaux/status/2109045220411351517",
+      "reasons": [
+        "命中重置词 reset"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.11",
+          "weekday": "周日",
+          "time": "06:15",
+          "text": "2026.10.11（周日）06:15",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.10",
+          "weekday": "周六",
+          "time": "15:15",
+          "text": "2026.10.10（周六）15:15",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "有额度意图但没给出时间，只能作线索",
+      "intent": 3,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2108840070648397933",
       "account": "thsottiaux",
@@ -1877,7 +1949,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-10T21:15:46.988Z"
+        "checkedAt": "2026-10-10T22:18:27.577Z"
       }
     },
     {
@@ -10874,10 +10946,10 @@
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 332,
+    "scanned": 334,
     "explicit": 0,
     "occurred": 7,
-    "hint": 48,
+    "hint": 50,
     "none": 271,
     "rejected": 271
   },
