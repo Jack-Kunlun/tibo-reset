@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-10T08:47:23.307Z",
-  "checkedTweets": 330,
+  "generatedAt": "2026-10-10T09:50:03.927Z",
+  "checkedTweets": 331,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-11T08:47:23.307Z",
-  "windowTo": "2026-10-10T08:47:23.307Z",
+  "windowFrom": "2026-08-11T09:50:03.927Z",
+  "windowTo": "2026-10-10T09:50:03.927Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.10",
       "weekday": "周六",
-      "time": "16:47",
-      "text": "2026.10.10（周六）16:47",
+      "time": "17:50",
+      "text": "2026.10.10（周六）17:50",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,30 +98,36 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.10",
       "weekday": "周六",
-      "time": "01:47",
-      "text": "2026.10.10（周六）01:47",
+      "time": "02:50",
+      "text": "2026.10.10（周六）02:50",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2108840070648397933",
+    "id": "2108852361536098422",
     "account": "thsottiaux",
-    "text": "Blinked and it’s already Saturday",
-    "createdAt": "2026-10-10T08:40:27.000Z",
-    "url": "https://x.com/thsottiaux/status/2108840070648397933",
-    "reasons": [],
+    "text": "Me too",
+    "createdAt": "2026-10-10T09:29:18.000Z",
+    "url": "https://x.com/thsottiaux/status/2108852361536098422",
+    "reasons": [
+      "上下文：回复 @theo「Man I keep forgetting I work for Ope…」"
+    ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "theo",
+      "id": "",
+      "text": "Man I keep forgetting I work for OpenAI"
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.10.10",
         "weekday": "周六",
-        "time": "16:40",
-        "text": "2026.10.10（周六）16:40",
+        "time": "17:29",
+        "text": "2026.10.10（周六）17:29",
         "offset": "UTC+8"
       },
       "b": {
@@ -129,25 +135,17 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.10",
         "weekday": "周六",
-        "time": "01:40",
-        "text": "2026.10.10（周六）01:40",
+        "time": "02:29",
+        "text": "2026.10.10（周六）02:29",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "hint",
-    "rejected": "含时间表达「saturday」但没有额度相关词，不作为重置信号",
+    "level": "none",
+    "rejected": "无额度相关词",
     "intent": 0,
     "window": null,
-    "candidateWindow": {
-      "word": "saturday",
-      "precision": "day",
-      "from": "2026-10-10T07:00:00.000Z",
-      "to": "2026-10-11T06:59:00.000Z",
-      "dayNum": 20736,
-      "spec": 86,
-      "note": null
-    }
+    "candidateWindow": null
   },
   "signals": [],
   "occurred": [
@@ -1879,7 +1877,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-10T08:47:23.307Z"
+        "checkedAt": "2026-10-10T09:50:03.927Z"
       }
     },
     {
@@ -2673,6 +2671,48 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2108852361536098422",
+      "account": "thsottiaux",
+      "text": "Me too",
+      "createdAt": "2026-10-10T09:29:18.000Z",
+      "url": "https://x.com/thsottiaux/status/2108852361536098422",
+      "reasons": [
+        "上下文：回复 @theo「Man I keep forgetting I work for Ope…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "Man I keep forgetting I work for OpenAI"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.10",
+          "weekday": "周六",
+          "time": "17:29",
+          "text": "2026.10.10（周六）17:29",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.10",
+          "weekday": "周六",
+          "time": "02:29",
+          "text": "2026.10.10（周六）02:29",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2108780620583403652",
       "account": "thsottiaux",
@@ -10825,60 +10865,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2102501670647472147",
-      "account": "thsottiaux",
-      "text": "No benchmaxxing here, just a better model all around.",
-      "createdAt": "2026-09-22T20:53:55.000Z",
-      "url": "https://x.com/thsottiaux/status/2102501670647472147",
-      "reasons": [
-        "含发布/宣传语境（下调置信度）",
-        "上下文：回复 @weswinder「gpt-6 sol is worse than gpt-5.6 sol …」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "weswinder",
-        "id": "",
-        "text": "gpt-6 sol is worse than gpt-5.6 sol on deepswe i get that it's cheaper but it's really weird having a new model that isn't better than the old model on every metric seems like they are trying to bury this benchmark"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.23",
-          "weekday": "周三",
-          "time": "04:53",
-          "text": "2026.09.23（周三）04:53",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.22",
-          "weekday": "周二",
-          "time": "13:53",
-          "text": "2026.09.22（周二）13:53",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 330,
+    "scanned": 331,
     "explicit": 0,
     "occurred": 7,
     "hint": 48,
-    "none": 269,
-    "rejected": 269
+    "none": 270,
+    "rejected": 270
   },
   "truncated": true
 }

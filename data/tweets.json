@@ -1,6 +1,24 @@
 {
   "tweets": [
     {
+      "id": "2108852361536098422",
+      "text": "Me too",
+      "created_at": "2026-10-10T09:29:18.000Z",
+      "url": "https://x.com/thsottiaux/status/2108852361536098422",
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "Man I keep forgetting I work for OpenAI",
+        "created_at": "2026-10-10T03:06:36.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-10T09:50:03.921Z"
+    },
+    {
       "id": "2108840070648397933",
       "text": "Blinked and it’s already Saturday",
       "created_at": "2026-10-10T08:40:27.000Z",
@@ -94,8 +112,8 @@
       "url": "https://x.com/thsottiaux/status/2108650026671231468",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-09T20:07:43.558Z",
       "inReplyTo": {
         "account": "kunchenguid",
@@ -123,8 +141,8 @@
       "url": "https://x.com/thsottiaux/status/2108645667451318747",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-09T20:07:43.558Z",
       "inReplyTo": {
         "account": "kunchenguid",
@@ -5363,7 +5381,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-10T08:47:23.303Z",
+  "updated_at": "2026-10-10T09:50:03.923Z",
   "source": "browser",
   "coverage_since": "2026-10-07T03:44:55.000Z"
 }
