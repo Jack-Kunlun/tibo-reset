@@ -815,9 +815,69 @@ for (const w of WIDTHS) {
       okX && okY,
       `x=[${b.minX.toFixed(1)}, ${b.maxX.toFixed(1)}] y=[${b.minY.toFixed(1)}, ${b.maxY.toFixed(1)}]`
     );
-    check(`${w}px · ${s.name} 元素非空`, scene.elements.length > 20, `${scene.elements.length} 个图元`);
+    // 「画出了内容」只判**种类**，不判个数 —— 个数是数据的函数：
+    // 节奏图的网格线条数由「末七次间隔的最大值」经 step 推出（max 4.26 → step 5 → 只画 1 条），
+    // 窗口一移、最大值跨过台阶，网格线 2 条→1 条，图元 22→20，而图本身没有任何问题。
+    // 这里原先写的是 `scene.elements.length > 20`：2026-10-11 采集后它红了，且红的时机
+    // 由数据决定、不由缺陷决定 —— 那种断言除了制造噪音，还会训练人「看到红就调阈值」。
+    // 全库对拍见 decisions.md D-056。
+    const kinds = new Set(scene.elements.map((e) => e.k));
+    check(
+      `${w}px · ${s.name} 画出内容（有几何图元 + 有文字）`,
+      kinds.has('text') && [...kinds].some((k) => k !== 'text'),
+      `${scene.elements.length} 个图元 / ${[...kinds].sort().join('+')}`
+    );
   }
 }
+
+/* ---------------- 7b. 图元构成：判据挂在输入上，不钉魔数 ----------------
+ *
+ * 上面那条是**种类**判据（与数据无关）；这一组是**构成**判据：某个种类的个数
+ * = 由输入直接算出来的值。两条合起来才算「没有静默退化」—— 只判种类会漏掉
+ * 「圆点全没了但还剩一根线」，只判总数则会像旧断言那样被数据牵着走。
+ */
+const keysOf = (els, k) => els.filter((e) => e.k === k).length;
+
+const rhythmEls = rhythmScene(chart, { layout: 'compact', width: 341, height: 160 }).elements;
+const n7 = Math.min(7, chart.gapDays.length);
+check('节奏图：面积 + 折线恰好 2 条 poly', keysOf(rhythmEls, 'poly') === 2, `${keysOf(rhythmEls, 'poly')} 条`);
+check(
+  '节奏图：圆点 = 末 N 段各一颗 + 末点光晕',
+  keysOf(rhythmEls, 'circle') === n7 + 1,
+  `${keysOf(rhythmEls, 'circle')} 个 / 期望 ${n7 + 1}（N=${n7}）`
+);
+
+const stripEls = stripScene(chart, { layout: 'compact', width: 341, height: 230 }).elements;
+check(
+  '点阵分布：圆点 = 每段间隔一颗 + 当前标记（超 14 天的改画在右侧，同样一颗）',
+  keysOf(stripEls, 'circle') === chart.gapDays.length + 1,
+  `${keysOf(stripEls, 'circle')} 个 / 期望 ${chart.gapDays.length + 1}`
+);
+
+const survEls = survivalScene(chart, { layout: 'compact', width: 341, height: 208 }).elements;
+const cappedN = chart.gapDays.filter((d) => d > 14).length;
+check('生存曲线：只有一个圆点（「现在」那个标记）', keysOf(survEls, 'circle') === 1, `${keysOf(survEls, 'circle')} 个`);
+check(
+  '生存曲线：面积 + 折线；有超 14 天的段时另加一条封顶提示线',
+  keysOf(survEls, 'poly') === 2 + (cappedN ? 1 : 0),
+  `${keysOf(survEls, 'poly')} 条 / 封顶 ${cappedN} 段`
+);
+
+// 那条旧断言的**真实失效模式**本身要守在案：网格线条数**应该**随最大值变，
+// 于是这里断言的是「怎么变」（每多一条线 = 多 1 条 line + 1 个刻度文字 = 2 个图元），
+// 而不是总数。夹具固定，差值就是确定的 4。
+const rhythmWithMax = (maxGap) => {
+  const gapDays = [maxGap, maxGap * 0.5, maxGap * 0.25, maxGap * 0.75, maxGap * 0.4, maxGap * 0.6, maxGap * 0.9];
+  const recs = gapDays.map((_, i) => ({ at: new Date(Date.UTC(2026, 0, 1 + i)).toISOString() }));
+  return rhythmScene({ gapDays, records: recs }, { layout: 'compact', width: 341, height: 160 }).elements;
+};
+const gridSmall = rhythmWithMax(2); // step=1 → 3 条网格线
+const gridLarge = rhythmWithMax(4.5); // step=5 → 1 条网格线
+check(
+  '节奏图：网格线条数随最大值增减（每多一条 = 多 2 个图元），总数不该被钉死',
+  gridSmall.length - gridLarge.length === 4,
+  `${gridSmall.length} vs ${gridLarge.length}`
+);
 
 // 双端一致性：同一份数据在宽布局与紧凑布局下，必须给出同一个「当前百分位」
 const wide = survivalScene(chart, {});
