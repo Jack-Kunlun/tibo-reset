@@ -9,19 +9,19 @@
         "options": [
           {
             "text": "5h limits, 2X week usage",
-            "pct": null
+            "pct": 33.2
           },
           {
             "text": "no 5h limits, same usage",
-            "pct": null
+            "pct": 37.8
           },
           {
             "text": "show result",
-            "pct": null
+            "pct": 29
           }
         ],
-        "totalVotes": 231859,
-        "status": "231,859 次投票 · 剩下 56 分钟"
+        "totalVotes": 240643,
+        "status": "240,643 次投票 · 最终结果"
       },
       "kind": "other",
       "account": "thsottiaux",
@@ -5621,7 +5621,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-11T16:26:03.995Z",
+  "updated_at": "2026-10-11T17:29:17.080Z",
   "source": "browser",
   "coverage_since": "2026-10-10T04:01:09.000Z"
 }
