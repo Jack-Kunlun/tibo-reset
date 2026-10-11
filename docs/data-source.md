@@ -284,6 +284,8 @@ node scripts/collect.mjs --full-scan-hours=24
 | 09-19 | 回复 | `OK fine. But it's also still coming in Tuesday` | **是**（上下文是 banked reset） |
 | 09-21 | 回复 | `3am on a tuesday` | 否（回复「GPT-6 社区之夜」） |
 | 09-22 | 原创 | `We are almost Tuesday and I promised a reset for Tuesday` | **是** |
+| 10-07 | 回复 | `Will be there by EOD PST.` | 否（回复里的玩笑；当时 `EOD` 读不出时间）|
+| 10-10 | 回复 | `Global reset by EOD. May the tokens do good things for you.` | **是**（真预告，实际第二天北京 12:01 到账）|
 
 三条结论：
 
@@ -302,6 +304,11 @@ node scripts/collect.mjs --full-scan-hours=24
    「最近的未来那个」；这在周三说 `a Tuesday` 时天然有歧义，必须标注待考。
    同时它**必须被当成具体表达**（`SPEC.weekdayBare`），否则会被「窗口过半」的
    过滤规则在当天下午整条丢弃 —— 这是 2026-09-22 修掉的一个静默漏检。
+4. **他会用 `EOD`，而这个词不在任何一张时间词表里**（2026-10-11 补）。上面这张表里的时间
+   都是「星期 / 钟点 / 日期」这类**自然语料**；`EOD` 是**缩写** —— 它不会被「凭经验列词表」
+   覆盖到，只能靠逐条核对语料发现。而漏读的后果是**静默**的（降级成线索，页面照常渲染、
+   不报任何错），所以它在 10-07 与 10-10 各出现一次、**两次都没被发现**。见 D-055。
+   ⚠ 解析 `EOD` 时右端必须按**他当地**的当天 23:59 算；按北京时间会差 15 小时。
 
 ### 4.7 长推文只采到前半段（正文截断），以及怎么补回来
 

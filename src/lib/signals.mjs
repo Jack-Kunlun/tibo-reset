@@ -374,6 +374,9 @@ const SPEC = {
   relativeHours: 88, // in 2 hours —— 精确到小时
   weekdayBare: 86, // Tuesday
   tomorrow: 86,
+  // by EOD —— 「今天结束前」有明确的截止点，比 tonight/today 这种「反正就今天」稍硬，
+  // 但硬不过「具体到某一天」的 tomorrow。它压得住 weekend（28）这类寒暄词就够了。
+  endOfDay: 74,
   tonight: 72,
   today: 72, // today / later today / this afternoon
   relativeDays: 62, // in 2 days / in a few weeks —— 有量词但仍是大颗粒
@@ -384,6 +387,24 @@ const SPEC = {
 
 /** 视为「含糊表达」的阈值：只有在没有更具体表达时才可作候选，且窗口剩余时间要过半 */
 const VAGUE_SPEC = 50;
+
+/**
+ * 时间表达里可能自带时区缩写（"Will be there by EOD PST."）。
+ *
+ * 一律映射到 **IANA 时区**，不记「相对 UTC 的偏移」—— 偏移随夏令时变，
+ * PST 在夏天实际是 PDT（UTC−7），写死 −8 会整整错一小时。交给 `Intl` 按具体日期定。
+ *
+ * 只收美国那几个（他的活动范围）加 UTC/GMT，不做全球表：认不出的缩写就落到默认时区，
+ * 这是**保守**的一侧 —— 认错时区比不认更糟，它会把窗口悄悄挪几个小时。
+ * （MST 有歧义——美国山地时间 / 马来西亚？——但按语境只会是这个 range 里的。）
+ */
+const TZ_ALIAS = {
+  pt: 'America/Los_Angeles', pst: 'America/Los_Angeles', pdt: 'America/Los_Angeles',
+  mt: 'America/Denver', mst: 'America/Denver', mdt: 'America/Denver',
+  ct: 'America/Chicago', cst: 'America/Chicago', cdt: 'America/Chicago',
+  et: 'America/New_York', est: 'America/New_York', edt: 'America/New_York',
+  utc: 'UTC', gmt: 'UTC',
+};
 
 /**
  * 从文本里抽出所有时间表达，解析成时间窗口。可能得到多个（按 SPEC 选主解读）。
@@ -498,6 +519,60 @@ function parseTimes(text, refTs, zone) {
       kind ?? 'today',
       null,
       SPEC.today
+    );
+  }
+
+  /* 4b) 「今天结束前」—— EOD / by end of (the) day。
+   *
+   * 起因（2026-10-11，老大报「最近的重置又没预测到」）：10-10 那条
+   *   「Global reset by EOD. May the tokens do good things for you.」
+   * 是本轮唯一一条硬预告 —— 采集侧采到了、识别侧也认得出「有重置意图」，
+   * 却因为这一档**不存在**而读不出时间，于是从 `intent ≥ 2 但没有 timeOpts`
+   * 那条路降级成 `hint`（`window: null` / `explicit: 0` / `forecasts: []`）。
+   * 而它是**准的**：他当地 10-10 15:16 发的「by EOD」，重置实际到账在北京
+   * 10-11 12:01，正落在「他当地 10-10 结束」（= 北京 10-11 14:59）之内。
+   *
+   * 为什么此前一直没人发现：EOD 是**缩写**，不在任何一张时间词表的自然语料里，
+   * 而漏读的后果是「静默降级」—— 页面不报错，只是少一条预测。与 KI-014
+   * （词表缺 coming/landing/arriving）是同一个形状：**词表缺项 = 静默漏读**。
+   *
+   * 五个要点：
+   *   ① 右端 = **发布者当地**的当天 23:59。EOD 里的 D 是他那边的那一天 ——
+   *      按北京时间算会差 15 小时，把「今天结束」算成一个早就过去的时刻。
+   *   ② 左端取**发布时刻**，不是当天 00:00。EOD 是**截止**语义（by / before）：
+   *      在这句话被说出口之前，那段窗口并不存在。
+   *   ③ 裸的 `end of the day` **不认**。它最常见的形式是习语「at the end of the
+   *      day」（= 归根结底），把它读成时间，就是在页面上说一句他不曾说过的话。
+   *      所以只认 `EOD` 与带介词的「by/before/until/till end of (the) day」——
+   *      习语从不带这几个介词。这是「时间词出现 ≠ 时间词在讲这件事」的第四例
+   *      （前三例：KI-010、KI-012、D-040）。
+   *   ④ `by the end of Day 6` 也**不认**：那是「第 6 天结束时」，不是「今天结束时」，
+   *      锚到发布日会整整差几天。用「day 后面不得紧跟数字/数词」挡掉 ——
+   *      他有 Day N/ 系列推文，这写法是真实存在的。
+   *   ⑤ 他若写明时区（"by EOD PST"），**以他写的为准**：那比我们的默认推测权威。
+   *      实测里他确实这么写过（10-07 那条）。
+   */
+  const eodRe =
+    /\be\.?o\.?d\.?\b|\b(?:by|before|until|till)\s+(?:the\s+)?end\s+of\s+(?:the\s+)?day\b(?!\s*(?:\d|one\b|two\b|three\b|four\b|five\b|six\b|seven\b|eight\b|nine\b|ten\b))/;
+  const eodM = t.match(eodRe);
+  if (eodM) {
+    // 紧跟其后的时区缩写（"eod pst" / "by eod, et"）。没有就落到 `zone`（= sourceZone）。
+    const tzM = t
+      .slice(eodM.index + eodM[0].length)
+      .match(/^\s*,?\s*\(?\s*(pt|pst|pdt|mt|mst|mdt|ct|cst|cdt|et|est|edt|utc|gmt)\b/);
+    const tz = tzM ? TZ_ALIAS[tzM[1]] : null;
+    const z = tz ?? zone;
+    const zlp = localParts(refTs, z);
+    push(
+      {
+        from: refTs,
+        to: zonedToTs(zlp.y, zlp.m, zlp.d, 23, 59, z),
+        precision: 'day',
+        dayNum: zlp.dayNum,
+      },
+      eodM[0].trim(),
+      tz ? `他写明了时区（${tzM[1].toUpperCase()}），按那个时区算当天结束` : null,
+      SPEC.endOfDay
     );
   }
 

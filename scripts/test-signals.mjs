@@ -518,6 +518,90 @@ console.log('\n【3b】钟点解析：3am / 11pm / midnight');
   );
 }
 
+/* ==================== 3c. 「今天结束前」：EOD / by end of day ==================== */
+
+console.log('\n【3c】EOD：他当地的一天结束之前');
+
+{
+  // 真实的起因（2026-10-11 老大报「最近的重置又没预测到」）。
+  // 10-10 那条是本轮唯一一条硬预告，此前因为时间词表里**没有 EOD**，被降级成
+  // 「有额度意图但没给出时间」的线索 —— 一条预测都没产出。
+  // 而它是准的：他当地 10-10 15:16 发的 by EOD，重置实际到账在北京 10-11 12:01。
+  const T = '2026-10-10T22:16:20.000Z';
+  const r = run('Global reset by EOD. May the tokens do good things for you.', T);
+  check('EOD 出明确预告（此前只到 hint）', r.level === 'explicit', `实际 ${r.level}`);
+  check('时间词 = eod', r.timeWord === 'eod', `实际 ${r.timeWord}`);
+  // ⚠ 右端必须是**他当地**的 23:59。按北京时间算会落到 10-10T15:59Z —— 那是个
+  //   早就过去的时刻，差 15 小时，「今天结束前」会变成「昨天之前」。
+  check(
+    '窗口右端 = 他当地 10-10 的 23:59（UTC 10-11 06:59）',
+    r.window?.to === '2026-10-11T06:59:00.000Z',
+    `实际 ${r.window?.to}`
+  );
+  // EOD 是**截止**语义（by/before）：在这句话被说出口之前，那段窗口并不存在。
+  check('窗口左端 = 发布时刻，不回溯到当天 0 点', r.window?.from === T, `实际 ${r.window?.from}`);
+  // 这一条才是本轮的目的：预测窗口得真的罩住那次重置。
+  // ⚠ 用可选链：窗口解析不出来时（窗口为 null）`new Date(undefined).getTime()` 是 NaN，
+  //   比较自然为假 → 断言变红。若写成 `r.window.from`，这条会**抛异常**、
+  //   把整个测试文件崩掉，后面的断言全跑不到 —— 反例验证时实测过。
+  const arrived = new Date('2026-10-11T04:01:09.000Z').getTime();
+  check(
+    '实际到账（北京 10-11 12:01）落在窗口内 —— 这轮本该预测到',
+    arrived >= new Date(r.window?.from).getTime() && arrived <= new Date(r.window?.to).getTime(),
+    `窗口 ${r.window?.from} – ${r.window?.to}`
+  );
+}
+
+{
+  // 习语「at the end of the day」= 归根结底。它长得像时间表达，但从不带 by/before ——
+  // 这正是它被排除的依据。第四例「时间词出现 ≠ 时间词在讲这件事」（前三例见第 14 节）。
+  const r = run('At the end of the day, these are just tokens.', '2026-09-17T17:57:59.000Z');
+  check('习语 at the end of the day 不产生时间线索', !r.candidateWindow, JSON.stringify(r.candidateWindow));
+}
+
+{
+  // 带上额度意图再验一次：真要误认，这条会直接变成 explicit —— 页面上挂一条
+  // 「他今天结束前会重置」，而他根本没说这话。
+  const r = run("At the end of the day, we'll reset everyone's usage limits.", '2026-09-17T17:57:59.000Z');
+  check('带额度意图时习语也不产生窗口', !r.window, `实际 ${JSON.stringify(r.window)}`);
+}
+
+{
+  // Day N/ 系列的写法：「by the end of Day 6」是**第 6 天**结束时，不是今天结束时。
+  // 锚到发布日会整整差几天。他有 Day N/ 系列推文，这写法是真实存在的。
+  const r = run("We'll reset all usage limits by the end of Day 6.", '2026-09-17T17:57:59.000Z');
+  check('by the end of Day 6 不被当成「今天」', !r.window, `实际 ${JSON.stringify(r.window)}`);
+}
+
+{
+  // 他写明时区时以他写的为准 —— 实测他真的这么写过（10-07 那条）。
+  // ⚠ 用 PST 验的是「映射到 IANA 而不是固定偏移」：10-07 美国还在夏令时，
+  //   PST 实际按 PDT（UTC−7）算 → 当地 23:59 = 10-08T06:59Z。写死 −8 会错一小时。
+  const r = run('Will be there by EOD PST.', '2026-10-07T19:19:33.000Z');
+  check(
+    'EOD PST：按太平洋时间当天 23:59（夏令时下 = 10-08T06:59Z）',
+    r.candidateWindow?.to === '2026-10-08T06:59:00.000Z',
+    `实际 ${r.candidateWindow?.to}`
+  );
+  // 反向：这条推文讲的是别的事（回复里的玩笑），没有额度词 —— 时间线索留痕，
+  // 但不能被送上信号位。EOD 认出来了不等于「他承诺了一次重置」。
+  check('无额度意图的 EOD 不构成信号', r.level !== 'explicit', `实际 ${r.level}`);
+  check('但时间线索保留（不静默丢弃）', !!r.candidateWindow);
+}
+
+{
+  // 后缀真的会被采纳 —— 换一个与默认时区**不同**的缩写才验得出来
+  // （用 PST 验不出，它与默认的 sourceZone 恰好同一个时区）。
+  const T = '2026-10-10T22:16:20.000Z';
+  const la = run('Global reset by EOD.', T);
+  const et = run('Global reset by EOD ET.', T);
+  check(
+    '显式时区后缀被采纳（ET 比默认的太平洋时间早 3 小时）',
+    la.window?.to === '2026-10-11T06:59:00.000Z' && et.window?.to === '2026-10-11T03:59:00.000Z',
+    `无后缀 ${la.window?.to} / ET ${et.window?.to}`
+  );
+}
+
 /* ============================ 4. 汇总与真实数据 ============================ */
 
 console.log('\n【4】汇总接口 + 真实数据回归');
