@@ -1,6 +1,35 @@
 {
   "tweets": [
     {
+      "id": "2109152716954222849",
+      "text": "Pro users, would you rather have",
+      "created_at": "2026-10-11T05:22:48.000Z",
+      "url": "https://x.com/thsottiaux/status/2109152716954222849",
+      "poll": {
+        "options": [
+          {
+            "text": "5h limits, 2X week usage",
+            "pct": null
+          },
+          {
+            "text": "no 5h limits, same usage",
+            "pct": null
+          },
+          {
+            "text": "show result",
+            "pct": null
+          }
+        ],
+        "totalVotes": 21991,
+        "status": "21,991 次投票 · 剩下 11 小时"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-11T05:53:17.157Z"
+    },
+    {
       "id": "2109142061014466866",
       "text": "You are doing more math than I am",
       "created_at": "2026-10-11T04:40:27.000Z",
@@ -156,8 +185,8 @@
       "url": "https://x.com/thsottiaux/status/2109045392684032299",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-10T22:18:27.574Z",
       "inReplyTo": {
         "account": "elonmusk",
@@ -174,8 +203,8 @@
       "url": "https://x.com/thsottiaux/status/2109045220411351517",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-10T22:18:27.574Z",
       "inReplyTo": {
         "account": "elonmusk",
@@ -5584,7 +5613,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-11T04:50:46.726Z",
+  "updated_at": "2026-10-11T05:53:17.158Z",
   "source": "browser",
   "coverage_since": "2026-10-10T04:01:09.000Z"
 }
