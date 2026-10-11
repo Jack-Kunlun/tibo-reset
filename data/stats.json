@@ -1,32 +1,32 @@
 {
   "stats": {
-    "total": 60,
+    "total": 61,
     "first_at": "2025-09-17T04:02:52.000Z",
-    "last_at": "2026-10-08T03:44:55.000Z",
-    "last_text": "Confirmed landed across all accounts. How are we doing so far? https://t.co/tzw7dNX4pN",
-    "days_since_last": 2.958649803240741,
-    "avg_interval_days": 6.542161605461392,
+    "last_at": "2026-10-11T04:01:09.000Z",
+    "last_text": "Put the reset in the bag. All propagated. https://t.co/HGxaD3Zdcj",
+    "days_since_last": 0.03446443287037037,
+    "avg_interval_days": 6.483313464506171,
     "median_interval_days": 3.096388888888889,
-    "sd_interval_days": 10.809150987484236,
+    "sd_interval_days": 10.728223172408379,
     "longest_wait_days": 67.74240740740741,
     "shortest_wait_days": 0.15936342592592592,
     "credit_count": 7,
-    "reset_count": 53,
-    "hit_within_avg": 0.6949152542372882
+    "reset_count": 54,
+    "hit_within_avg": 0.7
   },
-  "generated_at": "2026-10-11T02:45:22.475Z",
+  "generated_at": "2026-10-11T04:50:46.990Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
     "stoppedBy": "known",
-    "newTweets": 0,
-    "knownCount": 340,
+    "newTweets": 1,
+    "knownCount": 342,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 1,
-      "harvested": 4,
-      "withContext": 4,
+      "steps": 7,
+      "harvested": 10,
+      "withContext": 10,
       "authorsMissing": 0
     },
     "replyError": null,
@@ -41,8 +41,8 @@
   "history": {
     "added": 0,
     "updated": 0,
-    "upstreamCount": 59,
-    "refreshedAt": "2026-10-11T02:45:12.274Z",
+    "upstreamCount": 60,
+    "refreshedAt": "2026-10-11T04:50:32.632Z",
     "error": null,
     "changed": false,
     "patchedTexts": 0

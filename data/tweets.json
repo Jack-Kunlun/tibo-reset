@@ -1,6 +1,54 @@
 {
   "tweets": [
     {
+      "id": "2109142061014466866",
+      "text": "You are doing more math than I am",
+      "created_at": "2026-10-11T04:40:27.000Z",
+      "url": "https://x.com/thsottiaux/status/2109142061014466866",
+      "inReplyTo": {
+        "account": "SiftByte",
+        "id": "",
+        "text": "OpenAI and Anthropic keep handing out free usage resets. I got curious about how much this actually costs them. Let's do some math. At GPT-6 Sol / Claude Sonnet 5.5 API rates: → 2M input tokens = $4 → 500K output tokens = $5 → That's $9 of API-equivalent usage per user. Now",
+        "created_at": "2026-10-11T04:33:54.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-11T04:50:46.725Z"
+    },
+    {
+      "id": "2109135750054957556",
+      "text": "Dare you to invite everyone to a party",
+      "created_at": "2026-10-11T04:15:23.000Z",
+      "url": "https://x.com/thsottiaux/status/2109135750054957556",
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "400,000 of you guys now. Absolutely wild. Thank you all. 🫡",
+        "created_at": "2026-10-10T20:24:33.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-11T04:29:50.736Z"
+    },
+    {
+      "id": "2109132167112782291",
+      "text": "Put the reset in the bag. All propagated. https://t.co/HGxaD3Zdcj",
+      "created_at": "2026-10-11T04:01:09.000Z",
+      "url": "https://x.com/thsottiaux/status/2109132167112782291",
+      "kind": "reset",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-11T04:29:50.736Z",
+      "text_full": true
+    },
+    {
       "id": "2109092087501332816",
       "text": "Actually had a nightmare about this",
       "created_at": "2026-10-11T01:21:53.000Z",
@@ -108,8 +156,8 @@
       "url": "https://x.com/thsottiaux/status/2109045392684032299",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-10T22:18:27.574Z",
       "inReplyTo": {
         "account": "elonmusk",
@@ -126,8 +174,8 @@
       "url": "https://x.com/thsottiaux/status/2109045220411351517",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-10T22:18:27.574Z",
       "inReplyTo": {
         "account": "elonmusk",
@@ -5536,7 +5584,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-11T02:45:22.342Z",
+  "updated_at": "2026-10-11T04:50:46.726Z",
   "source": "browser",
-  "coverage_since": "2026-10-07T03:44:55.000Z"
+  "coverage_since": "2026-10-10T04:01:09.000Z"
 }

@@ -1,6 +1,14 @@
 {
   "records": [
     {
+      "id": "2109132167112782291",
+      "announced_at": "2026-10-11T04:01:09.000Z",
+      "type": "reset",
+      "text": "Put the reset in the bag. All propagated. https://t.co/HGxaD3Zdcj",
+      "url": "https://x.com/thsottiaux/status/2109132167112782291",
+      "attribution": "codex-resets.com"
+    },
+    {
       "id": "2108040921044639779",
       "announced_at": "2026-10-08T03:44:55.000Z",
       "type": "credit",
@@ -482,5 +490,5 @@
     }
   ],
   "bootstrapped_at": "2026-09-20T08:17:13.018Z",
-  "refreshed_at": "2026-10-11T02:45:12.274Z"
+  "refreshed_at": "2026-10-11T04:50:32.632Z"
 }
