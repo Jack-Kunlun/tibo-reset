@@ -108,8 +108,8 @@
       "url": "https://x.com/thsottiaux/status/2109045392684032299",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-10T22:18:27.574Z",
       "inReplyTo": {
         "account": "elonmusk",
@@ -126,8 +126,8 @@
       "url": "https://x.com/thsottiaux/status/2109045220411351517",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-10T22:18:27.574Z",
       "inReplyTo": {
         "account": "elonmusk",
@@ -5536,7 +5536,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-11T01:37:53.953Z",
+  "updated_at": "2026-10-11T02:45:22.342Z",
   "source": "browser",
   "coverage_since": "2026-10-07T03:44:55.000Z"
 }
