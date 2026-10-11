@@ -20,14 +20,15 @@
             "pct": null
           }
         ],
-        "totalVotes": 207509,
-        "status": "207,509 次投票 · 剩下 3 小时"
+        "totalVotes": 221685,
+        "status": "221,685 次投票 · 剩下 2 小时"
       },
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-11T05:53:17.157Z"
+      "first_seen": "2026-10-11T05:53:17.157Z",
+      "author_verified": true
     },
     {
       "id": "2109142061014466866",
@@ -45,7 +46,8 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-10-11T04:50:46.725Z"
+      "first_seen": "2026-10-11T04:50:46.725Z",
+      "author_verified": true
     },
     {
       "id": "2109135750054957556",
@@ -63,7 +65,8 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-10-11T04:29:50.736Z"
+      "first_seen": "2026-10-11T04:29:50.736Z",
+      "author_verified": true
     },
     {
       "id": "2109132167112782291",
@@ -75,7 +78,8 @@
       "role": "post",
       "foundVia": "timeline-browser",
       "first_seen": "2026-10-11T04:29:50.736Z",
-      "text_full": true
+      "text_full": true,
+      "author_verified": true
     },
     {
       "id": "2109092087501332816",
@@ -122,7 +126,8 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-11T01:37:53.952Z"
+      "first_seen": "2026-10-11T01:37:53.952Z",
+      "author_verified": true
     },
     {
       "id": "2109089556675137886",
@@ -194,7 +199,8 @@
         "text": "To buy stuff, you can just take a picture of your credit card, drop it in the chat and Grok @Bot will scour the Internet for the best deal on the item you want and order it",
         "created_at": "2026-10-10T21:04:52.000Z",
         "url": ""
-      }
+      },
+      "author_verified": true
     },
     {
       "id": "2109045220411351517",
@@ -212,7 +218,8 @@
         "text": "To buy stuff, you can just take a picture of your credit card, drop it in the chat and Grok @Bot will scour the Internet for the best deal on the item you want and order it",
         "created_at": "2026-10-10T21:04:52.000Z",
         "url": ""
-      }
+      },
+      "author_verified": true
     },
     {
       "id": "2109021594576470290",
@@ -259,7 +266,8 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-10T08:47:23.302Z"
+      "first_seen": "2026-10-10T08:47:23.302Z",
+      "author_verified": true
     },
     {
       "id": "2108780620583403652",
@@ -5613,7 +5621,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-11T14:19:30.123Z",
+  "updated_at": "2026-10-11T15:22:44.452Z",
   "source": "browser",
   "coverage_since": "2026-10-10T04:01:09.000Z"
 }
