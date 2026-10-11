@@ -20,8 +20,8 @@
             "pct": null
           }
         ],
-        "totalVotes": 180878,
-        "status": "180,878 次投票 · 剩下 5 小时"
+        "totalVotes": 194279,
+        "status": "194,279 次投票 · 剩下 4 小时"
       },
       "kind": "other",
       "account": "thsottiaux",
@@ -5613,7 +5613,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-11T12:13:39.333Z",
+  "updated_at": "2026-10-11T13:16:39.609Z",
   "source": "browser",
   "coverage_since": "2026-10-10T04:01:09.000Z"
 }
