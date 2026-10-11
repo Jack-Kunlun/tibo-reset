@@ -1,15 +1,40 @@
 {
   "tweets": [
     {
+      "id": "2109072811113488768",
+      "text": "Might as well just post it here",
+      "created_at": "2026-10-11T00:05:17.000Z",
+      "url": "https://x.com/thsottiaux/status/2109072811113488768",
+      "inReplyTo": {
+        "account": "elonmusk",
+        "id": "",
+        "text": "To buy stuff, you can just take a picture of your credit card, drop it in the chat and Grok @Bot will scour the Internet for the best deal on the item you want and order it",
+        "created_at": "2026-10-10T21:04:52.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-11T00:23:39.945Z"
+    },
+    {
       "id": "2109045392684032299",
       "text": "Global reset by EOD. May the tokens do good things for you.",
       "created_at": "2026-10-10T22:16:20.000Z",
       "url": "https://x.com/thsottiaux/status/2109045392684032299",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
-      "first_seen": "2026-10-10T22:18:27.574Z"
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-10T22:18:27.574Z",
+      "inReplyTo": {
+        "account": "elonmusk",
+        "id": "",
+        "text": "To buy stuff, you can just take a picture of your credit card, drop it in the chat and Grok @Bot will scour the Internet for the best deal on the item you want and order it",
+        "created_at": "2026-10-10T21:04:52.000Z",
+        "url": ""
+      }
     },
     {
       "id": "2109045220411351517",
@@ -18,9 +43,16 @@
       "url": "https://x.com/thsottiaux/status/2109045220411351517",
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
-      "first_seen": "2026-10-10T22:18:27.574Z"
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-10T22:18:27.574Z",
+      "inReplyTo": {
+        "account": "elonmusk",
+        "id": "",
+        "text": "To buy stuff, you can just take a picture of your credit card, drop it in the chat and Grok @Bot will scour the Internet for the best deal on the item you want and order it",
+        "created_at": "2026-10-10T21:04:52.000Z",
+        "url": ""
+      }
     },
     {
       "id": "2109021594576470290",
@@ -5421,7 +5453,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-10T22:18:27.575Z",
+  "updated_at": "2026-10-11T00:23:39.946Z",
   "source": "browser",
   "coverage_since": "2026-10-07T03:44:55.000Z"
 }
