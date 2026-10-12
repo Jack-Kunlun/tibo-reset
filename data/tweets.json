@@ -1,6 +1,25 @@
 {
   "tweets": [
     {
+      "id": "2109778880341151901",
+      "text": "250 tokens per *second* (TPS)!",
+      "created_at": "2026-10-12T22:50:57.000Z",
+      "url": "https://x.com/thsottiaux/status/2109778880341151901",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "steipete",
+        "id": "",
+        "text": "6.1 Sol ultrafast >>> 6 Astra ~ same cost but whole different game with 250 tpm",
+        "created_at": "2026-10-12T19:39:48.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-12T23:08:54.537Z"
+    },
+    {
       "id": "2109730998867112161",
       "text": "Solid step towards world peace",
       "created_at": "2026-10-12T19:40:41.000Z",
@@ -135,8 +154,8 @@
       "text_full": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-11T23:46:56.748Z",
       "inReplyTo": {
         "account": "birdabo",
@@ -5775,7 +5794,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-12T21:00:19.955Z",
+  "updated_at": "2026-10-12T23:08:54.538Z",
   "source": "browser",
   "coverage_since": "2026-10-10T04:01:09.000Z"
 }
