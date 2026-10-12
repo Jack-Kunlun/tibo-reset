@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-12T17:52:10.820Z",
-  "checkedTweets": 351,
+  "generatedAt": "2026-10-12T19:57:56.181Z",
+  "checkedTweets": 352,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-13T17:52:10.820Z",
-  "windowTo": "2026-10-12T17:52:10.820Z",
+  "windowFrom": "2026-08-13T19:57:56.181Z",
+  "windowTo": "2026-10-12T19:57:56.181Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.13",
       "weekday": "周二",
-      "time": "01:52",
-      "text": "2026.10.13（周二）01:52",
+      "time": "03:57",
+      "text": "2026.10.13（周二）03:57",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,45 +98,45 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.12",
       "weekday": "周一",
-      "time": "10:52",
-      "text": "2026.10.12（周一）10:52",
+      "time": "12:57",
+      "text": "2026.10.12（周一）12:57",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2109491524358795714",
+    "id": "2109730998867112161",
     "account": "thsottiaux",
-    "text": "We tune these carefully",
-    "createdAt": "2026-10-12T03:49:06.000Z",
-    "url": "https://x.com/thsottiaux/status/2109491524358795714",
+    "text": "Solid step towards world peace",
+    "createdAt": "2026-10-12T19:40:41.000Z",
+    "url": "https://x.com/thsottiaux/status/2109730998867112161",
     "reasons": [
-      "上下文：回复 @bobjones「Now I’m confused. Yesterday you said…」"
+      "上下文：回复 @gen_tt「A small peace offering: I put chief …」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "bobjones",
+      "account": "gen_tt",
       "id": "",
-      "text": "Now I’m confused. Yesterday you said the opposite of what you’re doing today."
+      "text": "A small peace offering: I put chief @poteto in Codex 🥔"
     },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.10.12",
-        "weekday": "周一",
-        "time": "11:49",
-        "text": "2026.10.12（周一）11:49",
+        "date": "2026.10.13",
+        "weekday": "周二",
+        "time": "03:40",
+        "text": "2026.10.13（周二）03:40",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.10.11",
-        "weekday": "周日",
-        "time": "20:49",
-        "text": "2026.10.11（周日）20:49",
+        "date": "2026.10.12",
+        "weekday": "周一",
+        "time": "12:40",
+        "text": "2026.10.12（周一）12:40",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -2011,7 +2011,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-12T17:52:10.820Z"
+        "checkedAt": "2026-10-12T19:57:56.181Z"
       }
     },
     {
@@ -2767,6 +2767,48 @@
   ],
   "rejected": [
     {
+      "id": "2109730998867112161",
+      "account": "thsottiaux",
+      "text": "Solid step towards world peace",
+      "createdAt": "2026-10-12T19:40:41.000Z",
+      "url": "https://x.com/thsottiaux/status/2109730998867112161",
+      "reasons": [
+        "上下文：回复 @gen_tt「A small peace offering: I put chief …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "gen_tt",
+        "id": "",
+        "text": "A small peace offering: I put chief @poteto in Codex 🥔"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.13",
+          "weekday": "周二",
+          "time": "03:40",
+          "text": "2026.10.13（周二）03:40",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.12",
+          "weekday": "周一",
+          "time": "12:40",
+          "text": "2026.10.12（周一）12:40",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
       "id": "2109491524358795714",
       "account": "thsottiaux",
       "text": "We tune these carefully",
@@ -2900,13 +2942,13 @@
       "createdAt": "2026-10-12T00:17:38.000Z",
       "url": "https://x.com/thsottiaux/status/2109438305188327838",
       "reasons": [
-        "上下文：回复 @AbdoKerdawy「WHAT ARE YOU ALL EXCITED ABOUT WE LI…」"
+        "上下文：回复 @birdabo「just ratiod the reset man (tibo) are…」"
       ],
       "viaContext": false,
       "inReplyTo": {
-        "account": "AbdoKerdawy",
+        "account": "birdabo",
         "id": "",
-        "text": "WHAT ARE YOU ALL EXCITED ABOUT WE LITERALLY JUST GOT SCAMMED WTF It has always been the case that we can edit the context window. And now instead of a reset we get \"default context lenght went up by 80%\"? It was always editable bro..."
+        "text": "just ratiod the reset man (tibo) are you proud of me @poteto"
       },
       "createdZones": {
         "a": {
@@ -10934,59 +10976,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2104101496606618082",
-      "account": "thsottiaux",
-      "text": "We’re perma locked in. No code red necessary.",
-      "createdAt": "2026-09-27T06:51:03.000Z",
-      "url": "https://x.com/thsottiaux/status/2104101496606618082",
-      "reasons": [
-        "上下文：回复 @yacineMTB「they're telling me it's code Red at …」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "yacineMTB",
-        "id": "",
-        "text": "they're telling me it's code Red at openai. whatever that means. i don't know. i'm using opus 5.5 so it doesn't matter to me"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.27",
-          "weekday": "周日",
-          "time": "14:51",
-          "text": "2026.09.27（周日）14:51",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.26",
-          "weekday": "周六",
-          "time": "23:51",
-          "text": "2026.09.26（周六）23:51",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 351,
+    "scanned": 352,
     "explicit": 0,
     "occurred": 8,
     "hint": 49,
-    "none": 285,
-    "rejected": 285
+    "none": 286,
+    "rejected": 286
   },
   "truncated": true
 }

@@ -1,6 +1,25 @@
 {
   "tweets": [
     {
+      "id": "2109730998867112161",
+      "text": "Solid step towards world peace",
+      "created_at": "2026-10-12T19:40:41.000Z",
+      "url": "https://x.com/thsottiaux/status/2109730998867112161",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "gen_tt",
+        "id": "",
+        "text": "A small peace offering: I put chief @poteto in Codex 🥔",
+        "created_at": "2026-10-12T02:48:34.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-12T19:57:56.180Z"
+    },
+    {
       "id": "2109491524358795714",
       "text": "We tune these carefully",
       "created_at": "2026-10-12T03:49:06.000Z",
@@ -76,10 +95,10 @@
       "url": "https://x.com/thsottiaux/status/2109438305188327838",
       "author_verified": true,
       "inReplyTo": {
-        "account": "AbdoKerdawy",
+        "account": "birdabo",
         "id": "",
-        "text": "WHAT ARE YOU ALL EXCITED ABOUT WE LITERALLY JUST GOT SCAMMED WTF It has always been the case that we can edit the context window. And now instead of a reset we get \"default context lenght went up by 80%\"? It was always editable bro...",
-        "created_at": "2026-10-11T23:56:54.000Z",
+        "text": "just ratiod the reset man (tibo) are you proud of me @poteto",
+        "created_at": "2026-10-11T05:59:22.000Z",
         "url": ""
       },
       "kind": "other",
@@ -103,8 +122,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-12T00:51:25.155Z"
     },
     {
@@ -116,8 +135,8 @@
       "text_full": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-11T23:46:56.748Z",
       "inReplyTo": {
         "account": "birdabo",
@@ -5756,7 +5775,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-12T17:52:10.820Z",
+  "updated_at": "2026-10-12T19:57:56.181Z",
   "source": "browser",
   "coverage_since": "2026-10-10T04:01:09.000Z"
 }
