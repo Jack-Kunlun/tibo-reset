@@ -343,7 +343,7 @@ export function renderSignal(sig, opts = {}) {
   //    默认 true 是为了保持既有调用方的行为不变（test-signals 直接 `renderSignal(sig)`）。
   const prog = opts.inlineProgram === false ? '' : renderProgram(sig.program);
 
-  // ① 预告：**一条预告就是一个时间窗口**，支撑它的推文挂在这条里面。
+  // ① 明确预告：有时间就给窗口，未定时间就给原文与待公布标记。
   //
   //    `forecasts` 来自 signals.mjs 的 buildForecasts()，合并逻辑在数据层 ——
   //    网页、小程序、采集日志共用同一份结论，不会各算各的。
@@ -359,7 +359,7 @@ export function renderSignal(sig, opts = {}) {
   for (const f of forecasts) blocks.push(forecastBlock(f, sig, now));
 
   // ② 线索：只在没有预告时才兜底。
-  //    线索是「有时间没意图」或「有意图没时间」的弱依据，跟硬信号并列会稀释前者。
+  //    线索没有明确重置承诺，跟硬信号并列会稀释前者。
   if (!forecasts.length) {
     const h = (sig.hints ?? []).find((s) => s.window) ?? null;
     if (h) blocks.push(hintBlock(h, sig, now));
@@ -519,6 +519,7 @@ function forecastBlock(f, sig, now) {
     </div>
     ${windowCountdown(f.window, now)}
     ${windowBlock(f.window)}
+    ${f.timing === 'pending' ? '<p class="sig-note">具体时间待公布</p>' : ''}
     ${evBlock}
     ${meta.length ? `<div class="sig-meta">${meta.join('')}</div>` : ''}
   </section>`;
@@ -613,6 +614,7 @@ function fmtMDHM(ts) {
  */
 function scanClause(o) {
   const b = o.brief;
+  if (b.pendingAnnouncement) return 'Tibo 已预告重置，具体时间待公布';
   if (o.etaKind === 'announced' || b.scanned == null) return '';
   return `本轮扫描 ${b.scanned} 条推文${b.hints ? `，${b.hints} 条时间线索` : ''}均不足以构成预告`;
 }
@@ -636,7 +638,7 @@ function briefLine(o) {
   }
   const n = b.intervals ? `按 ${b.intervals} 次历史间隔的节奏推算` : '按历史间隔的节奏推算';
   const scan = scanClause(o);
-  return `没有公告，${n}。${scan ? `${scan}。` : ''}`;
+  return `${b.pendingAnnouncement ? '已预告重置，具体时间待公布' : '没有公告'}，${n}。${scan && !b.pendingAnnouncement ? `${scan}。` : ''}`;
 }
 
 /* --------------------------- 卡内图标与装饰 --------------------------- */

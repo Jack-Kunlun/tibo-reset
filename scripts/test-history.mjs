@@ -15,10 +15,13 @@
  * 运行：node scripts/test-history.mjs
  */
 
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mergeHistory, patchTruncatedTexts, buildStats } from '../src/lib/collect.mjs';
+import { mergeHistory, mergeConfirmedResets, runCollection, patchTruncatedTexts, buildStats } from '../src/lib/collect.mjs';
+import { detectSignals } from '../src/lib/signals.mjs';
+import { detectNewResets } from '../server/subscribe.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -243,6 +246,116 @@ console.log('\n【4】真实数据回归：本地库与上游正文口径');
     mismatch.length === 0,
     mismatch.map((r) => `${r.id}: records ${r.text.length} > tweets ${byId.get(r.id).text.length}`).join(', ')
   );
+}
+
+console.log('\n【5】第三方未收录时，完成公告直接更新；后续收录不能重复计数');
+{
+  const account = 'thsottiaux';
+  const now = Date.parse('2026-10-11T04:10:00Z');
+  const previous = [{ id: '2108040921044639779', announced_at: '2026-10-08T03:44:55.000Z',
+    type: 'credit', text: 'Confirmed landed across all accounts.', attribution: 'codex-resets.com' }];
+  const confirmed = { id: '2109132167112782291', created_at: '2026-10-11T04:01:09.000Z',
+    text: 'Put the reset in the bag. All propagated. https://t.co/HGxaD3Zdcj',
+    account, foundVia: 'timeline-browser', author_verified: true };
+  const forecast = { id: '2109045392684032299', created_at: '2026-10-10T22:16:20.000Z',
+    text: 'Global reset by EOD. May the tokens do good things for you.', account, foundVia: 'timeline-browser', author_verified: true };
+  const merged = mergeConfirmedResets(previous, [forecast, confirmed], { now, account });
+  check('完成公告直接新增一条，预告不入库', merged.added === 1 && merged.records.length === 2);
+  check('最近重置推进到公告发布时刻，不取采集时刻', buildStats(merged.records).last_at === confirmed.created_at);
+  check('直接来源可追溯到作者和推文', merged.records[0].attribution === 'x.com/thsottiaux' &&
+    merged.records[0].url === `https://x.com/thsottiaux/status/${confirmed.id}`);
+  check('入库后 EOD 预告立即撤回', detectSignals([forecast, confirmed], { now,
+    lastResetAt: Date.parse(merged.records[0].announced_at) }).forecasts.length === 0);
+  check('重跑同一批数据幂等', mergeConfirmedResets(merged.records, [confirmed], { now, account }).added === 0);
+
+  for (const [label, patch] of [
+    ['其他作者', { account: 'someone' }], ['无作者', { account: undefined }],
+    ['作者未经核验', { author_verified: undefined }],
+    ['免登录混合来源', { foundVia: 'timeline' }], ['未知来源', { foundVia: undefined }],
+    ['未来时间', { created_at: '2026-10-12T00:00:00Z' }], ['非法时间', { created_at: 'bad' }],
+    ['旧公告', { created_at: '2026-10-07T00:00:00Z' }], ['缺少 id', { id: undefined }],
+    ['正在发放', { text: "Loading a banked reset in everyone's paid accounts." }],
+    ['否定完成', { text: 'The reset has not propagated yet.' }],
+    ['未到', { text: 'A reset is coming for everyone.' }],
+    ['截断的完成句', { text: 'Therefore ... the reset has been https://t.co/example' }],
+    ['疑问', { text: 'Has the reset completed?' }],
+    ['个人额度', { text: 'My usage limits have been reset.' }],
+    ['单账户完成', { text: 'The reset has propagated for a single account.' }],
+    ['部分账户完成', { text: 'The reset has propagated for some accounts.' }],
+    ['仅部分套餐', { text: 'The reset has propagated for all Pro accounts only.' }],
+    ['Pro 套餐范围', { text: 'The reset has propagated for all Pro accounts.' }],
+    ['Team 套餐范围', { text: 'The reset has propagated for all Team accounts.' }],
+    ['Enterprise 套餐范围', { text: 'The reset has propagated for all Enterprise accounts.' }],
+    ['无领域的完成短句', { text: 'Confirmed landed across all accounts.' }],
+    ['历史回顾', { text: 'Yesterday the reset completed.' }],
+    ['往年回顾', { text: 'In 2025, the reset has propagated for all accounts.' }],
+    ['过去日期回顾', { text: 'On 2025-01-01, the reset has propagated for all accounts.' }],
+    ['数字月日回顾', { text: 'On 10/01, the reset has propagated for all accounts.' }],
+    ['本月先前回顾', { text: 'Earlier this month, the reset has propagated for all accounts.' }],
+    ['月份回顾', { text: 'In September, the reset has propagated for all accounts.' }],
+    ['模型权重', { text: 'The model weights have been reset.' }],
+  ]) {
+    check(`${label}不能直接新增历史`, mergeConfirmedResets(previous, [{ ...confirmed, ...patch }], { now, account }).added === 0);
+  }
+  const passive = mergeConfirmedResets(previous, [{ ...confirmed, text: "Everyone's limits have been reset." }], { now, account });
+  check('全体额度的明确完成句仍能入库', passive.added === 1);
+  check('全体付费用户仍按既有产品口径入库', mergeConfirmedResets(previous, [{ ...confirmed,
+    text: 'The usage limits have been reset for all paid users of Codex and ChatGPT Work.',
+  }], { now, account }).added === 1);
+  const alias = { ...merged.records[0], id: `observed-${confirmed.id}`, attribution: 'codex-resets.com',
+    url: `https://twitter.com/thsottiaux/status/${confirmed.id}?s=20` };
+  const upstream = mergeHistory(merged.records, [alias]);
+  check('上游合成 id 按同一来源合并，不能再新增', upstream.added === 0 && upstream.updated === 1 && upstream.records.length === 2);
+  check('上游修正保留为权威记录', upstream.records[0].id === alias.id && upstream.records[0].attribution === 'codex-resets.com');
+  check('合并后再收同一公告仍不增加', mergeConfirmedResets(upstream.records, [confirmed], { now, account }).added === 0);
+
+  const followup = { ...confirmed, id: '2109132167112782292', created_at: '2026-10-11T04:05:09.000Z',
+    text: "Everyone's limits have been reset." };
+  const sameBatch = mergeConfirmedResets(previous, [confirmed, followup], { now, account });
+  check('同轮不同推文的短期重复确认只新增一次', sameBatch.added === 1 && sameBatch.updated === 1 && sameBatch.records.length === 2);
+  const nextBatch = mergeConfirmedResets(merged.records, [followup], { now, account });
+  check('跨轮重复确认不加次数，也不推进首次确认时刻', nextBatch.added === 0 && nextBatch.updated === 1 && nextBatch.records[0].announced_at === confirmed.created_at);
+  check('重复确认的全部来源留下可合并证据', nextBatch.records[0].confirmation_urls.includes(`https://x.com/thsottiaux/status/${followup.id}`));
+  const followupUpstream = mergeHistory(nextBatch.records, [{ ...alias, url: `https://x.com/thsottiaux/status/${followup.id}` }]);
+  check('上游收录后续确认也归并到同一次', followupUpstream.added === 0 && followupUpstream.records.length === 2);
+  const bothUpstream = [
+    { ...alias, id: followup.id, text: followup.text, announced_at: followup.created_at, url: `https://x.com/thsottiaux/status/${followup.id}` },
+    { ...alias, id: confirmed.id, url: `https://x.com/thsottiaux/status/${confirmed.id}` },
+  ];
+  const both = mergeHistory(nextBatch.records, bothUpstream);
+  check('上游多次确认只保留一次，首次确认时刻不推进', both.added === 0 && both.records.length === 2 && both.records[0].announced_at === confirmed.created_at);
+  check('采用另一条确认时正文与来源一致，不沿用较长的旧帖', both.records[0].text === followup.text);
+  const bothAgain = mergeHistory(both.records, bothUpstream);
+  check('上游多确认反复合并无变化，不来回换 id', bothAgain.added === 0 && bothAgain.updated === 0);
+  check('后续确认被上游收录不能越过已通知水位', detectNewResets(both.records, confirmed.created_at).length === 0);
+  check('后续确认反复处理幂等', mergeConfirmedResets(nextBatch.records, [followup], { now, account }).updated === 0);
+  check('明确 another reset 可区分短间隔第二次发放', mergeConfirmedResets(merged.records, [
+    { ...followup, text: 'Another reset all propagated.' },
+  ], { now, account }).added === 1);
+  const again = { ...forecast, id: '2109132167112782293', text: 'Another reset by EOD.', created_at: '2026-10-11T04:03:09.000Z' };
+  check('发布新预告后短间隔完成仍可作为新事件', mergeConfirmedResets(merged.records, [again, followup], { now, account }).added === 1);
+  check('未经核验的预告不能打开短间隔新事件', mergeConfirmedResets(merged.records, [
+    { ...again, author_verified: false }, followup,
+  ], { now, account }).added === 0);
+  check('不同轮的较晚完成公告可新增', mergeConfirmedResets(merged.records, [
+    { ...followup, created_at: '2026-10-11T07:05:09.000Z' },
+  ], { now: Date.parse('2026-10-11T07:10:00Z'), account }).added === 1);
+
+  const dir = await mkdtemp(resolve(tmpdir(), 'tibo-confirmed-history-'));
+  try {
+    for (const [name, value] of Object.entries({ resets: { records: previous }, tweets: {
+      tweets: [forecast, confirmed], updated_at: new Date(now).toISOString(), source: 'browser',
+    }, stats: {} })) await writeFile(resolve(dir, `${name}.json`), JSON.stringify(value));
+    const result = await runCollection({ dataDir: dir, skipLive: true, account });
+    const stored = JSON.parse(await readFile(resolve(dir, 'resets.json'), 'utf8'));
+    const stats = JSON.parse(await readFile(resolve(dir, 'stats.json'), 'utf8'));
+    check('主流程把直接公告写入 resets.json', stored.records[0].id === confirmed.id && stored.records.length === 2);
+    check('主流程统计同步推进并记录来源数量', stats.stats.last_at === confirmed.created_at && result.history.confirmedAdded === 1);
+    check('主流程输出不再挂已兑现预告', result.signals.forecasts.length === 0);
+    await runCollection({ dataDir: dir, skipLive: true, account });
+    check('连续落盘两轮 records 逐字一致', JSON.stringify(stored.records) ===
+      JSON.stringify(JSON.parse(await readFile(resolve(dir, 'resets.json'), 'utf8')).records));
+  } finally { await rm(dir, { recursive: true, force: true }); }
 }
 
 /* ================================ 结果 ================================ */

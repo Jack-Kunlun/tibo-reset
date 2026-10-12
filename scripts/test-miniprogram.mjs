@@ -709,7 +709,7 @@ console.log('\n【5】信号');
 // 断言必须从数据推出，不能写死 —— 否则收录到一条真的预告后这条用例就假失败
 const snapshotSignals = (await import(resolve(ROOT, 'miniprogram/data/snapshot.js'))).default.signals;
 
-// 期望值与 buildSignal 的优先级同构：预告（有窗口）> 线索（须有窗口）。
+// 明确预告可以待公布时间；线索仍须带窗口。
 // 「已发生」不参与横幅 —— 它是往回看的事实，横幅只讲未来。见 【8b】。
 // 预告的判据从 `signals` 换成 `forecasts`：合并下沉到数据层之后，
 // 横幅认的是「一个时间窗口一条预告」（见 decisions.md 的 D-018）。
@@ -734,9 +734,11 @@ if (hasOccurred && !hasForecast && !hasHintWin) {
   );
 }
 if (expectShow) {
-  check('醒目态必须给出时间窗口', !!d.signal.window, JSON.stringify(d.signal.window));
-  check('窗口含双时区', !!(d.signal.window && d.signal.window.sourceZone && d.signal.window.userZone), JSON.stringify(d.signal.window));
-  check('窗口含时差说明', !!(d.signal.window && d.signal.window.diffText), d.signal.window && d.signal.window.diffText);
+  check('醒目态给出时间窗口或标明待公布', !!d.signal.window || d.signal.timing === 'pending', JSON.stringify(d.signal.window));
+  if (d.signal.window) {
+    check('窗口含双时区', !!(d.signal.window.sourceZone && d.signal.window.userZone), JSON.stringify(d.signal.window));
+    check('窗口含时差说明', !!d.signal.window.diffText, d.signal.window.diffText);
+  }
   check('给出判定依据（不只给结论）', !!d.signal.reason, d.signal.reason);
 
   if (hasForecast) {
@@ -901,7 +903,7 @@ check(
 console.log('\n【8】明确信号路径（合成推文 —— 平时真实数据里触发不到）');
 
 const { detectSignals } = await import(resolve(ROOT, 'src/lib/signals.mjs'));
-const { buildSignal } = await import(resolve(ROOT, 'miniprogram/utils/view.js'));
+const { buildSignal, buildOutlookView } = await import(resolve(ROOT, 'miniprogram/utils/view.js'));
 
 const now = Date.parse('2026-09-20T10:00:00.000Z'); // 北京 18:00
 const mkTweet = (text, id) => ({
@@ -982,11 +984,11 @@ check(
   '调用点被删了'
 );
 
-// 反例：有额度词但通篇没有任何时间表达 —— 不得进醒目态（否则就是制造焦虑）
+// 反例：只讨论额度，没有承诺重置，不得进醒目态。
 const noTimeSig = detectSignals([mkTweet('We are reviewing usage limits across all plans.', '9002')], { now });
 check('该推文确实没有解析出时间窗口', !noTimeSig.hints.some((h) => h.window), JSON.stringify(noTimeSig.hints.map((h) => h.window)));
 check(
-  '有额度意图但无时间窗口时，不进醒目态',
+  '只讨论额度、未承诺重置时，不进醒目态',
   buildSignal(noTimeSig).show === false,
   `show=${buildSignal(noTimeSig).show} level=${noTimeSig.level}`
 );
@@ -1144,6 +1146,14 @@ check('有线索时窗口也在', hintPathVm.program?.show === true, JSON.string
 // ③ 有预告的路径
 const fcastPathVm = buildSignal({ ...progSig, forecasts: [{ level: 'explicit', window: null, evidence: [] }] });
 check('有预告时窗口也在（两条互不遮蔽）', fcastPathVm.program?.show === true, JSON.stringify(fcastPathVm.program?.show));
+
+const pendingSig = detectSignals([mkTweet('A reset is coming for everyone.', '9005')], { now });
+const pendingVm = buildSignal(pendingSig);
+check('明确预告没有时间也展示', pendingVm.show && pendingVm.level === 'explicit' && pendingVm.timing === 'pending');
+check('未定时间预告显示待公布且保留依据', pendingVm.title.includes('时间待公布') && pendingVm.timeNote === '具体时间待公布' && pendingVm.evCount === 1 && pendingVm.ev[0].text.includes('reset is coming'));
+check('未定时间预告不造窗口或倒计时锚点', pendingVm.window === null && pendingVm.headline === null);
+const pendingOutlookVm = buildOutlookView(chart, snapPred, pendingSig, now);
+check('小程序预测卡保留未定时间预告事实，估计仍标为历史推算', pendingOutlookVm.etaKind === 'model' && pendingOutlookVm.brief.includes('已预告重置，具体时间待公布') && !pendingOutlookVm.brief.includes('没有公告') && !pendingOutlookVm.brief.includes('均不足以构成预告'));
 
 // 反例：没有这条规则时必须安静，不能凭空造一个窗口
 check('没有该字段时不展示（更不炸）', buildSignal({ checkedTweets: 1 }).program?.show === false);

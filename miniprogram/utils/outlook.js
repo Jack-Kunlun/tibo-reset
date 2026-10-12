@@ -10,7 +10,7 @@
  *
  *   · `announced`（有公告）—— Tibo 发过推文，窗口是他给的。ETA = **公告窗口开启时刻**，
  *     这是一个**可核对的承诺**，依据是那条推文。
- *   · `model`（无公告）—— 没有任何公告，ETA = **历史节奏的中位推算**。
+ *   · `model`（无公告时间）—— 没有可用的公告窗口，ETA = **历史节奏的中位推算**。
  *     这是一个**区间估计**，必须带 80% 区间一起出现，绝不允许只给一个时刻。
  *
  * 两者共用一张卡，但 `etaKind` 不同、`etaNote` 不同、置信度的依据也不同。
@@ -64,6 +64,7 @@ export function buildOutlook({ chart, prediction, signals, now }) {
 
   const forecasts = (signals?.forecasts ?? []).filter((f) => finite(f?.window?.fromTs));
   const f = forecasts[0] ?? null;
+  const pendingAnnouncement = !f && (signals?.forecasts ?? []).some((a) => a.timing === 'pending' && !a.window);
 
   // 重采样对中位估计的相对波动。它衡量的是「换一批样本，这个中位数还站得住吗」。
   // 必须在两个分支**之前**算出来 —— else 分支要用它判置信度。
@@ -179,7 +180,7 @@ export function buildOutlook({ chart, prediction, signals, now }) {
 
     status,
     statusLabel: STATUS_LABEL[status],
-    statusNote: STATUS_NOTE[status],
+    statusNote: pendingAnnouncement ? '已预告重置，具体时间待公布；当前时间按历史节奏推算' : STATUS_NOTE[status],
 
     confidence: level,
     confidenceLabel: CONFIDENCE_LABEL[level],
@@ -225,6 +226,7 @@ export function buildOutlook({ chart, prediction, signals, now }) {
      */
     brief: {
       kind: etaKind,
+      pendingAnnouncement,
       // announced 档
       announcedHard: f?.counts?.hard ?? 0,
       announcedSoft: f?.counts?.soft ?? 0,

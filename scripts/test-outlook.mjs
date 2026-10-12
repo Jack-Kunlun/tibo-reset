@@ -352,6 +352,19 @@ check(
   `换流后 ${JSON.stringify(seeded.uncertainty.medianDays)}`
 );
 
+section('8. 已预告但时间待公布：估计与公告不混用');
+{
+  const sig = { ...OUTLOOK_SIGNALS, forecasts: [{ timing: 'pending', window: null }] };
+  const o = outlookOf(sig);
+  check('未定时间预告不改变历史估计时刻和区间', o.etaKind === 'model' && o.etaAt === oModel.etaAt && JSON.stringify(o.band) === JSON.stringify(oModel.band));
+  check('保留预告事实，不再说没有公告', o.brief.pendingAnnouncement && o.statusNote.includes('具体时间待公布') && !o.statusNote.includes('没有公告'));
+  const html = pageOf(o, sig) + renderBasisSummary(o, prediction);
+  check('网页总览和依据不会否认未定时间预告', html.includes('已预告重置，具体时间待公布') && !html.includes('均不足以构成预告') && !html.includes('没有公告'));
+  check('可见依据摘要也披露未定时间预告', /class="am-basis-note">[^<]*已预告重置，具体时间待公布/.test(html));
+  const dated = outlookOf({ ...sig, forecasts: [...sig.forecasts, forecast()] });
+  check('有窗口时优先使用公告时间', dated.etaKind === 'announced' && !dated.brief.pendingAnnouncement);
+}
+
 /* ======================== 结果 ======================== */
 
 console.log(`\n${'─'.repeat(52)}`);

@@ -99,6 +99,7 @@ export function normalizeTimelineItems(items, opts = {}) {
     const id = String(it?.id ?? '').trim();
     const text = String(it?.text ?? '').trim();
     const created = it?.time ? new Date(it.time) : null;
+    if (opts.handle && String(it?.author ?? '').toLowerCase() !== opts.handle.toLowerCase()) continue;
     if (!id || !created || Number.isNaN(created.getTime())) continue;
     if (sinceMs > 0 && created.getTime() < sinceMs) continue;
     if (seen.has(id)) continue;
@@ -107,6 +108,7 @@ export function normalizeTimelineItems(items, opts = {}) {
       text,
       created_at: created.toISOString(),
       url: it.url ?? `https://x.com/${opts.handle ?? ''}/status/${id}`,
+      ...(opts.handle ? { author_verified: true } : {}),
       // 被回复的内容由上游的 pairReplyContext 在收割时挂上，这里只负责透传。
       // 丢了它，识别算法就只能看到他的半句话。
       ...(it.inReplyTo ? { inReplyTo: it.inReplyTo } : {}),
@@ -196,8 +198,7 @@ class CdpSession {
  * 而他的回复本身常常一个额度词都没有（「OK fine. But it's also still coming
  * in Tuesday」），只有连着被回复的内容才读得出「这是在说重置」。
  *
- * 归属仍以 `id` 为准：只有 article 内含 `/<handle>/status/<id>` 链接时才赋值，
- * 所以 `id` 非空 ⟺ 这条是他的。转发别人的推文拿不到 id，混进来会让增量永不停止。
+ * 作者与 status 链接要同时匹配，引用卡里的目标链接不能证明整条正文属于他。
  */
 export function harvestExpression(handle) {
   const h = JSON.stringify(String(handle ?? '').toLowerCase());
@@ -260,6 +261,7 @@ export function harvestExpression(handle) {
     var author='';
     var un=a.querySelector('[data-testid="User-Name"]');
     if(un){var m2=(un.innerText||'').match(/@([A-Za-z0-9_]+)/);if(m2)author=m2[1];}
+    if(author.toLowerCase()!==H){id='';url='';}
     var more=!!a.querySelector('[data-testid="tweet-text-show-more-link"]');
     out.push({id:id,url:url,time:tm?tm.getAttribute('datetime'):'',text:t?t.innerText.replace(/\\s+/g,' '):'',author:author,truncated:more,poll:pollOf(a)});
   });return out;})()`;
@@ -291,7 +293,7 @@ export function pairReplyContext(items, handle) {
   for (const raw of items ?? []) {
     const it = { ...raw };
     const author = String(it.author ?? '').toLowerCase();
-    const isMine = !!it.id; // harvest 只在作者匹配时给 id
+    const isMine = !!it.id && author === h;
     const isOther = !isMine && !!author && author !== h && !!it.text && !!it.time;
 
     if (isMine) {

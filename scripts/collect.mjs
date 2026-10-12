@@ -147,6 +147,8 @@ if (!result.skippedFresh) {
               (h.patchedTexts ? ` · 回填正文 ${h.patchedTexts} 条` : '')
             : `已是最新（上游 ${h.upstreamCount} 条，无变化）`)
     );
+    if (h.confirmedAdded) console.log(`            完成公告直接入库 ${h.confirmedAdded} 条`);
+    if (h.confirmedUpdated) console.log(`            归并后续确认 ${h.confirmedUpdated} 条`);
   }
   // 详情页全文补全单独报一行。它坏掉时正文会**悄悄**退回半句（页面上看不出来），
   // 所以「这轮有没有候选、取到几条、失败的是哪些」必须看得见。

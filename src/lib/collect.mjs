@@ -9,14 +9,14 @@
  *   2) 免登录 HTML（降级）：抓 x.com/<account> 首屏，内嵌 React Server Components
  *      载荷键名不带引号，只能用正则而非 JSON.parse。只覆盖最近 7 条，
  *      浏览器路径不可用时（如 CI 无 Chrome）才走这条。
- *   3) 历史回填：公开 API，仅用于冷启动，记录里标注 attribution。
+ *   3) 历史回填：公开 API，每轮合并，记录里标注 attribution。
  */
 
 import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { detectSignals, latestEventMs, classifyEvent } from './signals.mjs';
+import { analyzeTweet, detectSignals, latestEventMs, classifyEvent, confirmedResetEvent } from './signals.mjs';
 import { collectStreams } from './browser.mjs';
 import { resolveProxy } from './proxy.mjs';
 
@@ -479,9 +479,9 @@ export async function fetchHistory() {
  * 「we are loading a banked reset into all accounts」，而本地库停在 09-12，
  * 页面上「距上次重置」一直显示 10 天，用户看到重置卡都发下来了、观测台还说没有。
  *
- * 合并规则：本地是缓存，上游是权威，但**不能无条件覆盖** ——
- *   · 按 id 对齐。上游有些条目用合成 id（`observed-<statusId>`），本地沿用同一套，
- *     所以共有条目能正确配对；id 缺失或时间非法的条目直接跳过，不污染库。
+ * 合并规则：上游可修正本地记录，但**不能无条件覆盖** ——
+ *   · 按 id 与来源推文对齐，兼容上游的 observed-* 合成 id；
+ *     id 缺失或时间非法的条目直接跳过，不污染库。
  *   · 共有条目以上游字段为准（他的推文可能被编辑、上游可能修正时间）；
  *   · 唯独 `text` 取**两者中更长的** —— 上游偶有截断/摘要化，而本地可能已经从
  *     别处补过完整正文，用短的去覆盖长的会让识别能力无声退步。
@@ -493,23 +493,43 @@ export function mergeHistory(local = [], upstream = []) {
   const byId = new Map();
   for (const r of local ?? []) if (r?.id) byId.set(r.id, r);
 
+  // 上游可能用 observed-* 作 id；同一来源推文只能算一次重置。
+  const bySource = new Map();
+  for (const r of byId.values()) for (const source of recordSources(r)) bySource.set(source, r.id);
+
   let added = 0;
   let updated = 0;
+  const candidates = new Map();
   for (const u of upstream ?? []) {
     if (!u?.id || !u.announced_at || Number.isNaN(new Date(u.announced_at).getTime())) continue;
-    const prev = byId.get(u.id);
+    const source = statusIdentity(u.url);
+    const prevId = byId.has(u.id) ? u.id : bySource.get(source);
+    const key = prevId ? `known:${prevId}` : source ? `source:${source}` : `id:${u.id}`;
+    const candidate = candidates.get(key);
+    // 同次发放的多个确认都被上游收录时，只采用最新确认，不能来回换 id、每轮报变化。
+    if (!candidate || Date.parse(u.announced_at) > Date.parse(candidate.announced_at)) candidates.set(key, u);
+  }
+  for (const u of candidates.values()) {
+    const source = statusIdentity(u.url);
+    const prevId = byId.has(u.id) ? u.id : bySource.get(source);
+    const prev = byId.get(prevId);
     if (!prev) {
       byId.set(u.id, u);
+      if (source) bySource.set(source, u.id);
       added++;
       continue;
     }
     const keepLongerText =
       (u.text ?? '').length >= (prev.text ?? '').length ? u.text : prev.text;
-    const next = { ...prev, ...u, text: keepLongerText };
+    const samePost = prev.id === u.id || (source && source === statusIdentity(prev.url));
+    const next = { ...prev, ...u, announced_at: prev.first_confirmed_at ?? u.announced_at,
+      text: samePost ? keepLongerText : u.text };
     // 只在字段真的变了时才计入 updated —— 否则每轮都会「有变化」，
     // 短路形同虚设，自动化会每轮多提交一条空历史（历史上「48 条提交/天」的成因）。
     if (JSON.stringify(next) !== JSON.stringify(prev)) updated++;
+    if (prevId !== u.id) byId.delete(prevId);
     byId.set(u.id, next);
+    for (const alias of recordSources(next)) bySource.set(alias, u.id);
   }
 
   return {
@@ -519,6 +539,66 @@ export function mergeHistory(local = [], upstream = []) {
     added,
     updated,
   };
+}
+
+function statusIdentity(url) {
+  try {
+    const u = new URL(url);
+    if (!/^(?:www\.)?(?:x|twitter)\.com$/i.test(u.hostname)) return null;
+    const m = u.pathname.match(/^\/([^/]+)\/status\/(\d+)(?:\/|$)/i);
+    return m ? `${m[1].toLowerCase()}/${m[2]}` : null;
+  } catch { return null; }
+}
+
+function recordSources(record) {
+  return [record.url, ...(record.confirmation_urls ?? [])].map(statusIdentity).filter(Boolean);
+}
+
+// 缺少事件 id 时只能保守归并短期重复确认；新预告/明确「又一次」可打开新事件。
+export const CONFIRMATION_FOLLOWUP_MS = 2 * 60 * 60_000;
+
+/** 直接完成公告补上第三方收录空窗；旧公告不回填，避免把一次发放的两条公告重算。 */
+export function mergeConfirmedResets(records = [], tweets = [], opts = {}) {
+  const account = opts.account ?? SOURCE_ACCOUNT;
+  const now = opts.now ?? Date.now();
+  const latest = latestEventMs(records);
+  const sources = new Set(records.flatMap(recordSources));
+  const ids = new Set(records.map((r) => r.id));
+  const next = [...records].sort((a, b) => Date.parse(b.announced_at) - Date.parse(a.announced_at));
+  let added = 0;
+  let updated = 0;
+  const trusted = (t) => t?.author_verified === true &&
+    String(t.account).toLowerCase() === account.toLowerCase() &&
+    ['timeline-browser', 'with-replies'].includes(t.foundVia);
+  const forecasts = tweets.filter((t) => trusted(t) && Number.isFinite(Date.parse(t.created_at)) &&
+    Date.parse(t.created_at) <= now).map((t) => analyzeTweet(t, { account }))
+    .filter((a) => a.level === 'explicit' && a.window);
+  for (const t of [...tweets].sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at))) {
+    const at = Date.parse(t?.created_at);
+    if (!Number.isFinite(at) || at <= latest || at > now || !/^\d+$/.test(t?.id ?? '')) continue;
+    // 免登录历史曾混入别人的推文；只有核过作者的浏览器链路可直接改历史。
+    if (!trusted(t)) continue;
+    const event = confirmedResetEvent(t, { account });
+    if (!event || ids.has(event.id) || sources.has(statusIdentity(event.url))) continue;
+    const previous = next[0];
+    const previousAt = Date.parse(previous?.announced_at);
+    const newPromise = forecasts.some((a) => Date.parse(a.createdAt) > previousAt &&
+      Date.parse(a.createdAt) < at && Date.parse(a.window.from) <= at && Date.parse(a.window.to) >= at);
+    const another = /\b(?:another|second|additional|new)\s+(?:full\s+|banked\s+)?reset\b/i.test(t.text);
+    if (previous && at - previousAt <= CONFIRMATION_FOLLOWUP_MS && !newPromise && !another) {
+      next[0] = { ...previous, first_confirmed_at: previous.first_confirmed_at ?? previous.announced_at,
+        confirmation_urls: [...new Set([
+        ...(previous.confirmation_urls ?? []), previous.url, event.url,
+      ].filter(Boolean))] };
+      updated++;
+    } else {
+      next.unshift({ ...event, confirmation_urls: [event.url] });
+      added++;
+    }
+    ids.add(event.id);
+    sources.add(statusIdentity(event.url));
+  }
+  return { records: next, added, updated };
 }
 
 /**
@@ -1013,6 +1093,15 @@ export async function runCollection(opts = {}) {
     }
   }
 
+  const signalNow = Date.now();
+  const confirmed = mergeConfirmedResets(history.records, live.tweets, {
+    now: signalNow, account: opts.account,
+  });
+  history.records = confirmed.records;
+  historyChanged ||= confirmed.added > 0 || confirmed.updated > 0;
+  historyReport.confirmedAdded = confirmed.added;
+  historyReport.confirmedUpdated = confirmed.updated;
+
   // 短路时到此为止：本轮什么都没做，就不该写任何文件。
   //
   // 写了会让「有无变化」的判断失去意义 —— stats.json 的 generated_at 是采集运行时刻，
@@ -1046,7 +1135,7 @@ export async function runCollection(opts = {}) {
   //      · 上界就是 now。
   //    窗口本身写进 signal.json（windowFrom / windowTo），可复核，不是隐含假设。
   const signals = detectSignals(live.tweets, {
-    now: Date.now(),
+    now: signalNow,
     account: opts.account,
     sinceMs: opts.sinceMs ?? resetFloorMs(history.records, opts.resetBufferHours),
     // 已兑现的预告不再作为「未来预告」落进 signal.json（见 signals.mjs 的 staleWindowReason）

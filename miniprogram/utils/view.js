@@ -58,9 +58,8 @@ function headlineOf(top, w) {
 /**
  * 信号横幅视图模型。
  *
- * 规范：**只有拿到了「时间窗口」才进醒目态**。
- * 只有情绪没有时间的推文（「快了」「soon」）不足以支撑一个横幅 ——
- * 那会变成制造焦虑的假信号。
+ * 明确预告即展示；没有给出时间时标为待公布，不虚构窗口。
+ * 只有情绪、未承诺重置的「soon」仍不足以支撑横幅。
  *
  * 这一区**只讲未来**：预告（可行动）> 线索（弱依据兜底）。
  *
@@ -167,7 +166,8 @@ function forecastView(f) {
     show: true,
     level: 'explicit',
     badge: '明确信号',
-    title: 'Tibo 已预告下一次额度重置',
+    title: f.timing === 'pending' ? 'Tibo 已预告重置，时间待公布' : 'Tibo 已预告下一次额度重置',
+    timing: f.timing || '',
     precision: PRECISION_TEXT[f.precision] || f.precision || '',
     headline: headlineOf(f, w),
     window: windowView(w),
@@ -182,7 +182,7 @@ function forecastView(f) {
       ? `另见 ${unadopted.map((x) => x.word).join(' / ')} 钟点线索，语境与额度无关，未纳入窗口`
       : '',
     text: f.text || '',
-    timeNote: f.timeNote || '',
+    timeNote: f.timeNote || (f.timing === 'pending' ? '具体时间待公布' : ''),
     reason: (f.reasons || []).join('、'),
     createdText: '',
     url: f.url || '',
@@ -399,10 +399,10 @@ export function buildOutlookView(chart, pred, sig, now) {
   } else {
     const n = b.intervals ? `按 ${b.intervals} 次历史间隔的节奏推算` : '按历史间隔的节奏推算';
     const scan =
-      b.scanned == null
+      b.pendingAnnouncement || b.scanned == null
         ? ''
         : `本轮扫描 ${b.scanned} 条推文${b.hints ? `，${b.hints} 条时间线索` : ''}均不足以构成预告。`;
-    brief = `没有公告，${n}。${scan}`;
+    brief = `${b.pendingAnnouncement ? '已预告重置，具体时间待公布' : '没有公告'}，${n}。${scan}`;
   }
 
   // 区间：announced 档就是公告窗口本身，model 档是 80% 双侧区间 [q10, q90]。

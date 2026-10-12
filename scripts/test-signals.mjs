@@ -617,11 +617,10 @@ console.log('\n【4】汇总接口 + 真实数据回归');
   // and I promised a reset」就是硬预告。
   //
   // 所以要钉的是**预告的准入条件**，不是「不许有预告」：
-  // 凡是判成 explicit 的，必须能给出可复核的时间窗口与判定依据。
-  // 没有窗口的「快了」不算预告 —— 那会变成制造焦虑的假信号。
+  // 明确承诺重置但未给时间时标 pending；其余预告给出可复核窗口。
   check(
-    '明确预告必须都给得出时间窗口（空话不算预告）',
-    sig.signals.every((s) => !!s.window),
+    '明确预告必须有窗口或标明时间待公布',
+    sig.signals.every((s) => !!s.window || s.timing === 'pending'),
     sig.signals.map((s) => `${s.id}:${!!s.window}`).join(',')
   );
   check(
@@ -1170,8 +1169,8 @@ console.log('\n【10】带窗口的线索：窗口过去或被兑现后，撤回
   const culprit = sig.hints.find((s) => s.id === '2104981170685616361');
   check('真实语料：本次事故那条推文的窗口已撤回', !culprit || culprit.window === null, culprit ? JSON.stringify(culprit.window) : '（已不在留档范围内）');
   check(
-    '真实语料：渲染层不再出现窗口块',
-    !renderSignal(sig).includes('sig-win'),
+    '真实语料：渲染层不再展示已过期的事故窗口（新的预告可以保留）',
+    !renderSignal(sig).includes('2026.09.30（周三）14:59'),
     renderSignal(sig).slice(0, 140)
   );
 }
@@ -1297,7 +1296,8 @@ console.log('\n【11】完成句式的单复数 + lastResetAt 不可省');
   const records = JSON.parse(await readFile(resolve(ROOT, 'data/resets.json'), 'utf8')).records;
   const NOW = new Date('2026-09-30T15:00:00.000Z').getTime();
   const without = detectSignals(tweets, { now: NOW, account: 'thsottiaux' });
-  const withIt = detectSignals(tweets, { now: NOW, account: 'thsottiaux', lastResetAt: latestEventMs(records) });
+  const withIt = detectSignals(tweets, { now: NOW, account: 'thsottiaux',
+    lastResetAt: latestEventMs(records.filter((r) => Date.parse(r.announced_at) <= NOW)) });
   check(
     '传/不传 lastResetAt 会得出不同的 level（不传 → 把已兑现的预告当预告）',
     without.level !== withIt.level,
@@ -1605,6 +1605,59 @@ console.log('\n【14】寒暄句里的时间词，不当成对重置的承诺（
     mx.level === 'explicit' && mx.timeWord === 'next tuesday',
     mx.level + '/' + String(mx.timeWord)
   );
+}
+
+console.log('\n【14】预告与完成的边界：未到、否定、同日再次预告');
+{
+  const at = '2026-10-10T22:16:20.000Z';
+  for (const text of ['A reset is coming for everyone.', 'The reset has not propagated yet.']) {
+    check(`未到不是已发生：${text}`, run(text, at).level !== 'occurred');
+  }
+  check('分句降级沿用原公告日期，不能把过期承诺变成事实', !hasOccurredPart({
+    id: 'dated', text: 'A reset on 2026-09-02.', createdAt: '2026-09-01T18:00:00.000Z',
+  }));
+  for (const text of ['We will not reset usage limits tomorrow.', 'Your model weights have been reset.']) {
+    const r = run(text, at);
+    check(`否定或非额度语境不报信号：${text}`, r.level === 'none' && r.window === null);
+  }
+  const promised = [{ id: 'again', text: 'Another reset today.', created_at: at }];
+  const now = Date.parse(at) + 60_000;
+  check('同日较早重置不能兑现后来发布的预告', detectSignals(promised, {
+    now, lastResetAt: Date.parse('2026-10-10T20:00:00Z'),
+  }).forecasts.length === 1);
+  check('新预告发布后再重置才撤回', detectSignals(promised, {
+    now, lastResetAt: Date.parse(at) + 30_000,
+  }).forecasts.length === 0);
+  check('未来记录不能提前兑现预告', detectSignals(promised, {
+    now, lastResetAt: now + 60_000,
+  }).forecasts.length === 1);
+}
+
+console.log('\n【15】明确预告可以尚未给出时间');
+{
+  const at = '2026-10-11T10:00:00.000Z';
+  const now = Date.parse(at) + 60_000;
+  const tweet = { id: 'untimed', text: 'A reset is coming for everyone.', created_at: at };
+  for (const text of [tweet.text, 'We will reset everyone’s limits.', 'A reset is coming soon.']) {
+    const a = run(text, at);
+    check(`未定时间仍是明确预告：${text}`, a.level === 'explicit' && a.timing === 'pending' && a.window === null);
+  }
+  const sig = detectSignals([tweet], { now });
+  const f = sig.forecasts[0];
+  check('未定时间预告进入统一 forecasts', f?.timing === 'pending' && f.window === null && f.evidence[0]?.id === tweet.id);
+  const html = renderSignal(sig);
+  check('网页显示已预告且时间待公布', html.includes('已预告') && html.includes('具体时间待公布') && !html.includes('没有检测到重置预告'));
+  check('未定时间预告不造倒计时', !html.includes('data-from=') && !html.includes('NaN'));
+  check('发布之后发生重置才撤回未定时间预告', detectSignals([tweet], { now, lastResetAt: now - 1 }).forecasts.length === 0);
+  check('较早重置不会撤回未定时间预告', detectSignals([tweet], { now, lastResetAt: Date.parse(at) - 1 }).forecasts.length === 1);
+  check('未来记录不能提前兑现未定时间预告', detectSignals([tweet], { now, lastResetAt: now + 1 }).forecasts.length === 1);
+  for (const text of ['Soon!', 'A reset is not coming.', 'Is a reset coming?', 'Maybe a reset is coming.', 'A reset was coming.', 'A reset or an update is coming.']) {
+    check(`情绪、否定、疑问或非承诺不升为未定时间预告：${text}`, run(text, at).level !== 'explicit');
+  }
+  const reply = { ...tweet, text: 'It is still coming.', inReplyTo: { account: 'someone', text: 'When will we get a reset of our usage limits?' } };
+  check('明确回应重置话题但无时间也展示预告', detectSignals([reply], { now }).forecasts[0]?.timing === 'pending');
+  const withDate = detectSignals([tweet, { ...tweet, id: 'dated', text: 'A reset is coming tomorrow.' }], { now });
+  check('有日期时优先展示日期，未定时间证据仍保留', !!withDate.forecasts[0]?.window && withDate.forecasts.some((x) => x.timing === 'pending'));
 }
 
 /* ================================ 结果 ================================ */

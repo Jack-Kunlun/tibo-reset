@@ -9,9 +9,9 @@
  *
  * 信号分四级：
  *
- *   explicit  重置意图 + 可解析的未来时间 → 明确预告，给出时间窗口
+ *   explicit  明确预告重置；给出时间则附窗口，否则 timing=pending
  *   occurred  **已经发生**的重置（「A reset…」/「reset all propagated」）→ 记录事实
- *   hint      只命中一半（有时间没意图，或有意圖没时间）→ 只作线索，不当信号展示
+ *   hint      只有时间或额度话题、未明确承诺重置 → 只作线索
  *   none      其余
  *
  * 为什么要有 occurred：观测台要回答的第一个问题是「上次重置是什么时候」。
@@ -155,7 +155,7 @@ const RE_RESET_NOT_YET =
 //   「Resets all propagated. That will be all.」→ 复数，被漏掉（见 KI-012）
 // 只差一个 s，信号层就静默丢掉一次真重置：它既不是 occurred、又会被「过期预告」
 // 规则撤走，最后两条链路都不认它。
-const RE_PAST = /\bresets?\s+(?:all\s+)?(?:propagated|complete[ds]?|done|rolled|finished|is\s+live|live|deployed|landed)\b|\b(?:has|have|had|is|are|was|were|been)\s+(?:now\s+)?(?:been\s+)?reset\b|\bresets?\s+(?:has|have)\b/i;
+const RE_PAST = /\bresets?\s+(?:all\s+)?(?:propagated|complete[ds]?|done|rolled|finished|is\s+live|live|deployed|landed)\b|\b(?:has|have|had|is|are|was|were|been)\s+(?:now\s+)?(?:been\s+)?reset\b|\bresets?\s+(?:has|have)\s+(?:now\s+)?(?:been\s+)?(?:propagated|completed|finished|landed)\b/i;
 // 与额度无关的发布/宣传语境
 const RE_LAUNCH = /\b(launch(?:ing|ed)?|keynote|ship(?:ping|ped)?|releas(?:e|ing|ed)|announc(?:e|ing|ed|ement)|blog|demo|podcast|feature|model|styleguide|api|mcp|codex app|chatgpt app|super ?app)\b/i;
 
@@ -218,6 +218,26 @@ const RE_DENIED =
   /\b(?:can(?:not|[’']?t)|won[’']?t|will\s+not|wouldn[’']?t|don[’']?t|doesn[’']?t|didn[’']?t|not|never|no|unable\s+to)\b(?:\s+\w+){0,3}\s+reset/i;
 const RE_ALTERNATIVE = /\b(?:or|either)\b(?:\s+\w+){0,3}\s+reset/i;
 
+// 否定完成与无关对象也必须挡住预告分支，不能只给 occurred 扣分。
+const RE_NEGATED_COMPLETION = /\bresets?\s+(?:(?:has|have|is|are|was|were)\s+)?(?:not|never|hasn[’']t|haven[’']t|isn[’']t)\s+(?:been\s+|yet\s+)?(?:propagated|completed?|done|finished|landed|happened|live|available)\b/i;
+const RE_OTHER_RESET = /\bmodel\s+weights?\b/i;
+function blockedResetSentence(text) {
+  return RE_DENIED.test(text) || RE_NEGATED_COMPLETION.test(text) || RE_OTHER_RESET.test(text) ||
+    /\b(?:not|never|isn[’']t|aren[’']t|won[’']t)\b[^.!?]{0,24}\b(?:coming|landing|arriving|inbound|on\s+the\s+way)\b/i.test(text);
+}
+
+// 「是否会重置」与「何时重置」分开判断；单独的 soon 及疑问、愿望不构成承诺。
+function hasUntimedAnnouncement(text, viaContext) {
+  return splitSentences(text).some((s) => {
+    if (!RE_RESET.test(s) && !(viaContext && RE_CONTINUE.test(s))) return false;
+    if (blockedResetSentence(s) || RE_HYPOTHETICAL.test(s) || s.trim().endsWith('?') ||
+      /\b(?:maybe|hope|wish|or|either|was|were|had|yesterday|previously)\b/i.test(s)) return false;
+    return RE_RESET_NOT_YET.test(s) ||
+      /\b(?:will|we[’']ll|i[’']ll|gonna|going\s+to|plan(?:ning)?\s+to|soon)\b/i.test(s) ||
+      (viaContext && RE_CONTINUE.test(s));
+  });
+}
+
 /**
  * 将来完成时：「will have reset … by tomorrow」不是已完成。
  *
@@ -250,13 +270,14 @@ const RE_FUTURE_PERFECT =
 export function hasOccurredReset(text) {
   const t = String(text ?? '');
   if (!RE_RESET.test(t)) return false;
+  if (blockedResetSentence(t)) return false;
   if (RE_HYPOTHETICAL.test(t)) return false;
   if (RE_FUTURE_PERFECT.test(t)) return false;
   // 完成句式（reset all propagated / has been reset / reset is live）是强证据：
   // 即使同一句里还夹着别的未来语气，这条重置也已经发生了。
   if (RE_PAST.test(t)) return true;
   // 名词化是弱证据，只在这条没有未来语气时才作数。
-  if (RE_FUTURE.test(t)) return false;
+  if (RE_FUTURE.test(t) || RE_RESET_NOT_YET.test(t)) return false;
   // ……且只在这句话没有把它否定掉、或把它摆成备选项时才作数。
   // 纯文本层的判定，所以放在最后一道 —— 前面全是「否决」条件，
   // 否认不掉的才轮到这条弱证据成立。见 RE_DENIED / RE_ALTERNATIVE 的注释。
@@ -319,7 +340,8 @@ export function hasOccurredPart(tweet, opts = {}) {
       // 那是把预告读成事实，与 D-040 要修的是同一个病，只是晚 29 小时发作。
       .filter((s) => !RE_RESET_NOT_YET.test(s))
       .some(
-        (s) => analyzeTweet({ ...tweet, text: s }, { ...opts, partScan: false }).level === 'occurred'
+        (s) => analyzeTweet({ ...tweet, text: s, created_at: tweet.created_at ?? tweet.createdAt },
+          { ...opts, partScan: false }).level === 'occurred'
       )
   );
 }
@@ -984,7 +1006,9 @@ export function analyzeTweet(tweet, opts = {}) {
     }
   }
 
-  const times = parseTimes(text, refTs, sourceZone);
+  const temporalText = splitSentences(text)
+    .filter((s) => !RE_RESET.test(s) || !blockedResetSentence(s)).join(' ');
+  const times = parseTimes(temporalText, refTs, sourceZone);
 
   /* 时间词收缩到「讲重置的那些句子」里（D-040）。
    *
@@ -1068,6 +1092,12 @@ export function analyzeTweet(tweet, opts = {}) {
     createdZones: { a: createdZones.a, b: createdZones.b, diffText: createdZones.diffText },
   };
 
+  const resetSentences = splitSentences(text).filter((s) => RE_RESET.test(s));
+  if (resetSentences.length && resetSentences.every(blockedResetSentence)) {
+    return { ...base, level: 'none', rejected: '重置被否定或对象并非使用额度', intent: 0,
+      window: null, candidateWindow: null };
+  }
+
   /* 判定顺序很重要：**先判「已发生」，再谈预告**。
    *
    * 已发生的重置是既成事实，比预告更硬；而且它正是观测台的主问题
@@ -1125,6 +1155,11 @@ export function analyzeTweet(tweet, opts = {}) {
   }
 
   if (!timeOpts.length) {
+    if (intent >= 3 && !times.length && hasUntimedAnnouncement(text, viaContext)) {
+      return { ...base, level: 'explicit', timing: 'pending', rejected: null, intent,
+        window: null, candidateWindow: null,
+        reasons: [...reasons, '明确预告重置，具体时间待公布'] };
+    }
     return {
       ...base,
       level: 'hint',
@@ -1164,6 +1199,38 @@ export function analyzeTweet(tweet, opts = {}) {
       // 借上下文推断的，依据链多一环，置信度相应扣一点
       (viaContext ? 0.08 : 0),
   };
+}
+
+/** 只有明确完成的公告才可直接入历史；名词化陈述、正在发卡都不等于完成。 */
+export function confirmedResetEvent(tweet, opts = {}) {
+  const a = analyzeTweet(tweet, opts);
+  if (a.level !== 'occurred') return null;
+  const parts = splitSentences(a.text);
+  const refTs = Date.parse(a.createdAt);
+  const sourceZone = opts.sourceZone ?? SOURCE_ZONE;
+  const refYear = localParts(refTs, sourceZone).y;
+  const historicalDate = (s) => [...s.matchAll(/\b(20\d{2})\b/g)].some((m) => Number(m[1]) < refYear) ||
+    parseTimes(s, refTs, sourceZone).some((w) => w.to < refTs);
+  const direct = (s) => !blockedResetSentence(s) && !s.trim().endsWith('?') &&
+    !/\b(?:yesterday|last\s+(?:week|month|year|night|monday|tuesday|wednesday|thursday|friday|saturday|sunday)|previous(?:ly)?)\b/i.test(s) &&
+    !RE_HYPOTHETICAL.test(s) && !RE_FUTURE_PERFECT.test(s) && !historicalDate(s);
+  const partial = (s) => /\b(?:single|one\s+(?:account|of)|some|few|selected|subset|only|my|not\s+all|pro(?:\s+\d+)?|plus|team|enterprise|business)\b/i.test(s);
+  const global = (s) => !partial(s) && /\b(?:all|everyone|everybody|global)\b/i.test(s);
+  // 自动入库比信号分类更窄：只认可复核的完整完成句，未知修饰语留给上游补正。
+  const completionForm = (s) => [
+    /^resets?\s+all\s+(?:propagated|completed?|done|finished|live|deployed|landed)[.!]?$/i,
+    /^(?:(?:the|another|a|global)\s+)?reset\s+(?:has\s+(?:now\s+)?(?:been\s+)?|is\s+)?(?:all\s+)?(?:propagated|completed?|done|finished|live|landed)(?:\s+(?:for|across)\s+all\s+(?:paid\s+)?(?:accounts|users))?[.!]?$/i,
+    /^(?:everyone[’']s\s+(?:usage\s+)?limits|(?:the\s+)?(?:usage\s+)?limits|all\s+(?:usage\s+)?limits)\s+have\s+(?:now\s+)?(?:been\s+)?reset(?:\s+for\s+all\s+(?:paid\s+)?(?:users|accounts|subscriptions)(?:\s+of\s+(?:Codex\s+and\s+ChatGPT\s+Work|ChatGPT\s+Work\s+and\s+Codex))?)?[.!]?$/i,
+  ].some((re) => re.test(s.trim()));
+  const done = parts.some((s) => RE_RESET.test(s) && direct(s) && RE_PAST.test(s) &&
+    global(s) && completionForm(s));
+  // 真实公告「Put the reset in the bag. All propagated.」的完成谓语独占下一句。
+  const propagated = parts.some((s, i) => /^all\s+propagated[.!]?$/i.test(s.trim()) &&
+    i > 0 && direct(parts[i - 1]) && !partial(parts[i - 1]) && RE_RESET.test(parts[i - 1]) &&
+    hasOccurredReset(parts[i - 1]) && /^put the reset in the bag[.!]?$/i.test(parts[i - 1].trim()));
+  if (!done && !propagated) return null;
+  return { id: a.id, announced_at: a.createdAt, type: RE_CREDIT.test(a.text) ? 'credit' : 'reset',
+    text: a.text, url: a.url, attribution: `x.com/${a.account}` };
 }
 
 /* --------------------------- 跨推文证据聚合 --------------------------- */
@@ -1309,7 +1376,7 @@ export function buildForecasts(signals = [], hypothesis = null) {
   const groups = new Map();
   for (const s of signals ?? []) {
     const w = s?.window;
-    if (!w) continue; // 没有窗口就没有「预告」可言，只是情绪
+    if (!w) continue; // 未定时间的明确预告在下方独立归组，不替它虚构日期。
     const key = Number.isFinite(w.dayNum)
       ? `d${w.dayNum}`
       : `t${w.fromTs ?? w.from}|${w.toTs ?? w.to}`;
@@ -1360,8 +1427,18 @@ export function buildForecasts(signals = [], hypothesis = null) {
     };
   });
 
-  // 先到的窗口排前面：真要出现两个未来窗口，先看更早到期的那个。
-  return list.sort((a, b) => (a.window.fromTs ?? 0) - (b.window.fromTs ?? 0));
+  // 有日期的预告优先；未定时间的承诺保留全部依据，但不擅自归到某个日期。
+  list.sort((a, b) => (a.window.fromTs ?? 0) - (b.window.fromTs ?? 0));
+  const pending = (signals ?? []).filter((s) => s.timing === 'pending' && !s.window);
+  if (pending.length) {
+    const lead = [...pending].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+    list.push({ level: 'explicit', timing: 'pending', window: null, precision: null,
+      text: lead.text, url: lead.url, createdAt: lead.createdAt, createdZones: lead.createdZones,
+      reasons: lead.reasons ?? [], timeNote: '具体时间待公布', sources: pending.length,
+      evidence: pending.map((s) => asEvidence(s, 'hard', '已预告重置，尚未给出时间')),
+      counts: { hard: pending.length, soft: 0 }, clockHints: [] });
+  }
+  return list;
 }
 
 /** 把一条信号降级成证据条目（结构对齐 buildHypothesis 的 evidence）。 */
@@ -1574,7 +1651,7 @@ export function detectSignals(tweets, opts = {}) {
    *
    * 两道判据，任一成立即视为过期：
    *   ① 窗口已经过去（to < now）—— 预告落空或已兑现，都不该再作为「未来预告」出现
-   *   ② 窗口开启之后已发生过重置（lastResetAt >= from）—— 预告兑现了
+   *   ② 窗口开启且预告发布之后已发生过重置 —— 同日更早的重置不能兑现新预告
    *
    * 为什么 ② 不用「落在窗口内」当判据：重置也可能发生在窗口**结束之后**（他预告周二、
    * 实际周三才按按钮），那同样说明这条预告不再是「待验证的未来」。`>= from` 一并覆盖，
@@ -1604,12 +1681,15 @@ export function detectSignals(tweets, opts = {}) {
   // 撤回理由也要落进 reasons 里给人看。
   const staleWindowReason = (a) => {
     const w = a?.window;
-    if (!w) return null;
+    const publishedAt = new Date(a.createdAt).getTime();
+    if (!w) return a.level === 'explicit' && a.timing === 'pending' &&
+      lastResetAt > publishedAt && lastResetAt <= now ? 'fulfilled' : null;
     const from = new Date(w.from).getTime();
     const to = new Date(w.to).getTime();
     if (!Number.isFinite(from) || !Number.isFinite(to)) return null;
     if (to < now) return 'past';
-    return lastResetAt > 0 && lastResetAt >= from ? 'fulfilled' : null;
+    return lastResetAt > 0 && lastResetAt <= now && lastResetAt >= from &&
+      lastResetAt > publishedAt ? 'fulfilled' : null;
   };
   const STALE_REASON_TEXT = {
     past: '窗口已过去：撤回窗口（原文留档，不再作为未来线索展示）',
@@ -1674,7 +1754,7 @@ export function detectSignals(tweets, opts = {}) {
   const hints = live.filter((a) => a.level === 'hint');
   const rejected = live.filter((a) => a.level === 'none' && a.rejected);
 
-  // 优先级的语义：explicit 是「他对下一次重置给了时间」，可行动；
+  // 优先级的语义：explicit 是「他明确预告下一次重置」，时间可以待公布；
   // occurred 是「刚刚重置过」，是事实。两者都会在页面上并列展示，
   // 这里只决定横幅的主色调，所以 explicit 优先。
   const level = explicit.length
@@ -1727,7 +1807,7 @@ export function detectSignals(tweets, opts = {}) {
     rejected: rejected.slice(0, MAX_LISTED),
     // 综合假设：跨推文聚合的产物，回答「凭什么说这个时间」。
     hypothesis,
-    // 预告：**一个时间窗口 = 一条预告**，每条挂着支撑它的推文（1 条或多条）。
+    // 带时间的预告按窗口归组；未定时间的明确预告独立保留原文依据。
     // 渲染层只认这个字段 —— 页面上不再有「横幅 + 另一行计数 + 另一个折叠块」
     // 这种把一个结论拆三处的排法（见 decisions.md 的 D-018）。
     forecasts: buildForecasts(explicit, hypothesis),

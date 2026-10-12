@@ -27,6 +27,7 @@ import {
   resetFloorMs,
 } from '../src/lib/collect.mjs';
 import { normalizeTimelineItems, isKnownScreen, pairReplyContext, harvestExpression } from '../src/lib/browser.mjs';
+import { runInNewContext } from 'node:vm';
 
 let pass = 0;
 const failures = [];
@@ -336,7 +337,7 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
     { id: 'blank-text', time: '2026-09-13T00:00:00.000Z', text: '   ' },
     { id: '2032988000000000000', time: '2026-05-27T15:04:28.000Z', text: '远早于下界的旧推文' },
   ];
-  const kept = normalizeTimelineItems(items, {
+  const kept = normalizeTimelineItems(items.map((it) => ({ ...it, author: 'thsottiaux' })), {
     handle: 'thsottiaux',
     // 这一段测的是 normalizeTimelineItems 本身（去重 / 排序 / 裁剪 / 边界包含），
     // 所以下界在这里写死、不跟着上面 floor 的语义漂 —— 否则「发券型算不算重置」
@@ -360,6 +361,12 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
     kept[1]?.url
   );
   check('空输入不抛错', normalizeTimelineItems(undefined).length === 0, '');
+  check('真实匹配作者被标记为已核验', kept.every((t) => t.author_verified === true));
+  for (const author of ['someone', '', undefined]) {
+    check(`引用了目标 status 但作者为 ${author ?? '未知'} 时不收录`, normalizeTimelineItems([
+      { ...items[0], author },
+    ], { handle: 'thsottiaux' }).length === 0);
+  }
 }
 
 /* ================== 民调字段（正文之外唯一的量化民意） ================== */
@@ -381,7 +388,7 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
     totalVotes: 74565,
     status: '74,565 次投票 · 最终结果',
   };
-  const [a] = normalizeTimelineItems([{ id: '1', time: '2026-09-13T00:00:00.000Z', text: 'Vote', poll }], {
+  const [a] = normalizeTimelineItems([{ id: '1', author: 'thsottiaux', time: '2026-09-13T00:00:00.000Z', text: 'Vote', poll }], {
     handle: 'thsottiaux',
   });
   check('民调字段被透传（选项全在这儿）', a?.poll?.options?.length === 2, JSON.stringify(a?.poll));
@@ -392,7 +399,7 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
 
   // 进行中的形态：pct 全为 null 也要留下 —— 那时候能拿到的信息是「他在问什么」。
   const [c] = normalizeTimelineItems(
-    [{ id: '3', time: '2026-09-13T00:00:00.000Z', text: 'To calibrate', poll: { options: [{ text: 'x', pct: null }], totalVotes: 27286, status: '27,286 次投票 · 剩下 2 分钟' } }],
+    [{ id: '3', author: 'thsottiaux', time: '2026-09-13T00:00:00.000Z', text: 'To calibrate', poll: { options: [{ text: 'x', pct: null }], totalVotes: 27286, status: '27,286 次投票 · 剩下 2 分钟' } }],
     { handle: 'thsottiaux' }
   );
   check('进行中的民调（pct 为空）同样保留', c?.poll?.options?.[0]?.pct === null && c?.poll?.totalVotes === 27286, JSON.stringify(c?.poll));
@@ -400,7 +407,7 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
   // 反例：没有民调的条目**不许凭空长出一个字段**。
   // 写成 `poll: it.poll ?? null` 的话，tweets.json 里每条都会多一个 poll:null，
   // 体积白涨、diff 全是噪音，而它一个字的信息都没带。
-  const [b] = normalizeTimelineItems([{ id: '2', time: '2026-09-13T00:00:00.000Z', text: 'no poll' }], { handle: 'x' });
+  const [b] = normalizeTimelineItems([{ id: '2', author: 'x', time: '2026-09-13T00:00:00.000Z', text: 'no poll' }], { handle: 'x' });
   check('没有民调时不写这个字段', !('poll' in b), JSON.stringify(Object.keys(b)));
 }
 
@@ -413,6 +420,21 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
    * 明知它弱还留着：这段一旦被删，采集会**静默**少一个字段，
    * 库里没有任何别的断言能发现。 */
   const expr = harvestExpression('thsottiaux');
+  // 真正执行 DOM 抽取表达式：引用卡里有他的 status 链接，不代表正文作者是他。
+  const article = (author) => ({
+    querySelector(selector) {
+      if (selector === '[data-testid="tweetText"]') return { innerText: 'Reset all propagated.' };
+      if (selector === 'time') return { getAttribute: () => '2026-10-11T04:01:09.000Z' };
+      if (selector === '[data-testid="User-Name"]') return { innerText: author ? `Name @${author}` : '' };
+      return null;
+    },
+    querySelectorAll: () => [{ getAttribute: () => '/thsottiaux/status/2109132167112782291' }],
+  });
+  for (const author of ['someone', '', 'thsottiaux']) {
+    const [raw] = runInNewContext(expr, { document: { querySelectorAll: () => [article(author)] } });
+    check(`DOM 引用卡作者 ${author || '未知'} 的 status 归属`, author === 'thsottiaux' ?
+      raw.id === '2109132167112782291' : raw.id === '' && raw.url === '');
+  }
   /* 扫描前**必须先剥掉注释**：表达式里带着中文说明，而说明里为了讲清「不许按语言
    * 匹配票数」正好引用了 `votes` / `次投票` 这两个词 —— 不剥注释，那条守卫会被
    * 自己的注释弄红，然后下一个人就会去改断言而不是改代码。
