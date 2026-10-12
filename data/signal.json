@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-11T23:46:56.749Z",
-  "checkedTweets": 345,
+  "generatedAt": "2026-10-12T00:51:25.156Z",
+  "checkedTweets": 349,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-12T23:46:56.749Z",
-  "windowTo": "2026-10-11T23:46:56.749Z",
+  "windowFrom": "2026-08-13T00:51:25.156Z",
+  "windowTo": "2026-10-12T00:51:25.156Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.12",
       "weekday": "周一",
-      "time": "07:46",
-      "text": "2026.10.12（周一）07:46",
+      "time": "08:51",
+      "text": "2026.10.12（周一）08:51",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,33 +98,36 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.11",
       "weekday": "周日",
-      "time": "16:46",
-      "text": "2026.10.11（周日）16:46",
+      "time": "17:51",
+      "text": "2026.10.11（周日）17:51",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2109430343346581527",
+    "id": "2109439813900493102",
     "account": "thsottiaux",
-    "text": "Day 7/ We have increased default context length for GPT-6.1 Sol to 500k when used through Codex & Work, up from 272k or an ~ 80% increase. We will go higher in the future, but it helps reduce occurrence of compactions and with tasks that require keeping a lot of context and nuance over periods of time. It was carefully tested and is the new sweet spot for most of our users. You can still override it if you want to be higher our lower, with maximum context length of GPT-6.1 Sol of 1M.",
-    "createdAt": "2026-10-11T23:45:59.000Z",
-    "url": "https://x.com/thsottiaux/status/2109430343346581527",
+    "text": "Neither. It's all about coding by hand these days",
+    "createdAt": "2026-10-12T00:23:37.000Z",
+    "url": "https://x.com/thsottiaux/status/2109439813900493102",
     "reasons": [
-      "命中「新额度」类词 fresh/new/top up",
-      "含未来语气"
+      "上下文：回复 @AnkanXplorer「Codex is way better (now) than Claud…」"
     ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "AnkanXplorer",
+      "id": "",
+      "text": "Codex is way better (now) than Claude code. Who else agrees?"
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.10.12",
         "weekday": "周一",
-        "time": "07:45",
-        "text": "2026.10.12（周一）07:45",
+        "time": "08:23",
+        "text": "2026.10.12（周一）08:23",
         "offset": "UTC+8"
       },
       "b": {
@@ -132,15 +135,15 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.11",
         "weekday": "周日",
-        "time": "16:45",
-        "text": "2026.10.11（周日）16:45",
+        "time": "17:23",
+        "text": "2026.10.11（周日）17:23",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
     "level": "none",
     "rejected": "无额度相关词",
-    "intent": 1,
+    "intent": 0,
     "window": null,
     "candidateWindow": null
   },
@@ -492,6 +495,88 @@
     }
   ],
   "hints": [
+    {
+      "id": "2109439315570999598",
+      "account": "thsottiaux",
+      "text": "The results of this poll has gotten me confused. I definitely thought it would sway much more favorably in the 2X direction across Pro 100/200/500 at the cost of bringing back 5h limits in order to smoothen the demand curve.",
+      "createdAt": "2026-10-12T00:21:38.000Z",
+      "url": "https://x.com/thsottiaux/status/2109439315570999598",
+      "reasons": [
+        "命中额度词 limits/usage/credits",
+        "命中「新额度」类词 fresh/new/top up"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.12",
+          "weekday": "周一",
+          "time": "08:21",
+          "text": "2026.10.12（周一）08:21",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.11",
+          "weekday": "周日",
+          "time": "17:21",
+          "text": "2026.10.11（周日）17:21",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "有额度意图但没给出时间，只能作线索",
+      "intent": 3,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2109430894604026039",
+      "account": "thsottiaux",
+      "text": "With this change, we are not charging long context fees for GPT-6.1 Sol when drawing usage from the subscription.",
+      "createdAt": "2026-10-11T23:48:11.000Z",
+      "url": "https://x.com/thsottiaux/status/2109430894604026039",
+      "reasons": [
+        "命中额度词 limits/usage/credits",
+        "上下文：回复 @birdabo「just ratiod the reset man (tibo) are…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "birdabo",
+        "id": "",
+        "text": "just ratiod the reset man (tibo) are you proud of me @poteto"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.12",
+          "weekday": "周一",
+          "time": "07:48",
+          "text": "2026.10.12（周一）07:48",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.11",
+          "weekday": "周日",
+          "time": "16:48",
+          "text": "2026.10.11（周日）16:48",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "有额度意图但没给出时间，只能作线索",
+      "intent": 2,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2109090080497508356",
       "account": "thsottiaux",
@@ -1965,7 +2050,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-11T23:46:56.749Z"
+        "checkedAt": "2026-10-12T00:51:25.156Z"
       }
     },
     {
@@ -2760,6 +2845,90 @@
   ],
   "rejected": [
     {
+      "id": "2109439813900493102",
+      "account": "thsottiaux",
+      "text": "Neither. It's all about coding by hand these days",
+      "createdAt": "2026-10-12T00:23:37.000Z",
+      "url": "https://x.com/thsottiaux/status/2109439813900493102",
+      "reasons": [
+        "上下文：回复 @AnkanXplorer「Codex is way better (now) than Claud…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "AnkanXplorer",
+        "id": "",
+        "text": "Codex is way better (now) than Claude code. Who else agrees?"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.12",
+          "weekday": "周一",
+          "time": "08:23",
+          "text": "2026.10.12（周一）08:23",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.11",
+          "weekday": "周日",
+          "time": "17:23",
+          "text": "2026.10.11（周日）17:23",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2109438305188327838",
+      "account": "thsottiaux",
+      "text": "We're all proud of you @birdabo . Thank you for solving this one, hadn't thought about it",
+      "createdAt": "2026-10-12T00:17:38.000Z",
+      "url": "https://x.com/thsottiaux/status/2109438305188327838",
+      "reasons": [
+        "上下文：回复 @birdabo「just ratiod the reset man (tibo) are…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "birdabo",
+        "id": "",
+        "text": "just ratiod the reset man (tibo) are you proud of me @poteto"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.12",
+          "weekday": "周一",
+          "time": "08:17",
+          "text": "2026.10.12（周一）08:17",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.11",
+          "weekday": "周日",
+          "time": "17:17",
+          "text": "2026.10.11（周日）17:17",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
       "id": "2109430343346581527",
       "account": "thsottiaux",
       "text": "Day 7/ We have increased default context length for GPT-6.1 Sol to 500k when used through Codex & Work, up from 272k or an ~ 80% increase. We will go higher in the future, but it helps reduce occurrence of compactions and with tasks that require keeping a lot of context and nuance over periods of time. It was carefully tested and is the new sweet spot for most of our users. You can still override it if you want to be higher our lower, with maximum context length of GPT-6.1 Sol of 1M.",
@@ -2767,10 +2936,15 @@
       "url": "https://x.com/thsottiaux/status/2109430343346581527",
       "reasons": [
         "命中「新额度」类词 fresh/new/top up",
-        "含未来语气"
+        "含未来语气",
+        "上下文：回复 @birdabo「just ratiod the reset man (tibo) are…」"
       ],
       "viaContext": false,
-      "inReplyTo": null,
+      "inReplyTo": {
+        "account": "birdabo",
+        "id": "",
+        "text": "just ratiod the reset man (tibo) are you proud of me @poteto"
+      },
       "createdZones": {
         "a": {
           "label": "北京时间",
@@ -2969,13 +3143,13 @@
       "createdAt": "2026-10-11T01:18:12.000Z",
       "url": "https://x.com/thsottiaux/status/2109091159784198475",
       "reasons": [
-        "上下文：回复 @ConnorTalksAI「You are sitting next to Tibo and get…」"
+        "上下文：回复 @ziwenxu_「General question: does anyone actual…」"
       ],
       "viaContext": false,
       "inReplyTo": {
-        "account": "ConnorTalksAI",
+        "account": "ziwenxu_",
         "id": "",
-        "text": "You are sitting next to Tibo and get 3 words… What do you say?"
+        "text": "General question: does anyone actually use OpenAI Dot, or pay for Codex just for Dot?"
       },
       "createdZones": {
         "a": {
@@ -3096,13 +3270,13 @@
       "createdAt": "2026-10-11T00:05:17.000Z",
       "url": "https://x.com/thsottiaux/status/2109072811113488768",
       "reasons": [
-        "上下文：回复 @maria_rcks「so they ran out of things to release…」"
+        "上下文：回复 @elonmusk「To buy stuff, you can just take a pi…」"
       ],
       "viaContext": false,
       "inReplyTo": {
-        "account": "maria_rcks",
+        "account": "elonmusk",
         "id": "",
-        "text": "so they ran out of things to release / improve?"
+        "text": "To buy stuff, you can just take a picture of your credit card, drop it in the chat and Grok @Bot will scour the Internet for the best deal on the item you want and order it"
       },
       "createdZones": {
         "a": {
@@ -10880,102 +11054,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2103961852153913371",
-      "account": "thsottiaux",
-      "text": "Truth is, there isn’t an org chart",
-      "createdAt": "2026-09-26T21:36:09.000Z",
-      "url": "https://x.com/thsottiaux/status/2103961852153913371",
-      "reasons": [
-        "上下文：回复 @jorilallo「Ship the org chart…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "jorilallo",
-        "id": "",
-        "text": "Ship the org chart"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.27",
-          "weekday": "周日",
-          "time": "05:36",
-          "text": "2026.09.27（周日）05:36",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.26",
-          "weekday": "周六",
-          "time": "14:36",
-          "text": "2026.09.26（周六）14:36",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2103954577817260036",
-      "account": "thsottiaux",
-      "text": "Plan mode was cool in 2025, might still be cool, but was particularly cool in 2025",
-      "createdAt": "2026-09-26T21:07:15.000Z",
-      "url": "https://x.com/thsottiaux/status/2103954577817260036",
-      "reasons": [
-        "含未来语气",
-        "上下文：回复 @antigravity「Antigravity 2.0 now features a dedic…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "antigravity",
-        "id": "",
-        "text": "Antigravity 2.0 now features a dedicated planning mode, just like the Antigravity CLI. Type /plan and the agent steps back to think through the task, and conduct extensive research, before generating an implementation plan for your review. The agent will ask for your approval"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.27",
-          "weekday": "周日",
-          "time": "05:07",
-          "text": "2026.09.27（周日）05:07",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.26",
-          "weekday": "周六",
-          "time": "14:07",
-          "text": "2026.09.26（周六）14:07",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 345,
+    "scanned": 349,
     "explicit": 0,
     "occurred": 8,
-    "hint": 49,
-    "none": 281,
-    "rejected": 281
+    "hint": 51,
+    "none": 283,
+    "rejected": 283
   },
   "truncated": true
 }
