@@ -56,6 +56,8 @@
       bindtouchstart="onHeroTouch"
     >
       <view class="orbit-field" aria-hidden="true">
+        <view class="stage-aura aura-violet"></view>
+        <view class="stage-aura aura-mint"></view>
         <view class="orbit-plane orbit-outer"><view class="orbit-orbiter"><view class="orbit-dot"></view></view></view>
         <view class="orbit-plane orbit-mid"><view class="orbit-orbiter"><view class="orbit-dot"></view></view></view>
         <view class="orbit-plane orbit-inner"><view class="orbit-orbiter"><view class="orbit-dot"></view></view></view>

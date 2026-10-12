@@ -198,7 +198,7 @@
    顺序的判据只有一条：**事实在前、推断在后**。
 
    ── 主次怎么拉开的 ──────────────────────────────────────────────
-   全靠**这一处**：更白的底、更大的圆角、唯一的顶边状态色。不靠到处加装饰。
+   主卡用更白的底、更大的圆角和柔和光影拉开层次；状态留给徽标表达。
    它比 `.sig`（引用/公告）重，比 `.prog`（规则）重得多 —— `.prog` 是 `#F2EFE8` 的浅底。
 
    ── 状态色系统（与网页端同一套 token，见 src/index.html 的 :root）──────
@@ -216,17 +216,11 @@
   margin-top: 28rpx;
   padding: 30rpx 28rpx 26rpx;
   border-radius: 24rpx;
-  border: 1rpx solid #E4DFD5;
-  /* 顶边那道状态色是这一页唯一的「状态色前缀」，比左侧色条更醒目 */
-  border-top: 6rpx solid #8C8880;
+  border: 0;
   background:
     radial-gradient(130% 80% at 0% 0%, rgba(63, 115, 118, 0.07), rgba(255, 255, 255, 0) 58%),
     #FFFFFF;
 }
-
-.pred.status-confirmed { border-top-color: #5F8455; }
-.pred.status-likely    { border-top-color: #3F7376; }
-.pred.status-watching  { border-top-color: #8C8880; }
 
 .pred-head {
   display: flex;
@@ -1548,15 +1542,11 @@
   overflow: hidden;
   margin-top: 18rpx;
   padding: 25rpx 25rpx 20rpx;
-  border: 1rpx solid #E5DEF1;
-  border-top: 3rpx solid #7868C8;
+  border: 0;
   border-radius: 44rpx;
-  background: linear-gradient(130deg, #FFFFFF 0%, #F6F3FF 48%, #F0FBF8 100%);
-  box-shadow: 0 18rpx 42rpx -24rpx rgba(118, 102, 183, 0.42), inset 0 0 0 1rpx rgba(255, 255, 255, 0.7);
+  background: linear-gradient(145deg, #FFFFFF 0%, #F8F5FF 46%, #F0FBF8 100%);
+  box-shadow: 0 20rpx 54rpx -24rpx rgba(109, 89, 181, 0.28), 0 4rpx 16rpx rgba(103, 90, 162, 0.035);
 }
-
-.pred.status-confirmed { border-top-color: #5F8455; }
-.pred.status-likely { border-top-color: #3F7376; }
 
 .orbit-field {
   position: absolute;
@@ -1564,6 +1554,28 @@
   inset: 0;
   overflow: hidden;
   pointer-events: none;
+}
+
+.stage-aura {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.aura-violet {
+  width: 600rpx;
+  height: 460rpx;
+  top: -100rpx;
+  left: -170rpx;
+  background: radial-gradient(ellipse, rgba(206, 183, 249, 0.34) 0%, rgba(221, 205, 251, 0.12) 42%, rgba(221, 205, 251, 0) 72%);
+}
+
+.aura-mint {
+  width: 520rpx;
+  height: 610rpx;
+  right: -200rpx;
+  bottom: -180rpx;
+  background: radial-gradient(ellipse, rgba(147, 224, 204, 0.32) 0%, rgba(187, 238, 225, 0.12) 44%, rgba(187, 238, 225, 0) 73%);
 }
 
 .orbit-plane {
@@ -1585,6 +1597,21 @@
   border-radius: 50%;
 }
 
+.orbit-orbiter::before {
+  content: '';
+  position: absolute;
+  top: -1rpx;
+  right: 50%;
+  width: 100rpx;
+  height: 2rpx;
+  border-radius: 99rpx;
+  background: linear-gradient(90deg, rgba(156, 123, 226, 0), rgba(156, 123, 226, 0.64));
+}
+
+.orbit-inner .orbit-orbiter::before {
+  background: linear-gradient(90deg, rgba(102, 187, 169, 0), rgba(102, 187, 169, 0.72));
+}
+
 .orbit-dot {
   position: absolute;
   top: -7rpx;
@@ -1604,13 +1631,13 @@
 
 .stage-glow {
   position: absolute;
-  top: 27%;
+  top: 24%;
   left: 50%;
-  width: 430rpx;
-  height: 210rpx;
-  margin-left: -215rpx;
+  width: 520rpx;
+  height: 330rpx;
+  margin-left: -260rpx;
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(185, 231, 220, 0.64) 0%, rgba(211, 224, 247, 0.28) 48%, rgba(211, 224, 247, 0) 76%);
+  background: radial-gradient(ellipse, rgba(173, 229, 217, 0.6) 0%, rgba(208, 211, 248, 0.28) 46%, rgba(211, 224, 247, 0) 74%);
 }
 
 .star {
@@ -1655,10 +1682,22 @@
 }
 
 .pred-t {
+  display: inline-flex;
+  align-items: center;
+  gap: 10rpx;
   color: #6150A8;
   font-size: 20rpx;
   font-weight: 600;
   letter-spacing: 0.12em;
+}
+
+.pred-t::before {
+  content: '';
+  width: 6rpx;
+  height: 6rpx;
+  border-radius: 50%;
+  background: #8C79D2;
+  box-shadow: 0 0 0 5rpx rgba(140, 121, 210, 0.08), 0 0 15rpx rgba(140, 121, 210, 0.42);
 }
 
 .pred-badge {
@@ -1723,7 +1762,7 @@
   color: #6150D4;
   line-height: 1.15;
   text-align: center;
-  text-shadow: 0 4rpx 22rpx rgba(125, 104, 205, 0.12);
+  text-shadow: 0 6rpx 24rpx rgba(125, 104, 205, 0.18), 0 0 42rpx rgba(143, 119, 232, 0.08);
   transform-origin: center bottom;
 }
 
@@ -1751,6 +1790,10 @@
   flex-wrap: wrap;
   gap: 16rpx;
   margin-top: 44rpx;
+  padding: 13rpx 24rpx;
+  border-radius: 99rpx;
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: 0 8rpx 28rpx rgba(121, 104, 182, 0.045);
   text-align: center;
 }
 
@@ -2108,6 +2151,16 @@
   to { opacity: 1; transform: translateY(0) rotateX(0); }
 }
 
+@keyframes aurora-glow {
+  0%, 100% { opacity: 0.64; transform: scale(0.94); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+@keyframes aurora-star {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 0.9; transform: scale(1.25); }
+}
+
 @keyframes aurora-tap {
   from { opacity: 0.7; transform: scale(0.24); }
   to { opacity: 0; transform: scale(1.65); }
@@ -2116,6 +2169,13 @@
 .motion-on .cloud-mint { animation: aurora-mint 22s ease-in-out infinite; }
 .motion-on .cloud-violet { animation: aurora-violet 26s ease-in-out infinite; }
 .motion-on .cloud-blue { animation: aurora-blue 31s ease-in-out infinite; }
+.motion-on .aura-violet { animation: aurora-violet 18s ease-in-out infinite; }
+.motion-on .aura-mint { animation: aurora-mint 24s ease-in-out infinite; }
+.motion-on .stage-glow { animation: aurora-glow 9s ease-in-out infinite; }
+.motion-on .star { animation: aurora-star 5s ease-in-out infinite; }
+.motion-on .star-b { animation-delay: -1.5s; }
+.motion-on .star-c { animation-delay: -3s; }
+.motion-on .star-d { animation-delay: -4s; }
 .motion-on .orbit-orbiter { animation: aurora-orbit 27s linear infinite; }
 .motion-on .orbit-inner .orbit-orbiter { animation-duration: 18s; animation-direction: reverse; }
 .motion-on .orbit-outer .orbit-orbiter { animation-duration: 42s; animation-direction: reverse; }
@@ -2123,6 +2183,9 @@
 
 /* 页面进入后台时停掉装饰动画；回到前台后由页面生命周期恢复。 */
 .motion-off .aurora-cloud,
+.motion-off .stage-aura,
+.motion-off .stage-glow,
+.motion-off .star,
 .motion-off .orbit-orbiter,
 .motion-off .tap-ring,
 .motion-off .eta-digit,

@@ -149,6 +149,7 @@ const windowHtml = (w, scope) => !w ? '' :
 const predHtml = pred ? (
   '<div id="forecast" class="pred ' + esc(pred.statusClass) + ' ' + esc(pred.confidenceClass) + '" data-status="' + esc(pred.status) + '" data-level="' + esc(pred.confidence) + '">' +
     '<div class="orbit-field" aria-hidden="true">' +
+      '<div class="stage-aura aura-violet"></div><div class="stage-aura aura-mint"></div>' +
       '<div class="orbit-plane orbit-outer"><div class="orbit-orbiter"><div class="orbit-dot"></div></div></div>' +
       '<div class="orbit-plane orbit-mid"><div class="orbit-orbiter"><div class="orbit-dot"></div></div></div>' +
       '<div class="orbit-plane orbit-inner"><div class="orbit-orbiter"><div class="orbit-dot"></div></div></div>' +
