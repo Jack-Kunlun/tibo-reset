@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-12T00:51:25.156Z",
-  "checkedTweets": 349,
+  "generatedAt": "2026-10-12T04:11:59.295Z",
+  "checkedTweets": 351,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-13T00:51:25.156Z",
-  "windowTo": "2026-10-12T00:51:25.156Z",
+  "windowFrom": "2026-08-13T04:11:59.295Z",
+  "windowTo": "2026-10-12T04:11:59.295Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.12",
       "weekday": "周一",
-      "time": "08:51",
-      "text": "2026.10.12（周一）08:51",
+      "time": "12:11",
+      "text": "2026.10.12（周一）12:11",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,27 +98,27 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.11",
       "weekday": "周日",
-      "time": "17:51",
-      "text": "2026.10.11（周日）17:51",
+      "time": "21:11",
+      "text": "2026.10.11（周日）21:11",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2109439813900493102",
+    "id": "2109491524358795714",
     "account": "thsottiaux",
-    "text": "Neither. It's all about coding by hand these days",
-    "createdAt": "2026-10-12T00:23:37.000Z",
-    "url": "https://x.com/thsottiaux/status/2109439813900493102",
+    "text": "We tune these carefully",
+    "createdAt": "2026-10-12T03:49:06.000Z",
+    "url": "https://x.com/thsottiaux/status/2109491524358795714",
     "reasons": [
-      "上下文：回复 @AnkanXplorer「Codex is way better (now) than Claud…」"
+      "上下文：回复 @bobjones「Now I’m confused. Yesterday you said…」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "AnkanXplorer",
+      "account": "bobjones",
       "id": "",
-      "text": "Codex is way better (now) than Claude code. Who else agrees?"
+      "text": "Now I’m confused. Yesterday you said the opposite of what you’re doing today."
     },
     "createdZones": {
       "a": {
@@ -126,8 +126,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.12",
         "weekday": "周一",
-        "time": "08:23",
-        "text": "2026.10.12（周一）08:23",
+        "time": "11:49",
+        "text": "2026.10.12（周一）11:49",
         "offset": "UTC+8"
       },
       "b": {
@@ -135,8 +135,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.11",
         "weekday": "周日",
-        "time": "17:23",
-        "text": "2026.10.11（周日）17:23",
+        "time": "20:49",
+        "text": "2026.10.11（周日）20:49",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -574,45 +574,6 @@
       "level": "hint",
       "rejected": "有额度意图但没给出时间，只能作线索",
       "intent": 2,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2109090080497508356",
-      "account": "thsottiaux",
-      "text": "The day we reach perfection it will be resets from there onwards",
-      "createdAt": "2026-10-11T01:13:54.000Z",
-      "url": "https://x.com/thsottiaux/status/2109090080497508356",
-      "reasons": [
-        "命中重置词 reset",
-        "含未来语气"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.11",
-          "weekday": "周日",
-          "time": "09:13",
-          "text": "2026.10.11（周日）09:13",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.10",
-          "weekday": "周六",
-          "time": "18:13",
-          "text": "2026.10.10（周六）18:13",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "hint",
-      "rejected": "有额度意图但没给出时间，只能作线索",
-      "intent": 3,
       "window": null,
       "candidateWindow": null
     },
@@ -2050,7 +2011,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-12T00:51:25.156Z"
+        "checkedAt": "2026-10-12T04:11:59.295Z"
       }
     },
     {
@@ -2286,45 +2247,6 @@
         "spec": 86,
         "note": null
       }
-    },
-    {
-      "id": "2103637477760311522",
-      "account": "thsottiaux",
-      "text": "o yes… we’re back in action and we’ll reset usage limits for all paid users across codex and ChatGPT work sorry about the brief disruption! (and yes we have a special spare codex when things are down to help us out)",
-      "createdAt": "2026-09-26T00:07:13.000Z",
-      "url": "https://x.com/thsottiaux/status/2103637477760311522",
-      "reasons": [
-        "命中重置词 reset",
-        "命中额度词 limits/usage/credits"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.26",
-          "weekday": "周六",
-          "time": "08:07",
-          "text": "2026.09.26（周六）08:07",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.25",
-          "weekday": "周五",
-          "time": "17:07",
-          "text": "2026.09.25（周五）17:07",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "hint",
-      "rejected": "有额度意图但没给出时间，只能作线索",
-      "intent": 5,
-      "window": null,
-      "candidateWindow": null
     },
     {
       "id": "2103375711797211460",
@@ -2845,19 +2767,104 @@
   ],
   "rejected": [
     {
+      "id": "2109491524358795714",
+      "account": "thsottiaux",
+      "text": "We tune these carefully",
+      "createdAt": "2026-10-12T03:49:06.000Z",
+      "url": "https://x.com/thsottiaux/status/2109491524358795714",
+      "reasons": [
+        "上下文：回复 @bobjones「Now I’m confused. Yesterday you said…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "bobjones",
+        "id": "",
+        "text": "Now I’m confused. Yesterday you said the opposite of what you’re doing today."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.12",
+          "weekday": "周一",
+          "time": "11:49",
+          "text": "2026.10.12（周一）11:49",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.11",
+          "weekday": "周日",
+          "time": "20:49",
+          "text": "2026.10.11（周日）20:49",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2109491121441402912",
+      "account": "thsottiaux",
+      "text": "We made it cheaper and tuned it to the new recommended level. You can always change settings, but defaults exist for a reason.",
+      "createdAt": "2026-10-12T03:47:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2109491121441402912",
+      "reasons": [
+        "命中「新额度」类词 fresh/new/top up",
+        "上下文：回复 @AbdoKerdawy「WHAT ARE YOU ALL EXCITED ABOUT WE LI…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "AbdoKerdawy",
+        "id": "",
+        "text": "WHAT ARE YOU ALL EXCITED ABOUT WE LITERALLY JUST GOT SCAMMED WTF It has always been the case that we can edit the context window. And now instead of a reset we get \"default context lenght went up by 80%\"? It was always editable bro..."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.12",
+          "weekday": "周一",
+          "time": "11:47",
+          "text": "2026.10.12（周一）11:47",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.11",
+          "weekday": "周日",
+          "time": "20:47",
+          "text": "2026.10.11（周日）20:47",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 1,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
       "id": "2109439813900493102",
       "account": "thsottiaux",
       "text": "Neither. It's all about coding by hand these days",
       "createdAt": "2026-10-12T00:23:37.000Z",
       "url": "https://x.com/thsottiaux/status/2109439813900493102",
       "reasons": [
-        "上下文：回复 @AnkanXplorer「Codex is way better (now) than Claud…」"
+        "上下文：回复 @AbdoKerdawy「WHAT ARE YOU ALL EXCITED ABOUT WE LI…」"
       ],
       "viaContext": false,
       "inReplyTo": {
-        "account": "AnkanXplorer",
+        "account": "AbdoKerdawy",
         "id": "",
-        "text": "Codex is way better (now) than Claude code. Who else agrees?"
+        "text": "WHAT ARE YOU ALL EXCITED ABOUT WE LITERALLY JUST GOT SCAMMED WTF It has always been the case that we can edit the context window. And now instead of a reset we get \"default context lenght went up by 80%\"? It was always editable bro..."
       },
       "createdZones": {
         "a": {
@@ -2893,13 +2900,13 @@
       "createdAt": "2026-10-12T00:17:38.000Z",
       "url": "https://x.com/thsottiaux/status/2109438305188327838",
       "reasons": [
-        "上下文：回复 @birdabo「just ratiod the reset man (tibo) are…」"
+        "上下文：回复 @AbdoKerdawy「WHAT ARE YOU ALL EXCITED ABOUT WE LI…」"
       ],
       "viaContext": false,
       "inReplyTo": {
-        "account": "birdabo",
+        "account": "AbdoKerdawy",
         "id": "",
-        "text": "just ratiod the reset man (tibo) are you proud of me @poteto"
+        "text": "WHAT ARE YOU ALL EXCITED ABOUT WE LITERALLY JUST GOT SCAMMED WTF It has always been the case that we can edit the context window. And now instead of a reset we get \"default context lenght went up by 80%\"? It was always editable bro..."
       },
       "createdZones": {
         "a": {
@@ -3143,13 +3150,13 @@
       "createdAt": "2026-10-11T01:18:12.000Z",
       "url": "https://x.com/thsottiaux/status/2109091159784198475",
       "reasons": [
-        "上下文：回复 @ziwenxu_「General question: does anyone actual…」"
+        "上下文：回复 @ConnorTalksAI「You are sitting next to Tibo and get…」"
       ],
       "viaContext": false,
       "inReplyTo": {
-        "account": "ziwenxu_",
+        "account": "ConnorTalksAI",
         "id": "",
-        "text": "General question: does anyone actually use OpenAI Dot, or pay for Codex just for Dot?"
+        "text": "You are sitting next to Tibo and get 3 words… What do you say?"
       },
       "createdZones": {
         "a": {
@@ -3270,13 +3277,13 @@
       "createdAt": "2026-10-11T00:05:17.000Z",
       "url": "https://x.com/thsottiaux/status/2109072811113488768",
       "reasons": [
-        "上下文：回复 @elonmusk「To buy stuff, you can just take a pi…」"
+        "上下文：回复 @maria_rcks「so they ran out of things to release…」"
       ],
       "viaContext": false,
       "inReplyTo": {
-        "account": "elonmusk",
+        "account": "maria_rcks",
         "id": "",
-        "text": "To buy stuff, you can just take a picture of your credit card, drop it in the chat and Grok @Bot will scour the Internet for the best deal on the item you want and order it"
+        "text": "so they ran out of things to release / improve?"
       },
       "createdZones": {
         "a": {
@@ -10969,102 +10976,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2104100881100890402",
-      "account": "thsottiaux",
-      "text": "Tell me more. Didn’t see your message, was probably too small and for ants.",
-      "createdAt": "2026-09-27T06:48:37.000Z",
-      "url": "https://x.com/thsottiaux/status/2104100881100890402",
-      "reasons": [
-        "命中「新额度」类词 fresh/new/top up",
-        "上下文：回复 @anthdm「For over six months, I’ve been tryin…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "anthdm",
-        "id": "",
-        "text": "For over six months, I’ve been trying to reach out to @thsottiaux . He ignored every message and piece of feedback. Instead of listening to experienced engineers shipping production code to hundreds of thousands of users, he listened to weekend warriors having no clue what they"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.27",
-          "weekday": "周日",
-          "time": "14:48",
-          "text": "2026.09.27（周日）14:48",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.26",
-          "weekday": "周六",
-          "time": "23:48",
-          "text": "2026.09.26（周六）23:48",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 1,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2103962250885390436",
-      "account": "thsottiaux",
-      "text": "Are those Udon or just plain Noodles",
-      "createdAt": "2026-09-26T21:37:44.000Z",
-      "url": "https://x.com/thsottiaux/status/2103962250885390436",
-      "reasons": [
-        "上下文：回复 @angelbrodin「incredible things happening on our i…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "angelbrodin",
-        "id": "",
-        "text": "incredible things happening on our internal slack right now 🍜"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.27",
-          "weekday": "周日",
-          "time": "05:37",
-          "text": "2026.09.27（周日）05:37",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.26",
-          "weekday": "周六",
-          "time": "14:37",
-          "text": "2026.09.26（周六）14:37",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 349,
+    "scanned": 351,
     "explicit": 0,
     "occurred": 8,
-    "hint": 51,
-    "none": 283,
-    "rejected": 283
+    "hint": 49,
+    "none": 285,
+    "rejected": 285
   },
   "truncated": true
 }

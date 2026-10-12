@@ -1,16 +1,54 @@
 {
   "tweets": [
     {
+      "id": "2109491524358795714",
+      "text": "We tune these carefully",
+      "created_at": "2026-10-12T03:49:06.000Z",
+      "url": "https://x.com/thsottiaux/status/2109491524358795714",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "bobjones",
+        "id": "",
+        "text": "Now I’m confused. Yesterday you said the opposite of what you’re doing today.",
+        "created_at": "2026-10-12T01:03:20.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-12T04:11:59.294Z"
+    },
+    {
+      "id": "2109491121441402912",
+      "text": "We made it cheaper and tuned it to the new recommended level. You can always change settings, but defaults exist for a reason.",
+      "created_at": "2026-10-12T03:47:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2109491121441402912",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "AbdoKerdawy",
+        "id": "",
+        "text": "WHAT ARE YOU ALL EXCITED ABOUT WE LITERALLY JUST GOT SCAMMED WTF It has always been the case that we can edit the context window. And now instead of a reset we get \"default context lenght went up by 80%\"? It was always editable bro...",
+        "created_at": "2026-10-11T23:56:54.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-12T04:11:59.294Z"
+    },
+    {
       "id": "2109439813900493102",
       "text": "Neither. It's all about coding by hand these days",
       "created_at": "2026-10-12T00:23:37.000Z",
       "url": "https://x.com/thsottiaux/status/2109439813900493102",
       "author_verified": true,
       "inReplyTo": {
-        "account": "AnkanXplorer",
+        "account": "AbdoKerdawy",
         "id": "",
-        "text": "Codex is way better (now) than Claude code. Who else agrees?",
-        "created_at": "2026-10-11T08:10:46.000Z",
+        "text": "WHAT ARE YOU ALL EXCITED ABOUT WE LITERALLY JUST GOT SCAMMED WTF It has always been the case that we can edit the context window. And now instead of a reset we get \"default context lenght went up by 80%\"? It was always editable bro...",
+        "created_at": "2026-10-11T23:56:54.000Z",
         "url": ""
       },
       "kind": "other",
@@ -38,10 +76,10 @@
       "url": "https://x.com/thsottiaux/status/2109438305188327838",
       "author_verified": true,
       "inReplyTo": {
-        "account": "birdabo",
+        "account": "AbdoKerdawy",
         "id": "",
-        "text": "just ratiod the reset man (tibo) are you proud of me @poteto",
-        "created_at": "2026-10-11T05:59:22.000Z",
+        "text": "WHAT ARE YOU ALL EXCITED ABOUT WE LITERALLY JUST GOT SCAMMED WTF It has always been the case that we can edit the context window. And now instead of a reset we get \"default context lenght went up by 80%\"? It was always editable bro...",
+        "created_at": "2026-10-11T23:56:54.000Z",
         "url": ""
       },
       "kind": "other",
@@ -65,8 +103,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-12T00:51:25.155Z"
     },
     {
@@ -78,8 +116,8 @@
       "text_full": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-11T23:46:56.748Z",
       "inReplyTo": {
         "account": "birdabo",
@@ -195,10 +233,10 @@
       "created_at": "2026-10-11T01:18:12.000Z",
       "url": "https://x.com/thsottiaux/status/2109091159784198475",
       "inReplyTo": {
-        "account": "ziwenxu_",
+        "account": "ConnorTalksAI",
         "id": "",
-        "text": "General question: does anyone actually use OpenAI Dot, or pay for Codex just for Dot?",
-        "created_at": "2026-10-10T14:15:44.000Z",
+        "text": "You are sitting next to Tibo and get 3 words… What do you say?",
+        "created_at": "2026-10-09T20:03:14.000Z",
         "url": ""
       },
       "kind": "other",
@@ -264,10 +302,10 @@
       "created_at": "2026-10-11T00:05:17.000Z",
       "url": "https://x.com/thsottiaux/status/2109072811113488768",
       "inReplyTo": {
-        "account": "elonmusk",
+        "account": "maria_rcks",
         "id": "",
-        "text": "To buy stuff, you can just take a picture of your credit card, drop it in the chat and Grok @Bot will scour the Internet for the best deal on the item you want and order it",
-        "created_at": "2026-10-10T21:04:52.000Z",
+        "text": "so they ran out of things to release / improve?",
+        "created_at": "2026-10-10T22:19:18.000Z",
         "url": ""
       },
       "kind": "other",
@@ -5718,7 +5756,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-12T00:51:25.156Z",
+  "updated_at": "2026-10-12T04:11:59.295Z",
   "source": "browser",
   "coverage_since": "2026-10-10T04:01:09.000Z"
 }
