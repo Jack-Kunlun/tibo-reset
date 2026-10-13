@@ -15,7 +15,7 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
+      "role": "post",
       "foundVia": "with-replies",
       "first_seen": "2026-10-13T02:27:37.636Z"
     },
@@ -34,7 +34,7 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
+      "role": "post",
       "foundVia": "with-replies",
       "first_seen": "2026-10-13T02:27:37.636Z"
     },
@@ -104,8 +104,8 @@
       "author_verified": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-13T01:19:49.881Z",
       "inReplyTo": {
         "account": "alexgetmancom",
@@ -123,8 +123,8 @@
       "author_verified": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-13T01:19:49.881Z",
       "inReplyTo": {
         "account": "alexgetmancom",
@@ -288,8 +288,8 @@
       "text_full": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-11T23:46:56.748Z",
       "inReplyTo": {
         "account": "birdabo",
@@ -5928,7 +5928,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-13T02:27:37.637Z",
+  "updated_at": "2026-10-13T03:33:00.218Z",
   "source": "browser",
   "coverage_since": "2026-10-10T04:01:09.000Z"
 }
