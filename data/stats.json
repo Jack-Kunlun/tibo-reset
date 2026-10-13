@@ -1,46 +1,41 @@
 {
   "stats": {
-    "total": 61,
+    "total": 62,
     "first_at": "2025-09-17T04:02:52.000Z",
-    "last_at": "2026-10-11T04:01:09.000Z",
-    "last_text": "Put the reset in the bag. All propagated. https://t.co/HGxaD3Zdcj",
-    "days_since_last": 2.0243535416666667,
-    "avg_interval_days": 6.483313464506171,
-    "median_interval_days": 3.096388888888889,
-    "sd_interval_days": 10.728223172408379,
+    "last_at": "2026-10-13T05:06:06.000Z",
+    "last_text": "What would you like with your side of reset? It's done. https://t.co/gpNaB6otgy",
+    "days_since_last": 0.023689988425925925,
+    "avg_interval_days": 6.4105559350333925,
+    "median_interval_days": 3.0538483912037035,
+    "sd_interval_days": 10.654838918282696,
     "longest_wait_days": 67.74240740740741,
     "shortest_wait_days": 0.15936342592592592,
     "credit_count": 7,
-    "reset_count": 54,
-    "hit_within_avg": 0.7
+    "reset_count": 55,
+    "hit_within_avg": 0.7049180327868853
   },
-  "generated_at": "2026-10-13T04:36:13.232Z",
+  "generated_at": "2026-10-13T05:40:13.218Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
-    "stoppedBy": "known",
+    "stoppedBy": "floor",
     "newTweets": 2,
-    "knownCount": 360,
+    "knownCount": 362,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 7,
+      "steps": 6,
       "harvested": 8,
-      "withContext": 8,
+      "withContext": 6,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 2,
-      "attempted": 2,
-      "fetched": 2,
+      "candidates": 1,
+      "attempted": 1,
+      "fetched": 1,
       "skipped": 0,
       "scanned": [
-        {
-          "id": "2109430343346581527",
-          "length": 488,
-          "showMore": false
-        },
         {
           "id": "2109831908620390553",
           "length": 341,
@@ -50,15 +45,15 @@
     }
   },
   "history": {
-    "added": 0,
+    "added": 1,
     "updated": 0,
-    "upstreamCount": 60,
-    "refreshedAt": "2026-10-13T04:35:53.395Z",
+    "upstreamCount": 61,
+    "refreshedAt": "2026-10-13T05:39:50.712Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
-    "changed": false,
-    "patchedTexts": 0
+    "changed": true,
+    "patchedTexts": 1
   },
   "last_full_at": "2026-10-11T11:10:14.881Z",
   "errors": []

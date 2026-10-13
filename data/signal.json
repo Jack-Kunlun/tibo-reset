@@ -1,5 +1,5 @@
 {
-  "level": "explicit",
+  "level": "occurred",
   "program": {
     "id": "2106845241357824205",
     "url": "https://x.com/thsottiaux/status/2106845241357824205",
@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-13T04:36:13.073Z",
-  "checkedTweets": 362,
+  "generatedAt": "2026-10-13T05:40:12.701Z",
+  "checkedTweets": 364,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-14T04:36:13.073Z",
-  "windowTo": "2026-10-13T04:36:13.073Z",
+  "windowFrom": "2026-08-14T05:40:12.701Z",
+  "windowTo": "2026-10-13T05:40:12.701Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.13",
       "weekday": "周二",
-      "time": "12:36",
-      "text": "2026.10.13（周二）12:36",
+      "time": "13:40",
+      "text": "2026.10.13（周二）13:40",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,36 +98,30 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.12",
       "weekday": "周一",
-      "time": "21:36",
-      "text": "2026.10.12（周一）21:36",
+      "time": "22:40",
+      "text": "2026.10.12（周一）22:40",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2109865627628507222",
+    "id": "2109873307722121591",
     "account": "thsottiaux",
-    "text": "Carrot",
-    "createdAt": "2026-10-13T04:35:39.000Z",
-    "url": "https://x.com/thsottiaux/status/2109865627628507222",
-    "reasons": [
-      "上下文：回复 @OfficialLoganK「双子座…」"
-    ],
+    "text": "Mashed @poteto on the house.",
+    "createdAt": "2026-10-13T05:06:10.000Z",
+    "url": "https://x.com/thsottiaux/status/2109873307722121591",
+    "reasons": [],
     "viaContext": false,
-    "inReplyTo": {
-      "account": "OfficialLoganK",
-      "id": "",
-      "text": "双子座"
-    },
+    "inReplyTo": null,
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.10.13",
         "weekday": "周二",
-        "time": "12:35",
-        "text": "2026.10.13（周二）12:35",
+        "time": "13:06",
+        "text": "2026.10.13（周二）13:06",
         "offset": "UTC+8"
       },
       "b": {
@@ -135,8 +129,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.12",
         "weekday": "周一",
-        "time": "21:35",
-        "text": "2026.10.12（周一）21:35",
+        "time": "22:06",
+        "text": "2026.10.12（周一）22:06",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -147,96 +141,7 @@
     "window": null,
     "candidateWindow": null
   },
-  "signals": [
-    {
-      "id": "2109812360596865224",
-      "account": "thsottiaux",
-      "text": "Global reset landing by EOD PST time. Enjoy",
-      "createdAt": "2026-10-13T01:03:59.000Z",
-      "url": "https://x.com/thsottiaux/status/2109812360596865224",
-      "reasons": [
-        "命中重置词 reset",
-        "上下文：回复 @alexgetmancom「Day 8 of the OpenAI sprint: I feel l…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "alexgetmancom",
-        "id": "",
-        "text": "Day 8 of the OpenAI sprint: I feel like OpenAI just doesn’t give a damn about its users. For the third day in a row, there’s been no news before 10 PM UTC, when most of the world is already on Tuesday. I think the whole sprint idea has failed, and they’re just afraid to admit"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.13",
-          "weekday": "周二",
-          "time": "09:03",
-          "text": "2026.10.13（周二）09:03",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.12",
-          "weekday": "周一",
-          "time": "18:03",
-          "text": "2026.10.12（周一）18:03",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "explicit",
-      "rejected": null,
-      "intent": 3,
-      "timeWord": "eod",
-      "timeNote": "他写明了时区（PST），按那个时区算当天结束",
-      "precision": "day",
-      "candidateWindow": null,
-      "window": {
-        "from": "2026-10-13T01:03:59.000Z",
-        "to": "2026-10-13T06:59:00.000Z",
-        "dayNum": 20738,
-        "fromTs": 1791853439000,
-        "toTs": 1791874740000,
-        "userFrom": {
-          "y": "2026",
-          "m": "10",
-          "d": "13",
-          "hh": "09",
-          "mm": "03",
-          "weekdayCN": "周二"
-        },
-        "sourceZone": "2026.10.12（周一）18:03 – 23:59",
-        "userZone": "2026.10.13（周二）09:03 – 14:59",
-        "openText": "2026.10.13（周二）09:03",
-        "rangeNote": "",
-        "crossesUserDay": false,
-        "zones": {
-          "a": {
-            "label": "北京时间",
-            "zone": "Asia/Shanghai",
-            "date": "2026.10.13",
-            "weekday": "周二",
-            "time": "09:03",
-            "text": "2026.10.13（周二）09:03",
-            "offset": "UTC+8"
-          },
-          "b": {
-            "label": "Tibo 当地时间",
-            "zone": "America/Los_Angeles",
-            "date": "2026.10.12",
-            "weekday": "周一",
-            "time": "18:03",
-            "text": "2026.10.12（周一）18:03",
-            "offset": "UTC-7"
-          },
-          "diffHours": 15,
-          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-        }
-      },
-      "confidence": 0.69
-    }
-  ],
+  "signals": [],
   "occurred": [
     {
       "id": "2109132167112782291",
@@ -584,6 +489,44 @@
     }
   ],
   "hints": [
+    {
+      "id": "2109873287853707513",
+      "account": "thsottiaux",
+      "text": "What would you like with your side of reset? It's done. https://t.co/gpNaB6otgy",
+      "createdAt": "2026-10-13T05:06:06.000Z",
+      "url": "https://x.com/thsottiaux/status/2109873287853707513",
+      "reasons": [
+        "命中重置词 reset"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.13",
+          "weekday": "周二",
+          "time": "13:06",
+          "text": "2026.10.13（周二）13:06",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.12",
+          "weekday": "周一",
+          "time": "22:06",
+          "text": "2026.10.12（周一）22:06",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "有额度意图但没给出时间，只能作线索",
+      "intent": 3,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2109812216212099456",
       "account": "thsottiaux",
@@ -2143,7 +2086,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-13T04:36:13.073Z"
+        "checkedAt": "2026-10-13T05:40:12.701Z"
       }
     },
     {
@@ -2898,6 +2841,42 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2109873307722121591",
+      "account": "thsottiaux",
+      "text": "Mashed @poteto on the house.",
+      "createdAt": "2026-10-13T05:06:10.000Z",
+      "url": "https://x.com/thsottiaux/status/2109873307722121591",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.13",
+          "weekday": "周二",
+          "time": "13:06",
+          "text": "2026.10.13（周二）13:06",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.12",
+          "weekday": "周一",
+          "time": "22:06",
+          "text": "2026.10.12（周一）22:06",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2109865627628507222",
       "account": "thsottiaux",
@@ -11080,231 +11059,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2104462923661988233",
-      "account": "thsottiaux",
-      "text": "007 even",
-      "createdAt": "2026-09-28T06:47:14.000Z",
-      "url": "https://x.com/thsottiaux/status/2104462923661988233",
-      "reasons": [
-        "上下文：回复 @imjustnewatai「Hearing some rumors that OpenAI is r…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "imjustnewatai",
-        "id": "",
-        "text": "Hearing some rumors that OpenAI is releasing o6 during devday 👀"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.28",
-          "weekday": "周一",
-          "time": "14:47",
-          "text": "2026.09.28（周一）14:47",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.27",
-          "weekday": "周日",
-          "time": "23:47",
-          "text": "2026.09.27（周日）23:47",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
-  "hypothesis": {
-    "dayNum": 20738,
-    "day": "2026.10.12（周一）",
-    "precision": "day",
-    "window": {
-      "from": "2026-10-13T01:03:59.000Z",
-      "to": "2026-10-13T06:59:00.000Z",
-      "dayNum": 20738,
-      "fromTs": 1791853439000,
-      "toTs": 1791874740000,
-      "userFrom": {
-        "y": "2026",
-        "m": "10",
-        "d": "13",
-        "hh": "09",
-        "mm": "03",
-        "weekdayCN": "周二"
-      },
-      "sourceZone": "2026.10.12（周一）18:03 – 23:59",
-      "userZone": "2026.10.13（周二）09:03 – 14:59",
-      "openText": "2026.10.13（周二）09:03",
-      "rangeNote": "",
-      "crossesUserDay": false,
-      "zones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.13",
-          "weekday": "周二",
-          "time": "09:03",
-          "text": "2026.10.13（周二）09:03",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.12",
-          "weekday": "周一",
-          "time": "18:03",
-          "text": "2026.10.12（周一）18:03",
-          "offset": "UTC-7"
-        },
-        "diffHours": 15,
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "precision": "day"
-    },
-    "counts": {
-      "hard": 1,
-      "soft": 0,
-      "clockHints": 0,
-      "clockAdopted": 0
-    },
-    "evidence": [
-      {
-        "id": "2109812360596865224",
-        "createdAt": "2026-10-13T01:03:59.000Z",
-        "text": "Global reset landing by EOD PST time. Enjoy",
-        "url": "https://x.com/thsottiaux/status/2109812360596865224",
-        "via": "回复 @alexgetmancom",
-        "weight": "hard",
-        "contributes": "承诺了这一天",
-        "timeWord": "eod",
-        "precision": "day",
-        "ambiguous": false,
-        "note": null,
-        "from": "2026-10-13T01:03:59.000Z",
-        "to": "2026-10-13T06:59:00.000Z"
-      }
-    ],
-    "clockHints": []
-  },
-  "forecasts": [
-    {
-      "level": "explicit",
-      "day": "2026.10.12（周一）",
-      "precision": "day",
-      "window": {
-        "from": "2026-10-13T01:03:59.000Z",
-        "to": "2026-10-13T06:59:00.000Z",
-        "dayNum": 20738,
-        "fromTs": 1791853439000,
-        "toTs": 1791874740000,
-        "userFrom": {
-          "y": "2026",
-          "m": "10",
-          "d": "13",
-          "hh": "09",
-          "mm": "03",
-          "weekdayCN": "周二"
-        },
-        "sourceZone": "2026.10.12（周一）18:03 – 23:59",
-        "userZone": "2026.10.13（周二）09:03 – 14:59",
-        "openText": "2026.10.13（周二）09:03",
-        "rangeNote": "",
-        "crossesUserDay": false,
-        "zones": {
-          "a": {
-            "label": "北京时间",
-            "zone": "Asia/Shanghai",
-            "date": "2026.10.13",
-            "weekday": "周二",
-            "time": "09:03",
-            "text": "2026.10.13（周二）09:03",
-            "offset": "UTC+8"
-          },
-          "b": {
-            "label": "Tibo 当地时间",
-            "zone": "America/Los_Angeles",
-            "date": "2026.10.12",
-            "weekday": "周一",
-            "time": "18:03",
-            "text": "2026.10.12（周一）18:03",
-            "offset": "UTC-7"
-          },
-          "diffHours": 15,
-          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-        },
-        "precision": "day"
-      },
-      "text": "Global reset landing by EOD PST time. Enjoy",
-      "url": "https://x.com/thsottiaux/status/2109812360596865224",
-      "reasons": [
-        "命中重置词 reset",
-        "上下文：回复 @alexgetmancom「Day 8 of the OpenAI sprint: I feel l…」"
-      ],
-      "timeNote": "他写明了时区（PST），按那个时区算当天结束",
-      "createdAt": "2026-10-13T01:03:59.000Z",
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.13",
-          "weekday": "周二",
-          "time": "09:03",
-          "text": "2026.10.13（周二）09:03",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.12",
-          "weekday": "周一",
-          "time": "18:03",
-          "text": "2026.10.12（周一）18:03",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "sources": 1,
-      "evidence": [
-        {
-          "id": "2109812360596865224",
-          "createdAt": "2026-10-13T01:03:59.000Z",
-          "text": "Global reset landing by EOD PST time. Enjoy",
-          "url": "https://x.com/thsottiaux/status/2109812360596865224",
-          "via": "回复 @alexgetmancom",
-          "weight": "hard",
-          "contributes": "承诺了这一天",
-          "timeWord": "eod",
-          "precision": "day",
-          "ambiguous": false,
-          "note": null,
-          "from": "2026-10-13T01:03:59.000Z",
-          "to": "2026-10-13T06:59:00.000Z"
-        }
-      ],
-      "counts": {
-        "hard": 1,
-        "soft": 0
-      },
-      "clockHints": []
-    }
-  ],
+  "hypothesis": null,
+  "forecasts": [],
   "counts": {
-    "scanned": 362,
-    "explicit": 1,
+    "scanned": 364,
+    "explicit": 0,
     "occurred": 8,
-    "hint": 50,
-    "none": 294,
-    "rejected": 294
+    "hint": 51,
+    "none": 295,
+    "rejected": 295
   },
   "truncated": true
 }

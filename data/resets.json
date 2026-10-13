@@ -1,6 +1,14 @@
 {
   "records": [
     {
+      "id": "2109873287853707513",
+      "announced_at": "2026-10-13T05:06:06.000Z",
+      "type": "reset",
+      "text": "What would you like with your side of reset? It's done. https://t.co/gpNaB6otgy",
+      "url": "https://x.com/thsottiaux/status/2109873287853707513",
+      "attribution": "codex-resets.com"
+    },
+    {
       "id": "2109132167112782291",
       "announced_at": "2026-10-11T04:01:09.000Z",
       "type": "reset",
@@ -490,5 +498,5 @@
     }
   ],
   "bootstrapped_at": "2026-09-20T08:17:13.018Z",
-  "refreshed_at": "2026-10-13T04:35:53.395Z"
+  "refreshed_at": "2026-10-13T05:39:50.712Z"
 }

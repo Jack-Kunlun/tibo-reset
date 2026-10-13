@@ -1,6 +1,31 @@
 {
   "tweets": [
     {
+      "id": "2109873307722121591",
+      "text": "Mashed @poteto on the house.",
+      "created_at": "2026-10-13T05:06:10.000Z",
+      "url": "https://x.com/thsottiaux/status/2109873307722121591",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-13T05:40:12.647Z"
+    },
+    {
+      "id": "2109873287853707513",
+      "text": "What would you like with your side of reset? It's done. https://t.co/gpNaB6otgy",
+      "created_at": "2026-10-13T05:06:06.000Z",
+      "url": "https://x.com/thsottiaux/status/2109873287853707513",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-13T05:40:12.647Z",
+      "text_full": true
+    },
+    {
       "id": "2109865627628507222",
       "text": "Carrot",
       "created_at": "2026-10-13T04:35:39.000Z",
@@ -161,8 +186,8 @@
       "author_verified": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-13T01:19:49.881Z",
       "inReplyTo": {
         "account": "alexgetmancom",
@@ -5966,7 +5991,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-13T04:36:13.073Z",
+  "updated_at": "2026-10-13T05:40:12.701Z",
   "source": "browser",
-  "coverage_since": "2026-10-10T04:01:09.000Z"
+  "coverage_since": "2026-10-12T05:06:06.000Z"
 }
