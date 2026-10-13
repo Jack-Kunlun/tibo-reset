@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-13T05:40:12.701Z",
-  "checkedTweets": 364,
+  "generatedAt": "2026-10-13T06:43:50.307Z",
+  "checkedTweets": 365,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-14T05:40:12.701Z",
-  "windowTo": "2026-10-13T05:40:12.701Z",
+  "windowFrom": "2026-08-14T06:43:50.307Z",
+  "windowTo": "2026-10-13T06:43:50.307Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.13",
       "weekday": "周二",
-      "time": "13:40",
-      "text": "2026.10.13（周二）13:40",
+      "time": "14:43",
+      "text": "2026.10.13（周二）14:43",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,20 +98,24 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.12",
       "weekday": "周一",
-      "time": "22:40",
-      "text": "2026.10.12（周一）22:40",
+      "time": "23:43",
+      "text": "2026.10.12（周一）23:43",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2109873307722121591",
+    "id": "2109892247580000595",
     "account": "thsottiaux",
-    "text": "Mashed @poteto on the house.",
-    "createdAt": "2026-10-13T05:06:10.000Z",
-    "url": "https://x.com/thsottiaux/status/2109873307722121591",
-    "reasons": [],
+    "text": "Good plans are simple. I have one that should result in significantly more usage for everyone. Hope to get it done soon.",
+    "createdAt": "2026-10-13T06:21:26.000Z",
+    "url": "https://x.com/thsottiaux/status/2109892247580000595",
+    "reasons": [
+      "命中额度词 limits/usage/credits",
+      "命中「新额度」类词 fresh/new/top up",
+      "含未来语气"
+    ],
     "viaContext": false,
     "inReplyTo": null,
     "createdZones": {
@@ -120,8 +124,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.13",
         "weekday": "周二",
-        "time": "13:06",
-        "text": "2026.10.13（周二）13:06",
+        "time": "14:21",
+        "text": "2026.10.13（周二）14:21",
         "offset": "UTC+8"
       },
       "b": {
@@ -129,15 +133,15 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.12",
         "weekday": "周一",
-        "time": "22:06",
-        "text": "2026.10.12（周一）22:06",
+        "time": "23:21",
+        "text": "2026.10.12（周一）23:21",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "none",
-    "rejected": "无额度相关词",
-    "intent": 0,
+    "level": "hint",
+    "rejected": "有额度意图但没给出时间，只能作线索",
+    "intent": 3,
     "window": null,
     "candidateWindow": null
   },
@@ -489,6 +493,46 @@
     }
   ],
   "hints": [
+    {
+      "id": "2109892247580000595",
+      "account": "thsottiaux",
+      "text": "Good plans are simple. I have one that should result in significantly more usage for everyone. Hope to get it done soon.",
+      "createdAt": "2026-10-13T06:21:26.000Z",
+      "url": "https://x.com/thsottiaux/status/2109892247580000595",
+      "reasons": [
+        "命中额度词 limits/usage/credits",
+        "命中「新额度」类词 fresh/new/top up",
+        "含未来语气"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.13",
+          "weekday": "周二",
+          "time": "14:21",
+          "text": "2026.10.13（周二）14:21",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.12",
+          "weekday": "周一",
+          "time": "23:21",
+          "text": "2026.10.12（周一）23:21",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "有额度意图但没给出时间，只能作线索",
+      "intent": 3,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2109873287853707513",
       "account": "thsottiaux",
@@ -2086,7 +2130,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-13T05:40:12.701Z"
+        "checkedAt": "2026-10-13T06:43:50.307Z"
       }
     },
     {
@@ -11064,10 +11108,10 @@
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 364,
+    "scanned": 365,
     "explicit": 0,
     "occurred": 8,
-    "hint": 51,
+    "hint": 52,
     "none": 295,
     "rejected": 295
   },

@@ -1,6 +1,18 @@
 {
   "tweets": [
     {
+      "id": "2109892247580000595",
+      "text": "Good plans are simple. I have one that should result in significantly more usage for everyone. Hope to get it done soon.",
+      "created_at": "2026-10-13T06:21:26.000Z",
+      "url": "https://x.com/thsottiaux/status/2109892247580000595",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-13T06:43:50.305Z"
+    },
+    {
       "id": "2109873307722121591",
       "text": "Mashed @poteto on the house.",
       "created_at": "2026-10-13T05:06:10.000Z",
@@ -5991,7 +6003,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-13T05:40:12.701Z",
+  "updated_at": "2026-10-13T06:43:50.306Z",
   "source": "browser",
   "coverage_since": "2026-10-12T05:06:06.000Z"
 }
