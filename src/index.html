@@ -486,6 +486,18 @@
   @media(max-width:700px){#observatory{padding:0 18px 28px}#observatory .am-header{padding:22px 0 18px}#observatory .am-brand h1{font-size:14px}#observatory .am-logo{width:32px;height:32px}#observatory .am-pause{background:transparent;border:0;padding-right:0}#observatory .am-context{padding:0 1px 17px;align-items:center}#observatory .am-context-left{width:auto;gap:8px}#observatory .am-context>span:last-child{width:auto;font-size:10px}#observatory .am-context>span:last-child a{display:block;max-width:128px;text-align:right}#observatory .hero-v{font-size:11px}#observatory .am-main,#observatory .am-lower{display:block}#observatory .am-main>.am-side{gap:14px;margin-top:16px}#observatory .pcard,#observatory .pcard.is-announced{padding:20px 20px 0;border-radius:22px}#observatory .am-stage,#observatory .is-announced .am-stage{min-height:242px;padding:23px 0 20px}#observatory .is-announced .am-stage h2{font-size:26px}#observatory .am-date{font-size:76px;gap:2px;margin:12px 0 6px}#observatory .am-stage>.am-small{font-size:10px}#observatory .pc-wait{margin-top:20px}#observatory .pc-wait-cap,#observatory .pc-wait-over{font-size:11px}#observatory .pc-band{padding:13px 0}#observatory .pc-announcement{padding-bottom:17px}#observatory .am-lower{margin-top:16px}#observatory .am-panel{padding:20px;border-radius:18px}#observatory .am-records{margin-top:16px}#observatory .sig-idle{padding:13px 3px 0}#observatory .idle-sub{width:100%;margin-left:24px}#observatory .am-more{padding:0;margin-top:20px}#observatory .am-footer{display:block;line-height:1.9}#observatory .am-footer>span{display:block}}
   @media(max-width:370px){#observatory{padding-left:14px;padding-right:14px}#observatory .am-brand h1{font-size:13px}#observatory .am-stage,#observatory .is-announced .am-stage{min-height:230px}#observatory .am-date{font-size:66px}#observatory .pc-conf{font-size:9px;padding:4px 6px}#observatory .am-context{flex-direction:column;align-items:stretch;gap:6px}#observatory .am-context-left{justify-content:space-between}#observatory .am-context>span:last-child a{max-width:none;text-align:left}#observatory .pc-band{font-size:10px}#observatory .pcard,#observatory .pcard.is-announced{padding-left:17px;padding-right:17px}}
 
+  /* 桌面详情脱离行高计算，不能让辅助窗口把预测下方撑成空白。 */
+  #observatory .program-enhanced>.am-detail{animation:program-reveal .2s ease-out}
+  #observatory .program-enhanced.is-closing>.am-detail{animation:program-dismiss .16s ease-in both;pointer-events:none}
+  @keyframes program-reveal{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes program-dismiss{to{opacity:0;transform:translateY(-6px)}}
+  @media(min-width:701px){
+    #observatory .program-enhanced{z-index:10}
+    #observatory .program-enhanced>.am-detail{position:absolute;top:calc(100% + 10px);left:0;right:0;margin:0;padding:22px;box-sizing:border-box;max-height:var(--program-panel-height,60vh);overflow-y:auto;overscroll-behavior:contain;border:1px solid #b4a3ff24;border-radius:20px;background:#171c2e;box-shadow:0 20px 55px #0008;scrollbar-width:thin;scrollbar-color:#5c537c transparent}
+    #observatory .program-enhanced[data-placement="above"]>.am-detail{top:auto;bottom:calc(100% + 10px)}
+  }
+  #observatory[data-running="false"] .program-enhanced>.am-detail{animation:none}
+  @media(prefers-reduced-motion:reduce){#observatory .program-enhanced>.am-detail{animation:none}}
 </style>
 
 </head>
@@ -773,6 +785,58 @@
   sync();
   if (mq.addEventListener) mq.addEventListener('change', sync);
   else if (mq.addListener) mq.addListener(sync);
+})();
+</script>
+<script>
+(function () {
+  var box = document.querySelector('.sig-prog');
+  if (!box) return;
+  var summary = box.querySelector('summary');
+  var panel = box.querySelector('.am-detail');
+  var root = document.getElementById('observatory');
+  var desktop = window.matchMedia('(min-width: 701px)');
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var closing = 0;
+  box.classList.add('program-enhanced');
+  function position() {
+    if (!box.open || !desktop.matches) return;
+    var rect = box.getBoundingClientRect();
+    var below = window.innerHeight - rect.bottom;
+    var above = rect.top;
+    var upwards = below < Math.min(panel.scrollHeight, 300) && above > below;
+    box.dataset.placement = upwards ? 'above' : 'below';
+    box.style.setProperty('--program-panel-height', Math.max(0, (upwards ? above : below) - 22) + 'px');
+  }
+  function close(returnFocus) {
+    if (!box.open || closing) return;
+    if (returnFocus) summary.focus({ preventScroll: true });
+    box.classList.add('is-closing');
+    closing = setTimeout(function () {
+      box.open = false;
+      box.classList.remove('is-closing');
+      closing = 0;
+    }, reduced.matches || root.dataset.running === 'false' ? 0 : 160);
+  }
+  summary.addEventListener('click', function (event) {
+    event.preventDefault();
+    if (box.open && !closing) return close(false);
+    clearTimeout(closing);
+    closing = 0;
+    box.classList.remove('is-closing');
+    box.open = true;
+    position();
+  });
+  document.addEventListener('pointerdown', function (event) {
+    if (desktop.matches && !box.contains(event.target)) close(false);
+  });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && box.open && desktop.matches) {
+      event.preventDefault();
+      close(true);
+    }
+  });
+  window.addEventListener('resize', position);
+  window.addEventListener('scroll', position, { passive: true });
 })();
 </script>
 <script>
