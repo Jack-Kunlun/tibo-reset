@@ -154,8 +154,8 @@
       "text_full": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-11T23:46:56.748Z",
       "inReplyTo": {
         "account": "birdabo",
@@ -5794,7 +5794,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-12T23:08:54.538Z",
+  "updated_at": "2026-10-13T00:11:42.381Z",
   "source": "browser",
   "coverage_since": "2026-10-10T04:01:09.000Z"
 }
