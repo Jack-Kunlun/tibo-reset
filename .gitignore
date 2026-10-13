@@ -51,6 +51,19 @@ data/subscriptions.json
 *_nginx/
 *.csr
 
+# ⚠ 服务端凭据（WX_APPID / WX_SECRET / INGEST_TOKEN / ADMIN_TOKEN …）**绝不能进仓库**。
+#   本仓库是**公开**的（Jack-Kunlun/tibo-reset），git 历史是永久的：一旦 push，
+#   删文件删不掉已推送的那份，AppSecret 只能去微信后台重置。
+#   真值的两个落点都在**仓库目录之外** —— 服务器 `/srv/tibo.env`（600）、
+#   本机 `~/.tibo-ingest.env`（600）。这条规则挡的是「顺手在仓库里建一份 .env 调试」
+#   那种情况：它不报错、不提示，只会在某次 `git add .` 时被带走。
+#   `.dockerignore` 里有一份同样的规则 —— Dockerfile 是 `COPY . .`，而镜像层是叠加的。
+#   示例文件只写键名、不含值，留一个白名单口子。
+.env
+.env.*
+*.env
+!.env.example
+
 # 微信开发者工具的本地私有配置（含个人设置、需要忽略）
 project.private.config.json
 

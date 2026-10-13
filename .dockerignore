@@ -45,6 +45,23 @@ data/subscriptions.json
 *_nginx/
 *.csr
 
+# ⚠ 服务端凭据（WX_APPID / WX_SECRET / INGEST_TOKEN …）**绝不能进镜像**。
+#   凭据在运行时由环境变量传入（服务器上是 `/srv/tibo.env`，`docker run` 时加载），
+#   仓库里连一份副本都不该有 —— 而 Dockerfile 是 `COPY . .`，不排除就会被打进层里；
+#   镜像是要送上服务器的那份，层又是叠加的（事后 `rm` 删不掉残留）。
+#   注意：`docker commit` 会连容器当时的 `Config.Env` 一起继承进镜像配置 ——
+#   所以「凭据只在运行期传」是这条规则的前提，别把值写进仓库文件再 COPY 进来。
+#   ⚠ 不带 `/` 的模式在 .dockerignore 里**只匹配根目录**（与 .gitignore 不同），
+#     所以嵌套位置要显式写 `**` —— 否则 `server/.env` 会漏过去。
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+**/*.env
+!.env.example
+!**/.env.example
+
 # 系统 / 编辑器
 .DS_Store
 *.swp

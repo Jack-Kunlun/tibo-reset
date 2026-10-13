@@ -72,6 +72,22 @@ check(
 );
 check('证书签名请求（.csr）被忽略', gitIgnored('reset.example.com.csr'));
 
+// 服务端凭据（WX_APPID / WX_SECRET / INGEST_TOKEN / ADMIN_TOKEN …）。
+// 与证书私钥同类：真值必须留在**仓库之外** —— 服务器 `/srv/tibo.env`（600）、
+// 本机 `~/.tibo-ingest.env`（600）。这里挡的是「顺手在仓库里建一份 .env 调试」，
+// 它不报错、不提示，只会在某次 `git add .` 时被带走；而本仓库是公开的，
+// AppSecret 一旦 push 出去只能去微信后台重置。
+check(
+  '环境文件（.env / *.env）被忽略',
+  ['.env', '.env.local', 'server/.env', 'deploy/tibo.env', 'srv.env'].every(gitIgnored),
+  '规则被删 = 一次 `git add .` 就能把 AppSecret 推上公开仓库'
+);
+check(
+  '示例文件（.env.example）没被误伤',
+  !gitIgnored('.env.example'),
+  '示例只写键名、不含值；被一起吞掉会逼人改成「直接在 .env 里写真值」'
+);
+
 // 反向断言：忽略规则不能被写成「把产品文件也一起吞掉」。
 // 这几条如果红，说明规则写得太宽（比如裸写 *.key 之外的过度通配）。
 const mustNotIgnore = ['package.json', 'data/resets.json', 'docs/deploy.md', 'Dockerfile', '.gitignore'];
@@ -93,22 +109,32 @@ check(
 /* ============ docker 侧：.dockerignore 没有 CLI，自己解析模式 ============ */
 
 /**
- * 极简 dockerignore 匹配：只实现本项目用到的语法（`*` / `?` / 结尾 `/` 表目录 / `!` 取反）。
+ * 极简 dockerignore 匹配：只实现本项目用到的语法（`*` / `?` / `**` / 结尾 `/` 表目录 / `!` 取反）。
  * 目录被排除 = 目录下内容全被排除，所以路径的每一层父目录都要参与判断。
+ *
+ * ⚠ **不带 `/` 的模式只匹配根目录**，这与 `.gitignore` 不同（后者按文件名匹配任意层级）——
+ *   所以「.gitignore 挡住了」推不出「.dockerignore 也挡住了」。实测就是这么发现的：
+ *   规则 `*.env` 挡得住 `tibo.env`，挡不住 `server/.env`，要 `**` 才够。
  */
 function globMatch(pattern, path) {
   const core = pattern.endsWith('/') ? pattern.slice(0, -1) : pattern;
-  const re = new RegExp(
-    '^' +
-      core
-        .split('/')
-        .map((seg) =>
-          [...seg].map((ch) => (ch === '*' ? '[^/]*' : ch === '?' ? '[^/]' : ch.replace(/[.+^${}()|[\]\\]/g, '\\$&'))).join('')
-        )
-        .join('/') +
-      '$'
-  );
-  return re.test(path);
+  const escSeg = (s) =>
+    [...s]
+      .map((ch) => (ch === '*' ? '[^/]*' : ch === '?' ? '[^/]' : ch.replace(/[.+^${}()|[\]\\]/g, '\\$&')))
+      .join('');
+  let re = '';
+  let sep = ''; // 下一个普通段之前要不要补 `/`（`**` 已自带尾随分隔符，不能再补）
+  for (const s of core.split('/')) {
+    if (s === '**') {
+      // 整段 `**` = 任意层目录（含 0 层）。Docker 语义里它吞掉自己的分隔符，这里跟着做。
+      re += sep + '(?:[^/]+/)*';
+      sep = '';
+    } else {
+      re += sep + escSeg(s);
+      sep = '/';
+    }
+  }
+  return new RegExp('^' + re + '$').test(path);
 }
 
 function dockerIgnored(path, lines) {
@@ -135,6 +161,17 @@ check(
 check(
   'F9 订阅名单被排除（含 openid）',
   dockerIgnored('data/subscriptions.json', dockerIgnoreLines)
+);
+// 凭据只能由运行期环境变量传入，不能来自仓库文件
+check(
+  '环境文件（.env）被 .dockerignore 排除',
+  ['.env', 'server/.env', 'tibo.env'].every((p) => dockerIgnored(p, dockerIgnoreLines)),
+  'Dockerfile 是 `COPY . .`，打进层里的凭据事后删不掉，而这个镜像是要送上服务器的那份'
+);
+check(
+  '示例文件（.env.example）没被 .dockerignore 误伤',
+  !dockerIgnored('.env.example', dockerIgnoreLines) && !dockerIgnored('server/.env.example', dockerIgnoreLines),
+  '示例只写键名、不含值，被一起吞掉会逼人改成「直接在 .env 里写真值」'
 );
 // 运行期状态不能当种子打进镜像 —— 否则每次换容器都带着一张旧卡片启动
 check(
@@ -194,6 +231,24 @@ check('已跟踪文件里没有证书正文', certHits === '', certHits.replace(
 
 const keyHits = grepTracked('-----BEGIN [A-Z ]*PRIVATE KEY-----');
 check('已跟踪文件里没有私钥正文', keyHits === '', keyHits.replace(/\n/g, '、'));
+
+// 兜底：写死在代码 / 文档里的 AppID / AppSecret。
+// 判据只写**结构**（键名 + 引号 + 长度下限），绝不写真实值 —— 否则防线自己成了泄露源。
+// 微信 AppID 是 `wx` + 16 位十六进制、AppSecret 是 32 位十六进制，都远长于 16 字符；
+// 而测试里的假值只有 1 个字符（`appId: 'a'`），所以这个下限不会误报。
+//
+// ⚠ 空白符必须写 `[[:space:]]`，**不能写 `\s`** —— `git grep -E` 走的是 POSIX ERE，
+//   这里的 `\s` 被当成普通字符 `s`：模式会静默变成「等号两边各要一个字母 s」，
+//   于是**一条都匹配不到**，断言成了永远绿的空壳。实测：同一条探针行，
+//   `\s` 版 rc=1（无命中），`[[:space:]]` 版 rc=0（命中）。
+const secretAssignHits = grepTracked(
+  `(WX_SECRET|WX_APPID|APP_SECRET|appSecret|appId)["']?[[:space:]]*[:=][[:space:]]*["'][A-Za-z0-9_-]{16,}["']`
+);
+check(
+  '已跟踪文件里没有写死的 AppID / AppSecret',
+  secretAssignHits === '',
+  `${secretAssignHits.replace(/\n/g, '、')} —— 凭据只能来自运行期环境变量（WX_APPID / WX_SECRET）`
+);
 
 /* ============ 兜底层：环境标识（域名 / IP / 实例 ID / 账号）不进仓库 ============ */
 
