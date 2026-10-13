@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-11T04:01:09.000Z",
     "last_text": "Put the reset in the bag. All propagated. https://t.co/HGxaD3Zdcj",
-    "days_since_last": 1.8879741203703704,
+    "days_since_last": 1.9350545833333332,
     "avg_interval_days": 6.483313464506171,
     "median_interval_days": 3.096388888888889,
     "sd_interval_days": 10.728223172408379,
@@ -14,31 +14,36 @@
     "reset_count": 54,
     "hit_within_avg": 0.7
   },
-  "generated_at": "2026-10-13T01:19:50.040Z",
+  "generated_at": "2026-10-13T02:27:37.806Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
-    "stoppedBy": "floor",
-    "newTweets": 2,
-    "knownCount": 353,
+    "stoppedBy": "known",
+    "newTweets": 5,
+    "knownCount": 355,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 6,
-      "harvested": 9,
-      "withContext": 7,
+      "steps": 14,
+      "harvested": 14,
+      "withContext": 14,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 1,
-      "attempted": 1,
-      "fetched": 1,
+      "candidates": 2,
+      "attempted": 2,
+      "fetched": 2,
       "skipped": 0,
       "scanned": [
         {
           "id": "2109430343346581527",
           "length": 488,
+          "showMore": false
+        },
+        {
+          "id": "2109831908620390553",
+          "length": 341,
           "showMore": false
         }
       ]
@@ -48,7 +53,7 @@
     "added": 0,
     "updated": 0,
     "upstreamCount": 60,
-    "refreshedAt": "2026-10-13T01:19:29.224Z",
+    "refreshedAt": "2026-10-13T02:27:11.610Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,

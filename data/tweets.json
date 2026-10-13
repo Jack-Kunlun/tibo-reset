@@ -1,6 +1,102 @@
 {
   "tweets": [
     {
+      "id": "2109832541956194798",
+      "text": "Nice",
+      "created_at": "2026-10-13T02:24:11.000Z",
+      "url": "https://x.com/thsottiaux/status/2109832541956194798",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "aliansarinik",
+        "id": "",
+        "text": "We have two additions to PersonalAgentBench: @hark_labs and @OpenAI 's Dots! Dots has taken the lead, with Hark close behind while Gemini Spark moves to third, followed by Instinct, Grok Bot, and Muse. We also doubled the number of tasks this week, adding research, image",
+        "created_at": "2026-10-12T04:47:46.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-13T02:27:37.636Z"
+    },
+    {
+      "id": "2109832216029352391",
+      "text": "I think we could ship absolutely nothing and be fine. But we will ship pretty insane things instead.",
+      "created_at": "2026-10-13T02:22:53.000Z",
+      "url": "https://x.com/thsottiaux/status/2109832216029352391",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "TimJayas",
+        "id": "",
+        "text": "if tibo doesn’t ship any big update for codex in this 28 days then it’s the end for openai",
+        "created_at": "2026-10-12T12:25:07.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-13T02:27:37.636Z"
+    },
+    {
+      "id": "2109831908620390553",
+      "text": "Perhaps I shall try to explain. There are significant differences between the 6.1 generation and prior models and therefore the optimal defaults are different between GPT-6 Astra and GPT-6.1 Sol. And even for 6.1 Sol we wanted to be careful with the change and make sure we felt good about the results. We do now and therefore we changed it.",
+      "created_at": "2026-10-13T02:21:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2109831908620390553",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "CristianRus4",
+        "id": "",
+        "text": "2 days ago btw",
+        "created_at": "2026-10-12T03:04:15.000Z",
+        "url": ""
+      },
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-13T02:27:37.636Z"
+    },
+    {
+      "id": "2109819517325205735",
+      "text": "No worries. Cooking up a solution",
+      "created_at": "2026-10-13T01:32:26.000Z",
+      "url": "https://x.com/thsottiaux/status/2109819517325205735",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "song",
+        "id": "",
+        "text": "CodeX 砍了我们一半用量后，Tibo 发起了一个投票，问我们想要 2x 用量回来，还是想要 5h 限制去掉。 结果很多人选了 5h 限制去掉。这下轮到 Tibo 瘫坐震惊了，因为他原以为是人都会选 2x 用量。他们也本打算这样做，投票只是起个造势的作用 🤣 说实话，我也选了 5h",
+        "created_at": "2026-10-12T03:17:55.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-13T02:27:37.636Z"
+    },
+    {
+      "id": "2109819027912798611",
+      "text": "Alex, kindly. The world is big and fun out there. We’re in SF, just saying.",
+      "created_at": "2026-10-13T01:30:29.000Z",
+      "url": "https://x.com/thsottiaux/status/2109819027912798611",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "alexgetmancom",
+        "id": "",
+        "text": "Day 8 of the OpenAI sprint: I feel like OpenAI just doesn’t give a damn about its users. For the third day in a row, there’s been no news before 10 PM UTC, when most of the world is already on Tuesday. I think the whole sprint idea has failed, and they’re just afraid to admit",
+        "created_at": "2026-10-12T23:25:09.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-13T02:27:37.636Z"
+    },
+    {
       "id": "2109812360596865224",
       "text": "Global reset landing by EOD PST time. Enjoy",
       "created_at": "2026-10-13T01:03:59.000Z",
@@ -8,9 +104,16 @@
       "author_verified": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
-      "first_seen": "2026-10-13T01:19:49.881Z"
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-13T01:19:49.881Z",
+      "inReplyTo": {
+        "account": "alexgetmancom",
+        "id": "",
+        "text": "Day 8 of the OpenAI sprint: I feel like OpenAI just doesn’t give a damn about its users. For the third day in a row, there’s been no news before 10 PM UTC, when most of the world is already on Tuesday. I think the whole sprint idea has failed, and they’re just afraid to admit",
+        "created_at": "2026-10-12T23:25:09.000Z",
+        "url": ""
+      }
     },
     {
       "id": "2109812216212099456",
@@ -20,9 +123,16 @@
       "author_verified": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
-      "first_seen": "2026-10-13T01:19:49.881Z"
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-13T01:19:49.881Z",
+      "inReplyTo": {
+        "account": "alexgetmancom",
+        "id": "",
+        "text": "Day 8 of the OpenAI sprint: I feel like OpenAI just doesn’t give a damn about its users. For the third day in a row, there’s been no news before 10 PM UTC, when most of the world is already on Tuesday. I think the whole sprint idea has failed, and they’re just afraid to admit",
+        "created_at": "2026-10-12T23:25:09.000Z",
+        "url": ""
+      }
     },
     {
       "id": "2109778880341151901",
@@ -5818,7 +5928,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-13T01:19:49.883Z",
+  "updated_at": "2026-10-13T02:27:37.637Z",
   "source": "browser",
   "coverage_since": "2026-10-10T04:01:09.000Z"
 }
