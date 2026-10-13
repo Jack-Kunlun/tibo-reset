@@ -1,6 +1,44 @@
 {
   "tweets": [
     {
+      "id": "2109865627628507222",
+      "text": "Carrot",
+      "created_at": "2026-10-13T04:35:39.000Z",
+      "url": "https://x.com/thsottiaux/status/2109865627628507222",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "OfficialLoganK",
+        "id": "",
+        "text": "双子座",
+        "created_at": "2026-10-13T02:39:51.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-13T04:36:13.072Z"
+    },
+    {
+      "id": "2109864370465628584",
+      "text": "How much did they pay you",
+      "created_at": "2026-10-13T04:30:39.000Z",
+      "url": "https://x.com/thsottiaux/status/2109864370465628584",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "Okay I’m finally gonna go film the Muse Wonder video. What questions do you guys have?",
+        "created_at": "2026-10-13T04:08:54.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-13T04:36:13.072Z"
+    },
+    {
       "id": "2109832541956194798",
       "text": "Nice",
       "created_at": "2026-10-13T02:24:11.000Z",
@@ -15,7 +53,7 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
+      "role": "reply",
       "foundVia": "with-replies",
       "first_seen": "2026-10-13T02:27:37.636Z"
     },
@@ -34,7 +72,7 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
+      "role": "reply",
       "foundVia": "with-replies",
       "first_seen": "2026-10-13T02:27:37.636Z"
     },
@@ -123,8 +161,8 @@
       "author_verified": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-13T01:19:49.881Z",
       "inReplyTo": {
         "account": "alexgetmancom",
@@ -5928,7 +5966,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-13T03:33:00.218Z",
+  "updated_at": "2026-10-13T04:36:13.073Z",
   "source": "browser",
   "coverage_since": "2026-10-10T04:01:09.000Z"
 }
