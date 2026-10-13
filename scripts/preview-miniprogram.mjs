@@ -147,7 +147,7 @@ const windowHtml = (w, scope) => !w ? '' :
   '</div>';
 
 const predHtml = pred ? (
-  '<div id="forecast" class="pred ' + esc(pred.statusClass) + ' ' + esc(pred.confidenceClass) + '" data-status="' + esc(pred.status) + '" data-level="' + esc(pred.confidence) + '">' +
+  '<div id="forecast" class="pred ' + esc(pred.statusClass) + ' ' + esc(pred.confidenceClass) + (pred.announcement ? ' is-announced' : '') + '" data-status="' + esc(pred.status) + '" data-level="' + esc(pred.confidence) + '">' +
     '<div class="orbit-field" aria-hidden="true">' +
       '<div class="stage-aura aura-violet"></div><div class="stage-aura aura-mint"></div>' +
       '<div class="orbit-plane orbit-outer"><div class="orbit-orbiter"><div class="orbit-dot"></div></div></div>' +
@@ -157,29 +157,30 @@ const predHtml = pred ? (
     '</div>' +
     '<div class="tap-ring" id="tap-ring" hidden></div>' +
     '<div class="pred-content">' +
-      '<div class="pred-head"><span class="pred-t">NEXT RESET</span><span class="pred-badge">置信度 · ' + esc(pred.confidenceLabel) + '</span></div>' +
+      '<div class="pred-head"><span class="pred-t">' + (pred.announcement ? '<span class="announcement-beacon"></span>TIBO 已预告' : 'NEXT RESET') + '</span><span class="pred-badge">置信度 · ' + esc(pred.confidenceLabel) + '</span></div>' +
       '<div class="pred-stage">' +
-        '<span class="pred-stage-title">下一次重置预测</span>' +
-        '<div class="eta-date" aria-label="预测日期 ' + escAttr(pred.md) + '">' + pred.dateDigits.map((digit) =>
+        '<span class="pred-stage-title">' + (pred.announcement ? '即将重置' : '下一次重置预测') + '</span>' +
+        (pred.announcement?.pending ? '<span class="announcement-pending">时间待公布</span>' : '<div class="eta-date" aria-label="' + (pred.announcement ? '公告日期 ' : '预测日期 ') + escAttr(pred.md) + '">' + pred.dateDigits.map((digit) =>
           '<span class="eta-digit entering' + (digit.value === '.' ? ' eta-digit-dot' : '') + '" style="animation-delay:' + escAttr(digit.delay) + '">' + esc(digit.value) + '</span>'
-        ).join('') + '</div>' +
+        ).join('') + '</div>') +
         '<span class="eta-detail">' + esc(pred.etaDetail) + '</span>' +
-        '<div class="pred-countdown' + (predCd && predCd.over ? ' is-over' : '') + '">' +
-          '<span class="pcd-cap">' + esc(predCd && predCd.over ? predCd.label : '预计还需等待') + '</span>' +
+        (pred.announcement?.pending ? '' : '<div class="pred-countdown' + (predCd && predCd.over ? ' is-over' : '') + '">' +
+          '<span class="pcd-cap">' + esc(predCd && predCd.over ? predCd.label : pred.announcement ? '距公告窗口开启' : '预计还需等待') + '</span>' +
           '<div class="pcd-row" id="pcd" data-eta="' + pred.etaAt + '" data-kind="' + esc(pred.etaKind) + '">' +
-            pcdHtml(predCd ? predCd.groups : []) +
+            pcdHtml(predCd && !predCd.over ? predCd.groups : []) +
           '</div>' +
-        '</div>' +
+        '</div>') +
       '</div>' +
-      (pred.band ? '<div class="pred-range"><span class="range-label">' + (pred.etaKind === 'announced' ? '公告窗口' : '80% 预测区间') + '</span><span class="range-value">' + esc(pred.band) + '</span></div>' : '') +
+      (pred.band && !pred.announcement?.pending ? '<div class="pred-range"><span class="range-label">' + (pred.etaKind === 'announced' ? '公告窗口' : '80% 预测区间') + '</span><span class="range-value">' + esc(pred.band) + '</span></div>' : '') +
+      (pred.announcement?.text ? '<div class="pred-announcement"><div class="announcement-meta"><span>公告原文 · ' + esc(pred.announcement.when) + '</span><span class="announcement-link">复制原推链接 ↗</span></div><span class="announcement-quote">' + esc(pred.announcement.text) + '</span></div>' : '') +
     '</div>' +
   '</div>'
 ) : '';
 
 const signalHtml = sig.show
   ? '<div class="sig sig-' + esc(sig.level) + '" id="signal-toggle" data-level="' + esc(sig.level) + '">' +
-      '<span class="signal-dot"></span><span class="signal-badge">' + esc(sig.badge) + '</span>' +
-      '<span class="signal-title">' + esc(sig.title) + '</span>' +
+      '<span class="signal-dot"></span><span class="signal-badge">' + esc(pred?.announcement ? '来源' : sig.badge) + '</span>' +
+      '<span class="signal-title">' + esc(pred?.announcement ? '公告依据与时间说明' : sig.title) + '</span>' +
       '<span class="signal-count">' + (sig.evCount ? esc(sig.evCount) + ' 条依据 ›' : '查看线索 ›') + '</span>' +
     '</div>'
   : '<div class="sig-idle" id="signal-toggle"><span class="idle-ico"></span><span class="idle-body">' +
@@ -280,9 +281,9 @@ const pageWxss = wxssToCss(await readFile(resolve(ROOT, 'miniprogram/pages/index
 
 const normalize = [
   '.reel .dg{display:block}.strip{display:block}',
-  'body{margin:0;background:#e9e7f0;padding:24px 0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}',
-  '.phone{width:375px;max-width:100%;margin:0 auto;background:#f5f4fb;min-height:100vh;box-shadow:0 8px 40px rgba(0,0,0,.18)}',
-  '.phone{position:relative}.preview-capsule{position:absolute;z-index:5;top:31px;right:9px;width:88px;height:32px;display:flex;align-items:center;justify-content:space-around;border:1px solid #d8d6df;border-radius:99px;background:rgba(255,255,255,.94);color:#292741;font-size:13px;line-height:1}.preview-capsule i{height:18px;border-left:1px solid #d8d6df}',
+  'body{margin:0;background:#070A12;padding:24px 0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}',
+  '.phone{width:375px;max-width:100%;margin:0 auto;background:#090D19;min-height:100vh;box-shadow:0 8px 40px rgba(0,0,0,.18)}',
+  '.phone{position:relative}.preview-capsule{position:absolute;z-index:5;top:31px;right:9px;width:88px;height:32px;display:flex;align-items:center;justify-content:space-around;border:1px solid #ffffff1a;border-radius:99px;background:#12182a;color:#eff0fa;font-size:13px;line-height:1}.preview-capsule i{height:18px;border-left:1px solid #ffffff1a}',
   '.signal-detail[hidden],.more-records[hidden],.detail-area[hidden],.tap-ring[hidden]{display:none}',
   '.detail-area{display:block}.trend-chart{height:160px}',
 ].join('');
@@ -322,11 +323,11 @@ forecastHtml + '<div class="bc-note pred-brief"><b>预测判据：</b>' + esc(pr
 "import { elapsed, reelGroups, fmtClockSec } from '../miniprogram/utils/format.js';" +
 "const chart=JSON.parse(document.getElementById('chart-data').textContent), root=document.getElementById('mini-page'), dpr=window.devicePixelRatio||2;" +
 "const lastAt=" + lastAt + ", digits='0123456789';" +
-"function paint(sel,make){const cv=document.querySelector(sel);if(!cv)return;const rect=cv.getBoundingClientRect(),w=Math.round(rect.width),h=Math.round(rect.height);if(!w||!h)return;cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);const scene=make(chart,{width:w,height:h});drawScene(ctx,scene,dpr);const b=sceneBounds(scene);const bad=b.minX<-.5||b.maxX>w+.5||b.minY<-.5||b.maxY>h+.5;console.log(sel,{w,h,bounds:b,ok:!bad});}" +
+"function paint(sel,make){const cv=document.querySelector(sel);if(!cv)return;const rect=cv.getBoundingClientRect(),w=Math.round(rect.width),h=Math.round(rect.height);if(!w||!h)return;cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);const scene=make(chart,{width:w,height:h});drawScene(ctx,scene,dpr,'night');const b=sceneBounds(scene);const bad=b.minX<-.5||b.maxX>w+.5||b.minY<-.5||b.maxY>h+.5;console.log(sel,{w,h,bounds:b,ok:!bad});}" +
 "function paintTrend(){paint('#trend',rhythmScene)}" +
 "function paintDetails(){paint('#hist',histogramScene);paint('#survival',survivalScene);paint('#strip',stripScene)}" +
 "function renderCounter(now){const el=elapsed(lastAt,now);return reelGroups(el).map(g=>'<div class=\"grp\"><div class=\"reels\">'+g.digits.map(d=>'<div class=\"reel\"><div class=\"strip\" style=\"transform:translateY(-'+d+'em)\">'+digits.split('').map(n=>'<div class=\"dg\">'+n+'</div>').join('')+'</div></div>').join('')+'</div><span class=\"unit\">'+g.unit+'</span></div>').join('')}" +
-"function tick(){const now=Date.now(),pcd=document.getElementById('pcd'),upd=document.getElementById('upd'),counter=document.getElementById('counter');if(pcd){const cd=predCountdown({etaAt:Number(pcd.dataset.eta),etaKind:pcd.dataset.kind},now);if(cd){pcd.innerHTML=cd.groups.map(g=>'<div class=\"pcd-g\"><span class=\"pcd-v\">'+g.v+'</span><span class=\"pcd-u\">'+g.unit+'</span></div>').join('');pcd.parentElement.querySelector('.pcd-cap').textContent=cd.label;pcd.parentElement.classList.toggle('is-over',cd.over)}}if(upd)upd.textContent=fmtClockSec(now);if(counter)counter.innerHTML=renderCounter(now)}" +
+"function tick(){const now=Date.now(),pcd=document.getElementById('pcd'),upd=document.getElementById('upd'),counter=document.getElementById('counter');if(pcd){const cd=predCountdown({etaAt:Number(pcd.dataset.eta),etaKind:pcd.dataset.kind},now);if(cd){pcd.innerHTML=(cd.over?[]:cd.groups).map(g=>'<div class=\"pcd-g\"><span class=\"pcd-v\">'+g.v+'</span><span class=\"pcd-u\">'+g.unit+'</span></div>').join('');pcd.parentElement.querySelector('.pcd-cap').textContent=!cd.over&&pcd.dataset.kind==='announced'?'距公告窗口开启':cd.label;pcd.parentElement.classList.toggle('is-over',cd.over)}}if(upd)upd.textContent=fmtClockSec(now);if(counter)counter.innerHTML=renderCounter(now)}" +
 "let timer=null;function syncMotion(){const visible=!document.hidden;root.classList.toggle('motion-on',visible);root.classList.toggle('motion-off',!visible)}" +
 "document.getElementById('program-toggle')?.addEventListener('click',()=>{const toggle=document.getElementById('program-toggle'),body=document.getElementById('program-body'),mark=document.getElementById('program-mark'),open=!body.classList.contains('is-open');body.classList.toggle('is-open',open);mark.classList.toggle('is-open',open);toggle.setAttribute('aria-expanded',String(open));body.setAttribute('aria-hidden',String(!open));body.style.height=open?Math.ceil(body.querySelector('.prog-body').getBoundingClientRect().height)+'px':'0px'});" +
 "document.getElementById('signal-toggle')?.addEventListener('click',()=>{const body=document.getElementById('signal-details');if(body)body.hidden=!body.hidden});" +

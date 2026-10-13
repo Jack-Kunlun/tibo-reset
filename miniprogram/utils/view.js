@@ -388,6 +388,7 @@ export function buildOutlookView(chart, pred, sig, now) {
 
   const eta = etaStamp(o.etaAt);
   const b = o.brief;
+  const announcedAt = toTs(o.announcement?.createdAt);
 
   // 一句话依据摘要：**只用 o.brief 给的数字原料**拼句子（数字同源，措辞各端自写）
   let brief;
@@ -417,6 +418,10 @@ export function buildOutlookView(chart, pred, sig, now) {
     /** `announced` = 有公告（ETA 是窗口开启时刻）/ `model` = 无公告（ETA 是中位推算）。
      *  两档的**措辞必须能分开**，所以给它一个自己的字段，别让页面从 status 反推。 */
     etaKind: o.etaKind,
+    announcement: o.announcement ? {
+      ...o.announcement,
+      when: Number.isFinite(announcedAt) ? `${fmtDateTime(announcedAt).slice(5)} 北京` : '',
+    } : null,
     status: o.status,
     statusClass: `status-${o.status}`,
     statusLabel: o.statusLabel,
@@ -441,7 +446,7 @@ export function buildOutlookView(chart, pred, sig, now) {
     })),
     wd: eta.wd,
     hm: eta.hm,
-    etaDetail: o.etaKind === 'announced'
+    etaDetail: o.announcement?.pending ? '等待 Tibo 公布具体安排' : o.etaKind === 'announced'
       ? `${eta.wd} · ${eta.hm} · 北京时间 · ${o.etaNote}`
       : `${eta.wd} · 北京时间 · 历史中位推算`,
     /** 倒计时锚点（时间戳直通，页面每秒据此重算，不做字符串反解析） */
@@ -479,13 +484,14 @@ export function buildOutlookView(chart, pred, sig, now) {
  */
 export function predCountdown(pred, now) {
   if (!pred || !Number.isFinite(pred.etaAt)) return null;
+  if (pred.announcement?.pending) return { over: false, groups: [], label: '具体时间待公布' };
   const cd = countdown(pred.etaAt, now);
   const allGroups = countdownGroups(cd);
   // 主卡只显示相邻的两个时间单位：一天以上为「天 / 时」，一小时以上为
   // 「时 / 分」，更短则为「分 / 秒」。完整精度仍由锚点计算，展示不再铺四列。
   const groups = cd.d >= 1 ? allGroups.slice(0, 2) : cd.h >= 1 ? allGroups.slice(1, 3) : allGroups.slice(2, 4);
   const over =
-    pred.etaKind === 'announced' ? '公告窗口已开启 · 随时可能重置' : '已到中位预测时刻 · 随时可能重置';
+    pred.etaKind === 'announced' ? '公告窗口已开启 · 等待重置确认' : '已到中位预测时刻 · 随时可能重置';
   return {
     over: cd.over,
     groups,

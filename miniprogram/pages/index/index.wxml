@@ -50,7 +50,7 @@
     <view
       wx:if="{{pred}}"
       id="forecast"
-      class="pred {{pred.statusClass}} {{pred.confidenceClass}}"
+      class="pred {{pred.statusClass}} {{pred.confidenceClass}} {{pred.announcement ? 'is-announced' : ''}}"
       data-status="{{pred.status}}"
       data-level="{{pred.confidence}}"
       bindtouchstart="onHeroTouch"
@@ -71,13 +71,14 @@
 
       <view class="pred-content">
         <view class="pred-head">
-          <text class="pred-t">NEXT RESET</text>
+          <view class="pred-t"><view wx:if="{{pred.announcement}}" class="announcement-beacon"></view><text>{{pred.announcement ? 'TIBO 已预告' : 'NEXT RESET'}}</text></view>
           <text class="pred-badge">置信度 · {{pred.confidenceLabel}}</text>
         </view>
 
         <view class="pred-stage">
-          <text class="pred-stage-title">下一次重置预测</text>
-          <view class="eta-date" aria-label="预测日期 {{pred.md}}">
+          <text class="pred-stage-title">{{pred.announcement ? '即将重置' : '下一次重置预测'}}</text>
+          <text wx:if="{{pred.announcement.pending}}" class="announcement-pending">时间待公布</text>
+          <view wx:else class="eta-date" aria-label="{{pred.announcement ? '公告日期' : '预测日期'}} {{pred.md}}">
             <text
               wx:for="{{pred.dateDigits}}"
               wx:key="key"
@@ -87,9 +88,9 @@
             >{{digit.value}}</text>
           </view>
           <text class="eta-detail">{{pred.etaDetail}}</text>
-          <view class="pred-countdown {{pred.cd.over ? 'is-over' : ''}}">
-            <text class="pcd-cap">{{pred.cd.over ? pred.cd.label : '预计还需等待'}}</text>
-            <view class="pcd-row">
+          <view wx:if="{{!pred.announcement.pending}}" class="pred-countdown {{pred.cd.over ? 'is-over' : ''}}">
+            <text class="pcd-cap">{{pred.cd.over ? pred.cd.label : pred.announcement ? '距公告窗口开启' : '预计还需等待'}}</text>
+            <view wx:if="{{!pred.cd.over}}" class="pcd-row">
               <view class="pcd-g" wx:for="{{pred.cd.groups}}" wx:key="unit">
                 <text class="pcd-v">{{item.v}}</text>
                 <text class="pcd-u">{{item.unit}}</text>
@@ -98,9 +99,13 @@
           </view>
         </view>
 
-        <view wx:if="{{pred.band}}" class="pred-range">
+        <view wx:if="{{pred.band && !pred.announcement.pending}}" class="pred-range">
           <text class="range-label">{{pred.etaKind === 'announced' ? '公告窗口' : '80% 预测区间'}}</text>
           <text class="range-value">{{pred.band}}</text>
+        </view>
+        <view wx:if="{{pred.announcement.text}}" class="pred-announcement">
+          <view class="announcement-meta"><text>公告原文 · {{pred.announcement.when}}</text><text wx:if="{{pred.announcement.url && !singlePage}}" class="announcement-link" data-url="{{pred.announcement.url}}" catchtap="onCopySource">复制原推链接 ↗</text></view>
+          <text class="announcement-quote">{{pred.announcement.text}}</text>
         </view>
       </view>
     </view>
@@ -108,8 +113,8 @@
     <!-- 信号紧贴预测；没发现预告时也明确展示扫描结论。 -->
     <view wx:if="{{signal.show}}" class="sig sig-{{signal.level}}" data-level="{{signal.level}}" bindtap="onToggleSignalDetails">
       <view class="signal-dot"></view>
-      <text class="signal-badge">{{signal.badge}}</text>
-      <text class="signal-title">{{signal.title}}</text>
+      <text class="signal-badge">{{pred.announcement ? '来源' : signal.badge}}</text>
+      <text class="signal-title">{{pred.announcement ? '公告依据与时间说明' : signal.title}}</text>
       <text wx:if="{{signal.evCount}}" class="signal-count">{{signal.evCount}} 条依据 ›</text>
       <text wx:else class="signal-count">查看线索 ›</text>
     </view>

@@ -9,7 +9,7 @@
      且 Safari 对 data: 图标的支持长期不稳定。两个 png 由 scripts/build.mjs 拷进 dist/。 -->
 <link rel="icon" type="image/png" sizes="32x32" href="./favicon.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
-<meta name="theme-color" content="#f5f4fb" />
+<meta name="theme-color" content="#090d19" />
 <!--__OG_META__-->
 <style>
 
@@ -370,6 +370,122 @@
   @media(max-width:370px){#observatory .am-brand h1{font-size:13px}}
   @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}#observatory .reel .strip{transition:none!important}}
 
+  /* 暗夜极光：主舞台、侧栏和历史面板共用一套明暗与间距。 */
+  :root{--ink:#eff0fa;--ink2:#c6c9df;--mist:#929ab7;--line:#ffffff12;--card:#12182a;--paper2:#101628;--lan:#b4a3ff;--bamboo:#83e6c7;--cinnabar:#e89c9c;--amber:#e7c28a;color-scheme:dark}
+  html,body{background:#090d19}
+  #observatory{--am-accent:#b4a3ff;--am-ink:#eff0fa;--am-muted:#929ab7;--am-line:#ffffff12;--am-glow:1;background:#090d19;padding:0 40px 32px}
+  #observatory.wrap{max-width:1220px}
+  #observatory .am-sky{height:1200px;background-image:radial-gradient(#b4a3ff29 .65px,transparent .65px);background-size:56px 56px;mask-image:linear-gradient(#000,transparent)}
+  #observatory .am-cloud-mint{background:radial-gradient(ellipse,#166c6a44,transparent 68%);left:-30%;top:20px}
+  #observatory .am-cloud-violet{background:radial-gradient(ellipse,#734cba4d,transparent 68%);top:-180px;right:-25%}
+  #observatory .am-cloud-blue{background:radial-gradient(ellipse,#25569930,transparent 68%)}
+  #observatory .am-header{padding:28px 0 24px;border-bottom:0}
+  #observatory .am-logo{border:0;background:linear-gradient(135deg,#7b63c7,#3d326e);box-shadow:0 0 24px #9677e92e,inset 0 1px #ffffff29}
+  #observatory .am-brand h1{font-size:16px;letter-spacing:.02em}
+  #observatory .am-brand .am-tiny{font-size:10px;letter-spacing:.19em;margin-top:3px}
+  #observatory .am-pause,#observatory .am-live{background:#151b2d;border:0;box-shadow:none}
+  #observatory .am-live{color:#a3cbbb}
+  #observatory .am-dot{background:#83e6c7;box-shadow:0 0 12px #83e6c755}
+  #observatory .am-context{padding:4px 0 22px;gap:8px;font-size:11px}
+  #observatory .am-context-left{align-items:center;gap:12px}
+  #observatory .hero-v{font-size:13px;letter-spacing:.015em}
+  #observatory .hero-v .unit{color:var(--am-muted);font-size:10px}
+  #observatory .am-main{grid-template-columns:minmax(0,1.85fr) minmax(280px,1fr);gap:22px;margin-top:0;align-items:start}
+  #observatory .am-focus{min-width:0}
+  #observatory .am-signal-details{margin-top:14px;color:#929ab7;font-size:11px}
+  #observatory .am-signal-details>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;padding:3px 2px;gap:14px}
+  #observatory .am-signal-details>summary span{color:#b4a3ff}
+  #observatory .am-signal-details[open]>summary{margin-bottom:12px}
+  #observatory .am-signal-details .sig{margin-top:0}
+  #observatory .am-main>.am-side{grid-column:2;grid-row:1;gap:16px}
+  #observatory .am-lower{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:22px;margin-top:24px;align-items:start}
+  #observatory .pcard,#observatory .pcard.is-announced{padding:23px 25px 0;border:0;border-radius:24px;background:radial-gradient(ellipse at 85% 25%,#59428938,transparent 60%),radial-gradient(ellipse at 15% 90%,#23776c25,transparent 60%),linear-gradient(145deg,#171d33,#141a2c);box-shadow:0 20px 60px -25px #0008,inset 0 1px #cfc1ff20;color:var(--am-ink);overflow:hidden;transform-style:flat}
+  #observatory .pcard:before{background:radial-gradient(350px circle at var(--am-mx) var(--am-my),#b4a3ff0c,transparent 70%)}
+  #observatory .pcard.is-announced{background:radial-gradient(ellipse at 85% 25%,#7950b347,transparent 60%),radial-gradient(ellipse at 15% 90%,#23776c35,transparent 60%),linear-gradient(145deg,#201e3a,#141c30)}
+  #observatory .am-kicker{color:#aca3d9;letter-spacing:.16em;font-size:10px}
+  #observatory .am-kicker:before{width:6px;height:6px;border-radius:50%;background:#9583df}
+  #observatory .is-announced .am-kicker{color:#a6edce;gap:9px;font-weight:500}
+  #observatory .is-announced .am-kicker:before{display:none}
+  #observatory .announcement-beacon{width:6px;height:6px;border-radius:50%;background:#a6f2d6;box-shadow:0 0 14px #a6f2d6;flex:none}
+  #observatory .pc-conf,#observatory .pc-conf[data-level],#observatory .is-announced .pc-conf{background:#ffffff07;color:#b9b6cf;font-size:10px;padding:5px 9px}
+  #observatory .am-stage,#observatory .is-announced .am-stage{min-height:292px;padding:25px 0 23px}
+  #observatory .am-stage h2{color:#b6bdd5;font-size:16px;letter-spacing:.04em}
+  #observatory .is-announced .am-stage h2{color:#f2f0ff;font-size:28px;font-weight:500;letter-spacing:.12em}
+  #observatory .am-date{font-family:var(--sans);font-size:92px;letter-spacing:0;gap:3px;margin:10px 0 5px;font-weight:400}
+  #observatory .am-digit-cell{padding:0;margin:0;width:.59em}
+  #observatory .am-date .am-dot-digit{width:.28em;overflow:visible}
+  #observatory .am-dot-digit .am-digit{width:100%;background:none;-webkit-text-fill-color:#b4a3ff;color:#b4a3ff;text-align:center}
+  #observatory .am-digit,#observatory .is-announced .am-digit{background:linear-gradient(140deg,#f1edff,#c1b0ff 64%,#8fe9d0);background-clip:text;-webkit-background-clip:text}
+  #observatory .am-stage>.am-small{color:#a4acc7;font-size:11px;max-width:100%;line-height:1.7}
+  #observatory .pc-wait,#observatory .is-announced .pc-wait{margin-top:22px;padding:8px 14px;gap:10px;border-radius:12px;background:#ffffff05;color:#9da8c3;align-items:center}
+  #observatory .counter{font-size:23px;letter-spacing:0;color:#ded8fc;gap:8px}
+  #observatory .counter .unit{font-size:11px;color:#9da8c3}
+  #observatory .pc-wait-over,#observatory .is-announced .pc-wait-over{color:#a6edce;font-size:13px}
+  #observatory .pc-wait-cap{font-size:11px}
+  #observatory .pc-band{padding:14px 0;border-top-color:var(--am-line);font-size:11px;color:#9da8c3}
+  #observatory .pc-band b{color:#d9def1;font-weight:400;margin-left:10px}
+  #observatory .pc-band>span:last-child{display:none}
+  #observatory .announcement-pending{font-size:34px;font-weight:400;margin:28px 0 20px;color:#ece7ff}
+  #observatory .pc-announcement{display:block;padding:13px 0 17px;position:relative;z-index:1;text-align:left;color:#d8dcf1;text-decoration:none}
+  #observatory .pc-announcement>span{display:flex;justify-content:space-between;gap:8px;color:#929bb8;font-size:10px}
+  #observatory .pc-announcement i{font-style:normal;color:#a6edce}
+  #observatory .pc-announcement p{margin:7px 0 0;font-size:12px;line-height:1.65;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+  #observatory .am-orbit-field{inset:-16px -25px 0;mask-image:linear-gradient(transparent,#000 25%,#000 75%,transparent)}
+  #observatory .am-orbit-plane{width:470px;opacity:.5;top:49%}
+  #observatory .am-orbit-plane.am-inner{width:315px;opacity:.65}
+  #observatory .am-orbit-plane.am-outer{width:650px;opacity:.22}
+  #observatory .am-orbit-ring{border-color:#bc9cff55}
+  #observatory .am-orbit-spin:before{width:5px;height:5px;top:-2px;box-shadow:0 0 18px 5px #b8a0f266}
+  #observatory .am-stage-glow{background:radial-gradient(ellipse,#7571c432,transparent 72%);width:400px;left:calc(50% - 200px);filter:blur(18px)}
+  #observatory .am-orbit-field:after{content:"";position:absolute;inset:20% 0 25%;background:linear-gradient(180deg,transparent,#9a8ae90b,transparent);transform:translateY(-15%);pointer-events:none}
+  #observatory .am-panel,#observatory .sig-prog{background:#12182ae8;border:0;border-radius:20px;padding:22px;box-shadow:inset 0 1px #ffffff0b}
+  #observatory .sig-prog{padding:19px 20px}
+  #observatory .am-panel h2{font-size:13px;font-weight:500;letter-spacing:.04em;color:#dce0f2}
+  #observatory .am-icon{background:#b4a3ff12;color:#baa9ef;border-radius:10px}
+  #observatory .sig-prog-note{padding-left:42px;font-size:11px}
+  #observatory .am-basis-row{padding:14px 0;align-items:center;font-size:11px}
+  #observatory .am-basis-row strong{font-size:17px;font-weight:400;letter-spacing:0;color:#ded8f5}
+  #observatory .am-basis-row strong small{color:#929ab7}
+  #observatory .am-basis-note{font-size:11px;line-height:1.7}
+  #observatory .am-history{grid-column:auto;grid-row:auto}
+  #observatory .am-records{margin-top:0}
+  #observatory .am-record-grid{grid-template-columns:1fr;gap:14px;margin-top:16px}
+  #observatory .am-record+.am-record{padding:14px 0 0;border-left:0;border-top:1px solid var(--am-line)}
+  #observatory .am-record p{color:#bdc4dc;font-size:11px;line-height:1.65;-webkit-line-clamp:2}
+  #observatory .tag{color:#b4a3ff}
+  #observatory .sig-idle{background:transparent;border:0;border-radius:0;padding:14px 3px 0;margin-top:0;font-size:11px;color:#adb5ce}
+  #observatory .sig-idle .idle-sub{font-size:10px}
+  #observatory .sig{background:#151c30;border:0;border-radius:16px;padding:15px 18px;font-size:12px}
+  #observatory .sig-head{margin-bottom:9px}
+  #observatory .sig-title{font-size:13px;font-weight:500}
+  #observatory .sig-badge{background:#b4a3ff12;color:#b4a3ff}
+  #observatory .sig-quote,#observatory .ev,#observatory .win{background:#0f1525;border-color:var(--am-line);color:#bbc4db}
+  #observatory .sw{border-color:var(--am-line)}
+  #observatory .sw-v{color:#d5dbef}
+  #observatory .sw-foot,#observatory .sig-clock{color:#929ab7}
+  #observatory .track{background:#ffffff0b}
+  #observatory .good{color:#83e6c7!important}
+  #observatory .bad,#observatory .is-warn,#observatory .sig-note{color:#e7c28a!important}
+  #observatory .cwarn{background:#2a241a;border:0;border-radius:14px}
+  #observatory .cwarn-h,#observatory .cwarn-b,#observatory .cwarn-l{color:#e7c28a}
+  #observatory .am-more{margin-top:24px;background:transparent;box-shadow:none;padding:0}
+  #observatory .am-footer{border-top-color:var(--am-line);font-size:10px;margin-top:28px;padding-top:18px}
+  #observatory svg text{fill:#9ca6c2}
+  #observatory svg [fill="#1F1E1B"],#observatory svg [fill="#4A4842"]{fill:#d4dbf0}
+  #observatory svg [fill="#3F7376"],#observatory svg [fill="#6150d4"]{fill:#b4a3ff}
+  #observatory svg [fill="#FAF8F4"],#observatory svg [fill="#FFFFFF"]{fill:#12182a}
+  #observatory svg [stroke="#E4DFD5"],#observatory svg [stroke="#e4e1ee"]{stroke:#ffffff12}
+  #observatory svg [stroke="#3F7376"],#observatory svg [stroke="#6150d4"]{stroke:#b4a3ff}
+  #observatory svg [stroke="#1F1E1B"]{stroke:#d4dbf0}
+  #observatory svg [stop-color="#3F7376"],#observatory svg [stop-color="#6150d4"]{stop-color:#b4a3ff}
+  @keyframes announcement-pulse{0%,100%{opacity:.6;box-shadow:0 0 6px #a6f2d655}50%{opacity:1;box-shadow:0 0 18px #a6f2d6}}
+  @keyframes am-scan{0%,100%{transform:translateY(-15%);opacity:.4}50%{transform:translateY(25%);opacity:1}}
+  @media(prefers-reduced-motion:no-preference){#observatory .announcement-beacon{animation:announcement-pulse 3s ease-in-out infinite}#observatory .am-orbit-field:after{animation:am-scan 12s ease-in-out infinite}}
+  #observatory[data-running="false"] .announcement-beacon,#observatory[data-visible="false"] .announcement-beacon,#observatory[data-running="false"] .am-orbit-field:after,#observatory[data-visible="false"] .am-orbit-field:after{animation-play-state:paused}
+  @media(max-width:850px){#observatory{padding-left:24px;padding-right:24px}#observatory .am-main{grid-template-columns:minmax(0,1.5fr) minmax(240px,1fr);gap:16px}#observatory .am-lower{gap:16px}#observatory .am-date{font-size:78px}#observatory .pcard{padding-left:20px;padding-right:20px}#observatory .pc-band b{display:block;margin-left:0;margin-top:4px}}
+  @media(max-width:700px){#observatory{padding:0 18px 28px}#observatory .am-header{padding:22px 0 18px}#observatory .am-brand h1{font-size:14px}#observatory .am-logo{width:32px;height:32px}#observatory .am-pause{background:transparent;border:0;padding-right:0}#observatory .am-context{padding:0 1px 17px;align-items:center}#observatory .am-context-left{width:auto;gap:8px}#observatory .am-context>span:last-child{width:auto;font-size:10px}#observatory .am-context>span:last-child a{display:block;max-width:128px;text-align:right}#observatory .hero-v{font-size:11px}#observatory .am-main,#observatory .am-lower{display:block}#observatory .am-main>.am-side{gap:14px;margin-top:16px}#observatory .pcard,#observatory .pcard.is-announced{padding:20px 20px 0;border-radius:22px}#observatory .am-stage,#observatory .is-announced .am-stage{min-height:242px;padding:23px 0 20px}#observatory .is-announced .am-stage h2{font-size:26px}#observatory .am-date{font-size:76px;gap:2px;margin:12px 0 6px}#observatory .am-stage>.am-small{font-size:10px}#observatory .pc-wait{margin-top:20px}#observatory .pc-wait-cap,#observatory .pc-wait-over{font-size:11px}#observatory .pc-band{padding:13px 0}#observatory .pc-announcement{padding-bottom:17px}#observatory .am-lower{margin-top:16px}#observatory .am-panel{padding:20px;border-radius:18px}#observatory .am-records{margin-top:16px}#observatory .sig-idle{padding:13px 3px 0}#observatory .idle-sub{width:100%;margin-left:24px}#observatory .am-more{padding:0;margin-top:20px}#observatory .am-footer{display:block;line-height:1.9}#observatory .am-footer>span{display:block}}
+  @media(max-width:370px){#observatory{padding-left:14px;padding-right:14px}#observatory .am-brand h1{font-size:13px}#observatory .am-stage,#observatory .is-announced .am-stage{min-height:230px}#observatory .am-date{font-size:66px}#observatory .pc-conf{font-size:9px;padding:4px 6px}#observatory .am-context{flex-direction:column;align-items:stretch;gap:6px}#observatory .am-context-left{justify-content:space-between}#observatory .am-context>span:last-child a{max-width:none;text-align:left}#observatory .pc-band{font-size:10px}#observatory .pcard,#observatory .pcard.is-announced{padding-left:17px;padding-right:17px}}
+
 </style>
 
 </head>
@@ -387,23 +503,27 @@
     <span><a href="#records">上次 <span class="am-mono"><!--__LAST_LABEL__--></span> · 北京时间</a></span>
   </section>
   <main>
-    <!--__OUTLOOK__-->
-    <!--__SIGNAL__-->
     <div class="am-main">
+      <div class="am-focus">
+        <!--__OUTLOOK__-->
+        <!--__SIGNAL__-->
+      </div>
       <div class="am-side">
         <!--__PROGRAM__-->
         <!--__BASIS_SUMMARY__-->
       </div>
+    </div>
+    <div class="am-lower">
       <section class="am-panel am-history">
         <div class="am-panel-head"><h2>历史重置节奏</h2><span class="am-tiny am-muted">最近 7 次间隔 · 天</span></div>
         <div class="am-trends"><!--__RHYTHM__--></div>
         <details class="am-disclosure"><summary>回测与预测边界</summary><div class="am-detail basis-detail"><!--__BASIS__--></div></details>
       </section>
-    </div>
     <section class="am-panel am-records" id="records">
       <div class="am-panel-head"><h2>最近记录</h2><span class="am-tiny am-muted">原文可追溯 ↗</span></div>
       <div class="am-record-grid"><!--__RECENT_RECORDS__--></div>
     </section>
+    </div>
     <details class="am-panel am-more">
       <summary>历史规律与更多记录</summary>
       <div class="am-more-body">
@@ -571,7 +691,9 @@
       var over = left <= 0;
       if (pcdWait && pcdWait.dataset.over !== (over ? '1' : '0')) {
         pcdWait.dataset.over = over ? '1' : '0';
-        if (pcdCap) pcdCap.textContent = over ? '已到预测时刻' : '预计还需等待';
+        if (pcdCap) pcdCap.textContent = pred.dataset.announcement === 'true'
+          ? (over ? '公告窗口已开启' : '距公告窗口开启')
+          : (over ? '已到预测时刻' : '预计还需等待');
       }
       if (!over) {
         var q = parts(left);

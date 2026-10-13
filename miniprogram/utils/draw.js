@@ -23,6 +23,15 @@ export function rgba(hex, a) {
 const FONT = '"PingFang SC","Hiragino Sans GB","Noto Sans SC",sans-serif';
 const MONO = '"SF Mono",Menlo,Consolas,monospace';
 
+// 首页使用夜色面板，历史页仍沿用原色；只转换画笔，不改图元或坐标。
+const NIGHT_COLORS = {
+  '#FAF8F4': '#12182A', '#F2EFE8': '#191F35', '#FFFFFF': '#12182A',
+  '#1F1E1B': '#D4DBF0', '#4A4842': '#C6C9DF', '#8C8880': '#929AB7',
+  '#E4DFD5': '#272F45', '#3F7376': '#B4A3FF', '#5B9296': '#C7B9FF',
+  '#5F8455': '#83E6C7', '#B3563C': '#E89C9C',
+  '#6150D4': '#B4A3FF', '#73708A': '#9CA6C2', '#E4E1EE': '#272F45',
+};
+
 /* 降级路径：部分安卓 WebView 画不出虚线（setLineDash 被忽略），
    这种情况下退化成实线，而不是画出错位的虚线段。 */
 function canDash(ctx) {
@@ -35,7 +44,9 @@ function canDash(ctx) {
  * @param {object} scene { width, height, elements }
  * @param {number} dpr  设备像素比（调用方已按 dpr 放大画布并 scale）
  */
-export function drawScene(ctx, scene, dpr = 1) {
+export function drawScene(ctx, scene, dpr = 1, theme = 'original') {
+  const color = (value) => theme === 'night' && typeof value === 'string'
+    ? NIGHT_COLORS[value.toUpperCase()] ?? value : value;
   ctx.clearRect(0, 0, scene.width, scene.height);
   ctx.lineCap = 'butt';
   ctx.textBaseline = 'alphabetic';
@@ -46,7 +57,7 @@ export function drawScene(ctx, scene, dpr = 1) {
 
     if (e.k === 'line') {
       ctx.beginPath();
-      ctx.strokeStyle = e.stroke || '#000';
+      ctx.strokeStyle = color(e.stroke || '#000');
       ctx.lineWidth = e.w || 1;
       if (canDash(ctx)) ctx.setLineDash(e.dash || []);
       ctx.moveTo(e.x1, e.y1);
@@ -56,11 +67,11 @@ export function drawScene(ctx, scene, dpr = 1) {
       ctx.beginPath();
       ctx.arc(e.cx, e.cy, Math.max(0, e.r), 0, Math.PI * 2);
       if (e.fill) {
-        ctx.fillStyle = e.fill;
+        ctx.fillStyle = color(e.fill);
         ctx.fill();
       }
       if (e.stroke) {
-        ctx.strokeStyle = e.stroke;
+        ctx.strokeStyle = color(e.stroke);
         ctx.lineWidth = e.w || 1;
         if (canDash(ctx)) ctx.setLineDash(e.dash || []);
         ctx.stroke();
@@ -79,16 +90,16 @@ export function drawScene(ctx, scene, dpr = 1) {
       if (e.grad) {
         // 面积渐变：从 grad.y0（顶部，a0）到 grad.y1（底部，a1）
         const g = ctx.createLinearGradient(0, e.grad.y0, 0, e.grad.y1);
-        g.addColorStop(0, rgba(e.grad.color, e.grad.a0));
-        g.addColorStop(1, rgba(e.grad.color, e.grad.a1));
+        g.addColorStop(0, rgba(color(e.grad.color), e.grad.a0));
+        g.addColorStop(1, rgba(color(e.grad.color), e.grad.a1));
         ctx.fillStyle = g;
         ctx.fill();
       } else if (e.fill) {
-        ctx.fillStyle = e.fill;
+        ctx.fillStyle = color(e.fill);
         ctx.fill();
       }
       if (e.stroke) {
-        ctx.strokeStyle = e.stroke;
+        ctx.strokeStyle = color(e.stroke);
         ctx.lineWidth = e.w || 1;
         ctx.lineJoin = e.lineJoin || 'miter';
         if (canDash(ctx)) ctx.setLineDash(e.dash || []);
@@ -97,7 +108,7 @@ export function drawScene(ctx, scene, dpr = 1) {
     } else if (e.k === 'text') {
       const size = e.size || 11;
       ctx.font = `${e.weight ? e.weight + ' ' : ''}${size}px ${e.mono ? MONO : FONT}`;
-      ctx.fillStyle = e.fill || '#000';
+      ctx.fillStyle = color(e.fill || '#000');
       ctx.textAlign = e.anchor === 'middle' ? 'center' : e.anchor === 'end' ? 'right' : 'left';
       // 坐标 y 按文字基线理解，与 SVG 的默认 baseline 对齐方式一致
       ctx.fillText(e.s, e.x, e.y);

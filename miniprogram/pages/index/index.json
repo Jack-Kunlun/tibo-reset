@@ -5,7 +5,8 @@
     "navigationBarFit": "squeezed"
   },
   "navigationBarTitleText": "等 TIBO 按按钮",
+  "navigationBarTextStyle": "white",
   "enablePullDownRefresh": true,
-  "backgroundTextStyle": "dark",
-  "backgroundColor": "#F5F4FB"
+  "backgroundTextStyle": "light",
+  "backgroundColor": "#090D19"
 }

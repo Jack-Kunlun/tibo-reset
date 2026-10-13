@@ -396,7 +396,7 @@ Page({
             width: Math.round(trend.width),
             height: Math.round(trend.height),
           }),
-          trend.dpr
+          trend.dpr, 'night'
         );
       }
 
@@ -410,7 +410,7 @@ Page({
             width: Math.round(hist.width),
             height: Math.round(hist.height),
           }),
-          hist.dpr
+          hist.dpr, 'night'
         );
       }
 
@@ -423,7 +423,7 @@ Page({
             width: Math.round(surv.width),
             height: Math.round(surv.height),
           }),
-          surv.dpr
+          surv.dpr, 'night'
         );
       }
 
@@ -436,7 +436,7 @@ Page({
             width: Math.round(strip.width),
             height: Math.round(strip.height),
           }),
-          strip.dpr
+          strip.dpr, 'night'
         );
       }
     } catch (e) {

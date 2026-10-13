@@ -64,7 +64,9 @@ export function buildOutlook({ chart, prediction, signals, now }) {
 
   const forecasts = (signals?.forecasts ?? []).filter((f) => finite(f?.window?.fromTs));
   const f = forecasts[0] ?? null;
-  const pendingAnnouncement = !f && (signals?.forecasts ?? []).some((a) => a.timing === 'pending' && !a.window);
+  const pending = (signals?.forecasts ?? []).find((a) => a.timing === 'pending' && !a.window);
+  const pendingAnnouncement = !f && !!pending;
+  const announcement = f ?? pending;
 
   // 重采样对中位估计的相对波动。它衡量的是「换一批样本，这个中位数还站得住吗」。
   // 必须在两个分支**之前**算出来 —— else 分支要用它判置信度。
@@ -177,6 +179,13 @@ export function buildOutlook({ chart, prediction, signals, now }) {
     etaDate: new Date(etaAt).toISOString(),
     etaNote: etaKind === 'announced' ? '公告窗口开启时刻' : '历史节奏的中位推算',
     band,
+    // 预告必须成为主卡状态，不能只在下面的原文详情中才看得见。
+    announcement: announcement ? {
+      pending: pendingAnnouncement,
+      text: announcement.text ?? '',
+      url: announcement.url ?? '',
+      createdAt: announcement.createdAt ?? null,
+    } : null,
 
     status,
     statusLabel: STATUS_LABEL[status],

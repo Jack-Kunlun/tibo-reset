@@ -138,6 +138,33 @@ function makeFakeCanvas() {
   return { width: 0, height: 0, getContext: () => ctx };
 }
 
+{
+  const { drawScene } = await import('../miniprogram/utils/draw.js');
+  const scene = { width: 120, height: 80, elements: [
+    { k: 'text', s: '天', x: 10, y: 20, fill: '#73708a' },
+    { k: 'line', x1: 10, y1: 30, x2: 100, y2: 30, stroke: '#e4e1ee' },
+    { k: 'poly', pts: [[10, 40], [50, 40], [50, 70]], grad: { color: '#6150d4', a0: 0.2, a1: 0, y0: 40, y1: 70 } },
+  ] };
+  const original = JSON.stringify(scene);
+  const ctx = makeFakeCanvas().getContext();
+  const calls = [];
+  ctx.fillText = (s, x, y) => calls.push(['text', s, x, y, ctx.fillStyle]);
+  ctx.stroke = () => calls.push(['stroke', ctx.strokeStyle]);
+  ctx.createLinearGradient = () => ({ addColorStop: (at, color) => calls.push(['gradient', at, color]) });
+  drawScene(ctx, scene, 1, 'night');
+  check('夜色图表保持坐标并同时转换文字、网格和渐变',
+    calls.some((c) => c[0] === 'text' && c[2] === 10 && c[3] === 20 && c[4] === '#9CA6C2') &&
+    calls.some((c) => c[0] === 'stroke' && c[1] === '#272F45') &&
+    calls.some((c) => c[0] === 'gradient' && c[2] === 'rgba(180,163,255,0.2)') &&
+    JSON.stringify(scene) === original);
+  calls.length = 0;
+  drawScene(ctx, scene);
+  check('未指定夜色的历史页保留原画笔',
+    calls.some((c) => c[0] === 'text' && c[4] === '#73708a') &&
+    calls.some((c) => c[0] === 'stroke' && c[1] === '#e4e1ee') &&
+    calls.some((c) => c[0] === 'gradient' && c[2] === 'rgba(97,80,212,0.2)'));
+}
+
 let captured = null;
 globalThis.Page = (cfg) => {
   captured = cfg;
@@ -503,7 +530,9 @@ check(
   const note = String(bt.note ?? '');
   check(
     '卡②结语的「N 项未达标」与卡上那三个判据自洽',
-    note.length > 8 && (failed === 0 ? /都在容差内/.test(note) : new RegExp(`有 ${failed} 项未达标`).test(note)),
+    note.length > 8 && (d.pred.etaKind === 'announced'
+      ? /依据来自公告本身/.test(note) && !/三项.*容差内/.test(note)
+      : failed === 0 ? /都在容差内/.test(note) : new RegExp(`有 ${failed} 项未达标`).test(note)),
     `failed=${failed} / note=「${note}」`
   );
 }
@@ -699,9 +728,8 @@ check(
   `model=「${overModelLabel}」/ announced=「${overAnnLabel}」`
 );
 check(
-  '还没到 ETA 时说的是「预计还需等待」',
-  /预计还需等待/.test(page.data.pred.cd.label),
-  page.data.pred.cd.label
+  '未来的 ETA 才显示「预计还需等待」',
+  (await import(resolve(ROOT, 'miniprogram/utils/view.js'))).predCountdown({ etaAt: 1_000_001, etaKind: 'model' }, 1_000_000).label === '预计还需等待'
 );
 
 console.log('\n【5】信号');
@@ -1154,6 +1182,19 @@ check('未定时间预告显示待公布且保留依据', pendingVm.title.includ
 check('未定时间预告不造窗口或倒计时锚点', pendingVm.window === null && pendingVm.headline === null);
 const pendingOutlookVm = buildOutlookView(chart, snapPred, pendingSig, now);
 check('小程序预测卡保留未定时间预告事实，估计仍标为历史推算', pendingOutlookVm.etaKind === 'model' && pendingOutlookVm.brief.includes('已预告重置，具体时间待公布') && !pendingOutlookVm.brief.includes('没有公告') && !pendingOutlookVm.brief.includes('均不足以构成预告'));
+{
+  const { predCountdown } = await import(resolve(ROOT, 'miniprogram/utils/view.js'));
+  const cd = predCountdown(pendingOutlookVm, now);
+  check('小程序未定时间预告进入公告态，主卡不倒数历史估计', pendingOutlookVm.announcement?.pending === true && pendingOutlookVm.announcement.text.includes('reset is coming') && cd.groups.length === 0 && cd.label === '具体时间待公布');
+  const announced = buildOutlookView(chart, snapPred, { forecasts: [{
+    precision: 'day', counts: { hard: 1 },
+    window: { fromTs: now - 60_000, toTs: now + 3_600_000 },
+    text: 'Global reset landing by EOD PST time. Enjoy',
+    url: 'https://x.com/thsottiaux/status/2109812360596865224',
+    createdAt: new Date(now - 60_000).toISOString(),
+  }] }, now);
+  check('小程序公告主卡直接保留原文、来源与北京时间', announced.announcement?.text.includes('Global reset landing') && announced.announcement.url.endsWith('/2109812360596865224') && /\d{2}\.\d{2} \d{2}:\d{2} 北京/.test(announced.announcement.when));
+}
 
 // 反例：没有这条规则时必须安静，不能凭空造一个窗口
 check('没有该字段时不展示（更不炸）', buildSignal({ checkedTweets: 1 }).program?.show === false);

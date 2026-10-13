@@ -710,6 +710,8 @@ const OUTLOOK_DECO = `<div class="am-orbit-field" aria-hidden="true">
 export function renderOutlook(o, m, prediction, signals, collect) {
   if (!o) return '';
 
+  const announcement = o.announcement;
+  const pending = announcement?.pending;
   const eta = etaStamp(o.etaDate);
   const over = o.etaAt - o.now <= 0;
 
@@ -717,7 +719,7 @@ export function renderOutlook(o, m, prediction, signals, collect) {
   const scale = left >= DAY ? 'd' : left >= 3_600_000 ? 'h' : left >= 60_000 ? 'm' : 's';
   const dateDigits = [...eta.md].map((ch, i) => `<span class="am-digit-cell${ch === '.' ? ' am-dot-digit' : ''}" aria-hidden="true"><span class="am-digit" style="--am-index:${i}">${ch}</span></span>`).join('');
   const band =
-    o.band && Number.isFinite(o.band.fromAt) && Number.isFinite(o.band.toAt)
+    !pending && o.band && Number.isFinite(o.band.fromAt) && Number.isFinite(o.band.toAt)
       ? `<div class="pc-band">
           <span><span class="k">${o.etaKind === 'announced' ? '公告窗口' : '80% 预测区间'}</span>
           <b class="am-mono">${esc(fmtMDHM(o.band.fromAt))} — ${esc(fmtMDHM(o.band.toAt))}</b></span>
@@ -727,27 +729,28 @@ export function renderOutlook(o, m, prediction, signals, collect) {
 
   return `
   <section class="pred">
-    <div class="pcard" id="pred" data-status="${esc(o.status)}" data-eta="${o.etaAt}" data-over="${
+    <div class="pcard${announcement ? ' is-announced' : ''}" id="pred" data-announcement="${!!announcement}" data-status="${esc(o.status)}"${pending ? '' : ` data-eta="${o.etaAt}"`} data-over="${
       over ? 1 : 0
     }">
       <div class="pcard-top">
-        <span class="am-kicker">NEXT RESET</span>
+        <span class="am-kicker">${announcement ? '<i class="announcement-beacon" aria-hidden="true"></i>TIBO 已预告' : 'NEXT RESET'}</span>
         <span class="pc-conf" data-level="${esc(o.confidence)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 7V4h3m10 0h3v3m0 10v3h-3M7 20H4v-3M5 12h14"/></svg>置信度 · ${esc(o.confidenceLabel)}</span>
       </div>
       <div class="am-stage">
         ${OUTLOOK_DECO}
-        <h2>下一次重置预测</h2>
-        <div class="pc-eta"><div class="am-date am-mono" aria-label="${attr(eta.md)}">${dateDigits}</div></div>
-        <span class="am-small">${esc(eta.wd)} · 北京时间 · ${o.etaKind === 'model' ? '历史中位推算' : `${esc(eta.hm)} ${esc(o.etaNote)}`}</span>
+        <h2>${announcement ? '即将重置' : '下一次重置预测'}</h2>
+        ${pending ? '<div class="announcement-pending">时间待公布</div><span class="am-small">等待 Tibo 公布具体安排</span>' : `<div class="pc-eta"><div class="am-date am-mono" aria-label="${attr(eta.md)}">${dateDigits}</div></div>
+        <span class="am-small">${esc(eta.wd)} · 北京时间 · ${o.etaKind === 'model' ? '历史中位推算' : `${esc(eta.hm)} ${esc(o.etaNote)}`}</span>`}
         <span class="pc-badge" data-status="${esc(o.status)}">${esc(o.statusLabel)}</span>
-        <div class="pc-wait" data-over="${over ? 1 : 0}">
-          <span class="pc-wait-cap" id="pcd-cap">${over ? '已到预测时刻' : '预计还需等待'}</span>
+        ${pending ? '' : `<div class="pc-wait" data-over="${over ? 1 : 0}">
+          <span class="pc-wait-cap" id="pcd-cap">${announcement ? (over ? '公告窗口已开启' : '距公告窗口开启') : (over ? '已到预测时刻' : '预计还需等待')}</span>
           <div class="counter" id="pcd" data-scale="${scale}" role="timer" aria-label="${attr(fmtSpan(left / DAY))}">${renderEtaCounter(o)}</div>
-          <span class="pc-wait-over">随时可能重置</span>
-        </div>
+          <span class="pc-wait-over">${announcement ? '等待重置确认' : '随时可能重置'}</span>
+        </div>`}
       </div>
 
       ${band}
+      ${announcement?.text ? `<a class="pc-announcement" href="${attr(announcement.url)}" target="_blank" rel="noopener noreferrer"><span>公告原文${announcement.createdAt ? ` · ${esc(fmtMDHM(Date.parse(announcement.createdAt)))} 北京` : ''}<i aria-hidden="true">↗</i></span><p>${esc(announcement.text)}</p></a>` : ''}
 
       <p class="pc-brief am-sr-only">${esc(briefLine(o))}</p>
       <div class="am-ripple-field" aria-hidden="true"></div>
@@ -1321,6 +1324,7 @@ export function renderAll(m, prediction, signals, opts = {}) {
   // 首屏那三个结论（预计时间 / 状态 / 置信度）只在一处算出来，主卡、依据区、
   // 内联摘要三方都读它 —— 否则「页面上的预计时间」会有三个各自漂移的版本。
   const outlook = buildOutlook({ chart: m, prediction, signals, now: m.now });
+  const signalHtml = renderSignal(signals, { inlineProgram: false });
 
   // 键名统一为大写下划线，与模板里的占位符一一对应
   return {
@@ -1336,7 +1340,9 @@ export function renderAll(m, prediction, signals, opts = {}) {
     // 信号区（`.sig-idle` 提示条 / 预告横幅）。紧贴主卡 —— 读者看完结论的下一问
     // 就是「有没有公告」。`inlineProgram:false`：每日重置窗口由下面那个独立的
     // PROGRAM 占位符渲染，同一条事实在页面上只出现一次。
-    SIGNAL: renderSignal(signals, { inlineProgram: false }),
+    SIGNAL: outlook?.announcement && signalHtml
+      ? `<details class="am-signal-details"><summary>公告依据与时间说明<span aria-hidden="true">＋</span></summary>${signalHtml}</details>`
+      : signalHtml,
     // 每日重置窗口：一条**规则**，排在**信号区之后、预测依据之前**。没有它时
     // renderProgram 返回空串，占位符位置什么都不留（不会出现一个空壳卡片）。
     // （键的顺序与页面顺序保持一致 —— 模板里 PROGRAM 确实在 BASIS 之前。）

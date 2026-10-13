@@ -365,6 +365,21 @@ section('8. 已预告但时间待公布：估计与公告不混用');
   check('有窗口时优先使用公告时间', dated.etaKind === 'announced' && !dated.brief.pendingAnnouncement);
 }
 
+section('9. 首屏公告态：预告必须成为主卡的主要内容');
+{
+  const text = 'Global reset landing by EOD PST time. Enjoy';
+  const sig = { forecasts: [forecast({ text, url: 'https://x.com/thsottiaux/status/2109812360596865224' })] };
+  const o = outlookOf(sig);
+  check('总览保留当前预告及来源，无公告时不造公告态', o.announcement?.text === text && !o.announcement.pending && o.announcement.url === sig.forecasts[0].url && oModel.announcement === null);
+  const html = renderOutlook(o);
+  check('明确预告使用独立主卡与醒目标题，原文直接可见', html.includes('pcard is-announced') && html.includes('TIBO 已预告') && html.includes('<h2>即将重置</h2>') && /class="pc-announcement"[\s\S]*<p>Global reset landing/.test(html) && !html.includes('<h2>下一次重置预测</h2>'));
+  const open = renderOutlook({ ...o, now: o.etaAt + 1 });
+  check('窗口开启后仍是等待确认，不显示已到预测时刻', open.includes('公告窗口已开启') && open.includes('等待重置确认') && !open.includes('已到预测时刻'));
+  const pending = outlookOf({ forecasts: [{ timing: 'pending', window: null, text: 'A reset is coming.' }] });
+  const pendingHtml = renderOutlook(pending);
+  check('未定时间预告主卡不展示推算日期或倒计时', pendingHtml.includes('announcement-pending">时间待公布') && pendingHtml.includes('<h2>即将重置</h2>') && !pendingHtml.includes('class="am-date') && !pendingHtml.includes('data-eta=') && !pendingHtml.includes('80% 预测区间'));
+}
+
 /* ======================== 结果 ======================== */
 
 console.log(`\n${'─'.repeat(52)}`);
