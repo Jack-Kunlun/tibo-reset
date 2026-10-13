@@ -159,7 +159,7 @@ const predHtml = pred ? (
     '</div>' +
     '<div class="tap-ring" id="tap-ring" hidden></div>' +
     '<div class="pred-content">' +
-      '<div class="pred-head"><span class="pred-t">' + (pred.announcement ? '<span class="announcement-beacon"></span>重置预告' : '重置预测') + '</span><span class="pred-badge">' + esc(pred.announcement ? '来自 TIBO' : '置信度 · ' + pred.confidenceLabel) + '</span></div>' +
+      '<div class="pred-head"><span class="pred-t">' + (pred.announcement ? '<span class="announcement-beacon"></span>重置预告' : '重置预测') + '</span><div class="pred-badge"><span>' + esc(pred.announcement ? '来自 TIBO' : '置信度 · ' + pred.confidenceLabel) + '</span></div></div>' +
       '<div class="pred-signal-note">' + (pred.announcement ? '已捕获明确重置信号' : '根据历史重置节奏推算') + '</div>' +
       '<div class="pred-stage">' +
         '<span class="pred-stage-title">' + (pred.announcement ? '即将重置' : '下一次重置预测') + '</span>' +

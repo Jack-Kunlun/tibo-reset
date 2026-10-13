@@ -72,7 +72,7 @@
       <view class="pred-content">
         <view class="pred-head">
           <view class="pred-t"><view wx:if="{{pred.announcement}}" class="announcement-beacon"></view><text>{{pred.announcement ? '重置预告' : '重置预测'}}</text></view>
-          <text class="pred-badge">{{pred.announcement ? '来自 TIBO' : '置信度 · ' + pred.confidenceLabel}}</text>
+          <view class="pred-badge"><text>{{pred.announcement ? '来自 TIBO' : '置信度 · ' + pred.confidenceLabel}}</text></view>
         </view>
         <view class="pred-signal-note">{{pred.announcement ? '已捕获明确重置信号' : '根据历史重置节奏推算'}}</view>
 
