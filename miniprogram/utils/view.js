@@ -447,7 +447,7 @@ export function buildOutlookView(chart, pred, sig, now) {
     wd: eta.wd,
     hm: eta.hm,
     etaDetail: o.announcement?.pending ? '等待 Tibo 公布具体安排' : o.etaKind === 'announced'
-      ? `${eta.wd} · ${eta.hm} · 北京时间 · ${o.etaNote}`
+      ? `${eta.wd} · 北京时间 · 公告日期`
       : `${eta.wd} · 北京时间 · 历史中位推算`,
     /** 倒计时锚点（时间戳直通，页面每秒据此重算，不做字符串反解析） */
     etaAt: o.etaAt,

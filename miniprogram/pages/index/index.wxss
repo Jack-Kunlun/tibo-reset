@@ -2354,3 +2354,50 @@
   .range-value { font-size: 20rpx; }
   .announcement-meta { font-size: 17rpx; }
 }
+
+/* 主卡突出预告与预测，来源和窗口在首屏就能读清。 */
+.pred-head { align-items: center; }
+.pred-t { font-size: 25rpx; font-weight: 600; letter-spacing: .04em; }
+.is-announced .pred-t { font-weight: 600; color: #B1F5DB; }
+.announcement-beacon { width: 14rpx; height: 14rpx; box-shadow: 0 0 0 7rpx rgba(131,230,199,.09), 0 0 28rpx rgba(131,230,199,.55); }
+.pred .pred-badge, .pred.is-announced .pred-badge { font-size: 19rpx; color: #A7ACC6; background: transparent; padding-right: 0; }
+.pred-signal-note { margin-top: 16rpx; padding: 12rpx 18rpx; border-radius: 12rpx; background: rgba(161,140,235,.08); color: #A8A6C4; font-size: 21rpx; line-height: 1.5; }
+.is-announced .pred-signal-note { color: #B1F5DB; background: linear-gradient(90deg, rgba(92,209,172,.15), rgba(92,209,172,.02)); font-weight: 500; }
+.pred.is-announced { background: radial-gradient(ellipse at 85% 25%,rgba(135,83,205,.34),transparent 65%),radial-gradient(ellipse at 10% 90%,rgba(35,139,124,.25),transparent 65%),linear-gradient(145deg,#24213F,#141D32); box-shadow: 0 22rpx 60rpx -25rpx rgba(0,0,0,.5), 0 0 60rpx -25rpx rgba(133,101,214,.32); }
+.pred-stage, .is-announced .pred-stage { min-height: 380rpx; padding-top: 28rpx; padding-bottom: 26rpx; }
+.pred-stage-title { color: #E1DDF5; font-size: 34rpx; font-weight: 500; }
+.is-announced .pred-stage-title { font-size: 52rpx; letter-spacing: .1em; color: #F5F1FF; }
+.eta-date { margin-top: 14rpx; }
+.eta-detail, .is-announced .eta-detail { font-size: 22rpx; color: #B5BDD5; }
+.pred-countdown, .is-announced .pred-countdown { margin-top: 26rpx; padding: 14rpx 20rpx; background: rgba(169,144,241,.07); }
+.is-announced .pred-countdown { background: rgba(92,209,172,.08); }
+.is-announced .pred-countdown.is-over .pcd-cap { color: #AEF0D6; font-size: 25rpx; font-weight: 500; }
+.pred-range, .is-announced .pred-range { flex-direction: column; align-items: flex-start; padding-top: 20rpx; padding-bottom: 20rpx; gap: 9rpx; }
+.range-label { font-size: 20rpx; }
+.range-value, .is-announced .range-value { font-size: 25rpx; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.announcement-quote { color: #ACB7D1; font-size: 21rpx; line-height: 1.6; }
+
+/* 通知作为辅助操作保留可见状态，不抢预测与预告的位置。 */
+.remind.card { margin-top: 20rpx; padding: 22rpx; background: rgba(106,86,162,.06); border: 1rpx solid rgba(167,145,241,.09); }
+.rd-head { align-items: center; gap: 14rpx; }
+.rd-icon { width: 52rpx; height: 52rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 16rpx; color: #A997D5; background: rgba(143,112,223,.1); font-size: 29rpx; }
+.rd-copy { display: flex; flex-direction: column; gap: 6rpx; min-width: 0; flex: 1; }
+.rd-t { color: #CBC8DE; font-size: 25rpx; font-weight: 500; }
+.rd-sub { color: #7F89A3; font-size: 20rpx; line-height: 1.5; }
+.rd-btn { display: block; flex-shrink: 0; width: 182rpx; box-sizing: border-box; margin: 0; padding: 0 10rpx; height: 64rpx; line-height: 64rpx; border: 0; border-radius: 14rpx; color: #F5F1FF; font-size: 22rpx; font-weight: 500; background: linear-gradient(115deg, #7057B7, #526198); box-shadow: none; }
+.rd-btn::after { border: 0; }
+.rd-btn.on { background: rgba(120,202,183,.08); color: #9CDACA; }
+.rd-btn.busy, .rd-btn.checking, .rd-btn.unavailable { color: #7F87A1; background: rgba(147,126,195,.07); }
+.rd-btn.retry, .rd-btn.unknown { background: rgba(147,126,195,.12); color: #BDAADD; }
+.rd-hint { margin-top: 14rpx; font-size: 19rpx; text-align: left; color: #6F7993; line-height: 1.6; }
+.rd-fb { font-size: 20rpx; line-height: 1.6; margin-top: 10rpx; }
+.rd-fb.ok { color: #9CDACA; }
+.rd-fb.warn { color: #C8AE84; }
+@media (max-width: 360px) {
+  .pred-t { font-size: 24rpx; }
+  .pred-stage, .is-announced .pred-stage { min-height: 364rpx; }
+  .is-announced .pred-stage-title { font-size: 48rpx; }
+  .eta-detail, .is-announced .eta-detail { font-size: 20rpx; }
+  .range-value, .is-announced .range-value { font-size: 23rpx; }
+  .rd-btn { width: 174rpx; font-size: 21rpx; }
+}

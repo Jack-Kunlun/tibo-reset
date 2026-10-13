@@ -58,7 +58,7 @@ export function createWeChatClient({
   }
 
   async function getJson(url, init) {
-    const res = await fetchImpl(url, init);
+    const res = await fetchImpl(url, { ...init, signal: AbortSignal.timeout(10000) });
     const text = await res.text();
     let body;
     try {
@@ -67,6 +67,7 @@ export function createWeChatClient({
       // 微信出错时可能返回 HTML（网关层），此时把原文带出来比「JSON 解析失败」有用得多
       throw new Error(`微信接口返回非 JSON（HTTP ${res.status}）：${text.slice(0, 200)}`);
     }
+    if (res.status < 200 || res.status >= 300 || !body || typeof body !== 'object') throw new Error(`微信接口暂不可用（HTTP ${res.status}）`);
     return body;
   }
 
@@ -143,7 +144,7 @@ export function createWeChatClient({
     let body = await attempt(false);
     if (STALE_TOKEN_CODES.has(body.errcode)) body = await attempt(true);
 
-    if (body.errcode) {
+    if (body.errcode !== 0) {
       const err = new Error(`subscribe/send 失败：errcode=${body.errcode} ${body.errmsg ?? ''}`);
       err.errcode = body.errcode;
       err.permanent = PERMANENT_CODES.has(body.errcode);

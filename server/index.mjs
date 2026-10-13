@@ -54,7 +54,7 @@
  *   WX_SECRET            小程序 AppSecret（**只放服务器 .env，绝不进 git**）
  *   WX_TEMPLATE_ID       订阅消息模板 ID
  *   WX_SUBSCRIBE_PAGE    点击通知跳转的小程序页面，默认 pages/index/index
- *   WX_TEMPLATE_DATA     可选。覆盖模板字段的 JSON，值里可用 {event}/{time}/{eta} 占位
+ *   WX_TEMPLATE_DATA     更换模板时必填；字段 JSON 支持 {event}/{time}/{eta} 占位
  */
 
 import { createServer } from 'node:http';
@@ -75,9 +75,12 @@ import {
   createSubscriptionStore,
   handleSubscribe,
   handleUnsubscribe,
+  handleSubscriptionConfig,
+  handleSubscriptionStatus,
   notifyNewResets,
 } from './subscribe.mjs';
 import { createWeChatClient } from './wechat.mjs';
+import subscriptionTemplate from './subscribe-template.json' with { type: 'json' };
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = Number(process.env.PORT ?? 8787);
@@ -95,17 +98,23 @@ const SOURCE_ACCOUNT = process.env.SOURCE_ACCOUNT ?? 'thsottiaux';
 
 const WX_APPID = process.env.WX_APPID ?? '';
 const WX_SECRET = process.env.WX_SECRET ?? '';
-const WX_TEMPLATE_ID = process.env.WX_TEMPLATE_ID ?? '';
+let WX_TEMPLATE_ID = process.env.WX_TEMPLATE_ID?.trim() || subscriptionTemplate.templateId;
 const WX_SUBSCRIBE_PAGE = process.env.WX_SUBSCRIBE_PAGE ?? 'pages/index/index';
 
 // 模板字段名要与微信后台一致。这里允许用环境变量整份覆盖，避免为了改字段名去动代码。
-let WX_TEMPLATE_DATA = null;
+let WX_TEMPLATE_DATA = subscriptionTemplate.data;
 if (process.env.WX_TEMPLATE_DATA) {
   try {
     WX_TEMPLATE_DATA = JSON.parse(process.env.WX_TEMPLATE_DATA);
+    if (!WX_TEMPLATE_DATA || Array.isArray(WX_TEMPLATE_DATA) || typeof WX_TEMPLATE_DATA !== 'object' ||
+      !Object.keys(WX_TEMPLATE_DATA).length || Object.values(WX_TEMPLATE_DATA).some((x) => typeof x !== 'string' && typeof x?.value !== 'string')) throw new Error('invalid template data');
   } catch {
-    console.error('[subscribe] WX_TEMPLATE_DATA 不是合法 JSON，已忽略并退回默认字段');
+    WX_TEMPLATE_ID = '';
+    console.error('[subscribe] WX_TEMPLATE_DATA 无效，已关闭订阅入口，请检查模板字段映射');
   }
+} else if (WX_TEMPLATE_ID !== subscriptionTemplate.templateId) {
+  WX_TEMPLATE_ID = '';
+  console.error('[subscribe] 更换模板时必须同时配置 WX_TEMPLATE_DATA，已关闭订阅入口');
 }
 
 const store = createStore(DATA_DIR);
@@ -495,6 +504,12 @@ async function handleApi(req, res, url) {
       send,
     });
   }
+  if (url.pathname === '/api/subscribe/config') {
+    return handleSubscriptionConfig(req, res, { client: wechat, templateId: WX_TEMPLATE_ID, send });
+  }
+  if (url.pathname === '/api/subscribe/status') {
+    return handleSubscriptionStatus(req, res, { store: subs, client: wechat, templateId: WX_TEMPLATE_ID, send });
+  }
   if (url.pathname === '/api/unsubscribe') {
     return handleUnsubscribe(req, res, { store: subs, client: wechat, send });
   }
@@ -508,6 +523,8 @@ async function handleApi(req, res, url) {
         '/api/refresh (POST)',
         '/api/ingest (POST)',
         '/api/subscribe (POST)',
+        '/api/subscribe/config (GET)',
+        '/api/subscribe/status (POST)',
         '/api/unsubscribe (POST)',
       ],
     });
@@ -525,7 +542,13 @@ async function handleApi(req, res, url) {
 
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host ?? 'localhost'}`);
-  if (url.pathname.startsWith('/api/')) return handleApi(req, res, url);
+  if (url.pathname.startsWith('/api/')) {
+    try { return await handleApi(req, res, url); }
+    catch (err) {
+      console.error(`[api] ${url.pathname} 处理失败：${err.message}`);
+      return send(res, 500, { error: '请求暂未完成，请稍后重试' });
+    }
+  }
   // 首屏走实时渲染（两个来源的取舍见 serveIndex 上方注释）；
   // 图标与渲染失败时的兜底产物仍从 dist/ 出。
   if (url.pathname === '/' || url.pathname === '/index.html') return serveIndex(res);

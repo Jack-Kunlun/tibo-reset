@@ -50,7 +50,10 @@ function send({ path, method, data }) {
         } else {
           // 后端把失败原因写在 error / detail 里，别丢 —— 排查时它就是全部线索
           const why = (d && (d.detail || d.error)) || '';
-          reject(new Error(`HTTP ${res.statusCode}${why ? ' · ' + why : ''}`));
+          const err = new Error(`HTTP ${res.statusCode}${why ? ' · ' + why : ''}`);
+          err.statusCode = res.statusCode;
+          err.code = d?.code;
+          reject(err);
         }
       },
       fail(err) {
@@ -61,7 +64,7 @@ function send({ path, method, data }) {
   });
 }
 
-function request(path) {
+export function request(path) {
   return send({ path, method: 'GET' });
 }
 

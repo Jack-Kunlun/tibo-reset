@@ -44,6 +44,8 @@ const now = Date.now();
 // 真实数据里可能长期没有预告，而信号横幅恰恰是全页视觉重量最大的地方 ——
 // 不点亮一次，改了样式也没人看得见，回归时更会忘了它还存不存在。
 const DEMO_SIGNAL = process.argv.includes('--demo-signal');
+// 隔离布局预览，不调用授权或服务端；真实入口是否显示由服务端配置决定。
+const DEMO_REMINDER = process.argv.includes('--demo-reminder');
 const DEMO_TWEET = {
   id: 'demo-signal',
   text: 'We will reset all usage limits next Tuesday.',
@@ -157,7 +159,8 @@ const predHtml = pred ? (
     '</div>' +
     '<div class="tap-ring" id="tap-ring" hidden></div>' +
     '<div class="pred-content">' +
-      '<div class="pred-head"><span class="pred-t">' + (pred.announcement ? '<span class="announcement-beacon"></span>TIBO 已预告' : 'NEXT RESET') + '</span><span class="pred-badge">置信度 · ' + esc(pred.confidenceLabel) + '</span></div>' +
+      '<div class="pred-head"><span class="pred-t">' + (pred.announcement ? '<span class="announcement-beacon"></span>重置预告' : '重置预测') + '</span><span class="pred-badge">' + esc(pred.announcement ? '来自 TIBO' : '置信度 · ' + pred.confidenceLabel) + '</span></div>' +
+      '<div class="pred-signal-note">' + (pred.announcement ? '已捕获明确重置信号' : '根据历史重置节奏推算') + '</div>' +
       '<div class="pred-stage">' +
         '<span class="pred-stage-title">' + (pred.announcement ? '即将重置' : '下一次重置预测') + '</span>' +
         (pred.announcement?.pending ? '<span class="announcement-pending">时间待公布</span>' : '<div class="eta-date" aria-label="' + (pred.announcement ? '公告日期 ' : '预测日期 ') + escAttr(pred.md) + '">' + pred.dateDigits.map((digit) =>
@@ -298,7 +301,7 @@ const html = '<!DOCTYPE html>\n' +
 '<span class="brand-copy"><span class="h1">等 TIBO 按按钮</span><span class="pulse"><i class="dot"></i><span>观测中 · <span id="upd">' + esc(fmtClockSec(now)) + '</span></span></span></span></div></div></div>' +
 '<div class="hero" id="elapsed"><div class="elapsed-line"><div class="elapsed-copy"><span class="label">距上次重置</span>' +
 '<span class="since">上次 ' + esc(fmtDateTime(lastAt).slice(5)) + ' · 北京时间</span></div><div class="counter" id="counter">' + counterHtml + '</div></div></div>' +
-predHtml + signalHtml + signalDetailHtml + progHtml +
+predHtml + signalHtml + signalDetailHtml + (DEMO_REMINDER ? '<div class="remind card"><div class="rd-head"><div class="rd-icon">◉</div><div class="rd-copy"><span class="rd-t">重置通知</span><span class="rd-sub">确认重置后，微信提醒</span></div><button class="rd-btn">开启重置通知</button></div><div class="rd-hint">一次授权只能收到一次通知，用完需要重新开启</div></div>' : '') + progHtml +
 '<div class="basis card"><div class="section-head"><span class="section-title">预测依据</span></div>' +
 basisHtml + '</div>' +
 '<div class="trend-panel card"><div class="section-head"><span class="section-title">历史节奏</span><span class="section-sub">最近 ' + trendCount + ' 次完整间隔</span></div>' +

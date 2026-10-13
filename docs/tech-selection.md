@@ -109,8 +109,8 @@
 
 ### 3.2 后端框架：继续不引框架
 
-现有实现是 `node:http` + 一张 `ROUTES` 表。要新增的端点只有 `/api/ingest`（POST）与订阅相关 2 个，
-总量不超过 12 个。
+现有实现是 `node:http` + 一张 `ROUTES` 表。采集入口与订阅的配置、登记、状态、退订接口
+仍由同一个服务提供，不为订阅引入第二个后端框架。
 
 否决的选项：
 
@@ -417,14 +417,14 @@ data/*.json
 
 ```
 小程序端
-  ├─ 用户点「下次重置时提醒我」→ wx.login 拿 code → wx.requestSubscribeMessage
-  ├─ 授权成功 → POST /api/subscribe { code, templateId }
+  ├─ 用户点「开启重置通知」→ wx.requestSubscribeMessage
+  ├─ 授权成功 → wx.login 拿新 code → POST /api/subscribe { code, templateId }
   └─ 服务端用 code 换 openid，落盘 subscriptions.json（原子写，与现有存储一致）
 
 境内服务器
   ├─ 收到 /api/ingest → 先落盘并立即返回 200，再异步做通知（推送失败不该让 CI 变红）
   ├─ 检测「是否出现新的重置事件」
-  │    判据：resets.records 里出现 announced_at 晚于「水位线」的新条目
+  │    判据：明确 reset/credit 的首次确认时间晚于水位线且不晚于当前时间
   ├─ 命中 → 遍历 subscriptions.json
   ├─ 取 access_token（缓存，提前 5 分钟刷新；有效期 7200 秒）
   ├─ 调用 subscribeMessage.send（逐个，带限流）
@@ -436,21 +436,28 @@ data/*.json
 | 点 | 处理 |
 |---|---|
 | `access_token` 刷新 | 服务内存缓存 + 提前 5 分钟刷新；**刷新失败不清空旧 token**，避免雪崩式失败 |
-| 两处刷新冲突 | 单实例部署，无并发问题；若将来多实例，需外部存储 —— 当前不设计 |
+| 两处刷新冲突 | 单进程对名单短事务、发送批次和 ingest 写入分别串行；多实例需外部协调存储 |
 | `AppSecret` 保管 | 只存服务器 `.env`，**绝不进 git**；`.gitignore` 需确认覆盖 |
-| 推送限流 | 逐个发送，间隔 50ms；失败重试 1 次后放弃并记录 |
+| 推送限流 | 逐个发送，间隔 50ms；暂时失败的待发送事件持久化，后续成功 ingest 时重试 |
 | 推送时机 | **只在确认的新重置事件上触发**，不在「预测可能重置」时触发 —— 否则就是误报，直接违反 PRD 的 0 误报要求 |
 | openid 存储 | `subscriptions.json`，量级小，与现有存储方式一致 |
 
 **接口契约**：
 
 ```
+GET /api/subscribe/config
+→ 200 { "enabled": true, "templateId": "...", "scope": "once" }
+
+POST /api/subscribe/status
+{ "code": "<新的登录 code>", "templateId": "..." }
+→ 200 { "ok": true, "active": true, "scope": "once" }
+
 POST /api/subscribe
 { "code": "<wx.login 换来的 code>", "templateId": "..." }
-→ 200 { "ok": true }
+→ 200 { "ok": true, "active": true, "scope": "once" }
 
 POST /api/unsubscribe
-{ "openid": "..." }   // 由服务端从 code 换取，不信任客户端传入的 openid
+{ "code": "<新的登录 code>" }   // openid 只由服务端换取
 → 200 { "ok": true }
 ```
 
@@ -461,23 +468,26 @@ POST /api/unsubscribe
 
 实现分两处：`server/wechat.mjs`（微信侧：token / code 换 openid / 发消息）、
 `server/subscribe.mjs`（订阅名单持久化 + 「有没有新重置」的判定）。
-测试在 `scripts/test-subscribe.mjs`（53 项）与 `scripts/test-miniprogram.mjs`（82 项，含小程序端订阅链路）。
+测试在 `scripts/test-subscribe.mjs`、`scripts/test-miniprogram.mjs` 与 `scripts/test-ingest.mjs`，
+包含名单并发更新、发送失败补推、状态消耗、模板更换及并发采集写入。
 
 几处不显然但必须这么写的决定：
 
 | 决定 | 原因 |
 |---|---|
 | 水位线 `last_event_at` **只升不降** | 同一次重置被反复推送是这类功能最常见的翻车方式。落盘异常或时钟回拨时，宁可漏推一次，也不重复打扰用户 |
-| **首次运行只建基线，不群发历史事件** | 新部署的服务第一次 ingest 时，历史里所有重置都「没推过」。不建基线就会一次性给所有人推一堆旧事件 |
+| **首次订阅建立历史基线，开启前事件不追发** | 在登记前从当前历史取基线；保留首次 ingest 的旧状态兜底，防止群发历史事件 |
 | **永久失败码删订阅，瞬时失败保留** | `43101`（用户拒收）/ `40003`（openid 无效）重试多少次都不会成功，留着只是每次白跑一遍；而网络抖动、频率限制这类瞬时失败如果删掉，就是把用户烧掉的那次授权额度白白浪费 |
 | **`access_token` 刷新失败不清空旧 token** | 清空会让所有推送在刷新窗口内集体失败，雪崩式放大 |
 | 授权文案显式写出**一次授权只对应一次通知** | 这是类目限制导致的真实行为，不能让用户以为「订阅了就长期通知」（见 6.1） |
 
 `subscriptions.json` 含 openid，属个人信息，**已进 `.gitignore`** ——
-CI 会 `git add data`，不显式排除就会被推进公开仓库。
+本机采集会归档 `data/`，必须显式排除名单，不能推进公开仓库。
 
 环境变量：`WX_APPID` / `WX_SECRET` / `WX_TEMPLATE_ID` / `WX_SUBSCRIBE_PAGE` / `WX_TEMPLATE_DATA`。
-前三个不配齐则 F9 整体静默关闭，并在启动日志里说明原因（不静默失败）。
+模板 ID/字段默认取 `server/subscribe-template.json`；凭据缺失或映射无效时关闭授权，启动日志说明原因。
+小程序保留未开放/重试状态，避免整个通知模块消失。
+微信与磁盘不构成原子事务，仍不能宣称精确一次送达；真实授权和收信须单独验证。
 
 ---
 

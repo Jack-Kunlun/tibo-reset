@@ -94,6 +94,17 @@ function validate(payload) {
   return null;
 }
 
+const ingestQueues = new Map();
+
+async function withIngestLock(dataDir, work) {
+  const key = resolve(dataDir);
+  const previous = ingestQueues.get(key) || Promise.resolve();
+  const next = previous.catch(() => {}).then(work);
+  ingestQueues.set(key, next);
+  try { return await next; }
+  finally { if (ingestQueues.get(key) === next) ingestQueues.delete(key); }
+}
+
 /**
  * 处理 `POST /api/ingest`。
  *
@@ -137,62 +148,65 @@ export async function handleIngest(req, res, { dataDir, token, send, onAccepted 
   const invalid = validate(payload);
   if (invalid) return send(res, 422, { error: 'invalid payload', detail: invalid });
 
-  // 幂等判定：只接受更新的载荷
-  const incomingAt = Date.parse(payload.generatedAt);
-  const currentAt = await currentGeneratedAt(dataDir);
+  // 更新判定与整批落盘必须处在同一临界区，避免旧载荷覆盖新数据或共用临时文件。
+  return withIngestLock(dataDir, async () => {
+    // 幂等判定：只接受更新的载荷
+    const incomingAt = Date.parse(payload.generatedAt);
+    const currentAt = await currentGeneratedAt(dataDir);
 
-  if (currentAt !== null && incomingAt <= currentAt) {
-    // 不是错误 —— CI 重跑就会走到这里。回 200 让工作流绿着走完。
-    return send(res, 200, {
-      status: 'stale',
-      incoming: payload.generatedAt,
-      current: new Date(currentAt).toISOString(),
-      note: '载荷不比现有数据新，已丢弃',
-    });
-  }
-
-  // 落盘。saveJson 走「临时文件 + rename」，服务读取方不会读到半截 JSON。
-  // 同时也让 store 的 mtime 缓存自动失效 —— 不需要额外清缓存。
-  await saveJson(resolve(dataDir, 'resets.json'), payload.resets);
-  await saveJson(resolve(dataDir, 'tweets.json'), payload.tweets);
-  await saveJson(resolve(dataDir, 'stats.json'), {
-    ...payload.stats,
-    // 权威时刻只保留一个：顶层 generatedAt。两份时间打架比没有时间更糟。
-    generated_at: payload.generatedAt,
-  });
-  if (payload.signals) await saveJson(resolve(dataDir, 'signal.json'), payload.signals);
-
-  // F8 分享卡片。形状已在 validate 里过了，这里再解一次 —— 不是为了双重保险，
-  // 而是不想让「校验用一套判据、写入用另一套」；解不出就当作没带（数据已经落盘，
-  // 不能因为图有问题把整轮更新回滚掉）。
-  let ogWritten = 'absent';
-  if (payload.og) {
-    const png = decodeOgPng(payload.og.png);
-    if (png) {
-      await writeOgAsset(dataDir, {
-        png,
-        description: payload.og.description.trim(),
-        builtAt: payload.og.builtAt,
+    if (currentAt !== null && incomingAt <= currentAt) {
+      // 不是错误 —— CI 重跑就会走到这里。回 200 让工作流绿着走完。
+      return send(res, 200, {
+        status: 'stale',
+        incoming: payload.generatedAt,
+        current: new Date(currentAt).toISOString(),
+        note: '载荷不比现有数据新，已丢弃',
       });
-      ogWritten = 'written';
     }
-  }
 
-  send(res, 200, {
-    status: 'accepted',
-    generatedAt: payload.generatedAt,
-    records: payload.resets.records.length,
-    tweets: payload.tweets.tweets.length,
-    og: ogWritten,
+    // 落盘。saveJson 走「临时文件 + rename」，服务读取方不会读到半截 JSON。
+    // 同时也让 store 的 mtime 缓存自动失效 —— 不需要额外清缓存。
+    await saveJson(resolve(dataDir, 'resets.json'), payload.resets);
+    await saveJson(resolve(dataDir, 'tweets.json'), payload.tweets);
+    await saveJson(resolve(dataDir, 'stats.json'), {
+      ...payload.stats,
+      // 权威时刻只保留一个：顶层 generatedAt。两份时间打架比没有时间更糟。
+      generated_at: payload.generatedAt,
+    });
+    if (payload.signals) await saveJson(resolve(dataDir, 'signal.json'), payload.signals);
+
+    // F8 分享卡片。形状已在 validate 里过了，这里再解一次 —— 不是为了双重保险，
+    // 而是不想让「校验用一套判据、写入用另一套」；解不出就当作没带（数据已经落盘，
+    // 不能因为图有问题把整轮更新回滚掉）。
+    let ogWritten = 'absent';
+    if (payload.og) {
+      const png = decodeOgPng(payload.og.png);
+      if (png) {
+        await writeOgAsset(dataDir, {
+          png,
+          description: payload.og.description.trim(),
+          builtAt: payload.og.builtAt,
+        });
+        ogWritten = 'written';
+      }
+    }
+
+    send(res, 200, {
+      status: 'accepted',
+      generatedAt: payload.generatedAt,
+      records: payload.resets.records.length,
+      tweets: payload.tweets.tweets.length,
+      og: ogWritten,
+    });
+
+    // 数据已落盘、已应答。订阅推送（F9）是后续动作，**不阻塞 CI**：
+    // 推送失败不该让整轮采集在 CI 里变红，那会让人误以为数据没收到。
+    if (onAccepted) {
+      Promise.resolve()
+        .then(() => onAccepted(payload))
+        .catch((err) => console.error('[ingest] onAccepted 回调失败：', err.message));
+    }
   });
-
-  // 数据已落盘、已应答。订阅推送（F9）是后续动作，**不阻塞 CI**：
-  // 推送失败不该让整轮采集在 CI 里变红，那会让人误以为数据没收到。
-  if (onAccepted) {
-    Promise.resolve()
-      .then(() => onAccepted(payload))
-      .catch((err) => console.error('[ingest] onAccepted 回调失败：', err.message));
-  }
 }
 
 /** 现有数据的采集时刻（ISO 字符串的毫秒值），没有数据则返回 null */

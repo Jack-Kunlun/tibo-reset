@@ -15,6 +15,7 @@
 
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { randomUUID } from 'node:crypto';
 
 import { saveJson } from '../src/lib/collect.mjs';
 
@@ -34,24 +35,28 @@ const MAX_BODY_BYTES = 8 * 1024;
 /** 一个 openid 一条订阅。量级小，沿用与采集数据一致的「JSON + 原子写」 */
 export function createSubscriptionStore(dataDir) {
   const path = resolve(dataDir, FILE);
+  let updates = Promise.resolve();
+  let notifications = Promise.resolve();
 
   const empty = () => ({ schema: 1, updated_at: null, last_event_at: null, items: [] });
 
-  return {
+  const store = {
     path,
 
     async read() {
       try {
         const raw = JSON.parse(await readFile(path, 'utf8'));
+        if (!Array.isArray(raw.items)) throw new Error('订阅名单格式错误');
         return {
           schema: 1,
           updated_at: raw.updated_at ?? null,
           last_event_at: raw.last_event_at ?? null,
-          items: Array.isArray(raw.items) ? raw.items : [],
+          items: raw.items,
         };
-      } catch {
-        // 首次运行 / 文件坏了都退回空状态。订阅可以重新点，不该让服务起不来。
-        return empty();
+      } catch (err) {
+        if (err.code === 'ENOENT') return empty();
+        // 损坏的名单不能当作空文件覆盖，否则已授权用户会无声丢失。
+        throw err;
       }
     },
 
@@ -60,12 +65,29 @@ export function createSubscriptionStore(dataDir) {
         schema: 1,
         updated_at: new Date().toISOString(),
         last_event_at: state.last_event_at ?? null,
-        items: state.items.slice(0, MAX_ITEMS),
+        items: state.items,
       };
       await saveJson(path, next);
       return next;
     },
+    update(change) {
+      const task = updates.then(async () => {
+        const state = await store.read();
+        const result = await change(state);
+        await store.write(state);
+        return result;
+      });
+      updates = task.catch(() => {});
+      return task;
+    },
+    notify(job) {
+      // 发送串行，名单更新只锁住短事务；微信请求不会阻塞新用户登记。
+      const task = notifications.then(job);
+      notifications = task.catch(() => {});
+      return task;
+    },
   };
+  return store;
 }
 
 /* ------------------------------ 纯函数（可测） ------------------------------ */
@@ -73,25 +95,28 @@ export function createSubscriptionStore(dataDir) {
 /**
  * 找出「晚于 lastEventAt」的重置记录。
  *
- * 判据刻意简单：只看 announced_at 比水位线新。这不需要理解记录内容，
- * 也不依赖采集侧是否去重 —— 采集重跑不会造成重复推送，因为水位线只升不降。
+ * 仅接受明确标记的 reset/credit，时间取首次确认时刻，且不晚于当前时间。
+ * 后续确认补正不构成新的重置，未知类型也不能消耗用户的一次授权。
  */
-export function detectNewResets(records, lastEventAt) {
+const eventTime = (r) => Date.parse(r?.first_confirmed_at || r?.announced_at);
+
+export function detectNewResets(records, lastEventAt, now = Date.now()) {
   const since = Date.parse(lastEventAt);
   const hasSince = Number.isFinite(since);
   return (records ?? [])
     .filter((r) => {
-      const t = Date.parse(r?.announced_at);
-      return Number.isFinite(t) && (!hasSince || t > since);
+      const t = eventTime(r);
+      return Number.isFinite(t) && t <= now && (!hasSince || t > since) &&
+        (r.type === 'reset' || r.type === 'credit');
     })
-    .sort((a, b) => Date.parse(a.announced_at) - Date.parse(b.announced_at));
+    .sort((a, b) => eventTime(a) - eventTime(b));
 }
 
 /** 记录里最新的 announced_at（毫秒）。空集合返回 null */
 export function latestEventAt(records) {
   let max = null;
-  for (const r of records ?? []) {
-    const t = Date.parse(r?.announced_at);
+  for (const r of detectNewResets(records, null)) {
+    const t = eventTime(r);
     if (Number.isFinite(t) && (max === null || t > max)) max = t;
   }
   return max;
@@ -156,73 +181,52 @@ export function fmtWeChatTime(ts) {
 export async function notifyNewResets({ dataDir, store, client, templateId, page, templateSpec, log = console }) {
   if (!templateId) return { skipped: 'no-template-id' };
   if (!client?.configured) return { skipped: 'wechat-not-configured' };
-
-  let records;
-  try {
-    records = JSON.parse(await readFile(resolve(dataDir, 'resets.json'), 'utf8')).records ?? [];
-  } catch {
-    return { skipped: 'no-resets' };
-  }
-
-  const maxAt = latestEventAt(records);
-  if (maxAt === null) return { skipped: 'no-resets' };
-
-  const state = await store.read();
-
-  // 首次运行只记水位线，不推。
-  // 否则一上线就会把「历史最近一次重置」当成新事件推给所有人。
-  if (!state.last_event_at) {
-    state.last_event_at = new Date(maxAt).toISOString();
-    await store.write(state);
-    return { skipped: 'baseline-initialized', lastEventAt: state.last_event_at };
-  }
-
-  const fresh = detectNewResets(records, state.last_event_at);
-  if (!fresh.length) return { skipped: 'no-new-event', lastEventAt: state.last_event_at };
-
-  const newest = fresh[fresh.length - 1];
-  const vars = {
-    event: '额度重置',
-    time: fmtWeChatTime(Date.parse(newest.announced_at)),
-    eta: '已重置，本轮结束',
-  };
-  const data = buildTemplateData(vars, templateSpec);
-
-  let sent = 0;
-  let failed = 0;
-  const removed = [];
-  const survivors = [];
-
-  for (const item of state.items) {
-    try {
-      await client.sendSubscribeMessage({ openid: item.openid, templateId, page, data });
-      sent++;
-      // 一次性订阅已消耗，成功即删除 —— 留着只会让下一轮推送必然失败
-    } catch (err) {
-      failed++;
-      if (err.permanent) {
-        removed.push(item.openid);
-        log.warn?.(`[subscribe] 永久失败，已移除订阅：${err.message}`);
-      } else {
-        survivors.push(item);
-        log.warn?.(`[subscribe] 推送失败（保留订阅）：${err.message}`);
+  return store.notify(async () => {
+    const records = JSON.parse(await readFile(resolve(dataDir, 'resets.json'), 'utf8')).records ?? [];
+    const maxAt = latestEventAt(records);
+    if (maxAt === null) return { skipped: 'no-resets' };
+    const work = await store.update((state) => {
+      if (!state.last_event_at) {
+        state.last_event_at = new Date(maxAt).toISOString();
+        return { skipped: 'baseline-initialized', lastEventAt: state.last_event_at };
       }
+      const fresh = detectNewResets(records, state.last_event_at);
+      const newest = fresh[fresh.length - 1];
+      if (newest) {
+        const at = new Date(eventTime(newest)).toISOString();
+        for (const item of state.items) {
+          if (item.template_id !== templateId || Date.parse(item.created_at) > eventTime(newest)) continue;
+          item.id ||= randomUUID();
+          item.pending_event_at ||= at;
+        }
+        state.last_event_at = new Date(Math.max(Date.parse(state.last_event_at), maxAt)).toISOString();
+      }
+      const items = state.items.filter((x) => x.template_id === templateId && x.pending_event_at);
+      return items.length ? { items: structuredClone(items) } : { skipped: 'no-new-event', lastEventAt: state.last_event_at };
+    });
+    if (work.skipped) return work;
+    let sent = 0, failed = 0, removed = 0;
+    for (const item of work.items) {
+      // 发送等待期间发生的退订也要生效。
+      if (!(await store.read()).items.some((x) => x.id === item.id)) continue;
+      let consume = false;
+      try {
+        await client.sendSubscribeMessage({
+          openid: item.openid, templateId, page,
+          data: buildTemplateData({ event: 'Codex 额度已重置', time: fmtWeChatTime(Date.parse(item.pending_event_at)), eta: '打开观测台查看重置详情' }, templateSpec),
+        });
+        sent++;
+        consume = true;
+      } catch (err) {
+        failed++;
+        if (err.permanent) { removed++; consume = true; }
+        log.warn?.(`[subscribe] ${err.permanent ? '授权失效，移除订阅' : '发送失败，下轮重试'}：${err.message}`);
+      }
+      if (consume) await store.update((state) => { state.items = state.items.filter((x) => x.id !== item.id); });
+      if (SEND_GAP_MS) await new Promise((r) => setTimeout(r, SEND_GAP_MS));
     }
-    if (SEND_GAP_MS) await new Promise((r) => setTimeout(r, SEND_GAP_MS));
-  }
-
-  // 水位线只升不降：即使全部推送失败也不回退，否则下一轮会重推同一事件
-  state.items = survivors;
-  state.last_event_at = new Date(maxAt).toISOString();
-  await store.write(state);
-
-  return {
-    event: newest.announced_at,
-    candidates: state.items.length + sent + removed.length,
-    sent,
-    failed,
-    removed: removed.length,
-  };
+    return { candidates: work.items.length, sent, failed, removed };
+  });
 }
 
 /* ------------------------------ 端点 ------------------------------ */
@@ -259,15 +263,8 @@ export async function handleSubscribe(req, res, { store, client, templateId, sen
     });
   }
 
-  let payload;
-  try {
-    payload = JSON.parse(await readBody(req));
-  } catch (err) {
-    return send(res, err.status ?? 400, { error: err.message });
-  }
-
-  const tmpl = String(payload.templateId ?? templateId ?? '').trim();
-  if (!tmpl) return send(res, 422, { error: 'missing templateId' });
+  const payload = await subscriptionPayload(req, res, { templateId, send });
+  if (!payload) return;
 
   let openid;
   try {
@@ -277,17 +274,52 @@ export async function handleSubscribe(req, res, { store, client, templateId, sen
     return send(res, 400, { error: 'code 换取 openid 失败', detail: err.message });
   }
 
-  const state = await store.read();
   const nowIso = new Date().toISOString();
-  const idx = state.items.findIndex((x) => x.openid === openid && x.template_id === tmpl);
-  if (idx >= 0) {
-    state.items[idx] = { ...state.items[idx], created_at: nowIso };
-  } else {
-    state.items.push({ openid, template_id: tmpl, created_at: nowIso, notified_at: null });
-  }
-  await store.write(state);
+  let records = [];
+  try { records = JSON.parse(await readFile(resolve(store.path, '..', 'resets.json'), 'utf8')).records ?? []; }
+  catch (err) { if (err.code !== 'ENOENT') throw err; }
+  const result = await store.update((state) => {
+    // 在第一次订阅时建立历史基线，不能等下一次 ingest 才初始化而漏掉首条新重置。
+    state.last_event_at ||= new Date(latestEventAt(records) ?? Date.parse(nowIso)).toISOString();
+    const exists = state.items.some((x) => x.openid === openid && x.template_id === templateId);
+    if (!exists && state.items.length >= MAX_ITEMS) return false;
+    if (!exists) state.items.push({ id: randomUUID(), openid, template_id: templateId, created_at: nowIso });
+    return true;
+  });
+  return result
+    ? send(res, 200, { ok: true, active: true, scope: 'once' })
+    : send(res, 503, { error: '提醒人数已达上限，请稍后再试' });
+}
 
-  return send(res, 200, { ok: true, total: Math.min(state.items.length, MAX_ITEMS), scope: 'once' });
+async function subscriptionPayload(req, res, { templateId, send }) {
+  if (!templateId) { send(res, 503, { error: '重置通知尚未配置' }); return null; }
+  try {
+    const body = JSON.parse(await readBody(req));
+    if (!body || typeof body !== 'object' || Array.isArray(body) || typeof body.code !== 'string' || !body.code.trim() || body.code.length > 256) {
+      send(res, 400, { error: '缺少有效登录 code' }); return null;
+    }
+    if (body.templateId !== templateId) { send(res, 422, { code: 'template_changed', error: '通知模板已变化，请重新进入小程序' }); return null; }
+    return body;
+  } catch (err) { send(res, err.status ?? 400, { error: '订阅请求格式错误' }); return null; }
+}
+
+/** 模板是公开标识；凭据和字段映射不出服务端。 */
+export function handleSubscriptionConfig(req, res, { client, templateId, send }) {
+  if (req.method !== 'GET') return send(res, 405, { error: 'method not allowed' });
+  const enabled = Boolean(client?.configured && templateId);
+  return send(res, 200, { enabled, templateId: enabled ? templateId : '', scope: 'once' });
+}
+
+export async function handleSubscriptionStatus(req, res, { store, client, templateId, send }) {
+  if (req.method !== 'POST') return send(res, 405, { error: 'method not allowed' });
+  if (!client?.configured) return send(res, 503, { error: '重置通知尚未配置' });
+  const payload = await subscriptionPayload(req, res, { templateId, send });
+  if (!payload) return;
+  let openid;
+  try { openid = await client.codeToOpenid(payload.code); }
+  catch { return send(res, 400, { error: '登录已过期，请重试' }); }
+  const state = await store.read();
+  return send(res, 200, { ok: true, active: state.items.some((x) => x.openid === openid && x.template_id === templateId), scope: 'once' });
 }
 
 /**
@@ -301,6 +333,7 @@ export async function handleUnsubscribe(req, res, { store, client, send }) {
   let payload;
   try {
     payload = JSON.parse(await readBody(req));
+    if (!payload || typeof payload.code !== 'string' || !payload.code.trim() || payload.code.length > 256) return send(res, 400, { error: '缺少有效登录 code' });
   } catch (err) {
     return send(res, err.status ?? 400, { error: err.message });
   }
@@ -312,10 +345,10 @@ export async function handleUnsubscribe(req, res, { store, client, send }) {
     return send(res, 400, { error: 'code 换取 openid 失败', detail: err.message });
   }
 
-  const state = await store.read();
-  const before = state.items.length;
-  state.items = state.items.filter((x) => x.openid !== openid);
-  await store.write(state);
-
-  return send(res, 200, { ok: true, removed: before - state.items.length });
+  const removed = await store.update((state) => {
+    const before = state.items.length;
+    state.items = state.items.filter((x) => x.openid !== openid);
+    return before - state.items.length;
+  });
+  return send(res, 200, { ok: true, removed });
 }

@@ -93,15 +93,29 @@ PORT=9000 COLLECT_INTERVAL_MIN=15 ADMIN_TOKEN=secret node server/index.mjs
 | `SOURCE_ACCOUNT` | `thsottiaux` | 被观测的 X 账号，换掉即可观测别的账号 |
 | `SITE_URL` | 空 | 对外访问地址（如 `https://reset.example.com`），用于页面里的 `og:url` / `og:image`。不配则不输出这两条 meta —— 宁可少两条，也不给分享平台一个抓不到的地址 |
 
-**F9 订阅消息**（四个都配齐才会启用，缺任一项则该功能静默关闭并在启动日志里说明）
+**F9 重置通知**（一次授权对应一次通知，仅在确认发生新的重置后发送）
+
+已选用的「服务进度通知」模板及字段保存在 `server/subscribe-template.json`：
+`thing13` 业务标题、`time10` 更新时间、`thing5` 温馨提示。模板 ID 为公开标识，
+AppSecret 仅放服务端环境变量。小程序通过 `/api/subscribe/config` 取得可用模板，
+无需在两端分别配置模板 ID。服务未就绪时显示不可用/重试状态，不申请授权。
 
 | 变量 | 默认 | 说明 |
 |---|---|---|
-| `WX_APPID` | 空 | 小程序 AppID |
-| `WX_SECRET` | 空 | 小程序 AppSecret，只存在境内部署环境里 |
-| `WX_TEMPLATE_ID` | 空 | 订阅消息模板 ID |
+| `WX_APPID` | 空 | 小程序 AppID，必须与模板所属小程序一致 |
+| `WX_SECRET` | 空 | 小程序 AppSecret，只存在部署环境里 |
+| `WX_TEMPLATE_ID` | 仓库已选模板 | 更换模板时必须同时提供 `WX_TEMPLATE_DATA` |
 | `WX_SUBSCRIBE_PAGE` | `pages/index/index` | 点通知后跳转的页面 |
-| `WX_TEMPLATE_DATA` | 空 | 模板字段映射（JSON）。不配则用内置的 `thing1` / `time2` 映射 |
+| `WX_TEMPLATE_DATA` | 仓库字段映射 | JSON；支持 `{event}` / `{time}` / `{eta}`，字段须与后台一致；格式无效会关闭订阅入口 |
+
+标题为「Codex 额度已重置」，时间为首次确认公告的北京时间，提示为「打开观测台查看重置详情」。
+开启按钮在主卡下方；授权拒绝不登记，授权成功但同步失败只重试登记，不重复申请授权。
+通知消耗后的状态由服务端查询恢复，客户端不把本地时间戳当作永久订阅状态。
+
+通知名单及待发送事件存入数据卷 `subscriptions.json`（不入库）。发送成功或授权失效即移除，
+暂时失败留待下一轮成功 ingest 补推。名单更新与发送批次分别串行；只支持单服务进程写入同一数据卷。
+微信请求和磁盘写入不能构成同一个事务，响应丢失或进程中断仍有重复尝试的可能。
+代码检查不等于真机授权或收信；发布前必须用本人的微信完成授权、确认新事件和实际收信验证。
 
 **构建期**（`node scripts/build.mjs`，不是运行期）
 
@@ -149,7 +163,9 @@ GitHub Secrets 里原先那两个同名项可以删掉。详见 `docs/deploy.md`
 | `GET /api/health` | 存活 + 调度器状态（上次运行、下次运行、连续失败次数） |
 | `POST /api/refresh` | 立即触发一次采集（受 `ADMIN_TOKEN` 保护） |
 | `POST /api/ingest` | 接收本机推来的数据并落盘（受 `INGEST_TOKEN` 保护）。数据源是**本机**的采集任务 |
-| `POST /api/subscribe` | F9：用工信 `code` 换 `openid` 并登记订阅 |
+| `GET /api/subscribe/config` | 公开通知配置（不含凭据） |
+| `POST /api/subscribe/status` | 微信登录后查询本人的一次通知登记状态 |
+| `POST /api/subscribe` | F9：用微信登录 `code` 换 `openid` 并登记订阅 |
 | `POST /api/unsubscribe` | F9：退订 |
 
 > 网页（`GET /`）虽是端点，但不在上表：它在请求时用当前 `data/` 实时渲染整个页面，

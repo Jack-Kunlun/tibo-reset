@@ -21,12 +21,13 @@ import {
   SCOPE_HINT,
   subscribeAvailable,
   subscribeOnce,
+  loadSubscriptionConfig,
+  subscriptionStatus,
+  hasPendingSync,
+  syncSubscription,
 } from '../../utils/subscribe.js';
 
 const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-
-/** 本地记住「已开启一次提醒」。服务端不提供查询 —— 一次性订阅本来就不该有长期状态 */
-const REMIND_KEY = 'tibo_remind_once_v1';
 
 function navigationLayout(singlePage = false) {
   let info = {};
@@ -161,7 +162,7 @@ Page({
     singlePage: false,
     remind: {
       show: false,
-      title: '重置发生时提醒我',
+      title: '重置通知',
       hint: SCOPE_HINT,
       label: '',
       state: 'idle',
@@ -208,6 +209,7 @@ Page({
     this.setData({ pageVisible: true, entering: !this._hasShown && this.data.motionEnabled });
     this._hasShown = true;
     this.startTicker();
+    this.refreshRemind();
     // 超过刷新间隔就静默刷新一次，避免用户切回来看到旧数据
     if (this._lastLoad && Date.now() - this._lastLoad > config.refreshIntervalMs) {
       this.load({ silent: true });
@@ -227,6 +229,7 @@ Page({
   },
 
   onPullDownRefresh() {
+    this.refreshRemind();
     this.load({ force: true }).then(() => wx.stopPullDownRefresh());
   },
 
@@ -454,72 +457,65 @@ Page({
   /* ------------------------------ F9 一次性提醒 ------------------------------ */
 
   initRemind() {
-    let on = false;
-    try {
-      on = Boolean(wx.getStorageSync(REMIND_KEY));
-    } catch (e) {
-      on = false; // 存储不可用就按未开启处理：提醒是增强，不该拖垮首屏
-    }
     this.setRemind({
-      // 单页模式下不给入口：`subscribeOnce` 第一步是 wx.login 换 code，
-      // 而单页模式没有登录态，点了必然失败 —— 宁可没有入口，
-      // 也不摆一个点下去只会弹错的按钮（同 subscribeTemplateId 为空时的处理）。
-      show: subscribeAvailable() && !this.data.singlePage,
-      label: on ? DONE_LABEL : ACTION_LABEL,
-      state: on ? 'on' : 'idle',
-      // 上一次的结果提示不该跟着重来一遍
-      feedback: '',
-      tone: '',
+      show: !this.data.singlePage,
+      label: !subscribeAvailable() ? '检查中…' : hasPendingSync() ? '重试同步' : ACTION_LABEL,
+      state: !subscribeAvailable() ? 'checking' : hasPendingSync() ? 'retry' : 'idle',
+      feedback: '', tone: '',
     });
   },
 
-  /** 整对象 setData：路径写法在部分基础库上对嵌套字段支持不一致，不值得赌 */
+  async refreshRemind() {
+    if (this.data.singlePage || this._reminding) return;
+    const revision = this._remindRevision = (this._remindRevision || 0) + 1;
+    const current = () => revision === this._remindRevision && !this._reminding;
+    try {
+      const available = await loadSubscriptionConfig();
+      if (!current()) return;
+      this.setRemind({ show: true, state: available ? 'checking' : 'unavailable', label: available ? '确认中…' : '暂未开放', feedback: '', tone: '' });
+      if (!available) return;
+      const active = await subscriptionStatus();
+      if (!current()) return;
+      this.setRemind({
+        state: active ? 'on' : hasPendingSync() ? 'retry' : 'idle',
+        label: active ? DONE_LABEL : hasPendingSync() ? '重试同步' : ACTION_LABEL,
+        feedback: hasPendingSync() ? '授权已获得，点击按钮完成同步。' : '', tone: hasPendingSync() ? 'warn' : '',
+      });
+    } catch {
+      if (current()) this.setRemind({ show: true, state: 'unknown', label: '重试', feedback: '通知暂不可用，请稍后重试。', tone: 'warn' });
+    }
+  },
+
   setRemind(patch) {
     this.setData({ remind: Object.assign({}, this.data.remind, patch) });
   },
 
   onToggleRemind() {
-    if (this._reminding) return;
+    if (!this.data.remind.show || this._reminding || ['on', 'checking', 'unavailable'].includes(this.data.remind.state)) return;
+    if (this.data.remind.state === 'unknown') return this.refreshRemind();
+    const retry = hasPendingSync();
     this._reminding = true;
-    this.setRemind({ feedback: '', tone: '' });
-    wx.showLoading({ title: '正在开启…', mask: true });
-
-    // 返回这条链，调用方（含测试）await 它才能等到真正结束
-    return subscribeOnce()
+    this._remindRevision = (this._remindRevision || 0) + 1;
+    this.setRemind({ label: retry ? '同步中…' : '开启中…', state: 'busy', feedback: '', tone: '' });
+    // 授权必须直接来自这次点击，不在它前面等待登录或配置请求。
+    return (retry ? syncSubscription() : subscribeOnce())
       .then((r) => {
         if (!r.ok) {
-          // 明确没拿到授权（拒绝 / 总开关被关）→ 本机标记一并清掉。
-          // 这个标记记的是「最近一次操作的结果」，不是永久状态：
-          // 一次性授权推完就消耗了，客户端无从得知，所以宁可少报也不多报「已开启」。
-          try {
-            wx.removeStorageSync(REMIND_KEY);
-          } catch (e) {
-            /* 清理失败不影响这次提示 */
-          }
-          this.setRemind({ label: ACTION_LABEL, state: 'idle', feedback: r.reason, tone: 'warn' });
+          const unknown = r.status === 'template-changed' && !subscribeAvailable();
+          this.setRemind({ label: unknown ? '重试' : ACTION_LABEL, state: unknown ? 'unknown' : 'idle', feedback: r.reason, tone: 'warn' });
           return;
         }
-        try {
-          wx.setStorageSync(REMIND_KEY, Date.now());
-        } catch (e) {
-          /* 存不下也要把状态显示对，否则用户会以为没成功又点一次 */
-        }
         this.setRemind({
-          label: DONE_LABEL,
-          state: 'on',
+          label: r.synced ? DONE_LABEL : '重试同步',
+          state: r.synced ? 'on' : 'retry',
           tone: r.synced ? 'ok' : 'warn',
           feedback: r.synced
-            ? '已开启。下次额度重置会推送一条通知，推完需要重新开启。'
-            : `授权已生效，但同步到服务器失败（${r.syncError}）。下次重置可能收不到通知。`,
+            ? '已开启，确认下次额度重置后将通知你一次。'
+            : '授权已获得，服务器同步失败。点击重试同步，无需再次授权。',
         });
       })
-      .catch((err) => this.setRemind({ feedback: (err && err.message) || '开启失败，请重试', tone: 'warn' }))
-      .then(() => {
-        // 复位重入锁。不复位的话，任何一次异常之后这个按钮就永久失效了 ——
-        // 用户看到的是「点了没反应」，且没有任何提示能解释为什么。
-        this._reminding = false;
-        wx.hideLoading();
-      });
+      .catch(() => this.setRemind({ label: ACTION_LABEL, state: 'idle', feedback: '未能开启，请检查微信通知设置后重试。', tone: 'warn' }))
+      .finally(() => { this._reminding = false; });
   },
 
   /* ------------------------------ 交互 ------------------------------ */

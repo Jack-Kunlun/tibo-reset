@@ -332,6 +332,23 @@ for (const [name, og] of badOgCases) {
   check('卡片目录没有残留临时文件', !files.some((f) => f.includes('.tmp-')), files.join(', '));
 }
 
+section('并发 ingest 的新旧判定与落盘');
+{
+  const concurrentDir = join(dataDir, 'concurrent');
+  let accepted = 0;
+  const ctx = { dataDir: concurrentDir, token: TOKEN, send, onAccepted: () => { accepted++; } };
+  const results = await Promise.allSettled([
+    post(JSON.stringify(payload('2026-10-12T00:00:00Z', 5)), AUTH, ctx),
+    post(JSON.stringify(payload('2026-10-11T00:00:00Z', 4)), AUTH, ctx),
+  ]);
+  const savedStats = JSON.parse(await readFile(join(concurrentDir, 'stats.json'), 'utf8'));
+  const savedResets = JSON.parse(await readFile(join(concurrentDir, 'resets.json'), 'utf8'));
+  check('并发旧载荷判 stale，不覆盖新数据、不重复安排通知',
+    results.every((x) => x.status === 'fulfilled') && results[0].value.json().status === 'accepted' &&
+    results[1].value.json().status === 'stale' && savedStats.generated_at === '2026-10-12T00:00:00Z' &&
+    savedResets.records.length === 5 && accepted === 1);
+}
+
 /* ---------------------------- 清理 ---------------------------- */
 
 await rm(dataDir, { recursive: true, force: true });

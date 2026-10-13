@@ -25,10 +25,13 @@ import {
   fmtWeChatTime,
   handleSubscribe,
   handleUnsubscribe,
+  handleSubscriptionConfig,
+  handleSubscriptionStatus,
   latestEventAt,
   notifyNewResets,
 } from '../server/subscribe.mjs';
 import { createWeChatClient } from '../server/wechat.mjs';
+import subscriptionTemplate from '../server/subscribe-template.json' with { type: 'json' };
 
 const SEND = '/message/subscribe/send';
 
@@ -121,9 +124,9 @@ section('1. 事件判定（纯函数）');
 
 {
   const recs = [
-    { announced_at: '2026-09-01T00:00:00.000Z' },
-    { announced_at: '2026-09-10T00:00:00.000Z' },
-    { announced_at: '2026-09-05T00:00:00.000Z' },
+    { announced_at: '2026-09-01T00:00:00.000Z', type: 'reset' },
+    { announced_at: '2026-09-10T00:00:00.000Z', type: 'reset' },
+    { announced_at: '2026-09-05T00:00:00.000Z', type: 'reset' },
   ];
 
   check('水位线为空时返回全部（按时间升序）', detectNewResets(recs, null).length === 3);
@@ -322,10 +325,10 @@ section('6. POST /api/subscribe 与 /api/unsubscribe');
 
   res = makeRes();
   await handleSubscribe(makeReq('POST', { code: 'c' }), res, { store, client, templateId: '', send });
-  check('缺模板 ID → 422（不落一条永远推不出去的订阅）', res.statusCode === 422, String(res.statusCode));
+  check('缺模板 ID → 503（不落一条永远推不出去的订阅）', res.statusCode === 503, String(res.statusCode));
 
   res = makeRes();
-  await handleSubscribe(makeReq('POST', { code: 'c', templateId: 'T' }), res, { store, client, send });
+  await handleSubscribe(makeReq('POST', { code: 'c', templateId: 'T' }), res, { store, client, templateId: 'T', send });
   check('成功 → 200 且标记 scope=once', res.statusCode === 200 && res.json().scope === 'once', JSON.stringify(res.json()));
 
   const saved = JSON.parse(await readFile(join(dataDir, 'subscriptions.json'), 'utf8'));
@@ -345,7 +348,7 @@ section('6. POST /api/subscribe 与 /api/unsubscribe');
     fetchImpl: makeFetch([['/sns/jscode2session', wxOk({ errcode: 40163, errmsg: 'code been used' })]]),
   });
   res = makeRes();
-  await handleSubscribe(makeReq('POST', { code: 'used', templateId: 'T' }), res, { store, client: badClient, send });
+  await handleSubscribe(makeReq('POST', { code: 'used', templateId: 'T' }), res, { store, client: badClient, templateId: 'T', send });
   check('code 换 openid 失败 → 400', res.statusCode === 400, String(res.statusCode));
 
   // 未配置微信凭据 → 503（功能整体关闭）
@@ -355,7 +358,7 @@ section('6. POST /api/subscribe 与 /api/unsubscribe');
 
   // 退订
   res = makeRes();
-  await handleUnsubscribe(makeReq('POST', { code: 'c' }), res, { store, client, send });
+  await handleUnsubscribe(makeReq('POST', { code: 'c' }), res, { store, client, templateId: 'T', send });
   check('退订 → removed=1', res.json().removed === 1, JSON.stringify(res.json()));
   const after = JSON.parse(await readFile(join(dataDir, 'subscriptions.json'), 'utf8'));
   check('退订后订阅清空', after.items.length === 0);
@@ -477,6 +480,105 @@ async function seedResets(dataDir, isoList) {
     '即使全部失败，水位线也推进（否则下轮会重推同一事件）',
     (await store2.read()).last_event_at === '2026-09-25T00:00:00.000Z'
   );
+}
+
+section('8. 已选模板的实际字段');
+{
+  const dataDir = await makeDir(), store = createSubscriptionStore(dataDir);
+  await seedResets(dataDir, ['2026-09-01T00:00:00.000Z', '2026-09-20T02:30:00.000Z']);
+  await store.write({ last_event_at: '2026-09-01T00:00:00.000Z', items: [{ openid: 'U', template_id: subscriptionTemplate.templateId }] });
+  let message;
+  await notifyNewResets({ dataDir, store, templateId: subscriptionTemplate.templateId, templateSpec: subscriptionTemplate.data, client: { configured: true, sendSubscribeMessage: async (m) => { message = m; } }, log: silence });
+  check('已选模板按 thing13/time10/thing5 发送实际文案与北京时间', message.templateId === subscriptionTemplate.templateId && JSON.stringify(message.data) === JSON.stringify({ thing13: { value: 'Codex 额度已重置' }, time10: { value: '2026-09-20 10:30' }, thing5: { value: '打开观测台查看重置详情' } }));
+}
+
+section('8. 实际开启、状态与并发回归');
+
+const authClient = { configured: true, codeToOpenid: async (code) => code, sendSubscribeMessage: async () => {} };
+const register = async (store, code, templateId = 'T') => {
+  const res = makeRes();
+  await handleSubscribe(makeReq('POST', { code, templateId }), res, { store, client: authClient, templateId: 'T', send });
+  return res;
+};
+const status = async (store, code) => {
+  const res = makeRes();
+  await handleSubscriptionStatus(makeReq('POST', { code, templateId: 'T' }), res, { store, client: authClient, templateId: 'T', send });
+  return res.json();
+};
+{
+  const future = new Date(Date.now() + 3600000).toISOString();
+  const old = '2026-09-01T00:00:00.000Z';
+  const edited = { announced_at: '2026-09-20T00:00:00.000Z', first_confirmed_at: old, type: 'reset' };
+  check('未来记录、未知类型及历史确认补正不触发新通知',
+    detectNewResets([{ announced_at: future, type: 'reset' }, { announced_at: '2026-09-20T00:00:00Z', type: 'hint' }, { announced_at: '2026-09-20T00:00:00Z' }, edited], old).length === 0);
+  const dataDir = await makeDir(), store = createSubscriptionStore(dataDir);
+  await seedResets(dataDir, [old]);
+  const invalid = await register(store, 'U', 'OTHER');
+  let malformed = makeRes();
+  await handleSubscribe(makeReq('POST', null), malformed, { store, client: authClient, templateId: 'T', send });
+  check('模板不一致或非法请求均不能登记', invalid.statusCode === 422 && malformed.statusCode === 400 && (await store.read()).items.length === 0);
+  await Promise.all([register(store, 'U'), register(store, 'V')]);
+  check('并发登记保留全部用户，并在首次开启时建立历史基线', (await store.read()).items.length === 2 && (await store.read()).last_event_at === old);
+  check('查询只返回当前用户的通知登记状态', (await status(store, 'U')).active === true && (await status(store, 'OTHER')).active === false && !JSON.stringify(await status(store, 'U')).includes('openid'));
+  let config = makeRes();
+  handleSubscriptionConfig(makeReq('GET'), config, { client: authClient, templateId: 'T', send });
+  const enabled = config.json();
+  config = makeRes();
+  handleSubscriptionConfig(makeReq('GET'), config, { client: authClient, templateId: '', send });
+  check('公开配置仅在凭据和模板齐备时启用', enabled.enabled === true && enabled.templateId === 'T' && config.json().enabled === false && Object.keys(enabled).sort().join() === 'enabled,scope,templateId');
+  // 登记已完成，构造一个随后确认的事件；不用等待真实时间推进。
+  const at = new Date(Date.now() - 1000).toISOString();
+  await store.update((state) => { state.items.forEach((x) => { x.created_at = at; }); });
+  await seedResets(dataDir, [old, new Date(Date.now()).toISOString()]);
+  let sends = 0;
+  const options = { dataDir, store, client: { ...authClient, sendSubscribeMessage: async () => { sends++; } }, templateId: 'T', log: silence };
+  await Promise.all([notifyNewResets(options), notifyNewResets(options)]);
+  check('重复并发采集只发送一次，发送后查询恢复未开启', sends === 2 && (await status(store, 'U')).active === false && (await status(store, 'V')).active === false);
+}
+{
+  const dataDir = await makeDir(), store = createSubscriptionStore(dataDir);
+  await seedResets(dataDir, ['2026-09-01T00:00:00.000Z', '2026-09-20T00:00:00.000Z']);
+  await store.write({ last_event_at: '2026-09-01T00:00:00.000Z', items: [{ openid: 'U', template_id: 'T' }] });
+  let attempts = 0;
+  const options = { dataDir, store, templateId: 'T', log: silence, client: { ...authClient, sendSubscribeMessage: async () => { if (++attempts === 1) throw new Error('network'); } } };
+  await notifyNewResets(options);
+  const failed = await store.read();
+  await notifyNewResets(options);
+  await notifyNewResets(options);
+  check('失败事件持久化，下轮无新事件也补推，成功后停止', Boolean(failed.items[0].pending_event_at) && attempts === 2 && (await store.read()).items.length === 0);
+}
+{
+  const dataDir = await makeDir(), store = createSubscriptionStore(dataDir);
+  const old = '2026-09-01T00:00:00.000Z', event = '2026-09-20T00:00:00.000Z';
+  await seedResets(dataDir, [old, event]);
+  await store.write({ last_event_at: old, items: [{ openid: 'U', template_id: 'T' }] });
+  let release, started;
+  const waiting = new Promise((r) => { release = r; });
+  const entered = new Promise((r) => { started = r; });
+  let sends = 0;
+  const options = { dataDir, store, templateId: 'T', log: silence, client: { ...authClient, sendSubscribeMessage: async () => { sends++; started(); await waiting; } } };
+  const sending = notifyNewResets(options);
+  await entered;
+  await register(store, 'NEW');
+  release();
+  await sending;
+  await notifyNewResets(options);
+  check('发送期间新订阅不丢失，也不追发开启前的事件', sends === 1 && (await status(store, 'NEW')).active === true);
+}
+{
+  const dataDir = await makeDir(), store = createSubscriptionStore(dataDir);
+  await writeFile(store.path, 'broken json');
+  let rejected = false;
+  try { await register(store, 'U'); } catch { rejected = true; }
+  check('损坏的名单不会被当成空名单覆盖', rejected && await readFile(store.path, 'utf8') === 'broken json');
+}
+{
+  const client = createWeChatClient({ appId: 'a', appSecret: 'b', fetchImpl: makeFetch([
+    ['/cgi-bin/token', wxOk({ access_token: 'TK', expires_in: 7200 })], [SEND, wxOk({})],
+  ]) });
+  let rejected = false;
+  try { await client.sendSubscribeMessage({ openid: 'U', templateId: 'T', data: {} }); } catch { rejected = true; }
+  check('微信未明确返回成功时不能消耗订阅', rejected);
 }
 
 /* ------------------------------ 清理 ------------------------------ */

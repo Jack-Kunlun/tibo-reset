@@ -16,16 +16,46 @@
  */
 
 import config from '../config.js';
-import { postJson } from './api.js';
+import { postJson, request } from './api.js';
 
 /** 入口文案：一次性限制写进按钮旁的说明，不靠用户猜 */
 export const SCOPE_HINT = '一次授权只能收到一次通知，用完需要重新开启';
-export const ACTION_LABEL = '下次重置时提醒我';
-export const DONE_LABEL = '已开启（一次）';
+export const ACTION_LABEL = '开启重置通知';
+export const DONE_LABEL = '已开启一次';
+const PENDING_KEY = 'tibo_remind_sync_pending_v1';
+let serverTemplateId = '';
+const template = () => serverTemplateId;
 
-/** 是否配置了模板 ID。没配就不显示入口，而不是显示一个点了没反应的按钮 */
+export async function loadSubscriptionConfig() {
+  if (!config.enabled) { serverTemplateId = ''; return false; }
+  const result = await request('/api/subscribe/config');
+  serverTemplateId = result.enabled === true && typeof result.templateId === 'string' ? result.templateId.trim() : '';
+  return subscribeAvailable();
+}
+
+export function hasPendingSync() {
+  try { return Boolean(template() && wx.getStorageSync(PENDING_KEY) === template()); }
+  catch { return false; }
+}
+
+function pendingSync(on) {
+  try {
+    if (on) wx.setStorageSync(PENDING_KEY, template());
+    else wx.removeStorageSync(PENDING_KEY);
+  } catch { /* 不把已同步状态持久化，避免发送后仍显示永久开启。 */ }
+}
+
+export async function subscriptionStatus() {
+  const code = await login();
+  const result = await postJson('/api/subscribe/status', { code, templateId: template() });
+  if (result.ok !== true || typeof result.active !== 'boolean') throw new Error('提醒状态暂时无法确认');
+  if (result.active) pendingSync(false);
+  return result.active;
+}
+
+/** 只有服务端确认模板可用后才允许申请授权；不可用时由页面显示状态。 */
 export function subscribeAvailable() {
-  return Boolean(config.subscribeTemplateId) && Boolean(config.enabled);
+  return Boolean(template()) && Boolean(config.enabled);
 }
 
 /**
@@ -33,7 +63,7 @@ export function subscribeAvailable() {
  *
  * 三种失败要分开说，因为用户能做的处理完全不同：
  *   reject → 他自己点了拒绝，重试即可
- *   ban    → 他在微信里关掉了订阅消息总开关，得去设置里打开
+ *   ban    → 模板已被平台封禁，不能说是用户关掉了开关
  *   其它   → 未知，让他重试
  */
 export function classifySubscribeResult(res, templateId) {
@@ -41,8 +71,9 @@ export function classifySubscribeResult(res, templateId) {
   if (v === 'accept') return { ok: true, status: 'accepted', reason: '' };
   if (v === 'reject') return { ok: false, status: 'rejected', reason: '你点了「拒绝」，没有订阅成功' };
   if (v === 'ban') {
-    return { ok: false, status: 'banned', reason: '订阅消息总开关被关掉了，请到微信「设置 → 订阅消息」里打开' };
+    return { ok: false, status: 'banned', reason: '通知模板暂不可用，请稍后重试' };
   }
+  if (v === 'filter') return { ok: false, status: 'filtered', reason: '通知模板未能授权，请稍后重试' };
   return { ok: false, status: 'unknown', reason: '授权没有生效，请重试' };
 }
 
@@ -71,21 +102,32 @@ function requestSubscribe(templateId) {
  * @returns {Promise<{ok:boolean, status:string, reason:string, synced?:boolean}>}
  */
 export async function subscribeOnce() {
-  const templateId = config.subscribeTemplateId;
+  const templateId = template();
   if (!templateId) throw new Error('未配置订阅模板 ID');
   if (!config.enabled) throw new Error('联网已关闭，无法开启提醒');
 
   const verdict = classifySubscribeResult(await requestSubscribe(templateId), templateId);
   if (!verdict.ok) return verdict;
+  pendingSync(true);
+  return syncSubscription();
+}
 
-  // 授权拿到了。上报失败**不算订阅失败** —— 微信侧已经计入一次授权，
-  // 说「失败」会让用户重复点，白白浪费他的次数。如实返回 synced:false 即可。
+/** 同步失败后的按钮只重试登记，不再次消耗一次微信授权。 */
+export async function syncSubscription() {
+  if (!subscribeAvailable()) throw new Error('重置通知暂不可用');
   try {
     const code = await login();
-    await postJson('/api/subscribe', { code, templateId });
-    return { ...verdict, synced: true };
+    const result = await postJson('/api/subscribe', { code, templateId: template() });
+    if (result.ok !== true || result.active !== true) throw new Error('服务器未确认开启，请重试同步');
+    pendingSync(false);
+    return { ok: true, status: 'accepted', synced: true };
   } catch (err) {
-    return { ...verdict, synced: false, syncError: err.message };
+    if (err.statusCode === 422 && err.code === 'template_changed') {
+      pendingSync(false);
+      try { await loadSubscriptionConfig(); } catch { serverTemplateId = ''; }
+      return { ok: false, status: 'template-changed', reason: '通知模板已更新，请重新开启并授权。' };
+    }
+    return { ok: true, status: 'accepted', synced: false, syncError: err.message };
   }
 }
 

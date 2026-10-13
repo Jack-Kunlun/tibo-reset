@@ -71,9 +71,10 @@
 
       <view class="pred-content">
         <view class="pred-head">
-          <view class="pred-t"><view wx:if="{{pred.announcement}}" class="announcement-beacon"></view><text>{{pred.announcement ? 'TIBO 已预告' : 'NEXT RESET'}}</text></view>
-          <text class="pred-badge">置信度 · {{pred.confidenceLabel}}</text>
+          <view class="pred-t"><view wx:if="{{pred.announcement}}" class="announcement-beacon"></view><text>{{pred.announcement ? '重置预告' : '重置预测'}}</text></view>
+          <text class="pred-badge">{{pred.announcement ? '来自 TIBO' : '置信度 · ' + pred.confidenceLabel}}</text>
         </view>
+        <view class="pred-signal-note">{{pred.announcement ? '已捕获明确重置信号' : '根据历史重置节奏推算'}}</view>
 
         <view class="pred-stage">
           <text class="pred-stage-title">{{pred.announcement ? '即将重置' : '下一次重置预测'}}</text>
@@ -154,6 +155,16 @@
         <text wx:if="{{signal.reason}}">判定依据：{{signal.reason}}</text>
         <text wx:if="{{signal.url && !signal.evCount && !singlePage}}" class="link" data-url="{{signal.url}}" bindtap="onCopySource">复制原推链接</text>
       </view>
+    </view>
+
+    <view wx:if="{{remind.show}}" class="remind card">
+      <view class="rd-head">
+        <view class="rd-icon">◉</view>
+        <view class="rd-copy"><text class="rd-t">重置通知</text><text class="rd-sub">{{remind.state === 'unavailable' || remind.state === 'unknown' ? '通知暂未就绪' : '确认重置后，微信提醒'}}</text></view>
+        <button class="rd-btn {{remind.state}}" bindtap="onToggleRemind" disabled="{{remind.state === 'on' || remind.state === 'busy' || remind.state === 'checking' || remind.state === 'unavailable'}}" loading="{{remind.state === 'busy' || remind.state === 'checking'}}">{{remind.label}}</button>
+      </view>
+      <view class="rd-hint">{{remind.hint}}</view>
+      <view wx:if="{{remind.feedback}}" class="rd-fb {{remind.tone}}">{{remind.feedback}}</view>
     </view>
 
     <!-- 每日计划与某一天的预告分开呈现，默认收起，只在需要时查看时区和来源。 -->
@@ -344,12 +355,7 @@
         </view>
       </view>
 
-      <view wx:if="{{remind.show}}" class="remind card">
-        <view class="rd-head"><text class="rd-t">{{remind.title}}</text><text class="rd-tag">一次性</text></view>
-        <view class="rd-hint">{{remind.hint}}</view>
-        <view class="rd-btn {{remind.state}}" bindtap="onToggleRemind">{{remind.label}}</view>
-        <view wx:if="{{remind.feedback}}" class="rd-fb {{remind.tone}}">{{remind.feedback}}</view>
-      </view>
+
     </view>
 
     <view class="foot">

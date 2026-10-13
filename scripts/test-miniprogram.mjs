@@ -1227,7 +1227,7 @@ const sub = await import(resolve(ROOT, 'miniprogram/utils/subscribe.js'));
 const configMod = (await import(resolve(ROOT, 'miniprogram/config.js'))).default;
 const TMPL = 'TMPL_TEST';
 
-check('未配置模板 ID 时不显示入口（不摆一个点了没反应的按钮）', sub.subscribeAvailable() === false);
+check('未取得可用模板时不能申请授权', sub.subscribeAvailable() === false);
 check(
   '入口文案说清「一次授权只能收到一次通知」',
   /一次/.test(sub.SCOPE_HINT) && /通知/.test(sub.SCOPE_HINT),
@@ -1237,12 +1237,27 @@ check(
 // 四种授权结果必须分开说 —— 用户能做的处理完全不同，笼统报「失败」等于没提示
 check('accept → 成功', sub.classifySubscribeResult({ [TMPL]: 'accept' }, TMPL).ok === true);
 check('reject → 提示是他自己点了拒绝', /拒绝/.test(sub.classifySubscribeResult({ [TMPL]: 'reject' }, TMPL).reason));
-check('ban → 指向微信设置里的总开关', /设置/.test(sub.classifySubscribeResult({ [TMPL]: 'ban' }, TMPL).reason));
+check('ban → 如实提示模板不可用', /不可用/.test(sub.classifySubscribeResult({ [TMPL]: 'ban' }, TMPL).reason));
 check('未知结果 → 不谎报成功', sub.classifySubscribeResult({}, TMPL).ok === false);
+
+// 真实线上旧服务返回 404 时，通知模块仍可见，重试只查询配置，不索取授权。
+configMod.enabled = true;
+const grantsBeforeConfig = wxRecord.subscribeCalls.length, loginsBeforeConfig = wxRecord.loginCount;
+page.initRemind();
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 404, data: { error: 'unknown endpoint' } });
+await page.refreshRemind();
+await page.onToggleRemind();
+check('通知配置 404 时保留重试入口，不授权、不登录、不显示已开启', page.data.remind.show && page.data.remind.state === 'unknown' && page.data.remind.label === '重试' && wxRecord.subscribeCalls.length === grantsBeforeConfig && wxRecord.loginCount === loginsBeforeConfig);
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: { enabled: false, templateId: '' } });
+await page.refreshRemind();
+await page.onToggleRemind();
+check('通知服务未启用时保留未开放状态并阻止授权', page.data.remind.show && page.data.remind.state === 'unavailable' && page.data.remind.label === '暂未开放' && wxRecord.subscribeCalls.length === grantsBeforeConfig && wxRecord.loginCount === loginsBeforeConfig);
 
 // 打开联网与模板 ID，走一遍完整链路
 configMod.enabled = true;
-configMod.subscribeTemplateId = TMPL;
+configMod.subscribeTemplateId = '';
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: { enabled: true, templateId: TMPL, scope: 'once' } });
+await sub.loadSubscriptionConfig();
 check('配置齐备后入口可用', sub.subscribeAvailable() === true);
 
 page.initRemind();
@@ -1255,7 +1270,7 @@ check(
 let posted = null;
 wxRecord.onRequest = (opts) => {
   posted = { url: opts.url, method: opts.method, data: opts.data };
-  opts.success({ statusCode: 200, data: { ok: true } });
+  opts.success({ statusCode: 200, data: { ok: true, active: true } });
 };
 
 await page.onToggleRemind();
@@ -1290,15 +1305,48 @@ page.initRemind();
 await page.onToggleRemind();
 check(
   '授权成功但同步失败 → 如实说「可能收不到」，不谎报成功',
-  page.data.remind.state === 'on' && page.data.remind.tone === 'warn' && /同步/.test(page.data.remind.feedback),
+  page.data.remind.state === 'retry' && page.data.remind.tone === 'warn' && /同步/.test(page.data.remind.feedback),
   page.data.remind.feedback
 );
+
+// 已有微信授权时，重试登记不能再次弹授权或叠加授权次数。
+const granted = wxRecord.subscribeCalls.length;
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: { ok: true, active: true } });
+await page.onToggleRemind();
+check('同步失败后只重试登记，服务器确认后才显示已开启', wxRecord.subscribeCalls.length === granted && page.data.remind.state === 'on' && !sub.hasPendingSync());
+
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: opts.url.endsWith('/config') ? { enabled: true, templateId: TMPL } : { ok: true, active: false } });
+await page.refreshRemind();
+check('通知发送消耗后，重新查询恢复开启按钮，不信任本地永久标记', page.data.remind.state === 'idle' && page.data.remind.label === sub.ACTION_LABEL);
+
+const callsBefore = wxRecord.subscribeCalls.length;
+const singleLoginBefore = wxRecord.loginCount, singleRequestBefore = wxRecord.requestCount;
+page.data.singlePage = true;
+await page.refreshRemind();
+page.initRemind();
+await page.onToggleRemind();
+check('朋友圈单页不展示入口、不触发授权', !page.data.remind.show && wxRecord.subscribeCalls.length === callsBefore && wxRecord.loginCount === singleLoginBefore && wxRecord.requestCount === singleRequestBefore);
+page.data.singlePage = false;
+page.initRemind();
+
+// 错误响应不能被包装成开通成功。
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: { ok: true } });
+const unconfirmed = await sub.syncSubscription();
+check('HTTP 成功但没有 active 确认，不显示开通成功', unconfirmed.synced === false);
+
+wxRecord.onRequest = (opts) => opts.url.endsWith('/config')
+  ? opts.success({ statusCode: 200, data: { enabled: true, templateId: 'NEW_TEMPLATE' } })
+  : opts.success({ statusCode: 422, data: { code: 'template_changed', error: 'template changed' } });
+const templateChanged = await sub.subscribeOnce();
+check('模板更换清除旧同步待办，刷新配置并要求重新授权', templateChanged.ok === false && templateChanged.status === 'template-changed' && !sub.hasPendingSync() && /重新/.test(templateChanged.reason));
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: { enabled: true, templateId: TMPL } });
+await sub.loadSubscriptionConfig();
 
 // code 是一次性的：每次调用都必须重新 wx.login
 const codes = [];
 wxRecord.onRequest = (opts) => {
   codes.push(opts.data && opts.data.code);
-  opts.success({ statusCode: 200, data: { ok: true } });
+  opts.success({ statusCode: 200, data: { ok: true, active: true } });
 };
 await sub.subscribeOnce();
 await sub.subscribeOnce();
@@ -1306,6 +1354,8 @@ check('每次都重新 wx.login，不复用旧 code', codes.length === 2 && code
 
 // 缺模板 ID 时应在本地就拦住，不去骚扰微信接口
 configMod.subscribeTemplateId = '';
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: { enabled: false, templateId: '' } });
+await sub.loadSubscriptionConfig();
 let blocked = false;
 try {
   await sub.subscribeOnce();
@@ -1314,6 +1364,8 @@ try {
 }
 check('缺模板 ID 时本地报错，不调用微信接口', blocked);
 configMod.subscribeTemplateId = TMPL;
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: { enabled: true, templateId: TMPL } });
+await sub.loadSubscriptionConfig();
 
 wxRecord.onRequest = null;
 
