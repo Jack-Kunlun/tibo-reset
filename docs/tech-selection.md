@@ -564,10 +564,11 @@ F9 的 `WX_APPID` / `WX_SECRET` 同理写进 `/srv/tibo.env`；不配则 F9 整�
 |---|---|
 | 1 | 微信后台配置 `request` 合法域名 = 已备案域名（**未配之前所有请求走 fail 回调，静默失败不弹错**） |
 | 2 | `miniprogram/config.js`：`apiBase` = `https://reset.example.com`、`enabled: true` ✅ 已改 |
-| 3 | 申请订阅消息模板（重置发生时通知），把模板 ID 填进 `config.js` 的 `subscribeTemplateId` |
+| 3 | 选用订阅消息模板；模板与字段已保存在 `server/subscribe-template.json`，部署时配置服务端 `WX_APPID` / `WX_SECRET` |
 | 4 | 确认小程序类目 —— 影响能否使用长期订阅（预期是不能） |
 
-第 3 步填之前 `subscribeTemplateId` 保持空字符串，页面上不会出现提醒入口（功能整体关闭）。
+小程序从 `/api/subscribe/config` 读取通知是否可用；返回 `enabled: false` 时保留入口并显示「暂未开放」。
+`subscribeTemplateId` 是历史字段，当前不读取。部署凭据的加载方式见 `docs/deploy.md` 第六节。
 服务和构建两侧的完整环境变量清单见 `README.md` 的「环境变量」。
 
 ---

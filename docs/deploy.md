@@ -481,7 +481,7 @@ D-002），但**那份产物是可以送的**：
 | `dist/` **不在此路径的覆盖范围** | 兜底 HTML（与两个图标）只在构建期产出，`docker commit` 带不出新的 —— 而它只在**实时渲染失败**时才被用到。**OG 分享图自 2026-10-09 起不再依赖它**（D-053）：本机构建后随数据推送到 `data/og/`，所以走这条路换容器**不会**再让卡片陈旧 |
 | 事后能自证 | `/api/state` 的返回就是新逻辑的产物；本次改用例里那条「窗口已撤回」的痕迹（`windowExpired.why="past"`）在线上直接看得到 |
 | ⛔ **`curl` 被平台拦** | 经 Lighthouse 连接器下发时，**含 `curl` 的命令一律 `AccessDeny`**（`echo alive` 能过、`curl -s http://127.0.0.1:8787/api/health` 被拒，与目标地址无关）。**换 `wget -qO- -T 5 <url>`**，或直接在服务器上跑 `jq`（`/usr/bin/jq` 在，`node` 不在）。别据此以为「服务器不通」 |
-| ⛔ **`--env-file /srv/tibo.env` 被平台拦** | 同上一条，读那个凭据文件的写法一律被拒。**别把凭据文件拷到别的路径绕过** —— 那是绕安全控制。可行做法：`docker commit` 会把容器的 **`Config.Env` 一起写进新镜像**，所以第 8 步**不传 `--env-file` 也拿到同一套环境变量**。上传前先核对：`docker exec <旧> sh -c 'printf %s "$INGEST_TOKEN" \| sha256sum'` 与 `docker exec <临时容器> sh -c '...'` 两个哈希必须相同（**只打哈希，不打值**）。代价是密钥多进了一个镜像层 —— 该镜像不推 registry，风险有限，但**这确实是对第二节「凭据显式传参」原则的偏离**，记在这里而不是假装没发生 |
+| ✅ **`--env-file /srv/tibo.env` 可用**（2026-10-13 复测，推翻下面那条旧结论） | 旧记录写「经连接器下发一律被拒」，实测是**误判**。直测：`docker run --rm --env-file /srv/tibo.env --entrypoint sh <镜像> -c 'echo env_count=$(env \| wc -l)'` → `rc=0`、容器拿到 12 个环境变量。被拦的是**把凭据值打出来**的写法（`printf %s "$INGEST_TOKEN" \| sha256sum`、逐条列举 `Config.Env`），与 `curl` / `wget -O` 同族 —— 触发点是**命令里有没有把凭据的值捞出来**，不是参数名本身。**所以第 8 步照常传 `--env-file`**，凭据留在文件里，不必再走镜像继承那条绕路 |
 | 预检容器与生产容器**同时挂 `/srv/tibo-data`** 是安全的 | `server/entrypoint.sh` 只在数据目录**为空**时才铺种子数据（判据是 `ls -A` 为空），已有数据「一个字都不碰」；两个容器都只读渲染。所以第 6.5 步的对照可以直接用真数据，不必另造夹具 |
 | `p.b64` 自己也要比哈希 | 分块 `printf '%s' '<块>' >> p.b64` 丢字符是**不会报错**的 —— 它是追加，不是校验。第 4 步之前先 `sha256sum p.b64` 与本机同文件比对，把「传输」这一步也纳入判据（比对点 4 处 → 5 处）|
 | 预检容器不必接 `--network` | 它只被 `127.0.0.1:8788` 访问，不参与网关解析，所以不用加入 `petcare_petcare-network`。但**必须显式挂同一个数据卷** —— 卷是 bind mount，不在 `docker commit` 的结果里，临时镜像里的 `/app/data` 只是构建期的种子数据；不挂卷就是拿种子数据去对照，白跑 |
@@ -495,12 +495,15 @@ D-002），但**那份产物是可以送的**：
 | ⚠ **`docker inspect --format 'old.stopped={{{.State.FinishedAt}}}'` 会报模板解析错** | 第九轮取停机窗口时想省一个 `echo -n`，把前缀写进了模板，结果两条 `docker inspect` 都只回 `template parsing error: unexpected "{" in command` —— Go 模板不认三层花括号。**改法**：时刻一律写成单层 `--format '{{.State.FinishedAt}}'`，前缀放到 `echo -n 'old.stopped = '` 里；同一轮里换成单层立刻拿到值（`0.45 秒`）|
 | ⚠ **会话里的「复制守卫」会拦 `cp`，而验收的 A6/A8 恰好要复制仓库副本** | 症状：`CODEBUDDY_BROKER_DENY` / `Brokered host copy source refused by file policy: prompt`，栈全在 `node-brokered-fs-shim.cjs`，与项目代码毫无关系。第九轮实测：同一次工具调用里**先 `cp -n` 了 6 个文件、紧接着跑 `npm run accept`**，A6 的沙箱复制被拒、验收**崩在中段**（A1–A3 已经打绿，看起来像「跑到一半坏了」）；**把 `accept` 单独放一次调用，立刻回到 10/10**。处置：**别把文件复制和跑验收塞进同一次调用**（`npm run check` / `check:layout` 不复制沙箱，不受影响）|
 
-⚠ `docker commit` 会把容器的环境变量一起写进新镜像（含 `INGEST_TOKEN`）—— 这是这条应急
-路径**绕不过去的代价**。原设计是第 8 步仍传 `--env-file /srv/tibo.env`，让「凭据来自哪个
-文件」留在命令里；但经 Lighthouse 连接器下发时**这个参数用不了**（见上表），只能靠镜像自带
-的 `Config.Env` 继承，于是密钥又固化了一层。判断依据不是「反正跑通了」，而是上表那条哈希
-核对 —— 新旧容器的 `INGEST_TOKEN` 与 `SITE_URL` 哈希逐字节相同，行为等价。等 SSH 恢复、
-回到常规镜像流程后，这件事自动消失（那时凭据回到 `--env-file`）。
+⚠ **更正（2026-10-13）**：本节原先记着「`--env-file` 经连接器下发用不了、只能靠
+`docker commit` 继承 `Config.Env`」—— 那是误判，上表已改。第 8 步照常传
+`--env-file /srv/tibo.env`，「凭据来自哪个文件」就留在命令里。
+
+但**这不等于凭据不进镜像**：只要换容器仍走 `docker commit`，容器当时的 `Config.Env`
+（含从 `--env-file` 加载的凭据）就会被一起写进新镜像的配置 —— 这是 `docker commit`
+的固有行为，传不传 `--env-file` 都一样。要真正消除，只能走 `docker build`（构建期
+不接触凭据，凭据只在运行期 `docker run` 时传入）。本机这些镜像从不推 registry，
+所以风险有限；但要清楚一件事：**删掉 `/srv/tibo.env` 并不能让凭据从既有镜像里消失**。
 
 **实测留档**（供下一次估量。各轮记在同一张表里，按**轮次标识**分列 —— 用一个 commit 指代
 「这一轮之后线上 src 长什么样」，比「第几次」可靠。注意第二轮的起点**不是**整份 `2c34f3e`：
@@ -670,8 +673,13 @@ D-061（重置通知改由服务端统一模板与身份确认）与 D-062（小
 —— 只取数量、不取值，是这条命令能过平台校验的关键），所以新容器启动日志照旧打
 「F9 订阅    已关闭（未配 WX_APPID / WX_SECRET）」，`/api/subscribe/config` 回
 `{"enabled":false,"templateId":"","scope":"once"}`。**线上唯一可见的变化是这两个端点从 404 变成 200。**
-要让通知真的发得出去，必须在服务器上补 `WX_APPID` / `WX_SECRET` 并**重启容器**（`docker restart`
-就够，代码已在镜像里）—— 换容器**不能**替代这一步，因为凭据从来不在仓库里。
+启用通知时，在服务器 `/srv/tibo.env` 中补 `WX_APPID` / `WX_SECRET`，再按第六节流程
+**重新创建容器并传入该环境文件**。`docker restart` 会沿用创建时的环境变量，
+不会加载后来写入文件的配置。微信凭据不进代码、不进 Git —— 但它**会随 `docker commit`
+一起写进镜像的 `Config.Env`**（见第六节那条更正），所以这条防线守的是「不进仓库」，
+不是「不进镜像」。
+重建后检查 `GET /api/subscribe/config` 返回 `enabled: true` 和已选模板 ID；
+这只证明入口已启用，实际授权与送达还需分别验证。
 
 ⚠ **本轮新增一个平台拦截的判别样本**：一条含 `python3 -c "…json.load(open(p))…"` 的复合命令被
 `AccessDeny`，而同一批里 `echo alive`、`wget -qO- … > /tmp/sig-p.json`、`cmp`、`diff` 全部通过。
