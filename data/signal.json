@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-13T07:47:12.141Z",
-  "checkedTweets": 365,
+  "generatedAt": "2026-10-14T00:35:25.537Z",
+  "checkedTweets": 368,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-14T07:47:12.141Z",
-  "windowTo": "2026-10-13T07:47:12.141Z",
+  "windowFrom": "2026-08-15T00:35:25.537Z",
+  "windowTo": "2026-10-14T00:35:25.537Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -87,10 +87,10 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.10.13",
-      "weekday": "周二",
-      "time": "15:47",
-      "text": "2026.10.13（周二）15:47",
+      "date": "2026.10.14",
+      "weekday": "周三",
+      "time": "08:35",
+      "text": "2026.10.14（周三）08:35",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,50 +98,52 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.13",
       "weekday": "周二",
-      "time": "00:47",
-      "text": "2026.10.13（周二）00:47",
+      "time": "17:35",
+      "text": "2026.10.13（周二）17:35",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2109892247580000595",
+    "id": "2110167061632819447",
     "account": "thsottiaux",
-    "text": "Good plans are simple. I have one that should result in significantly more usage for everyone. Hope to get it done soon.",
-    "createdAt": "2026-10-13T06:21:26.000Z",
-    "url": "https://x.com/thsottiaux/status/2109892247580000595",
+    "text": "👁️tibo👁️",
+    "createdAt": "2026-10-14T00:33:27.000Z",
+    "url": "https://x.com/thsottiaux/status/2110167061632819447",
     "reasons": [
-      "命中额度词 limits/usage/credits",
-      "命中「新额度」类词 fresh/new/top up",
-      "含未来语气"
+      "上下文：回复 @argofowl「can someone check on @thsottiaux i m…」"
     ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "argofowl",
+      "id": "",
+      "text": "can someone check on @thsottiaux i miss him"
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.10.13",
-        "weekday": "周二",
-        "time": "14:21",
-        "text": "2026.10.13（周二）14:21",
+        "date": "2026.10.14",
+        "weekday": "周三",
+        "time": "08:33",
+        "text": "2026.10.14（周三）08:33",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.10.12",
-        "weekday": "周一",
-        "time": "23:21",
-        "text": "2026.10.12（周一）23:21",
+        "date": "2026.10.13",
+        "weekday": "周二",
+        "time": "17:33",
+        "text": "2026.10.13（周二）17:33",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "hint",
-    "rejected": "有额度意图但没给出时间，只能作线索",
-    "intent": 3,
+    "level": "none",
+    "rejected": "无额度相关词",
+    "intent": 0,
     "window": null,
     "candidateWindow": null
   },
@@ -2130,7 +2132,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-13T07:47:12.141Z"
+        "checkedAt": "2026-10-14T00:35:25.537Z"
       }
     },
     {
@@ -2885,6 +2887,128 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2110167061632819447",
+      "account": "thsottiaux",
+      "text": "👁️tibo👁️",
+      "createdAt": "2026-10-14T00:33:27.000Z",
+      "url": "https://x.com/thsottiaux/status/2110167061632819447",
+      "reasons": [
+        "上下文：回复 @argofowl「can someone check on @thsottiaux i m…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "argofowl",
+        "id": "",
+        "text": "can someone check on @thsottiaux i miss him"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.14",
+          "weekday": "周三",
+          "time": "08:33",
+          "text": "2026.10.14（周三）08:33",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.13",
+          "weekday": "周二",
+          "time": "17:33",
+          "text": "2026.10.13（周二）17:33",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2110152344029778279",
+      "account": "thsottiaux",
+      "text": "Legit how I look like. Must have trained on my face data",
+      "createdAt": "2026-10-13T23:34:58.000Z",
+      "url": "https://x.com/thsottiaux/status/2110152344029778279",
+      "reasons": [
+        "上下文：回复 @StefanoGPT「OMG. I asked GPT-6 Astra to turn @th…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "StefanoGPT",
+        "id": "",
+        "text": "OMG. I asked GPT-6 Astra to turn @thsottiaux 's profile picture into a fully 3D model. I don't think he's ready to see this. 💀 prompt is in the comments"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.14",
+          "weekday": "周三",
+          "time": "07:34",
+          "text": "2026.10.14（周三）07:34",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.13",
+          "weekday": "周二",
+          "time": "16:34",
+          "text": "2026.10.13（周二）16:34",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2110151780478927344",
+      "account": "thsottiaux",
+      "text": "Day 9/ We've rolled out optimizations to how we store state on disk for the chatgpt & codex desktop app that should reduce the amount stored on disk by 60%. Small ship but we've heard enough feedback about power users running out of disk space.",
+      "createdAt": "2026-10-13T23:32:43.000Z",
+      "url": "https://x.com/thsottiaux/status/2110151780478927344",
+      "reasons": [
+        "含发布/宣传语境（下调置信度）"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.14",
+          "weekday": "周三",
+          "time": "07:32",
+          "text": "2026.10.14（周三）07:32",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.13",
+          "weekday": "周二",
+          "time": "16:32",
+          "text": "2026.10.13（周二）16:32",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2109873307722121591",
       "account": "thsottiaux",
@@ -10983,137 +11107,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2104936468624105813",
-      "account": "thsottiaux",
-      "text": "👀",
-      "createdAt": "2026-09-29T14:08:56.000Z",
-      "url": "https://x.com/thsottiaux/status/2104936468624105813",
-      "reasons": [
-        "上下文：回复 @imnotchalk「altman will have to pull a miracle a…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "imnotchalk",
-        "id": "",
-        "text": "altman will have to pull a miracle at dev day to keep me from cancelling codex 20x"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "22:08",
-          "text": "2026.09.29（周二）22:08",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "07:08",
-          "text": "2026.09.29（周二）07:08",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2104827790440935508",
-      "account": "thsottiaux",
-      "text": "Agreed",
-      "createdAt": "2026-09-29T06:57:05.000Z",
-      "url": "https://x.com/thsottiaux/status/2104827790440935508",
-      "reasons": [
-        "上下文：回复 @mecp「Beat Opus 5.5 in the overall value f…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "mecp",
-        "id": "",
-        "text": "Beat Opus 5.5 in the overall value for a dollar.. Then no need for these long posts justifying, what do you think @thsottiaux"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "14:57",
-          "text": "2026.09.29（周二）14:57",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.28",
-          "weekday": "周一",
-          "time": "23:57",
-          "text": "2026.09.28（周一）23:57",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2104467346945675347",
-      "account": "thsottiaux",
-      "text": "Taken by none other than the incredible @ah20im",
-      "createdAt": "2026-09-28T07:04:49.000Z",
-      "url": "https://x.com/thsottiaux/status/2104467346945675347",
-      "reasons": [],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.28",
-          "weekday": "周一",
-          "time": "15:04",
-          "text": "2026.09.28（周一）15:04",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.28",
-          "weekday": "周一",
-          "time": "00:04",
-          "text": "2026.09.28（周一）00:04",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 365,
+    "scanned": 368,
     "explicit": 0,
     "occurred": 8,
     "hint": 52,
-    "none": 295,
-    "rejected": 295
+    "none": 298,
+    "rejected": 298
   },
   "truncated": true
 }

@@ -1,6 +1,56 @@
 {
   "tweets": [
     {
+      "id": "2110167061632819447",
+      "text": "👁️tibo👁️",
+      "created_at": "2026-10-14T00:33:27.000Z",
+      "url": "https://x.com/thsottiaux/status/2110167061632819447",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "argofowl",
+        "id": "",
+        "text": "can someone check on @thsottiaux i miss him",
+        "created_at": "2026-10-13T18:18:44.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-14T00:35:25.535Z"
+    },
+    {
+      "id": "2110152344029778279",
+      "text": "Legit how I look like. Must have trained on my face data",
+      "created_at": "2026-10-13T23:34:58.000Z",
+      "url": "https://x.com/thsottiaux/status/2110152344029778279",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "StefanoGPT",
+        "id": "",
+        "text": "OMG. I asked GPT-6 Astra to turn @thsottiaux 's profile picture into a fully 3D model. I don't think he's ready to see this. 💀 prompt is in the comments",
+        "created_at": "2026-10-13T20:00:05.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-14T00:35:25.535Z"
+    },
+    {
+      "id": "2110151780478927344",
+      "text": "Day 9/ We've rolled out optimizations to how we store state on disk for the chatgpt & codex desktop app that should reduce the amount stored on disk by 60%. Small ship but we've heard enough feedback about power users running out of disk space.",
+      "created_at": "2026-10-13T23:32:43.000Z",
+      "url": "https://x.com/thsottiaux/status/2110151780478927344",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-14T00:35:25.535Z"
+    },
+    {
       "id": "2109892247580000595",
       "text": "Good plans are simple. I have one that should result in significantly more usage for everyone. Hope to get it done soon.",
       "created_at": "2026-10-13T06:21:26.000Z",
@@ -90,7 +140,7 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
+      "role": "reply",
       "foundVia": "with-replies",
       "first_seen": "2026-10-13T02:27:37.636Z"
     },
@@ -109,7 +159,7 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
+      "role": "reply",
       "foundVia": "with-replies",
       "first_seen": "2026-10-13T02:27:37.636Z"
     },
@@ -6003,7 +6053,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-13T07:47:12.141Z",
+  "updated_at": "2026-10-14T00:35:25.536Z",
   "source": "browser",
   "coverage_since": "2026-10-12T05:06:06.000Z"
 }
