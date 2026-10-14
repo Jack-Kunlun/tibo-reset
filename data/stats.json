@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-13T05:06:06.000Z",
     "last_text": "What would you like with your side of reset? It's done. https://t.co/gpNaB6otgy",
-    "days_since_last": 0.9514449768518518,
+    "days_since_last": 0.9983770138888889,
     "avg_interval_days": 6.4105559350333925,
     "median_interval_days": 3.0538483912037035,
     "sd_interval_days": 10.654838918282696,
@@ -14,7 +14,7 @@
     "reset_count": 55,
     "hit_within_avg": 0.7049180327868853
   },
-  "generated_at": "2026-10-14T03:56:10.940Z",
+  "generated_at": "2026-10-14T05:03:45.856Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
@@ -25,8 +25,8 @@
       "mode": "incremental",
       "stoppedBy": "known",
       "steps": 1,
-      "harvested": 8,
-      "withContext": 5,
+      "harvested": 4,
+      "withContext": 3,
       "authorsMissing": 0
     },
     "replyError": null,
@@ -48,7 +48,7 @@
     "added": 0,
     "updated": 0,
     "upstreamCount": 61,
-    "refreshedAt": "2026-10-14T03:55:58.456Z",
+    "refreshedAt": "2026-10-14T05:03:33.986Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
