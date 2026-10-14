@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-14T00:35:25.537Z",
-  "checkedTweets": 368,
+  "generatedAt": "2026-10-14T02:46:43.913Z",
+  "checkedTweets": 369,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-15T00:35:25.537Z",
-  "windowTo": "2026-10-14T00:35:25.537Z",
+  "windowFrom": "2026-08-15T02:46:43.913Z",
+  "windowTo": "2026-10-14T02:46:43.913Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.14",
       "weekday": "周三",
-      "time": "08:35",
-      "text": "2026.10.14（周三）08:35",
+      "time": "10:46",
+      "text": "2026.10.14（周三）10:46",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,27 +98,27 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.13",
       "weekday": "周二",
-      "time": "17:35",
-      "text": "2026.10.13（周二）17:35",
+      "time": "19:46",
+      "text": "2026.10.13（周二）19:46",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2110167061632819447",
+    "id": "2110188326422819047",
     "account": "thsottiaux",
-    "text": "👁️tibo👁️",
-    "createdAt": "2026-10-14T00:33:27.000Z",
-    "url": "https://x.com/thsottiaux/status/2110167061632819447",
+    "text": "😅",
+    "createdAt": "2026-10-14T01:57:57.000Z",
+    "url": "https://x.com/thsottiaux/status/2110188326422819047",
     "reasons": [
-      "上下文：回复 @argofowl「can someone check on @thsottiaux i m…」"
+      "上下文：回复 @charliermarsh「They're distilling me at work tomorr…」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "argofowl",
+      "account": "charliermarsh",
       "id": "",
-      "text": "can someone check on @thsottiaux i miss him"
+      "text": "They're distilling me at work tomorrow"
     },
     "createdZones": {
       "a": {
@@ -126,8 +126,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.14",
         "weekday": "周三",
-        "time": "08:33",
-        "text": "2026.10.14（周三）08:33",
+        "time": "09:57",
+        "text": "2026.10.14（周三）09:57",
         "offset": "UTC+8"
       },
       "b": {
@@ -135,8 +135,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.13",
         "weekday": "周二",
-        "time": "17:33",
-        "text": "2026.10.13（周二）17:33",
+        "time": "18:57",
+        "text": "2026.10.13（周二）18:57",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -2132,7 +2132,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-14T00:35:25.537Z"
+        "checkedAt": "2026-10-14T02:46:43.913Z"
       }
     },
     {
@@ -2887,6 +2887,48 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2110188326422819047",
+      "account": "thsottiaux",
+      "text": "😅",
+      "createdAt": "2026-10-14T01:57:57.000Z",
+      "url": "https://x.com/thsottiaux/status/2110188326422819047",
+      "reasons": [
+        "上下文：回复 @charliermarsh「They're distilling me at work tomorr…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "charliermarsh",
+        "id": "",
+        "text": "They're distilling me at work tomorrow"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.14",
+          "weekday": "周三",
+          "time": "09:57",
+          "text": "2026.10.14（周三）09:57",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.13",
+          "weekday": "周二",
+          "time": "18:57",
+          "text": "2026.10.13（周二）18:57",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2110167061632819447",
       "account": "thsottiaux",
@@ -11065,59 +11107,17 @@
       "intent": 1,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2104952602710638877",
-      "account": "thsottiaux",
-      "text": "Hello, this is Tibo, you’ve reached the wrong company. Let me redirect you to …",
-      "createdAt": "2026-09-29T15:13:03.000Z",
-      "url": "https://x.com/thsottiaux/status/2104952602710638877",
-      "reasons": [
-        "上下文：回复 @jukan05「I don’t like this kind of utilitaria…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "jukan05",
-        "id": "",
-        "text": "I don’t like this kind of utilitarianism. Please allocate compute unequally."
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "23:13",
-          "text": "2026.09.29（周二）23:13",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "08:13",
-          "text": "2026.09.29（周二）08:13",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 368,
+    "scanned": 369,
     "explicit": 0,
     "occurred": 8,
     "hint": 52,
-    "none": 298,
-    "rejected": 298
+    "none": 299,
+    "rejected": 299
   },
   "truncated": true
 }

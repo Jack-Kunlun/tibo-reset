@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-13T05:06:06.000Z",
     "last_text": "What would you like with your side of reset? It's done. https://t.co/gpNaB6otgy",
-    "days_since_last": 0.8120325810185185,
+    "days_since_last": 0.9032176851851852,
     "avg_interval_days": 6.4105559350333925,
     "median_interval_days": 3.0538483912037035,
     "sd_interval_days": 10.654838918282696,
@@ -14,36 +14,31 @@
     "reset_count": 55,
     "hit_within_avg": 0.7049180327868853
   },
-  "generated_at": "2026-10-14T00:35:25.695Z",
+  "generated_at": "2026-10-14T02:46:44.098Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
     "stoppedBy": "floor",
-    "newTweets": 3,
-    "knownCount": 365,
+    "newTweets": 1,
+    "knownCount": 368,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 8,
-      "harvested": 10,
-      "withContext": 8,
+      "steps": 6,
+      "harvested": 9,
+      "withContext": 7,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 2,
-      "attempted": 2,
-      "fetched": 2,
+      "candidates": 1,
+      "attempted": 1,
+      "fetched": 1,
       "skipped": 0,
       "scanned": [
         {
           "id": "2110151780478927344",
           "length": 244,
-          "showMore": false
-        },
-        {
-          "id": "2109831908620390553",
-          "length": 341,
           "showMore": false
         }
       ]
@@ -53,7 +48,7 @@
     "added": 0,
     "updated": 0,
     "upstreamCount": 61,
-    "refreshedAt": "2026-10-14T00:35:02.634Z",
+    "refreshedAt": "2026-10-14T02:46:24.412Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
