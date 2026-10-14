@@ -10,7 +10,7 @@
     "to": "2026-11-01T06:59:00.000Z",
     "fromDayNum": 20730,
     "throughDayNum": 20757,
-    "daysLeft": 19,
+    "daysLeft": 18,
     "createdZones": {
       "a": {
         "label": "北京时间",
@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-14T05:03:45.702Z",
+  "generatedAt": "2026-10-14T12:08:47.250Z",
   "checkedTweets": 369,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-15T05:03:45.702Z",
-  "windowTo": "2026-10-14T05:03:45.702Z",
+  "windowFrom": "2026-08-15T12:08:47.250Z",
+  "windowTo": "2026-10-14T12:08:47.250Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,17 +89,17 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.14",
       "weekday": "周三",
-      "time": "13:03",
-      "text": "2026.10.14（周三）13:03",
+      "time": "20:08",
+      "text": "2026.10.14（周三）20:08",
       "offset": "UTC+8"
     },
     "b": {
       "label": "Tibo 当地时间",
       "zone": "America/Los_Angeles",
-      "date": "2026.10.13",
-      "weekday": "周二",
-      "time": "22:03",
-      "text": "2026.10.13（周二）22:03",
+      "date": "2026.10.14",
+      "weekday": "周三",
+      "time": "05:08",
+      "text": "2026.10.14（周三）05:08",
       "offset": "UTC-7"
     },
     "diffHours": 15,
@@ -2132,7 +2132,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-14T05:03:45.702Z"
+        "checkedAt": "2026-10-14T12:08:47.250Z"
       }
     },
     {
