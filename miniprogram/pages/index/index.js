@@ -212,7 +212,7 @@ Page({
     this.refreshRemind();
     // 超过刷新间隔就静默刷新一次，避免用户切回来看到旧数据
     if (this._lastLoad && Date.now() - this._lastLoad > config.refreshIntervalMs) {
-      this.load({ silent: true });
+      this.load({ silent: true, force: true });
     }
   },
 
@@ -236,16 +236,18 @@ Page({
   /* ------------------------------ 数据 ------------------------------ */
 
   load(opts = {}) {
+    if (this._loading) return this._loading;
     this._lastLoad = Date.now();
-    return loadState({ force: !!opts.force })
-      .then((r) => this.apply(r))
+    this._loading = loadState({ force: !!opts.force })
+      .then((r) => this.apply({ ...r, preserveUi: !!opts.silent }))
       .catch(() => {
         // loadState 内部已经把失败降级掉了，这里只兜底，避免下拉刷新卡住
         if (!opts.silent) wx.stopPullDownRefresh();
-      });
+      }).finally(() => { this._loading = null; });
+    return this._loading;
   },
 
-  apply({ state, degraded, reason }) {
+  apply({ state, degraded, reason, preserveUi = false }) {
     const chart = state.chart;
     const lastAt = chart ? toTs(chart.lastAt) : null;
     const parsedGenTs = toTs(state.generatedAt);
@@ -288,11 +290,11 @@ Page({
         recentRecords: records.slice(0, 3),
         moreRecords: records.slice(3, 17),
         moreRecordsCount: Math.min(14, Math.max(0, records.length - 3)),
-        moreRecordsOpen: false,
-        detailsOpen: false,
-        programOpen: false,
-        programHeight: 0,
-        signalDetailsOpen: false,
+        moreRecordsOpen: preserveUi && this.data.moreRecordsOpen,
+        detailsOpen: preserveUi && this.data.detailsOpen,
+        programOpen: preserveUi && this.data.programOpen,
+        programHeight: preserveUi ? this.data.programHeight : 0,
+        signalDetailsOpen: preserveUi && this.data.signalDetailsOpen,
         genText: fmtDateTime(genTs),
         // 「观测中」后面是**当前北京时间**，由 tick 每秒推进（见 tick）。
         // 降级态是例外：那时要传达的正是「这是什么时候的快照」，显示数据时刻才有信息量。
@@ -304,6 +306,7 @@ Page({
         verdict: makeVerdict(chart ? chart.pct : 0),
       },
       () => {
+        if (preserveUi && this.data.programOpen) this.measureProgram();
         this.tick();
         this.paint();
       }
@@ -326,6 +329,9 @@ Page({
   },
 
   tick() {
+    if (this.data.pageVisible && this._lastLoad && Date.now() - this._lastLoad >= config.refreshIntervalMs) {
+      this.load({ silent: true, force: true });
+    }
     const now = Date.now();
     const patch = {};
 
@@ -522,15 +528,20 @@ Page({
 
   onToggleProgram() {
     const programOpen = !this.data.programOpen;
-    const measure = ++this._programMeasure;
+    this._programMeasure++;
     this.setData({ programOpen, ...(programOpen ? {} : { programHeight: 0 }) }, () => {
       if (!programOpen) return;
-      // 内容保持挂载，按实际高度展开；关闭时不移除节点，过渡才能完整播放。
-      wx.createSelectorQuery().in(this).select('.prog-body').boundingClientRect().exec((res) => {
-        if (!this.data.programOpen || measure !== this._programMeasure) return;
-        const height = res?.[0]?.height;
-        if (Number.isFinite(height) && height > 0) this.setData({ programHeight: Math.ceil(height) });
-      });
+      this.measureProgram();
+    });
+  },
+
+  measureProgram() {
+    const measure = ++this._programMeasure;
+    // 静默刷新也会改变内容高度；与用户展开共用测量及迟到回写守卫。
+    wx.createSelectorQuery().in(this).select('.prog-body').boundingClientRect().exec((res) => {
+      if (!this.data.programOpen || measure !== this._programMeasure) return;
+      const height = res?.[0]?.height;
+      if (Number.isFinite(height) && height > 0) this.setData({ programHeight: Math.ceil(height) });
     });
   },
 

@@ -52,11 +52,11 @@ export function resolveBuildNow(raw) {
  * `chart` / `prediction` / `signals` 来自 `derive()` —— **调用方负责共用同一份派生值**
  * （同一份数据 + 同一个 now），不要在这里再 derive 一次，否则页面与快照会各自算一遍。
  */
-export function snapshotFrom({ chart, prediction, signals, statsFile, account, now }) {
+export function snapshotFrom({ chart, prediction, signals, statsFile, tweets, account, now }) {
   const snapshot = {
     schema: 1,
     generatedAt: new Date(now).toISOString(),
-    dataUpdatedAt: statsFile.generated_at ?? null,
+    dataUpdatedAt: tweets?.updated_at ?? null,
     account,
     chart,
     prediction,
@@ -95,7 +95,7 @@ export async function buildSnapshot({ account, now }) {
     read('data/stats.json'),
   ]);
   const { chart, prediction, signals } = derive({ resets, tweets, statsFile, now, account });
-  return snapshotFrom({ chart, prediction, signals, statsFile, account, now });
+  return snapshotFrom({ chart, prediction, signals, statsFile, tweets, account, now });
 }
 
 /** 落盘。返回字节数，调用方打日志用。 */

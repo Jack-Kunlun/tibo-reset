@@ -167,7 +167,7 @@ const RE_LAUNCH = /\b(launch(?:ing|ed)?|keynote|ship(?:ping|ped)?|releas(?:e|ing
  * 里的 will 就是个反例，所以这里要求 will 后面必须跟「到来」类动词）。
  */
 const RE_CONTINUE =
-  /\b(?:still\s+(?:coming|on\s+track|happening|landing|arriving)|(?:it'?s|it\s+is|its)\s+(?:still\s+)?coming|coming\s+(?:in|on|this|next|later|tomorrow|soon)|will\s+(?:still\s+)?(?:come|land|happen|arrive|be\s+reset|reset)|on\s+track|right\s+around\s+the\s+corner|very\s+soon)\b/i;
+  /\b(?:still\s+(?:coming|on\s+track|happening|landing|arriving)|landing\s+within|(?:it'?s|it\s+is|its)\s+(?:still\s+)?coming|coming\s+(?:in|on|this|next|later|tomorrow|soon)|will\s+(?:still\s+)?(?:come|land|happen|arrive|be\s+reset|reset)|on\s+track|right\s+around\s+the\s+corner|very\s+soon)\b/i;
 
 /* ------------------- 「已发生」判定的补充词表 ------------------- */
 
@@ -238,7 +238,10 @@ const RE_ALTERNATIVE = /\b(?:or|either)\b(?:\s+\w+){0,3}\s+reset/i;
  * 因此必须紧邻（斜杠后立刻是 reset），否则 `Day 1/ … a reset of limits …`
  * 这类把 reset 塞进长句尾部的发布说明会被误判成预告。
  */
-const RE_SCHEDULE_RESET = /\bday\s+\d+\s*\/\s*reset\b/i;
+const RE_SCHEDULE_RESET = /\bday\s+\d+\s*\/\s*reset\s*[.!]*$/i;
+const withoutUrls = (text) => String(text ?? '').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
+const RE_OWN_RESET_DONE = /^what would you like with your side of reset\?\s*it[’']s done[.!]?$/i;
+const RE_LINKED_DONE = /^(?:it[’']s\s+|it is\s+)?done(?:\s+and\s+dusted)?[.!]?$/i;
 
 // 否定完成与无关对象也必须挡住预告分支，不能只给 occurred 扣分。
 const RE_NEGATED_COMPLETION = /\bresets?\s+(?:(?:has|have|is|are|was|were)\s+)?(?:not|never|hasn[’']t|haven[’']t|isn[’']t)\s+(?:been\s+|yet\s+)?(?:propagated|completed?|done|finished|landed|happened|live|available)\b/i;
@@ -255,7 +258,7 @@ function hasUntimedAnnouncement(text, viaContext) {
     if (blockedResetSentence(s) || RE_HYPOTHETICAL.test(s) || s.trim().endsWith('?') ||
       /\b(?:maybe|hope|wish|or|either|was|were|had|yesterday|previously)\b/i.test(s)) return false;
     return RE_RESET_NOT_YET.test(s) ||
-      RE_SCHEDULE_RESET.test(s) ||
+      RE_SCHEDULE_RESET.test(withoutUrls(s)) ||
       /\b(?:will|we[’']ll|i[’']ll|gonna|going\s+to|plan(?:ning)?\s+to|soon)\b/i.test(s) ||
       (viaContext && RE_CONTINUE.test(s));
   });
@@ -292,6 +295,7 @@ const RE_FUTURE_PERFECT =
  */
 export function hasOccurredReset(text) {
   const t = String(text ?? '');
+  if (RE_OWN_RESET_DONE.test(withoutUrls(t))) return true;
   if (!RE_RESET.test(t)) return false;
   if (blockedResetSentence(t)) return false;
   if (RE_HYPOTHETICAL.test(t)) return false;
@@ -622,6 +626,11 @@ function parseTimes(text, refTs, zone) {
   }
 
   // 5) in N hours/days/weeks
+  const within = t.match(/\bwithin\s+(?:the\s+next\s+)?(\d+)\s+(minutes?|hours?|days?)\b/);
+  if (within && Number(within[1]) > 0) {
+    const unitMs = /minute/.test(within[2]) ? 60_000 : /hour/.test(within[2]) ? HOUR : DAY;
+    push({ from: refTs, to: refTs + Number(within[1]) * unitMs, precision: 'instant' }, within[0], null, SPEC.relativeHours);
+  }
   const rel = t.match(
     /\bin\s+(a few|a couple of|couple of|several|\d+)\s+(minutes?|hours?|days?|weeks?|months?)\b/
   );
@@ -923,12 +932,52 @@ function timeWordInResetSentence(text, word) {
  * 分析一条推文。
  * @param {{text:string, created_at:string, id?:string, account?:string}} tweet
  */
+function linkedResetContext(tweet, opts) {
+  if (opts.contextScan === false) return null;
+  const account = String(opts.account ?? 'thsottiaux').toLowerCase();
+  const trusted = (t) => t?.author_verified === true && String(t.account).toLowerCase() === account &&
+    ['timeline-browser', 'with-replies'].includes(t.foundVia);
+  if (!trusted(tweet)) return null;
+  const pool = opts.tweets ?? [];
+  const seen = new Set([tweet.id]);
+  const chain = [];
+  let node = tweet;
+  for (let depth = 0; depth < 4; depth++) {
+    const ref = node.quotedTweet ?? (node.inReplyTo?.verified === true ? node.inReplyTo : null);
+    if (!ref || String(ref.account).toLowerCase() !== account) return null;
+    const matches = pool.filter((t) => trusted(t) && (ref.id ? t.id === ref.id :
+      t.created_at === ref.created_at && withoutUrls(t.text) === withoutUrls(ref.text)));
+    if (matches.length !== 1) return null;
+    const parent = matches[0];
+    const age = Date.parse(node.created_at) - Date.parse(parent.created_at);
+    if (seen.has(parent.id) || !Number.isFinite(age) || age <= 0 || age > DAY) return null;
+    if (ref.created_at && Date.parse(ref.created_at) !== Date.parse(parent.created_at)) return null;
+    if (ref.text && withoutUrls(ref.text) !== withoutUrls(parent.text)) return null;
+    seen.add(parent.id);
+    chain.push(parent);
+    const a = analyzeTweet(parent, { ...opts, contextScan: false });
+    if (a.level === 'explicit') {
+      // 完成短句只能兑现当前会话的承诺；不凭相近发布时间拼接两个独立事件。
+      const completedAt = Date.parse(tweet.created_at);
+      const windows = chain.flatMap((p) => parseTimes(p.text, Date.parse(p.created_at), opts.sourceZone ?? SOURCE_ZONE))
+        .filter((w) => w.spec >= SPEC.relativeHours);
+      if (windows.some((w) => completedAt < w.from || completedAt > w.to)) return null;
+      return { tweet: parent, chain };
+    }
+    node = parent;
+  }
+  return null;
+}
+
 export function analyzeTweet(tweet, opts = {}) {
   const sourceZone = opts.sourceZone ?? SOURCE_ZONE;
   const userZone = opts.userZone ?? USER_ZONE;
   const text = String(tweet.text ?? '').replace(/\s+/g, ' ').trim();
   const refTs = new Date(tweet.created_at ?? Date.now()).getTime();
   const reasons = [];
+  const linked = linkedResetContext(tweet, opts);
+  const linkedDone = Boolean(linked && RE_LINKED_DONE.test(withoutUrls(text)));
+  const ownDone = RE_OWN_RESET_DONE.test(withoutUrls(text));
 
   const hasReset = RE_RESET.test(text);
   const hasScope = RE_SCOPE.test(text);
@@ -1003,7 +1052,7 @@ export function analyzeTweet(tweet, opts = {}) {
    * 注意：时间表达**只从本条取**，不碰上下文。上下文里的 "this week" 是
    * 提问者自己的时间坐标，不是他的承诺时点。
    */
-  const ctx = tweet.inReplyTo ?? null;
+  const ctx = linked?.tweet ?? tweet.inReplyTo ?? null;
   const ctxText = String(ctx?.text ?? '').replace(/\s+/g, ' ').trim();
   // 上下文必须是**额度**重置语境，而不是随便一个 reset 词。
   //   「you owe us a banked reset」                    → reset + 额度词 ✅ 借
@@ -1011,11 +1060,11 @@ export function analyzeTweet(tweet, opts = {}) {
   // 光看有没有 reset 是不够的 —— 上面第二条也会让它成立，然后他任何一句带时间的
   // 回复都会被误判成预告。所以要求 reset 必须与额度词同时出现。
   const ctxIntent =
-    ctxText && RE_RESET.test(ctxText) && RE_SCOPE.test(ctxText)
+    ctxText && RE_RESET.test(ctxText) && (RE_SCOPE.test(ctxText) || linked)
       ? 3 + (RE_GENEROUS.test(ctxText) ? 1 : 0)
       : 0;
   const hasContinue = RE_CONTINUE.test(text);
-  const viaContext = ownIntent < 2 && ctxIntent >= 2 && hasContinue;
+  const viaContext = ownIntent < 2 && ctxIntent >= 2 && (hasContinue || linkedDone);
   const intent = viaContext ? Math.max(ownIntent, 3) : ownIntent;
 
   if (ctxText) {
@@ -1085,7 +1134,7 @@ export function analyzeTweet(tweet, opts = {}) {
    *   · `occurredInScope` —— 整条被否决、但「讲重置的那些句子」里有一整句是已发生（D-040）
    * 第二个来源只有在第一个失败时才有意义，它存在的理由见上面那段的注释。
    */
-  const occurred = (occurredShape || occurredInScope) && !future.some((w) => w.spec > VAGUE_SPEC);
+  const occurred = ownDone || linkedDone || (occurredShape || occurredInScope) && !future.some((w) => w.spec > VAGUE_SPEC);
 
   const createdZones = dualZone(
     new Date(refTs).toISOString(),
@@ -1102,6 +1151,8 @@ export function analyzeTweet(tweet, opts = {}) {
     createdAt: new Date(refTs).toISOString(),
     url: tweet.id ? `https://x.com/${tweet.account ?? opts.account ?? 'thsottiaux'}/status/${tweet.id}` : null,
     reasons,
+    ...(linked ? { contextEvidence: linked.chain.map((p) => ({ id: p.id, createdAt: p.created_at,
+      text: p.text, url: p.url })), linkedCompletion: linkedDone } : {}),
     // 是否靠上下文推断出来的。页面对这两类可以显示不同徽标 ——
     // 直接命中是「他自己说 reset」，上下文推断是「他在回应额度话题并承诺时间」，
     // 后者的可信度同样高，但依据不同，不该混为一谈。
@@ -1251,9 +1302,13 @@ export function confirmedResetEvent(tweet, opts = {}) {
   const propagated = parts.some((s, i) => /^all\s+propagated[.!]?$/i.test(s.trim()) &&
     i > 0 && direct(parts[i - 1]) && !partial(parts[i - 1]) && RE_RESET.test(parts[i - 1]) &&
     hasOccurredReset(parts[i - 1]) && /^put the reset in the bag[.!]?$/i.test(parts[i - 1].trim()));
-  if (!done && !propagated) return null;
-  return { id: a.id, announced_at: a.createdAt, type: RE_CREDIT.test(a.text) ? 'credit' : 'reset',
-    text: a.text, url: a.url, attribution: `x.com/${a.account}` };
+  const contextual = a.linkedCompletion === true || RE_OWN_RESET_DONE.test(withoutUrls(a.text));
+  if (!done && !propagated && !contextual) return null;
+  const credit = RE_CREDIT.test(a.text) || a.linkedCompletion &&
+    a.contextEvidence?.some((e) => RE_CREDIT.test(e.text));
+  return { id: a.id, announced_at: a.createdAt, type: credit ? 'credit' : 'reset',
+    text: a.text, url: a.url, attribution: `x.com/${a.account}`,
+    ...(a.contextEvidence ? { context_evidence: a.contextEvidence } : {}) };
 }
 
 /* --------------------------- 跨推文证据聚合 --------------------------- */
@@ -1658,7 +1713,7 @@ export function detectSignals(tweets, opts = {}) {
     })
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-  const analyzed = list.map((t) => analyzeTweet(t, { sourceZone, userZone, account }));
+  const analyzed = list.map((t) => analyzeTweet(t, { sourceZone, userZone, account, tweets: list }));
 
   /* ── 已过期的预告不再展示 ────────────────────────────────────────────
    *

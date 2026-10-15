@@ -185,7 +185,7 @@ console.log('\n【4】接线（源码级断言）');
   // 反了的话会留下「库里是全文、kind 却按半句判的」自相矛盾的记录。
   // ⚠ classify 在源码里出现多次（免登录那条路径也有），必须**从补全那行往后找**，
   // 否则拿到的是另一处的下标，断言看着在跑、其实什么都没验。
-  const idxPatch = collectSrc.indexOf('patchTruncatedTexts(\n    [...byId.values()]');
+  const idxPatch = collectSrc.indexOf('const { tweets: fullTweets } = patchTruncatedTexts(');
   const idxClassify = collectSrc.indexOf('kind: classify(t.text)', idxPatch);
   check(
     '采集出口：先补全正文、再 classify（顺序不能反）',

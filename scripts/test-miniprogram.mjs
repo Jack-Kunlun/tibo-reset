@@ -2004,6 +2004,58 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
   );
 }
 
+console.log('\n【14】状态刷新不是重复返回旧内存缓存');
+{
+  const api = await import('../miniprogram/utils/api.js');
+  const config = (await import('../miniprogram/config.js')).default;
+  const savedWx = globalThis.wx, savedNow = Date.now, savedEnabled = config.enabled;
+  let now = savedNow(), requests = 0;
+  Date.now = () => now;
+  config.enabled = true;
+  globalThis.wx = { request(o) { requests++; o.fail({ errMsg: 'offline' }); }, getStorageSync() { return null; } };
+  try {
+    api.clearMemo();
+    const first = await api.loadState();
+    const cached = await api.loadState();
+    check('缓存降级结果仍明确标为快照，不能变成正常观测', first.degraded && cached.degraded && cached.reason === first.reason);
+    check('刷新间隔内可以复用缓存', requests === 1);
+    now += config.refreshIntervalMs + 1;
+    await api.loadState();
+    check('缓存过期后必须真正再请求 API', requests === 2);
+    const state = api.snapshotState();
+    globalThis.wx.request = (o) => { requests++; o.success({ statusCode: 200, data: { ...state, chart: { ...state.chart, lastAt: '2026-10-15T06:28:13.000Z' } } }); };
+    globalThis.wx.setStorageSync = () => {};
+    const fresh = await api.loadState({ force: true });
+    check('强制刷新能更新上次重置而不是继续返回快照', !fresh.degraded && fresh.state.chart.lastAt === '2026-10-15T06:28:13.000Z');
+    let calls = [];
+    const host = { ...captured, data: { pageVisible: true, motionEnabled: false }, _lastLoad: now - config.refreshIntervalMs - 1,
+      setData() {}, startTicker() {}, refreshRemind() {}, load(o) { calls.push(o); }, lastAt: null };
+    captured.onShow.call(host);
+    check('切回前台超过间隔会强制联网刷新', calls.length === 1 && calls[0].force === true);
+    calls = [];
+    captured.tick.call(host);
+    check('一直停留首页也会定期拉取最新状态', calls.length === 1 && calls[0].force === true && calls[0].silent === true);
+    calls = [];
+    host.data.pageVisible = false;
+    captured.tick.call(host);
+    check('隐藏页面不继续拉取状态', calls.length === 0);
+    const measurements = [];
+    globalThis.wx.createSelectorQuery = () => {
+      const query = { in: () => query, select: () => query, boundingClientRect: () => query, exec: (callback) => measurements.push(callback) };
+      return query;
+    };
+    const refreshed = { ...captured, data: { ...page.data, programOpen: true, programHeight: 120 }, _programMeasure: 0,
+      setData(patch, callback) { Object.assign(this.data, patch); callback?.(); }, tick() {}, paint() {} };
+    refreshed.apply({ state, degraded: false, preserveUi: true });
+    refreshed.apply({ state, degraded: false, preserveUi: true });
+    measurements[1]?.([{ height: 410.5 }]);
+    measurements[0]?.([{ height: 300 }]);
+    check('静默刷新保留展开并重测高度，迟到结果不裁切新内容', refreshed.data.programOpen && measurements.length === 2 && refreshed.data.programHeight === 411);
+  } finally {
+    Date.now = savedNow; config.enabled = savedEnabled; globalThis.wx = savedWx; api.clearMemo();
+  }
+}
+
 /* ------------------------------ 结果 ------------------------------ */
 
 console.log(`\n${'─'.repeat(52)}`);

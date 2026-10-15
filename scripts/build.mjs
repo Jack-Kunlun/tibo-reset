@@ -159,6 +159,7 @@ const snapshotJs = snapshotFrom({
   prediction,
   signals,
   statsFile,
+  tweets,
   account: ACCOUNT,
   now,
 });

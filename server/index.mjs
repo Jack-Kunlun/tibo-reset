@@ -368,7 +368,7 @@ const ROUTES = {
     const limit = Number(url.searchParams.get('tweets') ?? 12);
     return {
       generatedAt: new Date().toISOString(),
-      dataUpdatedAt: statsFile.generated_at,
+      dataUpdatedAt: tweetsFile.updated_at ?? null,
       chart,
       prediction,
       signals,

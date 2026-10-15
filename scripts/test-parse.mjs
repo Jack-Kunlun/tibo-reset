@@ -428,7 +428,9 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
       if (selector === '[data-testid="User-Name"]') return { innerText: author ? `Name @${author}` : '' };
       return null;
     },
-    querySelectorAll: () => [{ getAttribute: () => '/thsottiaux/status/2109132167112782291' }],
+    querySelectorAll: (selector) => selector === 'time'
+      ? [{ getAttribute: () => '2026-10-11T04:01:09.000Z', closest: () => ({ getAttribute: () => '/thsottiaux/status/2109132167112782291' }) }]
+      : [{ getAttribute: () => '/thsottiaux/status/2109132167112782291' }],
   });
   for (const author of ['someone', '', 'thsottiaux']) {
     const [raw] = runInNewContext(expr, { document: { querySelectorAll: () => [article(author)] } });

@@ -16,6 +16,11 @@ const CACHE_KEY = 'tibo_state_v1';
 const CACHE_TTL_MS = 30 * 60 * 1000; // 本地缓存超过 30 分钟就不再当新鲜数据用
 
 let memo = null;
+const remember = (state, degraded, reason) => {
+  const result = { state, degraded, reason };
+  memo = { at: Date.now(), result };
+  return result;
+};
 
 /* ------------------------------- 内置快照 ------------------------------- */
 
@@ -114,12 +119,11 @@ function writeCache(state) {
  * @returns {Promise<{state:object, degraded:boolean, reason:string|null}>}
  */
 export async function loadState(opts = {}) {
-  if (!opts.force && memo) return { state: memo, degraded: false, reason: null };
+  if (!opts.force && memo && Date.now() - memo.at < config.refreshIntervalMs) return memo.result;
 
   if (!config.enabled) {
     const state = snapshotState();
-    memo = state;
-    return { state, degraded: true, reason: '联网已关闭，显示构建时快照' };
+    return remember(state, true, '联网已关闭，显示构建时快照');
   }
 
   try {
@@ -136,18 +140,15 @@ export async function loadState(opts = {}) {
       source: 'api',
     };
     if (!state.chart || !state.prediction) throw new Error('接口返回缺少 chart / prediction');
-    memo = state;
     writeCache(state);
-    return { state, degraded: false, reason: null };
+    return remember(state, false, null);
   } catch (err) {
     const cached = readCache();
     if (cached) {
-      memo = cached;
-      return { state: cached, degraded: true, reason: `联网失败（${err.message}），显示本地缓存` };
+      return remember(cached, true, `联网失败（${err.message}），显示本地缓存`);
     }
     const state = snapshotState();
-    memo = state;
-    return { state, degraded: true, reason: `联网失败（${err.message}），显示内置快照` };
+    return remember(state, true, `联网失败（${err.message}），显示内置快照`);
   }
 }
 

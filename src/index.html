@@ -913,5 +913,63 @@
   });
 })();
 </script>
+<script id="state-refresh">
+(function () {
+  // 只判断是否有新数据，正文仍由服务端同一套渲染逻辑生成。
+  var digest;
+  try { digest = JSON.parse(document.getElementById('data-digest').textContent); } catch (e) { return; }
+  var renderedAt = Date.parse(digest.dataUpdatedAt) || 0;
+  var renderedErrors = JSON.stringify(digest.collectErrors || []);
+  var key = 'reset-observatory-reading';
+  var selectors = ['.sig-prog', '.am-signal-details', '.am-disclosure', '.am-more'];
+  try {
+    var saved = JSON.parse(sessionStorage.getItem(key));
+    sessionStorage.removeItem(key);
+    if (saved && saved.path === location.pathname && Date.now() - saved.at < 300000) {
+      selectors.forEach(function (selector) {
+        var box = document.querySelector(selector);
+        if (box && typeof saved.open[selector] === 'boolean') box.open = saved.open[selector];
+      });
+      requestAnimationFrame(function () {
+        window.scrollTo(0, saved.scrollY);
+        window.dispatchEvent(new Event('resize'));
+      });
+    }
+  } catch (e) {}
+  var busy = false;
+  var reloading = false;
+  async function refresh() {
+    if (document.hidden || busy || reloading) return;
+    busy = true;
+    var controller = new AbortController();
+    var timeout = setTimeout(function () { controller.abort(); }, 8000);
+    try {
+      var response = await fetch('/api/state?tweets=0', { cache: 'no-store', signal: controller.signal });
+      if (!response.ok) return;
+      var state = await response.json();
+      // 失败采集只更新错误状态，不得冒充数据更新或每轮重复重载。
+      var newer = Date.parse(state.dataUpdatedAt) > renderedAt;
+      var errorsChanged = JSON.stringify(state.collectErrors || []) !== renderedErrors;
+      if ((!newer && !errorsChanged) || document.hidden) return;
+      var open = {};
+      selectors.forEach(function (selector) {
+        var box = document.querySelector(selector);
+        if (box) open[selector] = box.open;
+      });
+      try { sessionStorage.setItem(key, JSON.stringify({ path: location.pathname, at: Date.now(), scrollY: window.scrollY, open: open })); } catch (e) {}
+      reloading = true;
+      location.reload();
+    } catch (e) {
+      // 断网或 Pages 备份没有 API 时保留现有页面，下一轮再试。
+    } finally {
+      clearTimeout(timeout);
+      busy = false;
+    }
+  }
+  setInterval(refresh, 60000);
+  document.addEventListener('visibilitychange', refresh);
+  refresh();
+})();
+</script>
 </body>
 </html>

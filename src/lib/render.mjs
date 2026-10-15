@@ -1151,7 +1151,8 @@ export function renderDigest(m, prediction, outlook) {
     {
       schema: 1,
       builtAt: new Date(m.now).toISOString(),
-      dataUpdatedAt: m.generatedAt,
+      dataUpdatedAt: m.dataUpdatedAt ?? null,
+      collectErrors: m.collectErrors ?? [],
       lastResetAt: m.lastAt,
       records: m.count,
       sinceDays: (m.now - new Date(m.lastAt).getTime()) / DAY,

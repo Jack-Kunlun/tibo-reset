@@ -52,6 +52,8 @@ export function derive({ resets, tweets, statsFile, now, account }) {
   const model = {
     ...chart,
     generatedAt: statsFile.generated_at ?? new Date(now).toISOString(),
+    dataUpdatedAt: tweets.updated_at ?? null,
+    collectErrors: statsFile.errors ?? [],
   };
   return { chart, prediction, signals, model };
 }

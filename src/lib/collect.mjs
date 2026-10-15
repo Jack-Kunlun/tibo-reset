@@ -345,6 +345,7 @@ export async function fetchLiveTweetsViaBrowser(account = SOURCE_ACCOUNT, opts =
     handle: account,
     sinceMs: opts.sinceMs ?? 0,
     knownIds: opts.knownIds ?? null,
+    knownTweets: opts.knownTweets ?? [],
     maxSteps: opts.maxSteps,
     // Chrome 也必须走同一个（实测出来的）代理。
     // 早先这里没传，Chrome 便一路用系统/环境代理 —— 而沙箱注入的那个连不通 x.com。
@@ -355,7 +356,7 @@ export async function fetchLiveTweetsViaBrowser(account = SOURCE_ACCOUNT, opts =
   // 两条流一次会话跑完 —— 每条流各起一次 Chrome 会撞上「前一个还没退干净」，
   // 实测报 CDP 超时（详见 browser.mjs 的 collectStreams）。
   const paths = opts.withReplies === false ? [''] : ['', '/with_replies'];
-  const { streams, errors, fullTexts, fullTextReport } = await collectStreams({
+  const { streams, errors, fullTexts, tweetContexts, fullTextReport } = await collectStreams({
     ...base,
     paths,
     fetchFullText: opts.fetchFullText,
@@ -383,18 +384,20 @@ export async function fetchLiveTweetsViaBrowser(account = SOURCE_ACCOUNT, opts =
   };
   for (const t of main.tweets) add(t, 'timeline-browser');
   for (const t of reply?.tweets ?? []) add(t, 'with-replies');
+  const enriched = mergeTweetContexts([...byId.values()], tweetContexts, opts.knownTweets);
 
   // 详情页取到的完整正文**先并进来再分类**，顺序不能反：
   // `kind` 是从正文里读出来的（`classify`），用半句分类、用全文入库，会留下
   // 「库里明明写着 banked reset、kind 却是 other」这种自相矛盾的记录 ——
   // 而下游（页面、统计、「他的发言里有多少条与额度有关」）读的正是 `kind`。
   const { tweets: fullTweets } = patchTruncatedTexts(
-    [...byId.values()].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
+    enriched.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
     fullTexts ?? new Map()
   );
 
   const tweets = fullTweets.map(({ via, ...t }) => ({
     ...t,
+    ...(tweetContexts?.get(t.id) ?? {}),
     kind: classify(t.text),
     account,
     // 带 inReplyTo 的即「他回复别人的推文」。这个标记不是装饰：
@@ -571,19 +574,21 @@ export function mergeConfirmedResets(records = [], tweets = [], opts = {}) {
     String(t.account).toLowerCase() === account.toLowerCase() &&
     ['timeline-browser', 'with-replies'].includes(t.foundVia);
   const forecasts = tweets.filter((t) => trusted(t) && Number.isFinite(Date.parse(t.created_at)) &&
-    Date.parse(t.created_at) <= now).map((t) => analyzeTweet(t, { account }))
-    .filter((a) => a.level === 'explicit' && a.window);
+    Date.parse(t.created_at) <= now).map((t) => analyzeTweet(t, { account, tweets }))
+    .filter((a) => a.level === 'explicit');
   for (const t of [...tweets].sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at))) {
     const at = Date.parse(t?.created_at);
     if (!Number.isFinite(at) || at <= latest || at > now || !/^\d+$/.test(t?.id ?? '')) continue;
     // 免登录历史曾混入别人的推文；只有核过作者的浏览器链路可直接改历史。
     if (!trusted(t)) continue;
-    const event = confirmedResetEvent(t, { account });
+    const event = confirmedResetEvent(t, { account, tweets });
     if (!event || ids.has(event.id) || sources.has(statusIdentity(event.url))) continue;
     const previous = next[0];
     const previousAt = Date.parse(previous?.announced_at);
     const newPromise = forecasts.some((a) => Date.parse(a.createdAt) > previousAt &&
-      Date.parse(a.createdAt) < at && Date.parse(a.window.from) <= at && Date.parse(a.window.to) >= at);
+      Date.parse(a.createdAt) < at && (a.window
+        ? Date.parse(a.window.from) <= at && Date.parse(a.window.to) >= at
+        : a.timing === 'pending'));
     const another = /\b(?:another|second|additional|new)\s+(?:full\s+|banked\s+)?reset\b/i.test(t.text);
     if (previous && at - previousAt <= CONFIRMATION_FOLLOWUP_MS && !newPromise && !another) {
       next[0] = { ...previous, first_confirmed_at: previous.first_confirmed_at ?? previous.announced_at,
@@ -630,6 +635,17 @@ export function patchTruncatedTexts(tweets = [], textById = new Map()) {
   return { tweets: next, patched };
 }
 
+// 增量可能只采到完成帖；已核验的缓存父帖也要接收详情页补出的关联。
+export function mergeTweetContexts(tweets, contexts = new Map(), known = []) {
+  const result = new Map(tweets.map((t) => [t.id, t]));
+  for (const [id, context] of contexts ?? []) {
+    const existing = result.get(id) ?? known.find((t) => t.id === id && t.author_verified === true);
+    if (existing) result.set(id, { ...existing, ...context, via: existing.via ?? existing.foundVia });
+  }
+  return [...result.values()];
+}
+
+
 /**
  * 把一批新采到的推文并进库内已有的。
  *
@@ -643,6 +659,7 @@ export function patchTruncatedTexts(tweets = [], textById = new Map()) {
  * 而重采到的正文又是页面上那半句 —— 没有这层保护，等于每三天把补好的全文
  * 打回半句，且**不报错不告警**（KI-009 的同类静默失效）。新正文更长时照常覆盖。
  */
+
 export function mergeTweetBatch(base = [], incoming = [], nowIso = new Date().toISOString()) {
   const keyOf = (t) => t.id ?? String(t.text ?? '').slice(0, 40);
   const merged = new Map((base ?? []).map((t) => [keyOf(t), t]));
@@ -945,6 +962,7 @@ export async function runCollection(opts = {}) {
         const r = await fetchLiveTweetsViaBrowser(opts.account, {
           sinceMs: floor,
           knownIds: wantFull ? null : knownIds,
+          knownTweets: live.tweets,
           maxSteps: opts.maxSteps,
           // 回复流默认开；要退回「只收原创」显式传 false。
           withReplies: opts.withReplies,

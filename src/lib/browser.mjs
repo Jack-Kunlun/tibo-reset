@@ -112,6 +112,7 @@ export function normalizeTimelineItems(items, opts = {}) {
       // 被回复的内容由上游的 pairReplyContext 在收割时挂上，这里只负责透传。
       // 丢了它，识别算法就只能看到他的半句话。
       ...(it.inReplyTo ? { inReplyTo: it.inReplyTo } : {}),
+      ...(it.quotedTweet ? { quotedTweet: it.quotedTweet } : {}),
       // 民调同理：它是正文之外**唯一**带量化民意的字段（正文只有 "Vote" 一个词）。
       // 不带出来，采集侧就等于把这条民意扔了。
       ...(it.poll ? { poll: it.poll } : {}),
@@ -250,20 +251,31 @@ export function harvestExpression(handle) {
   }
   var out=[];document.querySelectorAll('article').forEach(function(a){
     var t=a.querySelector('[data-testid="tweetText"]');
-    var tm=a.querySelector('time');
+    var tm=null;
     var id='',url='';
-    a.querySelectorAll('a[href*="/status/"]').forEach(function(l){
-      if(id)return;
-      var href=l.getAttribute('href')||'';
-      var m=href.match(/^\\/([^\\/]+)\\/status\\/(\\d+)/);
-      if(m&&m[1].toLowerCase()===H){id=m[2];url='https://x.com'+href;}
-    });
     var author='';
     var un=a.querySelector('[data-testid="User-Name"]');
     if(un){var m2=(un.innerText||'').match(/@([A-Za-z0-9_]+)/);if(m2)author=m2[1];}
+    // 引用卡要**先**定位：它也是同一作者的推文，且它的时间戳在 DOM 里排在本帖之前。
+    // 只按「作者匹配 + 取第一个」筛 time，引用卡会把本帖的 id/时刻整个顶掉
+    // （2026-10-15 实测：「Done and dusted」被抽成「Landing within the next 2 hours」的 id）。
+    var quoted=null,q=a.querySelector('div[role="link"] [data-testid="tweetText"]');
+    var card=q?q.closest('div[role="link"]'):null;
+    a.querySelectorAll('time').forEach(function(time){
+      if(card&&card.contains(time))return;
+      var l=time.closest('a'),href=l?(l.getAttribute('href')||''):'';
+      var m=href.match(/^\\/([^\\/]+)\\/status\\/(\\d+)$/);
+      if(!tm&&m&&m[1].toLowerCase()===author.toLowerCase()){tm=time;id=m[2];url='https://x.com'+href;}
+    });
     if(author.toLowerCase()!==H){id='';url='';}
+    if(card){
+      var qt=card.querySelector('time');
+      var qa=(card.innerText||'').match(/@([A-Za-z0-9_]+)/);
+      if(qa&&qt)quoted={account:qa[1],text:(q.innerText||'').replace(/\\s+/g,' ').trim(),created_at:qt.getAttribute('datetime'),relation:'quote'};
+      if(t===q)t=null;
+    }
     var more=!!a.querySelector('[data-testid="tweet-text-show-more-link"]');
-    out.push({id:id,url:url,time:tm?tm.getAttribute('datetime'):'',text:t?t.innerText.replace(/\\s+/g,' '):'',author:author,truncated:more,poll:pollOf(a)});
+    out.push({id:id,url:url,time:tm?tm.getAttribute('datetime'):'',text:t?t.innerText.replace(/\\s+/g,' '):'',author:author,truncated:more,poll:pollOf(a),quotedTweet:quoted});
   });return out;})()`;
 }
 
@@ -459,6 +471,7 @@ export async function collectStreams(opts) {
     paths = [''],
     sinceMs = 0,
     knownIds = null,
+    knownTweets = [],
     knownScreensToStop = 2,
     maxSteps = 60,
     port = CDP_PORT,
@@ -514,17 +527,18 @@ export async function collectStreams(opts) {
       }
     }
 
-    const { fullTexts, report: fullTextReport } = fetchFullText
+    const { fullTexts, tweetContexts, report: fullTextReport } = fetchFullText
       ? await collectFullTexts(cdp, streams, {
           handle,
           minLength: fullTextMinLength,
           max: fullTextMax,
           gapMs: fullTextGapMs,
           onProgress: onFullTextProgress,
+          knownTweets,
         })
-      : { fullTexts: new Map(), report: null };
+      : { fullTexts: new Map(), tweetContexts: new Map(), report: null };
 
-    return { streams, errors, fullTexts, fullTextReport };
+    return { streams, errors, fullTexts, tweetContexts, fullTextReport };
   } finally {
     try {
       ws.close();
@@ -601,9 +615,10 @@ async function harvestStream(cdp, o) {
           //   · truncated：页面渲染时机不同，某一屏可能还没挂上「展开」入口 ——
           //     漏掉它就等于放弃补全这条的正文（`||` 而不是覆盖，正是为此）。
           const inReplyTo = prev.inReplyTo ?? it.inReplyTo ?? null;
+          const quotedTweet = prev.quotedTweet ?? it.quotedTweet ?? null;
           const truncated = Boolean(prev.truncated || it.truncated);
-          if (inReplyTo !== prev.inReplyTo || truncated !== prev.truncated) {
-            harvested.set(it.id, { ...prev, inReplyTo, truncated });
+          if (inReplyTo !== prev.inReplyTo || quotedTweet !== prev.quotedTweet || truncated !== prev.truncated) {
+            harvested.set(it.id, { ...prev, inReplyTo, quotedTweet, truncated });
           }
         }
       }
@@ -698,21 +713,20 @@ async function harvestStream(cdp, o) {
  * 已知边界：实测最长的一条（1917 字符）在详情页完整渲染、无折叠；
  * 极端长的「Long Post」是否仍会折叠，等真遇到再处理（`showMore` 会在报告里露出来）。
  */
-export function detailProbeExpression(id) {
+export function detailProbeExpression(id, handle = 'thsottiaux') {
   const idLit = JSON.stringify(String(id ?? ''));
   return `(function(){var ID=${idLit};
     var out={url:location.href,dom:'',showMore:false};
-    var arts=document.querySelectorAll('article');
-    for(var i=0;i<arts.length;i++){
-      var a=arts[i],hit=false;
-      a.querySelectorAll('a[href*="/status/"]').forEach(function(l){
-        var h=l.getAttribute('href')||'';
-        if(h.indexOf('/status/'+ID)>=0)hit=true;
-      });
-      if(!hit)continue;
-      var t=a.querySelector('[data-testid="tweetText"]');
-      if(t)out.dom=(t.innerText||'').replace(/\\s+/g,' ').trim();
-      out.showMore=!!a.querySelector('[data-testid="tweet-text-show-more-link"]');
+    if(location.href.indexOf('/status/'+ID)<0)return out;
+    var rows=${harvestExpression(handle)};
+    for(var i=0;i<rows.length;i++){
+      var row=rows[i];if(row.id!==ID)continue;
+      out.dom=row.text;out.showMore=row.truncated;out.quotedTweet=row.quotedTweet;
+      // 详情页中焦点帖子之前的是会话祖先；不再跨过自我回复去借陌生人的话。
+      var parent=rows[i-1];
+      if(parent&&parent.id&&parent.author===row.author&&parent.time<row.time){
+        out.inReplyTo={id:parent.id,account:parent.author,text:parent.text,created_at:parent.time,url:parent.url,relation:'reply',verified:true};
+      }
       break;
     }
     return out;})()`;
@@ -729,9 +743,13 @@ export function detailProbeExpression(id) {
 async function harvestFullTexts(cdp, ids, opts = {}) {
   const { handle, gapMs = 900, settleMs = 400, maxWaitMs = 12_000, onProgress = null } = opts;
   const fullTexts = new Map();
+  const tweetContexts = new Map();
   const scanned = [];
+  const queue = [...ids];
+  const queued = new Set(queue);
+  let followed = 0;
 
-  for (const id of ids) {
+  for (const id of queue) {
     const rec = { id, length: 0, showMore: false };
     const prevSession = cdp.sessionId;
     let targetId = null;
@@ -750,7 +768,7 @@ async function harvestFullTexts(cdp, ids, opts = {}) {
       while (Date.now() < deadline) {
         await sleep(settleMs);
         try {
-          const p = await cdp.evalJs(detailProbeExpression(id));
+          const p = await cdp.evalJs(detailProbeExpression(id, handle));
           if (p?.dom) {
             probe = p;
             break;
@@ -771,6 +789,17 @@ async function harvestFullTexts(cdp, ids, opts = {}) {
       // 而那时只看长度是看不出来的（长度照样比时间线上那半句长）。
       rec.showMore = Boolean(probe.showMore);
       if (text) fullTexts.set(id, text);
+      if (probe.inReplyTo || probe.quotedTweet) tweetContexts.set(id, {
+        ...(probe.inReplyTo ? { inReplyTo: probe.inReplyTo } : {}),
+        ...(probe.quotedTweet ? { quotedTweet: probe.quotedTweet } : {}),
+      });
+      const ref = probe.quotedTweet ?? probe.inReplyTo;
+      if (ref && /^(?:landing\s+within|done\s+and\s+dusted)\b/i.test(ref.text ?? '')) {
+        const parentId = contextParentId(ref, opts.knownTweets);
+        if (parentId && !queued.has(parentId) && followed < 4) {
+          queued.add(parentId); queue.push(parentId); followed++;
+        }
+      }
     } catch (err) {
       rec.error = err.message;
     } finally {
@@ -782,7 +811,7 @@ async function harvestFullTexts(cdp, ids, opts = {}) {
     if (gapMs) await sleep(gapMs); // 限流礼貌间隔
   }
 
-  return { fullTexts, scanned };
+  return { fullTexts, tweetContexts, scanned };
 }
 
 /**
@@ -801,6 +830,13 @@ async function harvestFullTexts(cdp, ids, opts = {}) {
  * 被截掉的不是「永远丢掉」（这些 id 下一轮已入库、通常不再进候选），
  * 而是「这一轮先不做」，所以它至少要在日志里露出一行。
  */
+export function contextParentId(ref, tweets = []) {
+  const matches = tweets.filter((t) => t.author_verified === true &&
+    String(t.account).toLowerCase() === String(ref.account).toLowerCase() &&
+    t.created_at === ref.created_at && String(t.text).replace(/\s+/g, ' ').trim() === ref.text);
+  return matches.length === 1 ? matches[0].id : null;
+}
+
 export function pickFullTextCandidates(streams, opts = {}) {
   const minLength = Number(opts.minLength ?? TRUNCATED_MIN_LENGTH);
   const max = Number(opts.max ?? 12);
@@ -811,7 +847,8 @@ export function pickFullTextCandidates(streams, opts = {}) {
     const flagged = new Set(s?.truncatedIds ?? []);
     for (const t of s?.tweets ?? []) {
       if (!t?.id || seen.has(t.id)) continue;
-      if (!flagged.has(t.id) && String(t.text ?? '').length < minLength) continue;
+      const needsContext = /^(?:landing\s+within|done\s+and\s+dusted)\b/i.test(String(t.text ?? ''));
+      if (!flagged.has(t.id) && String(t.text ?? '').length < minLength && !needsContext) continue;
       seen.add(t.id);
       candidates.push(t.id);
     }
@@ -826,22 +863,26 @@ export function pickFullTextCandidates(streams, opts = {}) {
  * 上游给了上限 `max`，理由与取法见 `pickFullTextCandidates`。
  */
 async function collectFullTexts(cdp, streams, opts) {
-  const { handle, minLength, max, gapMs, onProgress } = opts;
+  const { handle, minLength, max, gapMs, onProgress, knownTweets = [] } = opts;
   const { candidates, picked, skipped } = pickFullTextCandidates(streams, { minLength, max });
 
   if (!picked.length) {
     return {
       fullTexts: new Map(),
+      tweetContexts: new Map(),
       report: { candidates: 0, attempted: 0, fetched: 0, skipped: 0, scanned: [] },
     };
   }
 
-  const { fullTexts, scanned } = await harvestFullTexts(cdp, picked, { handle, gapMs, onProgress });
+  const pool = new Map(knownTweets.map((t) => [t.id, t]));
+  for (const s of streams ?? []) for (const t of s?.tweets ?? []) pool.set(t.id, { ...t, account: handle });
+  const { fullTexts, tweetContexts, scanned } = await harvestFullTexts(cdp, picked, { handle, gapMs, onProgress, knownTweets: [...pool.values()] });
   return {
     fullTexts,
+    tweetContexts,
     report: {
       candidates: candidates.length,
-      attempted: picked.length,
+      attempted: scanned.length,
       fetched: fullTexts.size,
       // 被上限截掉的条数。非 0 就意味着「有长推文这轮没补全」，要看得见。
       skipped,
