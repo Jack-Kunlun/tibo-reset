@@ -59,6 +59,28 @@ function check(name, ok, detail = '') {
 const near = (a, b, eps = 1e-9) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) <= eps;
 const d1 = (x) => (Number.isFinite(x) ? x.toFixed(1) : String(x));
 
+/**
+ * 「按显示精度比」这一层的容差 —— **随锚点间距变化**，不写死。
+ *
+ * 为什么必须这样（KI-014，2026-10-15）：页面上的数锚在**构建时刻**，API 的数锚在
+ * **请求时刻**，两者天然差几十秒。而 `d1()` 是四舍五入到 0.1 天：只要真实值恰好
+ * 落在 0.05 这种舍入边界上，几十秒就会把它推到隔壁档 —— 断言报红，而**两个数其实
+ * 都对**。实测 `sinceDays = 0.05`（刚重置 1 小时 11 分）时稳定复现：页面 0.0 / API 0.1。
+ *
+ * 也就是说：容差若写死成 0，判据就建在数据的舍入边界上（阈值建在数据上），
+ * 越靠近重置越容易假红。正确做法是**把锚点间距换算成天，加半个显示档作为余量** ——
+ * 判的是「两个数在各自的锚点上是否一致」，而不是「两个不同时刻的快照是否逐位相同」。
+ *
+ * ⚠ 容差上限是硬约束（反例验证过）：必须 **≤ 半个显示档（0.05 天）**。
+ * 放宽到 999 会让「0.05 vs 3.7」这种真实不一致也判一致 —— 那就是把断言削成永远绿；
+ * 放到 0.1 也会让「0.05 vs 0.11」（整整差一个显示档）蒙混过关。
+ * `drift + 0.05` 再对 0.05 取上限：漂移通常只有几十秒（≈0.0007 天），
+ * 加起来仍远小于半个显示档 ⇒ 既消掉舍入边界假红，又不掩盖任何真实偏差。
+ */
+const driftDays = () => Math.abs(Date.parse(api.prediction.asOf) - builtAtMs) / 86_400_000;
+const d1WithDrift = (x, y) =>
+  d1(x) === d1(y) || Math.abs(x - y) < Math.min(driftDays() + 0.05, 0.05);
+
 /* ---------------------------- 0. 前置 ---------------------------- */
 
 if (process.argv.includes('--build')) {
@@ -329,8 +351,8 @@ if (!api) {
   // 而用户实际看到的是「21 小时 26 分」—— 报告本身就在误导人。
   check(
     `距上次重置（页面显示「${spanOf(digest.sinceDays).text}」）`,
-    d1(digest.sinceDays) === d1(api.prediction.sinceDays),
-    `页面 ${d1(digest.sinceDays)} vs API ${d1(api.prediction.sinceDays)}（按 0.1 天精度比）`
+    d1WithDrift(digest.sinceDays, api.prediction.sinceDays),
+    `页面 ${d1(digest.sinceDays)} vs API ${d1(api.prediction.sinceDays)}（按 0.1 天精度比，容差含锚点间距 ${gapMin.toFixed(1)} 分钟）`
   );
   check(
     `中位剩余等待（页面显示「${spanOf(digest.remainingDays.q50).text}」）`,
