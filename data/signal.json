@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-14T13:12:45.345Z",
-  "checkedTweets": 369,
+  "generatedAt": "2026-10-15T05:15:12.984Z",
+  "checkedTweets": 374,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-15T13:12:45.345Z",
-  "windowTo": "2026-10-14T13:12:45.345Z",
+  "windowFrom": "2026-08-16T05:15:12.984Z",
+  "windowTo": "2026-10-15T05:15:12.984Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -87,10 +87,10 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.10.14",
-      "weekday": "周三",
-      "time": "21:12",
-      "text": "2026.10.14（周三）21:12",
+      "date": "2026.10.15",
+      "weekday": "周四",
+      "time": "13:15",
+      "text": "2026.10.15（周四）13:15",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,45 +98,45 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.14",
       "weekday": "周三",
-      "time": "06:12",
-      "text": "2026.10.14（周三）06:12",
+      "time": "22:15",
+      "text": "2026.10.14（周三）22:15",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2110188326422819047",
+    "id": "2110595987542868381",
     "account": "thsottiaux",
-    "text": "😅",
-    "createdAt": "2026-10-14T01:57:57.000Z",
-    "url": "https://x.com/thsottiaux/status/2110188326422819047",
+    "text": "If you’re not a bit afraid of your army, it’s not a good army",
+    "createdAt": "2026-10-15T04:57:51.000Z",
+    "url": "https://x.com/thsottiaux/status/2110595987542868381",
     "reasons": [
-      "上下文：回复 @charliermarsh「They're distilling me at work tomorr…」"
+      "上下文：回复 @amorriscode「can't tell if you're running or they…」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "charliermarsh",
+      "account": "amorriscode",
       "id": "",
-      "text": "They're distilling me at work tomorrow"
+      "text": "can't tell if you're running or they're your army"
     },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.10.14",
-        "weekday": "周三",
-        "time": "09:57",
-        "text": "2026.10.14（周三）09:57",
+        "date": "2026.10.15",
+        "weekday": "周四",
+        "time": "12:57",
+        "text": "2026.10.15（周四）12:57",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.10.13",
-        "weekday": "周二",
-        "time": "18:57",
-        "text": "2026.10.13（周二）18:57",
+        "date": "2026.10.14",
+        "weekday": "周三",
+        "time": "21:57",
+        "text": "2026.10.14（周三）21:57",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -495,6 +495,49 @@
     }
   ],
   "hints": [
+    {
+      "id": "2110595484180214059",
+      "account": "thsottiaux",
+      "text": "The reports of my reset button being lost are greatly exaggerated Day 10/ Reset",
+      "createdAt": "2026-10-15T04:55:51.000Z",
+      "url": "https://x.com/thsottiaux/status/2110595484180214059",
+      "reasons": [
+        "命中重置词 reset",
+        "上下文：回复 @amorriscode「can't tell if you're running or they…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "amorriscode",
+        "id": "",
+        "text": "can't tell if you're running or they're your army"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.15",
+          "weekday": "周四",
+          "time": "12:55",
+          "text": "2026.10.15（周四）12:55",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.14",
+          "weekday": "周三",
+          "time": "21:55",
+          "text": "2026.10.14（周三）21:55",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "有额度意图但没给出时间，只能作线索",
+      "intent": 3,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2109892247580000595",
       "account": "thsottiaux",
@@ -2132,7 +2175,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-14T13:12:45.345Z"
+        "checkedAt": "2026-10-15T05:15:12.984Z"
       }
     },
     {
@@ -2887,6 +2930,175 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2110595987542868381",
+      "account": "thsottiaux",
+      "text": "If you’re not a bit afraid of your army, it’s not a good army",
+      "createdAt": "2026-10-15T04:57:51.000Z",
+      "url": "https://x.com/thsottiaux/status/2110595987542868381",
+      "reasons": [
+        "上下文：回复 @amorriscode「can't tell if you're running or they…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "amorriscode",
+        "id": "",
+        "text": "can't tell if you're running or they're your army"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.15",
+          "weekday": "周四",
+          "time": "12:57",
+          "text": "2026.10.15（周四）12:57",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.14",
+          "weekday": "周三",
+          "time": "21:57",
+          "text": "2026.10.14（周三）21:57",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2110595554036400151",
+      "account": "thsottiaux",
+      "text": "Landing within the next 2 hours",
+      "createdAt": "2026-10-15T04:56:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2110595554036400151",
+      "reasons": [
+        "含未来语气",
+        "上下文：回复 @amorriscode「can't tell if you're running or they…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "amorriscode",
+        "id": "",
+        "text": "can't tell if you're running or they're your army"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.15",
+          "weekday": "周四",
+          "time": "12:56",
+          "text": "2026.10.15（周四）12:56",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.14",
+          "weekday": "周三",
+          "time": "21:56",
+          "text": "2026.10.14（周三）21:56",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2110591392691159317",
+      "account": "thsottiaux",
+      "text": "I made it alive",
+      "createdAt": "2026-10-15T04:39:35.000Z",
+      "url": "https://x.com/thsottiaux/status/2110591392691159317",
+      "reasons": [
+        "上下文：回复 @poteto「@thsottiaux come back…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "@thsottiaux come back"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.15",
+          "weekday": "周四",
+          "time": "12:39",
+          "text": "2026.10.15（周四）12:39",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.14",
+          "weekday": "周三",
+          "time": "21:39",
+          "text": "2026.10.14（周三）21:39",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2110589470911418414",
+      "account": "thsottiaux",
+      "text": "Sometimes I do need to work",
+      "createdAt": "2026-10-15T04:31:57.000Z",
+      "url": "https://x.com/thsottiaux/status/2110589470911418414",
+      "reasons": [
+        "上下文：回复 @theo「Anyone check in on @thsottiaux recen…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "Anyone check in on @thsottiaux recently? Over 24 hours without posting is concerning. Hope he's okay"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.15",
+          "weekday": "周四",
+          "time": "12:31",
+          "text": "2026.10.15（周四）12:31",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.14",
+          "weekday": "周三",
+          "time": "21:31",
+          "text": "2026.10.14（周三）21:31",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2110188326422819047",
       "account": "thsottiaux",
@@ -10953,171 +11165,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2104991765904375896",
-      "account": "thsottiaux",
-      "text": "We are opening up our platform and you can now build full native apps with plugin extensions, and ship them right in ChatGPT. We have over 1.2B weekly users and will surface relevant plugins right in the conversations.",
-      "createdAt": "2026-09-29T17:48:40.000Z",
-      "url": "https://x.com/thsottiaux/status/2104991765904375896",
-      "reasons": [
-        "含未来语气",
-        "含发布/宣传语境（下调置信度）"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.30",
-          "weekday": "周三",
-          "time": "01:48",
-          "text": "2026.09.30（周三）01:48",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "10:48",
-          "text": "2026.09.29（周二）10:48",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2104989161774322009",
-      "account": "thsottiaux",
-      "text": "Dots are included in all Pro, Business Premium and Enterprise plans. This includes the Pro 100 plan. We’ll be looking to further expand access soon.",
-      "createdAt": "2026-09-29T17:38:19.000Z",
-      "url": "https://x.com/thsottiaux/status/2104989161774322009",
-      "reasons": [
-        "含未来语气"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.30",
-          "weekday": "周三",
-          "time": "01:38",
-          "text": "2026.09.30（周三）01:38",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "10:38",
-          "text": "2026.09.29（周二）10:38",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2104986448269279399",
-      "account": "thsottiaux",
-      "text": "Decisions API, for lightning fast constrained decision making powered by Luna. Supports visual inputs, and tuned to be able to make decisions in less than a few hundreds of milliseconds end to end.",
-      "createdAt": "2026-09-29T17:27:32.000Z",
-      "url": "https://x.com/thsottiaux/status/2104986448269279399",
-      "reasons": [
-        "含发布/宣传语境（下调置信度）"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.30",
-          "weekday": "周三",
-          "time": "01:27",
-          "text": "2026.09.30（周三）01:27",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "10:27",
-          "text": "2026.09.29（周二）10:27",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2104983716049379472",
-      "account": "thsottiaux",
-      "text": "Announcing ChatGPT Space, a collection of new collaborative experiences right in ChatGPT. Edit rich notes with live visualizations together with others and your dots. Whether it’s a TODO list to delegate, a product plan or meeting notes. Working with others and your agents is seamless and they also be automatically kept up to date in the background. For developers, this is AGENTS.md taken one step further.",
-      "createdAt": "2026-09-29T17:16:41.000Z",
-      "url": "https://x.com/thsottiaux/status/2104983716049379472",
-      "reasons": [
-        "命中「新额度」类词 fresh/new/top up",
-        "含发布/宣传语境（下调置信度）"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.30",
-          "weekday": "周三",
-          "time": "01:16",
-          "text": "2026.09.30（周三）01:16",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "10:16",
-          "text": "2026.09.29（周二）10:16",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 1,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 369,
+    "scanned": 374,
     "explicit": 0,
     "occurred": 8,
-    "hint": 52,
-    "none": 299,
-    "rejected": 299
+    "hint": 53,
+    "none": 303,
+    "rejected": 303
   },
   "truncated": true
 }
