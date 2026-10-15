@@ -1,6 +1,14 @@
 {
   "records": [
     {
+      "id": "2110618732666257557",
+      "announced_at": "2026-10-15T06:28:13.000Z",
+      "type": "reset",
+      "text": "Done and dusted https://t.co/0fehr43VS4",
+      "url": "https://x.com/thsottiaux/status/2110618732666257557",
+      "attribution": "codex-resets.com"
+    },
+    {
       "id": "2109873287853707513",
       "announced_at": "2026-10-13T05:06:06.000Z",
       "type": "reset",
@@ -498,5 +506,5 @@
     }
   ],
   "bootstrapped_at": "2026-09-20T08:17:13.018Z",
-  "refreshed_at": "2026-10-15T06:05:05.364Z"
+  "refreshed_at": "2026-10-15T07:28:43.295Z"
 }
