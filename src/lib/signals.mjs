@@ -218,6 +218,28 @@ const RE_DENIED =
   /\b(?:can(?:not|[’']?t)|won[’']?t|will\s+not|wouldn[’']?t|don[’']?t|doesn[’']?t|didn[’']?t|not|never|no|unable\s+to)\b(?:\s+\w+){0,3}\s+reset/i;
 const RE_ALTERNATIVE = /\b(?:or|either)\b(?:\s+\w+){0,3}\s+reset/i;
 
+/**
+ * 「日程式宣告」—— `Day N/ Reset`。
+ *
+ * 2026-10-15 漏掉预告的根因。他的 28 天日程每天发一条 `Day N/ <当天内容>`：
+ * 10 条里 8 条是发布说明（`Day 1/ We have optimized…`），只有 3 条标 Reset
+ * —— 而这 3 条（Day 6 / Day 8 / Day 10）**全部**在当天或次日真的重置了。
+ * 这个句式在语料里零误伤，因为「N」是日程计数器、斜杠后紧邻的单词就是当天要发生的事。
+ *
+ * 为什么必须单独放一条通路（KI-013）：它**不含任何未来语气词**。
+ *   「Day 10/ Reset」→ 没有 will / soon / gonna，也没有 RE_RESET_NOT_YET 的
+ *   「is/are + coming/landing」结构 —— 一条都对不上。
+ * 于是旧实现在 `hasUntimedAnnouncement` 里把它判 false，intent=3 也只能降级成
+ * `hint`（"有额度意图但没给出时间，只能作线索"）。结果 explicit=0、页面无预告卡，
+ * 而当天 14:28 就真的重置了。**该说的话系统看见了，却判它不是承诺。**
+ *
+ * 「Day N/」里的 N 只作日程序号，**不参与时间窗口计算** —— 它不是「N 天后」，
+ * 落在哪一天由后面的正文和当天日期决定。这里只回答「是不是一句预告」。
+ * 因此必须紧邻（斜杠后立刻是 reset），否则 `Day 1/ … a reset of limits …`
+ * 这类把 reset 塞进长句尾部的发布说明会被误判成预告。
+ */
+const RE_SCHEDULE_RESET = /\bday\s+\d+\s*\/\s*reset\b/i;
+
 // 否定完成与无关对象也必须挡住预告分支，不能只给 occurred 扣分。
 const RE_NEGATED_COMPLETION = /\bresets?\s+(?:(?:has|have|is|are|was|were)\s+)?(?:not|never|hasn[’']t|haven[’']t|isn[’']t)\s+(?:been\s+|yet\s+)?(?:propagated|completed?|done|finished|landed|happened|live|available)\b/i;
 const RE_OTHER_RESET = /\bmodel\s+weights?\b/i;
@@ -233,6 +255,7 @@ function hasUntimedAnnouncement(text, viaContext) {
     if (blockedResetSentence(s) || RE_HYPOTHETICAL.test(s) || s.trim().endsWith('?') ||
       /\b(?:maybe|hope|wish|or|either|was|were|had|yesterday|previously)\b/i.test(s)) return false;
     return RE_RESET_NOT_YET.test(s) ||
+      RE_SCHEDULE_RESET.test(s) ||
       /\b(?:will|we[’']ll|i[’']ll|gonna|going\s+to|plan(?:ning)?\s+to|soon)\b/i.test(s) ||
       (viaContext && RE_CONTINUE.test(s));
   });

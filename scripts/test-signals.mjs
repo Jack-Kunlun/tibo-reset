@@ -1660,7 +1660,54 @@ console.log('\n【15】明确预告可以尚未给出时间');
   check('有日期时优先展示日期，未定时间证据仍保留', !!withDate.forecasts[0]?.window && withDate.forecasts.some((x) => x.timing === 'pending'));
 }
 
-/* ================================ 结果 ================================ */
+console.log('\n【16】KI-013 日程式预告：`Day N/ Reset` 不含未来语气词，但它是承诺');
+{
+  // 真实语料里 `Day N/` 是 28 天日程的每日播报：10 条中 8 条是发布说明，
+  // 标 Reset 的 3 条（Day 6 / Day 8 / Day 10）当天或次日全部真的重置了。
+  // 下面全部用**受控输入**，不拿真实数据当前提 —— 阈值不能建在数据上。
+  const at = '2026-10-15T04:55:51.000Z';
+  const now = Date.parse(at) + 60_000;
+
+  for (const text of [
+    'Day 10/ Reset',
+    'The reports of my reset button being lost are greatly exaggerated Day 10/ Reset',
+    'Day 3/ reset',
+  ]) {
+    const a = run(text, at);
+    check(
+      `日程式宣告升为未定时间预告：${text}`,
+      a.level === 'explicit' && a.timing === 'pending' && a.window === null,
+      `实际 ${a.level}/${a.timing}`
+    );
+  }
+
+  const tweet = { id: 'schedule', text: 'Day 10/ Reset', created_at: at };
+  const sig = detectSignals([tweet], { now });
+  check('日程式预告进入统一 forecasts', sig.forecasts[0]?.timing === 'pending' && sig.forecasts[0]?.window === null);
+  const html = renderSignal(sig);
+  check('网页显示已预告而非「没有检测到重置预告」', html.includes('已预告') && !html.includes('没有检测到重置预告'));
+  check('日程式预告不造倒计时', !html.includes('data-from=') && !html.includes('NaN'));
+  check('日程式预告在兑现后撤回', detectSignals([tweet], { now, lastResetAt: now - 1 }).forecasts.length === 0);
+
+  // 反例：这些都不该因为带了 `Day N/` 就被当成重置承诺。
+  for (const text of [
+    'Day 1/ We have optimized the default speed to be ~50% faster across GPT-6 Astra',
+    'Roundup of Day 2/ Approve for me (auto-review) is now included and does not use usage',
+    'Day 9/ We have rolled out optimizations to how we store state on disk',
+  ]) {
+    check(`每日发布说明不被日程式规则误判：${text.slice(0, 32)}…`, run(text, at).level !== 'explicit');
+  }
+  for (const text of [
+    'Day 10/ no reset today',
+    'Day 10/ Maybe a reset is coming.',
+    'Day 10/ Is a reset coming?',
+  ]) {
+    check(`否定、情绪、疑问仍被挡住：${text}`, run(text, at).level !== 'explicit');
+  }
+  check('日程序号本身不产生时间窗口', run('Day 10/ Reset', at).window === null);
+  check('没有斜杠紧邻时不算日程式宣告', run('Day 10 ships a reset', at).level !== 'explicit');
+}
+
 
 console.log(`\n${'─'.repeat(56)}`);
 if (fails.length) {
