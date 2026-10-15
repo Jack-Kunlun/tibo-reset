@@ -1,6 +1,19 @@
 {
   "tweets": [
     {
+      "id": "2110750421367287996",
+      "text": "Day 11/ We've landed a series of changes and more compute to very significantly decrease the occurrence of the disruptive \"Selected model is at capacity. Please try a different model\". When it does happen, it should also eventually just continue by itself and not just block on it. Let us know if you still see it out there in the wild and we'll take a look.",
+      "created_at": "2026-10-15T15:11:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2110750421367287996",
+      "author_verified": true,
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-15T16:01:00.719Z"
+    },
+    {
       "id": "2110624335463584028",
       "text": "Nice. Will fix",
       "created_at": "2026-10-15T06:50:29.000Z",
@@ -6245,7 +6258,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-15T12:00:36.331Z",
+  "updated_at": "2026-10-15T16:01:00.719Z",
   "source": "browser",
   "coverage_since": "2026-10-14T06:28:13.000Z"
 }

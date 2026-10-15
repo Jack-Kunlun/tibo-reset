@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-15T12:00:36.332Z",
-  "checkedTweets": 378,
+  "generatedAt": "2026-10-15T16:01:00.719Z",
+  "checkedTweets": 379,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-16T12:00:36.332Z",
-  "windowTo": "2026-10-15T12:00:36.332Z",
+  "windowFrom": "2026-08-16T16:01:00.719Z",
+  "windowTo": "2026-10-15T16:01:00.719Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -87,10 +87,10 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.10.15",
-      "weekday": "周四",
-      "time": "20:00",
-      "text": "2026.10.15（周四）20:00",
+      "date": "2026.10.16",
+      "weekday": "周五",
+      "time": "00:01",
+      "text": "2026.10.16（周五）00:01",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,53 +98,50 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.15",
       "weekday": "周四",
-      "time": "05:00",
-      "text": "2026.10.15（周四）05:00",
+      "time": "09:01",
+      "text": "2026.10.15（周四）09:01",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2110624335463584028",
+    "id": "2110750421367287996",
     "account": "thsottiaux",
-    "text": "Nice. Will fix",
-    "createdAt": "2026-10-15T06:50:29.000Z",
-    "url": "https://x.com/thsottiaux/status/2110624335463584028",
+    "text": "Day 11/ We've landed a series of changes and more compute to very significantly decrease the occurrence of the disruptive \"Selected model is at capacity. Please try a different model\". When it does happen, it should also eventually just continue by itself and not just block on it. Let us know if you still see it out there in the wild and we'll take a look.",
+    "createdAt": "2026-10-15T15:11:30.000Z",
+    "url": "https://x.com/thsottiaux/status/2110750421367287996",
     "reasons": [
+      "命中「新额度」类词 fresh/new/top up",
       "含未来语气",
-      "上下文：回复 @theo「- Skills that route to different beh…」"
+      "含发布/宣传语境（下调置信度）"
     ],
     "viaContext": false,
-    "inReplyTo": {
-      "account": "theo",
-      "id": "",
-      "text": "- Skills that route to different behaviors based on model - Skills that have recs like \"don't use slow git command\" when using ultrafast mode - Attribution in things like github prs (this only works because I shim it in on T3 Code side)"
-    },
+    "inReplyTo": null,
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.10.15",
         "weekday": "周四",
-        "time": "14:50",
-        "text": "2026.10.15（周四）14:50",
+        "time": "23:11",
+        "text": "2026.10.15（周四）23:11",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.10.14",
-        "weekday": "周三",
-        "time": "23:50",
-        "text": "2026.10.14（周三）23:50",
+        "date": "2026.10.15",
+        "weekday": "周四",
+        "time": "08:11",
+        "text": "2026.10.15（周四）08:11",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
     "level": "none",
     "rejected": "无额度相关词",
-    "intent": 0,
+    "intent": 1,
     "window": null,
     "candidateWindow": null
   },
@@ -2253,7 +2250,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-15T12:00:36.332Z"
+        "checkedAt": "2026-10-15T16:01:00.719Z"
       }
     },
     {
@@ -3008,6 +3005,46 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2110750421367287996",
+      "account": "thsottiaux",
+      "text": "Day 11/ We've landed a series of changes and more compute to very significantly decrease the occurrence of the disruptive \"Selected model is at capacity. Please try a different model\". When it does happen, it should also eventually just continue by itself and not just block on it. Let us know if you still see it out there in the wild and we'll take a look.",
+      "createdAt": "2026-10-15T15:11:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2110750421367287996",
+      "reasons": [
+        "命中「新额度」类词 fresh/new/top up",
+        "含未来语气",
+        "含发布/宣传语境（下调置信度）"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.15",
+          "weekday": "周四",
+          "time": "23:11",
+          "text": "2026.10.15（周四）23:11",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.15",
+          "weekday": "周四",
+          "time": "08:11",
+          "text": "2026.10.15（周四）08:11",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 1,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2110624335463584028",
       "account": "thsottiaux",
@@ -11205,56 +11242,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2104991765904375896",
-      "account": "thsottiaux",
-      "text": "We are opening up our platform and you can now build full native apps with plugin extensions, and ship them right in ChatGPT. We have over 1.2B weekly users and will surface relevant plugins right in the conversations.",
-      "createdAt": "2026-09-29T17:48:40.000Z",
-      "url": "https://x.com/thsottiaux/status/2104991765904375896",
-      "reasons": [
-        "含未来语气",
-        "含发布/宣传语境（下调置信度）"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.30",
-          "weekday": "周三",
-          "time": "01:48",
-          "text": "2026.09.30（周三）01:48",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "10:48",
-          "text": "2026.09.29（周二）10:48",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 378,
+    "scanned": 379,
     "explicit": 0,
     "occurred": 10,
     "hint": 52,
-    "none": 302,
-    "rejected": 302
+    "none": 303,
+    "rejected": 303
   },
   "truncated": true
 }
