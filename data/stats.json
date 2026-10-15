@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-15T06:28:13.000Z",
     "last_text": "Done and dusted https://t.co/0fehr43VS4",
-    "days_since_last": 0.08662748842592592,
+    "days_since_last": 0.1312744212962963,
     "avg_interval_days": 6.340337701612901,
     "median_interval_days": 3.0538483912037035,
     "sd_interval_days": 10.582783237485916,
@@ -14,7 +14,7 @@
     "reset_count": 56,
     "hit_within_avg": 0.7096774193548387
   },
-  "generated_at": "2026-10-15T08:32:57.722Z",
+  "generated_at": "2026-10-15T09:37:15.214Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
@@ -31,18 +31,29 @@
     },
     "replyError": null,
     "fullText": {
-      "candidates": 0,
-      "attempted": 0,
-      "fetched": 0,
+      "candidates": 2,
+      "attempted": 2,
+      "fetched": 2,
       "skipped": 0,
-      "scanned": []
+      "scanned": [
+        {
+          "id": "2110618732666257557",
+          "length": 15,
+          "showMore": false
+        },
+        {
+          "id": "2110595554036400151",
+          "length": 31,
+          "showMore": false
+        }
+      ]
     }
   },
   "history": {
     "added": 0,
     "updated": 0,
     "upstreamCount": 62,
-    "refreshedAt": "2026-10-15T08:32:47.486Z",
+    "refreshedAt": "2026-10-15T09:37:00.523Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
