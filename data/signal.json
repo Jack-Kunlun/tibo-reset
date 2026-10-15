@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-15T05:15:12.984Z",
-  "checkedTweets": 374,
+  "generatedAt": "2026-10-15T06:05:24.489Z",
+  "checkedTweets": 375,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-16T05:15:12.984Z",
-  "windowTo": "2026-10-15T05:15:12.984Z",
+  "windowFrom": "2026-08-16T06:05:24.489Z",
+  "windowTo": "2026-10-15T06:05:24.489Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.15",
       "weekday": "周四",
-      "time": "13:15",
-      "text": "2026.10.15（周四）13:15",
+      "time": "14:05",
+      "text": "2026.10.15（周四）14:05",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,27 +98,27 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.14",
       "weekday": "周三",
-      "time": "22:15",
-      "text": "2026.10.14（周三）22:15",
+      "time": "23:05",
+      "text": "2026.10.14（周三）23:05",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2110595987542868381",
+    "id": "2110612268962779352",
     "account": "thsottiaux",
-    "text": "If you’re not a bit afraid of your army, it’s not a good army",
-    "createdAt": "2026-10-15T04:57:51.000Z",
-    "url": "https://x.com/thsottiaux/status/2110595987542868381",
+    "text": "Oh Zach, let’s improve this. You look rad today",
+    "createdAt": "2026-10-15T06:02:32.000Z",
+    "url": "https://x.com/thsottiaux/status/2110612268962779352",
     "reasons": [
-      "上下文：回复 @amorriscode「can't tell if you're running or they…」"
+      "上下文：回复 @ZryMiller「I had @bot build a tier list of how …」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "amorriscode",
+      "account": "ZryMiller",
       "id": "",
-      "text": "can't tell if you're running or they're your army"
+      "text": "I had @bot build a tier list of how positive my interactions with AI creators are, fun experiment. Not sure why it put @theo in his own tier 💁"
     },
     "createdZones": {
       "a": {
@@ -126,8 +126,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.15",
         "weekday": "周四",
-        "time": "12:57",
-        "text": "2026.10.15（周四）12:57",
+        "time": "14:02",
+        "text": "2026.10.15（周四）14:02",
         "offset": "UTC+8"
       },
       "b": {
@@ -135,17 +135,25 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.14",
         "weekday": "周三",
-        "time": "21:57",
-        "text": "2026.10.14（周三）21:57",
+        "time": "23:02",
+        "text": "2026.10.14（周三）23:02",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "none",
-    "rejected": "无额度相关词",
+    "level": "hint",
+    "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
     "intent": 0,
     "window": null,
-    "candidateWindow": null
+    "candidateWindow": {
+      "word": "today",
+      "precision": "day",
+      "from": "2026-10-14T07:00:00.000Z",
+      "to": "2026-10-15T06:59:00.000Z",
+      "dayNum": 20740,
+      "spec": 72,
+      "note": null
+    }
   },
   "signals": [],
   "occurred": [
@@ -495,6 +503,56 @@
     }
   ],
   "hints": [
+    {
+      "id": "2110612268962779352",
+      "account": "thsottiaux",
+      "text": "Oh Zach, let’s improve this. You look rad today",
+      "createdAt": "2026-10-15T06:02:32.000Z",
+      "url": "https://x.com/thsottiaux/status/2110612268962779352",
+      "reasons": [
+        "上下文：回复 @ZryMiller「I had @bot build a tier list of how …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "ZryMiller",
+        "id": "",
+        "text": "I had @bot build a tier list of how positive my interactions with AI creators are, fun experiment. Not sure why it put @theo in his own tier 💁"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.15",
+          "weekday": "周四",
+          "time": "14:02",
+          "text": "2026.10.15（周四）14:02",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.14",
+          "weekday": "周三",
+          "time": "23:02",
+          "text": "2026.10.14（周三）23:02",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": {
+        "word": "today",
+        "precision": "day",
+        "from": "2026-10-14T07:00:00.000Z",
+        "to": "2026-10-15T06:59:00.000Z",
+        "dayNum": 20740,
+        "spec": 72,
+        "note": null
+      }
+    },
     {
       "id": "2110595484180214059",
       "account": "thsottiaux",
@@ -2175,7 +2233,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-15T05:15:12.984Z"
+        "checkedAt": "2026-10-15T06:05:24.489Z"
       }
     },
     {
@@ -11170,10 +11228,10 @@
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 374,
+    "scanned": 375,
     "explicit": 0,
     "occurred": 8,
-    "hint": 53,
+    "hint": 54,
     "none": 303,
     "rejected": 303
   },
