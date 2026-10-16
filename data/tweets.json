@@ -57,10 +57,10 @@
       "url": "https://x.com/thsottiaux/status/2110868151688912976",
       "author_verified": true,
       "inReplyTo": {
-        "account": "charlierguo",
+        "account": "_simonsmith",
         "id": "",
-        "text": "The Codex name has been incredibly sticky (all of the technical folks I know still call the desktop app Codex), but clearly ChatGPT is the long-term product Increasingly feels like Codex should be the brand of the harness: ChatGPT powered by Codex Agents API powered by Codex",
-        "created_at": "2026-10-15T21:13:36.000Z",
+        "text": "I'm thoroughly Dots-pilled. Still a fan of Muse, but probably 75-80% of my AI requests now go through Dots. The primary exception: learning things in chat. For that, GPT-6 Instant with Dynamic UI is unmatched. Just incredible. Some recent Dots work and personal tasks: - Build",
+        "created_at": "2026-10-15T20:11:03.000Z",
         "url": ""
       },
       "kind": "other",
@@ -109,8 +109,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-16T00:04:33.924Z"
     },
     {
@@ -238,8 +238,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-15T05:15:12.983Z"
     },
     {
@@ -6371,7 +6371,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-16T12:01:22.461Z",
+  "updated_at": "2026-10-16T16:01:00.841Z",
   "source": "browser",
   "coverage_since": "2026-10-14T06:28:13.000Z"
 }
