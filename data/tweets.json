@@ -1,6 +1,69 @@
 {
   "tweets": [
     {
+      "id": "2110868151688912976",
+      "text": "Spot on",
+      "created_at": "2026-10-15T22:59:20.000Z",
+      "url": "https://x.com/thsottiaux/status/2110868151688912976",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "_simonsmith",
+        "id": "",
+        "text": "I'm thoroughly Dots-pilled. Still a fan of Muse, but probably 75-80% of my AI requests now go through Dots. The primary exception: learning things in chat. For that, GPT-6 Instant with Dynamic UI is unmatched. Just incredible. Some recent Dots work and personal tasks: - Build",
+        "created_at": "2026-10-15T20:11:03.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-16T00:04:33.924Z"
+    },
+    {
+      "id": "2110864861119045840",
+      "text": "我用法语编程",
+      "created_at": "2026-10-15T22:46:15.000Z",
+      "url": "https://x.com/thsottiaux/status/2110864861119045840",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "_simonsmith",
+        "id": "",
+        "text": "I'm thoroughly Dots-pilled. Still a fan of Muse, but probably 75-80% of my AI requests now go through Dots. The primary exception: learning things in chat. For that, GPT-6 Instant with Dynamic UI is unmatched. Just incredible. Some recent Dots work and personal tasks: - Build",
+        "created_at": "2026-10-15T20:11:03.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-16T00:04:33.924Z"
+    },
+    {
+      "id": "2110864606088593672",
+      "text": "你好",
+      "created_at": "2026-10-15T22:45:14.000Z",
+      "url": "https://x.com/thsottiaux/status/2110864606088593672",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "OpenAI",
+        "text": "New voices. Better accents. And less \"checking...\" GPT-Live-1.1 brings these updates to Voice in ChatGPT, Codex, and dots, with new voices in French, German, Hindi, Mexican Spanish, Korean, and Japanese. Rolling out today to all users. Coming soon to the API.",
+        "created_at": "2026-10-15T18:19:54.000Z",
+        "relation": "quote"
+      },
+      "inReplyTo": {
+        "account": "_simonsmith",
+        "id": "",
+        "text": "I'm thoroughly Dots-pilled. Still a fan of Muse, but probably 75-80% of my AI requests now go through Dots. The primary exception: learning things in chat. For that, GPT-6 Instant with Dynamic UI is unmatched. Just incredible. Some recent Dots work and personal tasks: - Build",
+        "created_at": "2026-10-15T20:11:03.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-16T00:04:33.924Z"
+    },
+    {
       "id": "2110750421367287996",
       "text": "Day 11/ We've landed a series of changes and more compute to very significantly decrease the occurrence of the disruptive \"Selected model is at capacity. Please try a different model\". When it does happen, it should also eventually just continue by itself and not just block on it. Let us know if you still see it out there in the wild and we'll take a look.",
       "created_at": "2026-10-15T15:11:30.000Z",
@@ -115,13 +178,11 @@
       "url": "https://x.com/thsottiaux/status/2110595554036400151",
       "author_verified": true,
       "inReplyTo": {
-        "id": "2110595484180214059",
-        "account": "thsottiaux",
-        "text": "The reports of my reset button being lost are greatly exaggerated Day 10/ Reset",
-        "created_at": "2026-10-15T04:55:51.000Z",
-        "url": "https://x.com/thsottiaux/status/2110595484180214059",
-        "relation": "reply",
-        "verified": true
+        "account": "amorriscode",
+        "id": "",
+        "text": "can't tell if you're running or they're your army",
+        "created_at": "2026-10-15T04:51:12.000Z",
+        "url": ""
       },
       "kind": "other",
       "account": "thsottiaux",
@@ -144,8 +205,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-15T05:15:12.983Z"
     },
     {
@@ -6258,7 +6319,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-15T16:01:00.719Z",
+  "updated_at": "2026-10-16T00:04:33.927Z",
   "source": "browser",
   "coverage_since": "2026-10-14T06:28:13.000Z"
 }
