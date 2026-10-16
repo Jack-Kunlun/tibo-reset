@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-16T04:03:21.102Z",
-  "checkedTweets": 382,
+  "generatedAt": "2026-10-16T05:01:46.167Z",
+  "checkedTweets": 384,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-17T04:03:21.102Z",
-  "windowTo": "2026-10-16T04:03:21.102Z",
+  "windowFrom": "2026-08-17T05:01:46.167Z",
+  "windowTo": "2026-10-16T05:01:46.167Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.16",
       "weekday": "周五",
-      "time": "12:03",
-      "text": "2026.10.16（周五）12:03",
+      "time": "13:01",
+      "text": "2026.10.16（周五）13:01",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,27 +98,28 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.15",
       "weekday": "周四",
-      "time": "21:03",
-      "text": "2026.10.15（周四）21:03",
+      "time": "22:01",
+      "text": "2026.10.15（周四）22:01",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2110868151688912976",
+    "id": "2110951585983631505",
     "account": "thsottiaux",
-    "text": "Spot on",
-    "createdAt": "2026-10-15T22:59:20.000Z",
-    "url": "https://x.com/thsottiaux/status/2110868151688912976",
+    "text": "Can’t argue with that, Let’s break the cycle.",
+    "createdAt": "2026-10-16T04:30:52.000Z",
+    "url": "https://x.com/thsottiaux/status/2110951585983631505",
     "reasons": [
-      "上下文：回复 @_simonsmith「I'm thoroughly Dots-pilled. Still a …」"
+      "上下文：回复 @maria_rcks「I miss the old Tibo, reset the usage…」",
+      "被回复的推文含额度语境（本条无延续语气，不借意图）"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "_simonsmith",
+      "account": "maria_rcks",
       "id": "",
-      "text": "I'm thoroughly Dots-pilled. Still a fan of Muse, but probably 75-80% of my AI requests now go through Dots. The primary exception: learning things in chat. For that, GPT-6 Instant with Dynamic UI is unmatched. Just incredible. Some recent Dots work and personal tasks: - Build"
+      "text": "I miss the old Tibo, reset the usage Tibo The “oops, again” Tibo, back to a hundred Tibo I hate the new Tibo, arguing in quotes Tibo The 28 days Tibo, beefing with poteto Tibo I miss the sweet Tibo, free weekend reset Tibo I gotta say, back then I’d never hit my weekly, Tibo See"
     },
     "createdZones": {
       "a": {
@@ -126,8 +127,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.16",
         "weekday": "周五",
-        "time": "06:59",
-        "text": "2026.10.16（周五）06:59",
+        "time": "12:30",
+        "text": "2026.10.16（周五）12:30",
         "offset": "UTC+8"
       },
       "b": {
@@ -135,8 +136,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.15",
         "weekday": "周四",
-        "time": "15:59",
-        "text": "2026.10.15（周四）15:59",
+        "time": "21:30",
+        "text": "2026.10.15（周四）21:30",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -2252,7 +2253,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-16T04:03:21.102Z"
+        "checkedAt": "2026-10-16T05:01:46.167Z"
       }
     },
     {
@@ -3007,6 +3008,91 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2110951585983631505",
+      "account": "thsottiaux",
+      "text": "Can’t argue with that, Let’s break the cycle.",
+      "createdAt": "2026-10-16T04:30:52.000Z",
+      "url": "https://x.com/thsottiaux/status/2110951585983631505",
+      "reasons": [
+        "上下文：回复 @maria_rcks「I miss the old Tibo, reset the usage…」",
+        "被回复的推文含额度语境（本条无延续语气，不借意图）"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "maria_rcks",
+        "id": "",
+        "text": "I miss the old Tibo, reset the usage Tibo The “oops, again” Tibo, back to a hundred Tibo I hate the new Tibo, arguing in quotes Tibo The 28 days Tibo, beefing with poteto Tibo I miss the sweet Tibo, free weekend reset Tibo I gotta say, back then I’d never hit my weekly, Tibo See"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.16",
+          "weekday": "周五",
+          "time": "12:30",
+          "text": "2026.10.16（周五）12:30",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.15",
+          "weekday": "周四",
+          "time": "21:30",
+          "text": "2026.10.15（周四）21:30",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2110951220508819773",
+      "account": "thsottiaux",
+      "text": "?",
+      "createdAt": "2026-10-16T04:29:25.000Z",
+      "url": "https://x.com/thsottiaux/status/2110951220508819773",
+      "reasons": [
+        "上下文：回复 @charlierguo「The Codex name has been incredibly s…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "charlierguo",
+        "id": "",
+        "text": "The Codex name has been incredibly sticky (all of the technical folks I know still call the desktop app Codex), but clearly ChatGPT is the long-term product Increasingly feels like Codex should be the brand of the harness: ChatGPT powered by Codex Agents API powered by Codex"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.16",
+          "weekday": "周五",
+          "time": "12:29",
+          "text": "2026.10.16（周五）12:29",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.15",
+          "weekday": "周四",
+          "time": "21:29",
+          "text": "2026.10.15（周四）21:29",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2110868151688912976",
       "account": "thsottiaux",
@@ -11177,96 +11263,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2105039816438227206",
-      "account": "thsottiaux",
-      "text": "Proud of this. Open is the way.",
-      "createdAt": "2026-09-29T20:59:36.000Z",
-      "url": "https://x.com/thsottiaux/status/2105039816438227206",
-      "reasons": [],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.30",
-          "weekday": "周三",
-          "time": "04:59",
-          "text": "2026.09.30（周三）04:59",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "13:59",
-          "text": "2026.09.29（周二）13:59",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2105039482013757749",
-      "account": "thsottiaux",
-      "text": "Plugin discovery on ChatGPT leads to massive adoption opportunity. Open ecosystems will win.",
-      "createdAt": "2026-09-29T20:58:16.000Z",
-      "url": "https://x.com/thsottiaux/status/2105039482013757749",
-      "reasons": [
-        "含未来语气",
-        "上下文：回复 @DeryaTR_「This guy kind of looked like me, and…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "DeryaTR_",
-        "id": "",
-        "text": "This guy kind of looked like me, and he was holding something that looked like a blood cell. 😅 I just had to get a photo with these cool artistic “cells”! ☺️"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.30",
-          "weekday": "周三",
-          "time": "04:58",
-          "text": "2026.09.30（周三）04:58",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "13:58",
-          "text": "2026.09.29（周二）13:58",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 382,
+    "scanned": 384,
     "explicit": 0,
     "occurred": 10,
     "hint": 52,
-    "none": 306,
-    "rejected": 306
+    "none": 308,
+    "rejected": 308
   },
   "truncated": true
 }
