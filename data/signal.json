@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-17T02:03:12.305Z",
-  "checkedTweets": 393,
+  "generatedAt": "2026-10-17T06:01:42.352Z",
+  "checkedTweets": 394,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-18T02:03:12.305Z",
-  "windowTo": "2026-10-17T02:03:12.305Z",
+  "windowFrom": "2026-08-18T06:01:42.352Z",
+  "windowTo": "2026-10-17T06:01:42.352Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.17",
       "weekday": "周六",
-      "time": "10:03",
-      "text": "2026.10.17（周六）10:03",
+      "time": "14:01",
+      "text": "2026.10.17（周六）14:01",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,30 +98,36 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.16",
       "weekday": "周五",
-      "time": "19:03",
-      "text": "2026.10.16（周五）19:03",
+      "time": "23:01",
+      "text": "2026.10.16（周五）23:01",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2111249810502353152",
+    "id": "2111336070248026489",
     "account": "thsottiaux",
-    "text": "Also we just added slides support yesterday, try it out. Currently available in Pro, Business and Enterprise while we learn from your feedback.",
-    "createdAt": "2026-10-17T00:15:54.000Z",
-    "url": "https://x.com/thsottiaux/status/2111249810502353152",
-    "reasons": [],
+    "text": "Getting there",
+    "createdAt": "2026-10-17T05:58:40.000Z",
+    "url": "https://x.com/thsottiaux/status/2111336070248026489",
+    "reasons": [
+      "上下文：回复 @_simonsmith「Dots are for doing. Chat is for lear…」"
+    ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "_simonsmith",
+      "id": "",
+      "text": "Dots are for doing. Chat is for learning and discussing. Work is what you use if you have no Dot."
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.10.17",
         "weekday": "周六",
-        "time": "08:15",
-        "text": "2026.10.17（周六）08:15",
+        "time": "13:58",
+        "text": "2026.10.17（周六）13:58",
         "offset": "UTC+8"
       },
       "b": {
@@ -129,8 +135,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.16",
         "weekday": "周五",
-        "time": "17:15",
-        "text": "2026.10.16（周五）17:15",
+        "time": "22:58",
+        "text": "2026.10.16（周五）22:58",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -2289,7 +2295,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-17T02:03:12.305Z"
+        "checkedAt": "2026-10-17T06:01:42.352Z"
       }
     },
     {
@@ -3045,14 +3051,62 @@
   ],
   "rejected": [
     {
+      "id": "2111336070248026489",
+      "account": "thsottiaux",
+      "text": "Getting there",
+      "createdAt": "2026-10-17T05:58:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2111336070248026489",
+      "reasons": [
+        "上下文：回复 @_simonsmith「Dots are for doing. Chat is for lear…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "_simonsmith",
+        "id": "",
+        "text": "Dots are for doing. Chat is for learning and discussing. Work is what you use if you have no Dot."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.17",
+          "weekday": "周六",
+          "time": "13:58",
+          "text": "2026.10.17（周六）13:58",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.16",
+          "weekday": "周五",
+          "time": "22:58",
+          "text": "2026.10.16（周五）22:58",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
       "id": "2111249810502353152",
       "account": "thsottiaux",
       "text": "Also we just added slides support yesterday, try it out. Currently available in Pro, Business and Enterprise while we learn from your feedback.",
       "createdAt": "2026-10-17T00:15:54.000Z",
       "url": "https://x.com/thsottiaux/status/2111249810502353152",
-      "reasons": [],
+      "reasons": [
+        "上下文：回复 @StefanoGPT「See, @OpenAI ? It’s fine to build hy…」"
+      ],
       "viaContext": false,
-      "inReplyTo": null,
+      "inReplyTo": {
+        "account": "StefanoGPT",
+        "id": "",
+        "text": "See, @OpenAI ? It’s fine to build hype. But then you gotta deliver. Spot the difference."
+      },
       "createdZones": {
         "a": {
           "label": "北京时间",
@@ -3087,10 +3141,15 @@
       "createdAt": "2026-10-17T00:14:48.000Z",
       "url": "https://x.com/thsottiaux/status/2111249534072529256",
       "reasons": [
-        "含未来语气"
+        "含未来语气",
+        "上下文：回复 @StefanoGPT「See, @OpenAI ? It’s fine to build hy…」"
       ],
       "viaContext": false,
-      "inReplyTo": null,
+      "inReplyTo": {
+        "account": "StefanoGPT",
+        "id": "",
+        "text": "See, @OpenAI ? It’s fine to build hype. But then you gotta deliver. Spot the difference."
+      },
       "createdZones": {
         "a": {
           "label": "北京时间",
@@ -11256,59 +11315,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2105106052874375281",
-      "account": "thsottiaux",
-      "text": "Sleeper hit",
-      "createdAt": "2026-09-30T01:22:48.000Z",
-      "url": "https://x.com/thsottiaux/status/2105106052874375281",
-      "reasons": [
-        "上下文：回复 @NickADobos「Whoa ChatGPT plugin extensions are w…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "NickADobos",
-        "id": "",
-        "text": "Whoa ChatGPT plugin extensions are way more thorough than I realized Holy shit they made ChatGPT into vscode. I get the sidebar redesign now. Genius. This is the new App Store."
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.30",
-          "weekday": "周三",
-          "time": "09:22",
-          "text": "2026.09.30（周三）09:22",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "18:22",
-          "text": "2026.09.29（周二）18:22",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 393,
+    "scanned": 394,
     "explicit": 0,
     "occurred": 10,
     "hint": 53,
-    "none": 316,
-    "rejected": 316
+    "none": 317,
+    "rejected": 317
   },
   "truncated": true
 }
