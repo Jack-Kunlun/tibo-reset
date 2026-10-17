@@ -1,6 +1,132 @@
 {
   "tweets": [
     {
+      "id": "2111246098207813946",
+      "text": "Mehga ghud",
+      "created_at": "2026-10-17T00:01:09.000Z",
+      "url": "https://x.com/thsottiaux/status/2111246098207813946",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "codex_resets",
+        "id": "",
+        "text": "Day 12: Dots on the Home Screen Clear improvement, or meh? 👏 or 🤷 here: https:// codex-resets.com/tibo-28",
+        "created_at": "2026-10-16T23:57:18.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-17T00:03:58.873Z"
+    },
+    {
+      "id": "2111245772645896573",
+      "text": "How many packs do you smoke per day?",
+      "created_at": "2026-10-16T23:59:51.000Z",
+      "url": "https://x.com/thsottiaux/status/2111245772645896573",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "Most common format of DMs I get: “Hey Theo, I’ve been a fan for a long time [3-8 paragraph life story] So, which $20 plan is better, Claude or Codex?”",
+        "created_at": "2026-10-16T18:23:08.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-17T00:03:58.873Z"
+    },
+    {
+      "id": "2111245443917385980",
+      "text": "Thanks Kol!",
+      "created_at": "2026-10-16T23:58:33.000Z",
+      "url": "https://x.com/thsottiaux/status/2111245443917385980",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "koltregaskes",
+        "id": "",
+        "text": "OpenAI, I think you need to explain this a lot better. The difference is you can use chat mode not just work mode. Why are AI labs so bad at explaining their own tools and systems? 🤷‍♂️",
+        "created_at": "2026-10-16T14:27:01.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-17T00:03:58.873Z"
+    },
+    {
+      "id": "2111245052513259606",
+      "text": "And update your app to enjoy this gem",
+      "created_at": "2026-10-16T23:57:00.000Z",
+      "url": "https://x.com/thsottiaux/status/2111245052513259606",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "koltregaskes",
+        "id": "",
+        "text": "OpenAI, I think you need to explain this a lot better. The difference is you can use chat mode not just work mode. Why are AI labs so bad at explaining their own tools and systems? 🤷‍♂️",
+        "created_at": "2026-10-16T14:27:01.000Z",
+        "url": ""
+      },
+      "quotedTweet": {
+        "account": "Gavmn",
+        "text": "Dots, now on your Home Screen",
+        "created_at": "2026-10-16T16:44:08.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-17T00:03:58.873Z"
+    },
+    {
+      "id": "2111244957851984181",
+      "text": "We also significantly improved GPT-6 Pro for all pro users",
+      "created_at": "2026-10-16T23:56:37.000Z",
+      "url": "https://x.com/thsottiaux/status/2111244957851984181",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "OpenAI",
+        "text": "GPT-6 Astra Pro in ChatGPT got an upgrade with faster responses and improved use of plugins and tools. And now, multiple agents can tackle different parts of a task in parallel. You can follow each agent’s progress and open completed tasks to review their work. Now available to",
+        "created_at": "2026-10-16T20:27:13.000Z",
+        "relation": "quote"
+      },
+      "inReplyTo": {
+        "account": "koltregaskes",
+        "id": "",
+        "text": "OpenAI, I think you need to explain this a lot better. The difference is you can use chat mode not just work mode. Why are AI labs so bad at explaining their own tools and systems? 🤷‍♂️",
+        "created_at": "2026-10-16T14:27:01.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-17T00:03:58.873Z"
+    },
+    {
+      "id": "2111244596131111253",
+      "text": "Day 12/ We’ve made improvements to Codex & Work that increase the effective usage you get. We achieved this by reusing context across subagents, keeping context cached longer, and improved request routing that allows us to increase cache hits.",
+      "created_at": "2026-10-16T23:55:11.000Z",
+      "url": "https://x.com/thsottiaux/status/2111244596131111253",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "koltregaskes",
+        "id": "",
+        "text": "OpenAI, I think you need to explain this a lot better. The difference is you can use chat mode not just work mode. Why are AI labs so bad at explaining their own tools and systems? 🤷‍♂️",
+        "created_at": "2026-10-16T14:27:01.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-17T00:03:58.873Z"
+    },
+    {
       "id": "2110971985417441512",
       "text": "Either we are out of ideas or we are cooking. Time will tell",
       "created_at": "2026-10-16T05:51:55.000Z",
@@ -84,8 +210,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-16T00:04:33.924Z"
     },
     {
@@ -101,16 +227,16 @@
         "relation": "quote"
       },
       "inReplyTo": {
-        "account": "charlierguo",
+        "account": "_simonsmith",
         "id": "",
-        "text": "The Codex name has been incredibly sticky (all of the technical folks I know still call the desktop app Codex), but clearly ChatGPT is the long-term product Increasingly feels like Codex should be the brand of the harness: ChatGPT powered by Codex Agents API powered by Codex",
-        "created_at": "2026-10-15T21:13:36.000Z",
+        "text": "I'm thoroughly Dots-pilled. Still a fan of Muse, but probably 75-80% of my AI requests now go through Dots. The primary exception: learning things in chat. For that, GPT-6 Instant with Dynamic UI is unmatched. Just incredible. Some recent Dots work and personal tasks: - Build",
+        "created_at": "2026-10-15T20:11:03.000Z",
         "url": ""
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-16T00:04:33.924Z"
     },
     {
@@ -238,8 +364,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-15T05:15:12.983Z"
     },
     {
@@ -6371,7 +6497,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-16T16:01:00.841Z",
+  "updated_at": "2026-10-17T00:03:58.874Z",
   "source": "browser",
   "coverage_since": "2026-10-14T06:28:13.000Z"
 }
