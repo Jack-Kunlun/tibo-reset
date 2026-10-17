@@ -115,8 +115,8 @@
       "author_verified": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-17T01:10:55.769Z",
       "inReplyTo": {
         "account": "StefanoGPT",
@@ -336,8 +336,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-16T00:04:33.924Z"
     },
     {
@@ -361,8 +361,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-16T00:04:33.924Z"
     },
     {
@@ -480,13 +480,11 @@
       "url": "https://x.com/thsottiaux/status/2110595554036400151",
       "author_verified": true,
       "inReplyTo": {
-        "id": "2110595484180214059",
-        "account": "thsottiaux",
-        "text": "The reports of my reset button being lost are greatly exaggerated Day 10/ Reset",
-        "created_at": "2026-10-15T04:55:51.000Z",
-        "url": "https://x.com/thsottiaux/status/2110595484180214059",
-        "relation": "reply",
-        "verified": true
+        "account": "amorriscode",
+        "id": "",
+        "text": "can't tell if you're running or they're your army",
+        "created_at": "2026-10-15T04:51:12.000Z",
+        "url": ""
       },
       "kind": "other",
       "account": "thsottiaux",
@@ -509,8 +507,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-15T05:15:12.983Z"
     },
     {
@@ -6623,7 +6621,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-17T07:01:01.245Z",
+  "updated_at": "2026-10-17T16:02:03.140Z",
   "source": "browser",
   "coverage_since": "2026-10-14T06:28:13.000Z"
 }
