@@ -1,6 +1,201 @@
 {
   "tweets": [
     {
+      "id": "2111523665817047359",
+      "text": "🍺👌",
+      "created_at": "2026-10-17T18:24:06.000Z",
+      "url": "https://x.com/thsottiaux/status/2111523665817047359",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ajambrosino",
+        "id": "",
+        "text": "hold my beer",
+        "created_at": "2026-10-17T16:47:31.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-17T20:01:20.701Z"
+    },
+    {
+      "id": "2111523462372372942",
+      "text": "Bit blurry",
+      "created_at": "2026-10-17T18:23:18.000Z",
+      "url": "https://x.com/thsottiaux/status/2111523462372372942",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "gabrielchua",
+        "id": "",
+        "text": "With plugin extensions, I can customise my Codex desktop app. Google cal feels a bit too cluttered for me, so I built a simpler focused month and day view, exactly how I like it. Software for n=1",
+        "created_at": "2026-10-12T03:12:42.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-17T20:01:20.701Z"
+    },
+    {
+      "id": "2111522308666077527",
+      "text": "Let’s pump those numbers up",
+      "created_at": "2026-10-17T18:18:43.000Z",
+      "url": "https://x.com/thsottiaux/status/2111522308666077527",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "jkeatn",
+        "id": "",
+        "text": "7,000 followers! don’t ask me anything, I work at anthropic",
+        "created_at": "2026-10-17T16:53:28.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-17T20:01:20.701Z"
+    },
+    {
+      "id": "2111519953564368960",
+      "text": "Checks out, he was half his usual size today",
+      "created_at": "2026-10-17T18:09:21.000Z",
+      "url": "https://x.com/thsottiaux/status/2111519953564368960",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "charliermarsh",
+        "id": "",
+        "text": "I quantized him on Friday",
+        "created_at": "2026-10-17T17:03:20.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-17T20:01:20.701Z"
+    },
+    {
+      "id": "2111495569806065883",
+      "text": "@ah20im start a ghost in the machine tactical squad, we've got a degradation",
+      "created_at": "2026-10-17T16:32:28.000Z",
+      "url": "https://x.com/thsottiaux/status/2111495569806065883",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ajambrosino",
+        "id": "",
+        "text": "green",
+        "created_at": "2026-10-17T16:24:42.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-17T20:01:20.701Z"
+    },
+    {
+      "id": "2111495392559067199",
+      "text": "My work dot \"Burger\" coordinated with my personal dot \"Dorito\" over email at my personal dots request to get documents, which then coordinated with with my CPA in order to file some tax stuff. Took 20 minutes. We're still so early.",
+      "created_at": "2026-10-17T16:31:45.000Z",
+      "url": "https://x.com/thsottiaux/status/2111495392559067199",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-17T20:01:20.701Z"
+    },
+    {
+      "id": "2111493076850229733",
+      "text": "2+2?",
+      "created_at": "2026-10-17T16:22:33.000Z",
+      "url": "https://x.com/thsottiaux/status/2111493076850229733",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ajambrosino",
+        "id": "",
+        "text": "👀",
+        "created_at": "2026-10-17T16:19:17.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-17T20:01:20.701Z"
+    },
+    {
+      "id": "2111492738025959922",
+      "text": "Landing sometime today by EOD PST",
+      "created_at": "2026-10-17T16:21:13.000Z",
+      "url": "https://x.com/thsottiaux/status/2111492738025959922",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ajambrosino",
+        "id": "",
+        "text": "👀",
+        "created_at": "2026-10-17T16:19:17.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-17T20:01:20.701Z"
+    },
+    {
+      "id": "2111492673890824348",
+      "text": "Day 13/ Le limit reset",
+      "created_at": "2026-10-17T16:20:57.000Z",
+      "url": "https://x.com/thsottiaux/status/2111492673890824348",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ajambrosino",
+        "id": "",
+        "text": "👀",
+        "created_at": "2026-10-17T16:19:17.000Z",
+        "url": ""
+      },
+      "kind": "reset",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-17T20:01:20.701Z"
+    },
+    {
+      "id": "2111492028177723532",
+      "text": "Is it just me or was @ajambrosino nerfed today",
+      "created_at": "2026-10-17T16:18:23.000Z",
+      "url": "https://x.com/thsottiaux/status/2111492028177723532",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-17T20:01:20.701Z"
+    },
+    {
+      "id": "2111491105120547265",
+      "text": "Close, but it's missing the gpt",
+      "created_at": "2026-10-17T16:14:43.000Z",
+      "url": "https://x.com/thsottiaux/status/2111491105120547265",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "is chat the final form of agent ui? please share why",
+        "created_at": "2026-10-17T04:59:29.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-17T20:01:20.701Z"
+    },
+    {
       "id": "2111341888322314672",
       "text": "💀",
       "created_at": "2026-10-17T06:21:47.000Z",
@@ -336,8 +531,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-16T00:04:33.924Z"
     },
     {
@@ -361,8 +556,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-16T00:04:33.924Z"
     },
     {
@@ -488,8 +683,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-15T05:15:12.983Z"
     },
     {
@@ -507,8 +702,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-15T05:15:12.983Z"
     },
     {
@@ -6621,7 +6816,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-17T16:02:03.140Z",
+  "updated_at": "2026-10-17T20:01:20.702Z",
   "source": "browser",
   "coverage_since": "2026-10-14T06:28:13.000Z"
 }
