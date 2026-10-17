@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-15T06:28:13.000Z",
     "last_text": "Done and dusted https://t.co/0fehr43VS4",
-    "days_since_last": 1.7796628472222222,
+    "days_since_last": 1.8159652314814816,
     "avg_interval_days": 6.340337701612901,
     "median_interval_days": 3.0538483912037035,
     "sd_interval_days": 10.582783237485916,
@@ -14,46 +14,31 @@
     "reset_count": 56,
     "hit_within_avg": 0.7096774193548387
   },
-  "generated_at": "2026-10-17T01:10:55.986Z",
+  "generated_at": "2026-10-17T02:03:12.495Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
-    "stoppedBy": "floor",
-    "newTweets": 2,
-    "knownCount": 391,
+    "stoppedBy": "known",
+    "newTweets": 0,
+    "knownCount": 393,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 7,
-      "harvested": 10,
-      "withContext": 8,
+      "steps": 1,
+      "harvested": 4,
+      "withContext": 2,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 4,
-      "attempted": 4,
-      "fetched": 4,
+      "candidates": 1,
+      "attempted": 1,
+      "fetched": 1,
       "skipped": 0,
       "scanned": [
         {
           "id": "2111244596131111253",
           "length": 243,
-          "showMore": false
-        },
-        {
-          "id": "2110750421367287996",
-          "length": 358,
-          "showMore": false
-        },
-        {
-          "id": "2110618732666257557",
-          "length": 15,
-          "showMore": false
-        },
-        {
-          "id": "2110595554036400151",
-          "length": 31,
           "showMore": false
         }
       ]
@@ -63,7 +48,7 @@
     "added": 0,
     "updated": 0,
     "upstreamCount": 62,
-    "refreshedAt": "2026-10-17T01:10:28.037Z",
+    "refreshedAt": "2026-10-17T02:03:00.036Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
