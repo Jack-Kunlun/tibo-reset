@@ -1,6 +1,30 @@
 {
   "tweets": [
     {
+      "id": "2111249810502353152",
+      "text": "Also we just added slides support yesterday, try it out. Currently available in Pro, Business and Enterprise while we learn from your feedback.",
+      "created_at": "2026-10-17T00:15:54.000Z",
+      "url": "https://x.com/thsottiaux/status/2111249810502353152",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-17T01:10:55.769Z"
+    },
+    {
+      "id": "2111249534072529256",
+      "text": "What is ChatGPT Space, that is the question. Endearingly awkward at times because it's the actual team working on it. What would you like to see next?",
+      "created_at": "2026-10-17T00:14:48.000Z",
+      "url": "https://x.com/thsottiaux/status/2111249534072529256",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-17T01:10:55.769Z"
+    },
+    {
       "id": "2111246098207813946",
       "text": "Mehga ghud",
       "created_at": "2026-10-17T00:01:09.000Z",
@@ -210,8 +234,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-16T00:04:33.924Z"
     },
     {
@@ -235,8 +259,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-16T00:04:33.924Z"
     },
     {
@@ -6497,7 +6521,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-17T00:03:58.874Z",
+  "updated_at": "2026-10-17T01:10:55.779Z",
   "source": "browser",
   "coverage_since": "2026-10-14T06:28:13.000Z"
 }

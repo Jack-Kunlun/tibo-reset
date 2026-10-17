@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-17T00:03:58.874Z",
-  "checkedTweets": 391,
+  "generatedAt": "2026-10-17T01:10:55.779Z",
+  "checkedTweets": 393,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-18T00:03:58.874Z",
-  "windowTo": "2026-10-17T00:03:58.874Z",
+  "windowFrom": "2026-08-18T01:10:55.779Z",
+  "windowTo": "2026-10-17T01:10:55.779Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.17",
       "weekday": "周六",
-      "time": "08:03",
-      "text": "2026.10.17（周六）08:03",
+      "time": "09:10",
+      "text": "2026.10.17（周六）09:10",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,36 +98,30 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.16",
       "weekday": "周五",
-      "time": "17:03",
-      "text": "2026.10.16（周五）17:03",
+      "time": "18:10",
+      "text": "2026.10.16（周五）18:10",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2111246098207813946",
+    "id": "2111249810502353152",
     "account": "thsottiaux",
-    "text": "Mehga ghud",
-    "createdAt": "2026-10-17T00:01:09.000Z",
-    "url": "https://x.com/thsottiaux/status/2111246098207813946",
-    "reasons": [
-      "上下文：回复 @codex_resets「Day 12: Dots on the Home Screen Clea…」"
-    ],
+    "text": "Also we just added slides support yesterday, try it out. Currently available in Pro, Business and Enterprise while we learn from your feedback.",
+    "createdAt": "2026-10-17T00:15:54.000Z",
+    "url": "https://x.com/thsottiaux/status/2111249810502353152",
+    "reasons": [],
     "viaContext": false,
-    "inReplyTo": {
-      "account": "codex_resets",
-      "id": "",
-      "text": "Day 12: Dots on the Home Screen Clear improvement, or meh? 👏 or 🤷 here: https:// codex-resets.com/tibo-28"
-    },
+    "inReplyTo": null,
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.10.17",
         "weekday": "周六",
-        "time": "08:01",
-        "text": "2026.10.17（周六）08:01",
+        "time": "08:15",
+        "text": "2026.10.17（周六）08:15",
         "offset": "UTC+8"
       },
       "b": {
@@ -135,8 +129,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.16",
         "weekday": "周五",
-        "time": "17:01",
-        "text": "2026.10.16（周五）17:01",
+        "time": "17:15",
+        "text": "2026.10.16（周五）17:15",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -2295,7 +2289,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-17T00:03:58.874Z"
+        "checkedAt": "2026-10-17T01:10:55.779Z"
       }
     },
     {
@@ -3050,6 +3044,80 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2111249810502353152",
+      "account": "thsottiaux",
+      "text": "Also we just added slides support yesterday, try it out. Currently available in Pro, Business and Enterprise while we learn from your feedback.",
+      "createdAt": "2026-10-17T00:15:54.000Z",
+      "url": "https://x.com/thsottiaux/status/2111249810502353152",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.17",
+          "weekday": "周六",
+          "time": "08:15",
+          "text": "2026.10.17（周六）08:15",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.16",
+          "weekday": "周五",
+          "time": "17:15",
+          "text": "2026.10.16（周五）17:15",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2111249534072529256",
+      "account": "thsottiaux",
+      "text": "What is ChatGPT Space, that is the question. Endearingly awkward at times because it's the actual team working on it. What would you like to see next?",
+      "createdAt": "2026-10-17T00:14:48.000Z",
+      "url": "https://x.com/thsottiaux/status/2111249534072529256",
+      "reasons": [
+        "含未来语气"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.17",
+          "weekday": "周六",
+          "time": "08:14",
+          "text": "2026.10.17（周六）08:14",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.16",
+          "weekday": "周五",
+          "time": "17:14",
+          "text": "2026.10.16（周五）17:14",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2111246098207813946",
       "account": "thsottiaux",
@@ -11230,99 +11298,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2105105086506840421",
-      "account": "thsottiaux",
-      "text": "We will have a few million dots online within days, working on all sorts of things across such a diverse and large community. Excited to learn from all of you on what you love and what doesn’t yet feel magical. Personally I felt a jump after 2-3 days of use after teaching it more about my preferences and things on my mind. It learns very quickly to be most useful and it can take on surprisingly ambitious tasks on its own. We’re learning from how you all use your primary dot before releasing the ability to create an entire team of them.",
-      "createdAt": "2026-09-30T01:18:58.000Z",
-      "url": "https://x.com/thsottiaux/status/2105105086506840421",
-      "reasons": [
-        "命中「新额度」类词 fresh/new/top up",
-        "含未来语气",
-        "含发布/宣传语境（下调置信度）"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.30",
-          "weekday": "周三",
-          "time": "09:18",
-          "text": "2026.09.30（周三）09:18",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "18:18",
-          "text": "2026.09.29（周二）18:18",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 1,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2105103752185458869",
-      "account": "thsottiaux",
-      "text": "Good coverage!!! Thank you for tuning in and re-sharing this nicely",
-      "createdAt": "2026-09-30T01:13:40.000Z",
-      "url": "https://x.com/thsottiaux/status/2105103752185458869",
-      "reasons": [
-        "上下文：回复 @kunchenguid「ok here's my key takeaways from Open…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "kunchenguid",
-        "id": "",
-        "text": "ok here's my key takeaways from OpenAI DevDay keynote 1. dots grok bot, muse, and now dots - they may look similar, but they are not i think openai's dots is a significantly more cohesive implementation that spans across personal and business use, and also across single player"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.30",
-          "weekday": "周三",
-          "time": "09:13",
-          "text": "2026.09.30（周三）09:13",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "18:13",
-          "text": "2026.09.29（周二）18:13",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 391,
+    "scanned": 393,
     "explicit": 0,
     "occurred": 10,
     "hint": 53,
-    "none": 314,
-    "rejected": 314
+    "none": 316,
+    "rejected": 316
   },
   "truncated": true
 }
