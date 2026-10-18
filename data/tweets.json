@@ -1,6 +1,25 @@
 {
   "tweets": [
     {
+      "id": "2111687989328011357",
+      "text": "Quick to jump to conclusion. This is my OpenAI work dot coordinating with my personal dot. Two entirely separate accounts.",
+      "created_at": "2026-10-18T05:17:04.000Z",
+      "url": "https://x.com/thsottiaux/status/2111687989328011357",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "rl_env",
+        "id": "",
+        "text": "This is the reason why OpenAI won’t win the personal agents war Muse at least realizes that normies want one agent",
+        "created_at": "2026-10-17T16:55:57.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-18T06:00:45.636Z"
+    },
+    {
       "id": "2111583927156760690",
       "text": "Pot committed",
       "created_at": "2026-10-17T22:23:34.000Z",
@@ -172,8 +191,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-17T20:01:20.701Z"
     },
     {
@@ -191,8 +210,8 @@
       },
       "kind": "reset",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-17T20:01:20.701Z"
     },
     {
@@ -6847,7 +6866,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-18T01:04:20.075Z",
+  "updated_at": "2026-10-18T06:00:45.636Z",
   "source": "browser",
   "coverage_since": "2026-10-16T21:12:21.000Z"
 }
