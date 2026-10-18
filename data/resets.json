@@ -1,6 +1,14 @@
 {
   "records": [
     {
+      "id": "2111566005684289735",
+      "announced_at": "2026-10-17T21:12:21.000Z",
+      "type": "reset",
+      "text": "Done",
+      "url": "https://x.com/thsottiaux/status/2111566005684289735",
+      "attribution": "codex-resets.com"
+    },
+    {
       "id": "2110618732666257557",
       "announced_at": "2026-10-15T06:28:13.000Z",
       "type": "reset",
@@ -506,5 +514,5 @@
     }
   ],
   "bootstrapped_at": "2026-09-20T08:17:13.018Z",
-  "refreshed_at": "2026-10-17T20:00:43.435Z"
+  "refreshed_at": "2026-10-18T00:02:41.520Z"
 }

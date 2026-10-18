@@ -1,6 +1,37 @@
 {
   "tweets": [
     {
+      "id": "2111583927156760690",
+      "text": "Pot committed",
+      "created_at": "2026-10-17T22:23:34.000Z",
+      "url": "https://x.com/thsottiaux/status/2111583927156760690",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ananyairl",
+        "id": "",
+        "text": "Why is Codex giving reset every day? 😭",
+        "created_at": "2026-10-17T18:02:47.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-18T00:03:00.365Z"
+    },
+    {
+      "id": "2111566005684289735",
+      "text": "Done",
+      "created_at": "2026-10-17T21:12:21.000Z",
+      "url": "https://x.com/thsottiaux/status/2111566005684289735",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-18T00:03:00.365Z"
+    },
+    {
       "id": "2111523665817047359",
       "text": "🍺👌",
       "created_at": "2026-10-17T18:24:06.000Z",
@@ -291,8 +322,8 @@
       "author_verified": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-17T01:10:55.769Z",
       "inReplyTo": {
         "account": "StefanoGPT",
@@ -310,8 +341,8 @@
       "author_verified": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-17T01:10:55.769Z",
       "inReplyTo": {
         "account": "StefanoGPT",
@@ -424,8 +455,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-17T00:03:58.873Z"
     },
     {
@@ -443,8 +474,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-17T00:03:58.873Z"
     },
     {
@@ -6816,7 +6847,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-17T20:01:20.702Z",
+  "updated_at": "2026-10-18T00:03:00.367Z",
   "source": "browser",
-  "coverage_since": "2026-10-14T06:28:13.000Z"
+  "coverage_since": "2026-10-16T21:12:21.000Z"
 }

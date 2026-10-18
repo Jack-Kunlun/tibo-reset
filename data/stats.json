@@ -1,73 +1,58 @@
 {
   "stats": {
-    "total": 63,
+    "total": 64,
     "first_at": "2025-09-17T04:02:52.000Z",
-    "last_at": "2026-10-15T06:28:13.000Z",
-    "last_text": "Done and dusted https://t.co/0fehr43VS4",
-    "days_since_last": 2.5646734953703705,
-    "avg_interval_days": 6.340337701612901,
-    "median_interval_days": 3.0538483912037035,
-    "sd_interval_days": 10.582783237485916,
+    "last_at": "2026-10-17T21:12:21.000Z",
+    "last_text": "Done",
+    "days_since_last": 0.11851216435185186,
+    "avg_interval_days": 6.281189190182244,
+    "median_interval_days": 3.011273148148148,
+    "sd_interval_days": 10.5087824098415,
     "longest_wait_days": 67.74240740740741,
     "shortest_wait_days": 0.15936342592592592,
     "credit_count": 7,
-    "reset_count": 56,
-    "hit_within_avg": 0.7096774193548387
+    "reset_count": 57,
+    "hit_within_avg": 0.7142857142857143
   },
-  "generated_at": "2026-10-17T20:01:20.878Z",
+  "generated_at": "2026-10-18T00:03:00.535Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
     "stoppedBy": "floor",
-    "newTweets": 11,
-    "knownCount": 398,
+    "newTweets": 2,
+    "knownCount": 409,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 17,
-      "harvested": 21,
-      "withContext": 21,
+      "steps": 6,
+      "harvested": 12,
+      "withContext": 12,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 4,
-      "attempted": 4,
-      "fetched": 4,
+      "candidates": 1,
+      "attempted": 1,
+      "fetched": 1,
       "skipped": 0,
       "scanned": [
         {
           "id": "2111244596131111253",
           "length": 243,
           "showMore": false
-        },
-        {
-          "id": "2110750421367287996",
-          "length": 358,
-          "showMore": false
-        },
-        {
-          "id": "2110618732666257557",
-          "length": 15,
-          "showMore": false
-        },
-        {
-          "id": "2110595554036400151",
-          "length": 31,
-          "showMore": false
         }
       ]
     }
   },
   "history": {
-    "added": 0,
+    "added": 1,
     "updated": 0,
-    "upstreamCount": 62,
-    "refreshedAt": "2026-10-17T20:00:43.435Z",
+    "upstreamCount": 63,
+    "refreshedAt": "2026-10-18T00:02:41.520Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
-    "changed": false,
+    "changed": true,
     "patchedTexts": 0
   },
   "last_full_at": "2026-10-17T16:02:03.312Z",
