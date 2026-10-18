@@ -1,6 +1,37 @@
 {
   "tweets": [
     {
+      "id": "2111849858374177222",
+      "text": "What’s cooking today",
+      "created_at": "2026-10-18T16:00:17.000Z",
+      "url": "https://x.com/thsottiaux/status/2111849858374177222",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-18T16:01:35.708Z"
+    },
+    {
+      "id": "2111832959842161136",
+      "text": "EU sorry. We’re making it so that (a) if you had created a dot elsewhere and find yourself in the EU it will keep working (b) dots are coming to the EU in the future",
+      "created_at": "2026-10-18T14:53:08.000Z",
+      "url": "https://x.com/thsottiaux/status/2111832959842161136",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "argofowl",
+        "id": "",
+        "text": "my dot stopped showing up in my codex desktop app yeah openai is cooking...",
+        "created_at": "2026-10-18T10:51:32.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-18T16:01:35.708Z"
+    },
+    {
       "id": "2111687989328011357",
       "text": "Quick to jump to conclusion. This is my OpenAI work dot coordinating with my personal dot. Two entirely separate accounts.",
       "created_at": "2026-10-18T05:17:04.000Z",
@@ -26,10 +57,10 @@
       "url": "https://x.com/thsottiaux/status/2111583927156760690",
       "author_verified": true,
       "inReplyTo": {
-        "account": "rl_env",
+        "account": "ananyairl",
         "id": "",
-        "text": "This is the reason why OpenAI won’t win the personal agents war Muse at least realizes that normies want one agent",
-        "created_at": "2026-10-17T16:55:57.000Z",
+        "text": "Why is Codex giving reset every day? 😭",
+        "created_at": "2026-10-17T18:02:47.000Z",
         "url": ""
       },
       "kind": "other",
@@ -57,10 +88,10 @@
       "url": "https://x.com/thsottiaux/status/2111523665817047359",
       "author_verified": true,
       "inReplyTo": {
-        "account": "rl_env",
+        "account": "ajambrosino",
         "id": "",
-        "text": "This is the reason why OpenAI won’t win the personal agents war Muse at least realizes that normies want one agent",
-        "created_at": "2026-10-17T16:55:57.000Z",
+        "text": "hold my beer",
+        "created_at": "2026-10-17T16:47:31.000Z",
         "url": ""
       },
       "kind": "other",
@@ -191,8 +222,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-17T20:01:20.701Z"
     },
     {
@@ -210,8 +241,8 @@
       },
       "kind": "reset",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-17T20:01:20.701Z"
     },
     {
@@ -6866,7 +6897,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-18T12:01:20.073Z",
+  "updated_at": "2026-10-18T16:01:35.709Z",
   "source": "browser",
   "coverage_since": "2026-10-16T21:12:21.000Z"
 }

@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-17T21:12:21.000Z",
     "last_text": "Done",
-    "days_since_last": 0.617351412037037,
+    "days_since_last": 0.7841995023148148,
     "avg_interval_days": 6.281189190182244,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.5087824098415,
@@ -14,35 +14,41 @@
     "reset_count": 57,
     "hit_within_avg": 0.7142857142857143
   },
-  "generated_at": "2026-10-18T12:01:20.262Z",
+  "generated_at": "2026-10-18T16:01:36.038Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
-    "stoppedBy": "known",
-    "newTweets": 0,
+    "stoppedBy": "floor",
+    "newTweets": 2,
     "knownCount": 412,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 1,
-      "harvested": 4,
-      "withContext": 4,
+      "steps": 6,
+      "harvested": 13,
+      "withContext": 13,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 0,
-      "attempted": 0,
-      "fetched": 0,
+      "candidates": 1,
+      "attempted": 1,
+      "fetched": 1,
       "skipped": 0,
-      "scanned": []
+      "scanned": [
+        {
+          "id": "2111244596131111253",
+          "length": 243,
+          "showMore": false
+        }
+      ]
     }
   },
   "history": {
     "added": 0,
     "updated": 0,
     "upstreamCount": 63,
-    "refreshedAt": "2026-10-18T12:01:09.160Z",
+    "refreshedAt": "2026-10-18T16:01:13.013Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
