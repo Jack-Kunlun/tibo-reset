@@ -1,6 +1,24 @@
 {
   "tweets": [
     {
+      "id": "2112268918681485431",
+      "text": "Day 15/ We're cooked",
+      "created_at": "2026-10-19T19:45:28.000Z",
+      "url": "https://x.com/thsottiaux/status/2112268918681485431",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "OpenAIDevs",
+        "text": "Here’s what we’re cooking with Codex: https:// x.com/i/broadcasts/1 RKZzBELBbXKB …",
+        "created_at": "2026-10-19T18:01:27.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-19T20:01:20.909Z"
+    },
+    {
       "id": "2112049026636103954",
       "text": "Didn’t know Batman worked at OpenAI",
       "created_at": "2026-10-19T05:11:42.000Z",
@@ -7098,7 +7116,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-19T06:00:58.573Z",
+  "updated_at": "2026-10-19T20:01:20.910Z",
   "source": "browser",
   "coverage_since": "2026-10-16T21:12:21.000Z"
 }

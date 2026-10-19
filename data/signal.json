@@ -10,7 +10,7 @@
     "to": "2026-11-01T06:59:00.000Z",
     "fromDayNum": 20730,
     "throughDayNum": 20757,
-    "daysLeft": 14,
+    "daysLeft": 13,
     "createdZones": {
       "a": {
         "label": "北京时间",
@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-19T06:00:58.573Z",
-  "checkedTweets": 426,
+  "generatedAt": "2026-10-19T20:01:20.910Z",
+  "checkedTweets": 427,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-20T06:00:58.573Z",
-  "windowTo": "2026-10-19T06:00:58.573Z",
+  "windowFrom": "2026-08-20T20:01:20.910Z",
+  "windowTo": "2026-10-19T20:01:20.910Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -87,30 +87,30 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.10.19",
-      "weekday": "周一",
-      "time": "14:00",
-      "text": "2026.10.19（周一）14:00",
+      "date": "2026.10.20",
+      "weekday": "周二",
+      "time": "04:01",
+      "text": "2026.10.20（周二）04:01",
       "offset": "UTC+8"
     },
     "b": {
       "label": "Tibo 当地时间",
       "zone": "America/Los_Angeles",
-      "date": "2026.10.18",
-      "weekday": "周日",
-      "time": "23:00",
-      "text": "2026.10.18（周日）23:00",
+      "date": "2026.10.19",
+      "weekday": "周一",
+      "time": "13:01",
+      "text": "2026.10.19（周一）13:01",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2112049026636103954",
+    "id": "2112268918681485431",
     "account": "thsottiaux",
-    "text": "Didn’t know Batman worked at OpenAI",
-    "createdAt": "2026-10-19T05:11:42.000Z",
-    "url": "https://x.com/thsottiaux/status/2112049026636103954",
+    "text": "Day 15/ We're cooked",
+    "createdAt": "2026-10-19T19:45:28.000Z",
+    "url": "https://x.com/thsottiaux/status/2112268918681485431",
     "reasons": [],
     "viaContext": false,
     "inReplyTo": null,
@@ -118,19 +118,19 @@
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.10.19",
-        "weekday": "周一",
-        "time": "13:11",
-        "text": "2026.10.19（周一）13:11",
+        "date": "2026.10.20",
+        "weekday": "周二",
+        "time": "03:45",
+        "text": "2026.10.20（周二）03:45",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.10.18",
-        "weekday": "周日",
-        "time": "22:11",
-        "text": "2026.10.18（周日）22:11",
+        "date": "2026.10.19",
+        "weekday": "周一",
+        "time": "12:45",
+        "text": "2026.10.19（周一）12:45",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -2596,7 +2596,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-19T06:00:58.573Z"
+        "checkedAt": "2026-10-19T20:01:20.910Z"
       }
     },
     {
@@ -3351,6 +3351,42 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2112268918681485431",
+      "account": "thsottiaux",
+      "text": "Day 15/ We're cooked",
+      "createdAt": "2026-10-19T19:45:28.000Z",
+      "url": "https://x.com/thsottiaux/status/2112268918681485431",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.20",
+          "weekday": "周二",
+          "time": "03:45",
+          "text": "2026.10.20（周二）03:45",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.19",
+          "weekday": "周一",
+          "time": "12:45",
+          "text": "2026.10.19（周一）12:45",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2112049026636103954",
       "account": "thsottiaux",
@@ -11551,53 +11587,17 @@
       "intent": 1,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2105395200248156556",
-      "account": "thsottiaux",
-      "text": "Asked my dot to paint me. After sending me something cartoonish, I asked it to try a bit harder and to find a recent picture of me on the internet. It did better. Below video is me clicking through my dot's computer.",
-      "createdAt": "2026-09-30T20:31:46.000Z",
-      "url": "https://x.com/thsottiaux/status/2105395200248156556",
-      "reasons": [],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.01",
-          "weekday": "周四",
-          "time": "04:31",
-          "text": "2026.10.01（周四）04:31",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.30",
-          "weekday": "周三",
-          "time": "13:31",
-          "text": "2026.09.30（周三）13:31",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 426,
+    "scanned": 427,
     "explicit": 0,
     "occurred": 9,
     "hint": 61,
-    "none": 343,
-    "rejected": 343
+    "none": 344,
+    "rejected": 344
   },
   "truncated": true
 }
