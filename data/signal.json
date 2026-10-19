@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-18T20:00:57.968Z",
-  "checkedTweets": 414,
+  "generatedAt": "2026-10-19T00:01:25.000Z",
+  "checkedTweets": 418,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-19T20:00:57.968Z",
-  "windowTo": "2026-10-18T20:00:57.968Z",
+  "windowFrom": "2026-08-20T00:01:25.000Z",
+  "windowTo": "2026-10-19T00:01:25.000Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.19",
       "weekday": "周一",
-      "time": "04:00",
-      "text": "2026.10.19（周一）04:00",
+      "time": "08:01",
+      "text": "2026.10.19（周一）08:01",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,30 +98,36 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.18",
       "weekday": "周日",
-      "time": "13:00",
-      "text": "2026.10.18（周日）13:00",
+      "time": "17:01",
+      "text": "2026.10.18（周日）17:01",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2111849858374177222",
+    "id": "2111945355596353823",
     "account": "thsottiaux",
-    "text": "What’s cooking today",
-    "createdAt": "2026-10-18T16:00:17.000Z",
-    "url": "https://x.com/thsottiaux/status/2111849858374177222",
-    "reasons": [],
+    "text": "Journalism with additional Theo steps",
+    "createdAt": "2026-10-18T22:19:45.000Z",
+    "url": "https://x.com/thsottiaux/status/2111945355596353823",
+    "reasons": [
+      "上下文：回复 @theo「Just realized something. Because I p…」"
+    ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "theo",
+      "id": "",
+      "text": "Just realized something. Because I pursue accuracy above all else, I tend to make enemies with those who benefit from people being misinformed."
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.10.19",
         "weekday": "周一",
-        "time": "00:00",
-        "text": "2026.10.19（周一）00:00",
+        "time": "06:19",
+        "text": "2026.10.19（周一）06:19",
         "offset": "UTC+8"
       },
       "b": {
@@ -129,25 +135,17 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.18",
         "weekday": "周日",
-        "time": "09:00",
-        "text": "2026.10.18（周日）09:00",
+        "time": "15:19",
+        "text": "2026.10.18（周日）15:19",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "hint",
-    "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
+    "level": "none",
+    "rejected": "无额度相关词",
     "intent": 0,
     "window": null,
-    "candidateWindow": {
-      "word": "today",
-      "precision": "day",
-      "from": "2026-10-18T07:00:00.000Z",
-      "to": "2026-10-19T06:59:00.000Z",
-      "dayNum": 20744,
-      "spec": 72,
-      "note": null
-    }
+    "candidateWindow": null
   },
   "signals": [],
   "occurred": [
@@ -536,6 +534,44 @@
     }
   ],
   "hints": [
+    {
+      "id": "2111918768733753664",
+      "account": "thsottiaux",
+      "text": "People have escaped the TL and are asking me for resets on the street now. I’ll make little cards to hand out",
+      "createdAt": "2026-10-18T20:34:06.000Z",
+      "url": "https://x.com/thsottiaux/status/2111918768733753664",
+      "reasons": [
+        "命中重置词 reset"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.19",
+          "weekday": "周一",
+          "time": "04:34",
+          "text": "2026.10.19（周一）04:34",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.18",
+          "weekday": "周日",
+          "time": "13:34",
+          "text": "2026.10.18（周日）13:34",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "有额度意图但没给出时间，只能作线索",
+      "intent": 3,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2111849858374177222",
       "account": "thsottiaux",
@@ -2522,7 +2558,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-18T20:00:57.968Z"
+        "checkedAt": "2026-10-19T00:01:25.000Z"
       }
     },
     {
@@ -3277,6 +3313,132 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2111945355596353823",
+      "account": "thsottiaux",
+      "text": "Journalism with additional Theo steps",
+      "createdAt": "2026-10-18T22:19:45.000Z",
+      "url": "https://x.com/thsottiaux/status/2111945355596353823",
+      "reasons": [
+        "上下文：回复 @theo「Just realized something. Because I p…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "Just realized something. Because I pursue accuracy above all else, I tend to make enemies with those who benefit from people being misinformed."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.19",
+          "weekday": "周一",
+          "time": "06:19",
+          "text": "2026.10.19（周一）06:19",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.18",
+          "weekday": "周日",
+          "time": "15:19",
+          "text": "2026.10.18（周日）15:19",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2111941223187710114",
+      "account": "thsottiaux",
+      "text": "We do care about local regulation",
+      "createdAt": "2026-10-18T22:03:20.000Z",
+      "url": "https://x.com/thsottiaux/status/2111941223187710114",
+      "reasons": [
+        "上下文：回复 @LexnLin「I don't really get it. Why is Grok B…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "LexnLin",
+        "id": "",
+        "text": "I don't really get it. Why is Grok Bot allowed in the EU but Dots take that much time?"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.19",
+          "weekday": "周一",
+          "time": "06:03",
+          "text": "2026.10.19（周一）06:03",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.18",
+          "weekday": "周日",
+          "time": "15:03",
+          "text": "2026.10.18（周日）15:03",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2111918635849801739",
+      "account": "thsottiaux",
+      "text": "We’ll see",
+      "createdAt": "2026-10-18T20:33:34.000Z",
+      "url": "https://x.com/thsottiaux/status/2111918635849801739",
+      "reasons": [
+        "上下文：回复 @littlelion_love「When Tibo reaches 1M followers on X,…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "littlelion_love",
+        "id": "",
+        "text": "When Tibo reaches 1M followers on X, will there be a reset?"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.19",
+          "weekday": "周一",
+          "time": "04:33",
+          "text": "2026.10.19（周一）04:33",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.18",
+          "weekday": "周日",
+          "time": "13:33",
+          "text": "2026.10.18（周日）13:33",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2111832959842161136",
       "account": "thsottiaux",
@@ -11395,144 +11557,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2105305239398285514",
-      "account": "thsottiaux",
-      "text": "I watched it live while reading through the oncall channel my dot had just flagged to me. Prod went down 5 mins before the demo. Memorable for sure.",
-      "createdAt": "2026-09-30T14:34:18.000Z",
-      "url": "https://x.com/thsottiaux/status/2105305239398285514",
-      "reasons": [
-        "含发布/宣传语境（下调置信度）",
-        "上下文：回复 @charlielamb「anyone else watch that @OpenAI voice…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "charlielamb",
-        "id": "",
-        "text": "anyone else watch that @OpenAI voice call demo completely bomb lmao"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.30",
-          "weekday": "周三",
-          "time": "22:34",
-          "text": "2026.09.30（周三）22:34",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.30",
-          "weekday": "周三",
-          "time": "07:34",
-          "text": "2026.09.30（周三）07:34",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2105189201679630385",
-      "account": "thsottiaux",
-      "text": "Basically",
-      "createdAt": "2026-09-30T06:53:12.000Z",
-      "url": "https://x.com/thsottiaux/status/2105189201679630385",
-      "reasons": [
-        "上下文：回复 @_ak_111「Bruh what? 😭 OpenAI says Dots usage…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "_ak_111",
-        "id": "",
-        "text": "Bruh what? 😭 OpenAI says Dots usage won’t count toward eligible plans’ usage allowances for the first month And Dots are powered by GPT-6 Astra 👀 Is OpenAI basically giving us unlimited Astra-powered Dots for launch?"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.30",
-          "weekday": "周三",
-          "time": "14:53",
-          "text": "2026.09.30（周三）14:53",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "23:53",
-          "text": "2026.09.29（周二）23:53",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2105188957437002208",
-      "account": "thsottiaux",
-      "text": "Don’t ask",
-      "createdAt": "2026-09-30T06:52:14.000Z",
-      "url": "https://x.com/thsottiaux/status/2105188957437002208",
-      "reasons": [
-        "上下文：回复 @ChrisGPT「I called my Dot and it took a while …」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "ChrisGPT",
-        "id": "",
-        "text": "I called my Dot and it took a while for her to pickup…? Who was she talking to??"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.30",
-          "weekday": "周三",
-          "time": "14:52",
-          "text": "2026.09.30（周三）14:52",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.29",
-          "weekday": "周二",
-          "time": "23:52",
-          "text": "2026.09.29（周二）23:52",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 414,
+    "scanned": 418,
     "explicit": 0,
     "occurred": 9,
-    "hint": 59,
-    "none": 333,
-    "rejected": 333
+    "hint": 60,
+    "none": 336,
+    "rejected": 336
   },
   "truncated": true
 }

@@ -1,6 +1,75 @@
 {
   "tweets": [
     {
+      "id": "2111945355596353823",
+      "text": "Journalism with additional Theo steps",
+      "created_at": "2026-10-18T22:19:45.000Z",
+      "url": "https://x.com/thsottiaux/status/2111945355596353823",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "Just realized something. Because I pursue accuracy above all else, I tend to make enemies with those who benefit from people being misinformed.",
+        "created_at": "2026-10-18T20:07:08.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-19T00:01:24.998Z"
+    },
+    {
+      "id": "2111941223187710114",
+      "text": "We do care about local regulation",
+      "created_at": "2026-10-18T22:03:20.000Z",
+      "url": "https://x.com/thsottiaux/status/2111941223187710114",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "LexnLin",
+        "id": "",
+        "text": "I don't really get it. Why is Grok Bot allowed in the EU but Dots take that much time?",
+        "created_at": "2026-10-18T16:13:35.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-19T00:01:24.998Z"
+    },
+    {
+      "id": "2111918768733753664",
+      "text": "People have escaped the TL and are asking me for resets on the street now. I’ll make little cards to hand out",
+      "created_at": "2026-10-18T20:34:06.000Z",
+      "url": "https://x.com/thsottiaux/status/2111918768733753664",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-19T00:01:24.998Z"
+    },
+    {
+      "id": "2111918635849801739",
+      "text": "We’ll see",
+      "created_at": "2026-10-18T20:33:34.000Z",
+      "url": "https://x.com/thsottiaux/status/2111918635849801739",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "littlelion_love",
+        "id": "",
+        "text": "When Tibo reaches 1M followers on X, will there be a reset?",
+        "created_at": "2026-10-18T20:32:47.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-19T00:01:24.998Z"
+    },
+    {
       "id": "2111849858374177222",
       "text": "What’s cooking today",
       "created_at": "2026-10-18T16:00:17.000Z",
@@ -222,8 +291,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-17T20:01:20.701Z"
     },
     {
@@ -241,8 +310,8 @@
       },
       "kind": "reset",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-17T20:01:20.701Z"
     },
     {
@@ -6897,7 +6966,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-18T20:00:57.967Z",
+  "updated_at": "2026-10-19T00:01:25.000Z",
   "source": "browser",
   "coverage_since": "2026-10-16T21:12:21.000Z"
 }
