@@ -1,6 +1,37 @@
 {
   "tweets": [
     {
+      "id": "2111994295364571327",
+      "text": "Registers as time travel",
+      "created_at": "2026-10-19T01:34:13.000Z",
+      "url": "https://x.com/thsottiaux/status/2111994295364571327",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "JamesStewau0y5",
+        "id": "",
+        "text": "I’m genuinely confused as to what this means. So a prompt I’ve sent earlier I can go back and change? Does it register like a steer?",
+        "created_at": "2026-10-19T01:21:26.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-19T02:09:11.655Z"
+    },
+    {
+      "id": "2111990254408434095",
+      "text": "Day 14/ Small quality of life improvement. You can now edit previous messages within a thread in the desktop app. Long time requested, and took way too long to get that one out.",
+      "created_at": "2026-10-19T01:18:10.000Z",
+      "url": "https://x.com/thsottiaux/status/2111990254408434095",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-19T02:09:11.655Z"
+    },
+    {
       "id": "2111945355596353823",
       "text": "Journalism with additional Theo steps",
       "created_at": "2026-10-18T22:19:45.000Z",
@@ -6966,7 +6997,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-19T01:10:16.865Z",
+  "updated_at": "2026-10-19T02:09:11.658Z",
   "source": "browser",
   "coverage_since": "2026-10-16T21:12:21.000Z"
 }
