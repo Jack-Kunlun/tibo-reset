@@ -1,6 +1,107 @@
 {
   "tweets": [
     {
+      "id": "2112049026636103954",
+      "text": "Didn’t know Batman worked at OpenAI",
+      "created_at": "2026-10-19T05:11:42.000Z",
+      "url": "https://x.com/thsottiaux/status/2112049026636103954",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-19T05:42:47.671Z"
+    },
+    {
+      "id": "2112039750999986304",
+      "text": "Sorry",
+      "created_at": "2026-10-19T04:34:51.000Z",
+      "url": "https://x.com/thsottiaux/status/2112039750999986304",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "codeglitch",
+        "id": "",
+        "text": "I cant agree with the replying part, I tried to get him to see my bug reports, 0 replies, and there are a lot of them. Pinned message.",
+        "created_at": "2026-10-18T10:18:37.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-19T05:42:47.671Z"
+    },
+    {
+      "id": "2112039554538770846",
+      "text": "You wish",
+      "created_at": "2026-10-19T04:34:04.000Z",
+      "url": "https://x.com/thsottiaux/status/2112039554538770846",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "xiangning0",
+        "id": "",
+        "text": "如果让 Tibo 来发布 Deepseek 的新模型： 第一天，速度从 200t/s 提升到了300 第二天，重置 第三天，现在输入框可以生成回复了 第四天，重置 第五天，修改了默认上下文长度 第六天，发重置卡 第七天，支持 8 倍速，仅 pro 用户可用 第二十八天，发布全新模型命名deepseek v4.5 天王星 Ultra fast",
+        "created_at": "2026-10-19T00:02:04.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-19T05:42:47.671Z"
+    },
+    {
+      "id": "2112039275344941371",
+      "text": "I bought a new domain and I’m very excited for it. Very",
+      "created_at": "2026-10-19T04:32:57.000Z",
+      "url": "https://x.com/thsottiaux/status/2112039275344941371",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-19T05:42:47.671Z"
+    },
+    {
+      "id": "2112034328549216593",
+      "text": "https:// chatgpt.com/cyber",
+      "created_at": "2026-10-19T04:13:18.000Z",
+      "url": "https://x.com/thsottiaux/status/2112034328549216593",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "xiangning0",
+        "id": "",
+        "text": "如果让 Tibo 来发布 Deepseek 的新模型： 第一天，速度从 200t/s 提升到了300 第二天，重置 第三天，现在输入框可以生成回复了 第四天，重置 第五天，修改了默认上下文长度 第六天，发重置卡 第七天，支持 8 倍速，仅 pro 用户可用 第二十八天，发布全新模型命名deepseek v4.5 天王星 Ultra fast",
+        "created_at": "2026-10-19T00:02:04.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-19T05:42:47.671Z"
+    },
+    {
+      "id": "2112034063934742720",
+      "text": "Our team worked with OpenCode to have their users who are also OpenAI API customers back in business and any credits refunded which would have been drawn in the attack. Also, you can request Daybreak Blue access to use our cyber permissive setup for defense. Do not wait until you have to deal with an incident. We’re here to help.",
+      "created_at": "2026-10-19T04:12:15.000Z",
+      "url": "https://x.com/thsottiaux/status/2112034063934742720",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "xiangning0",
+        "id": "",
+        "text": "如果让 Tibo 来发布 Deepseek 的新模型： 第一天，速度从 200t/s 提升到了300 第二天，重置 第三天，现在输入框可以生成回复了 第四天，重置 第五天，修改了默认上下文长度 第六天，发重置卡 第七天，支持 8 倍速，仅 pro 用户可用 第二十八天，发布全新模型命名deepseek v4.5 天王星 Ultra fast",
+        "created_at": "2026-10-19T00:02:04.000Z",
+        "url": ""
+      },
+      "text_full": true,
+      "kind": "credit",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-19T05:42:47.671Z"
+    },
+    {
       "id": "2111994295364571327",
       "text": "Registers as time travel",
       "created_at": "2026-10-19T01:34:13.000Z",
@@ -6997,7 +7098,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-19T02:09:11.658Z",
+  "updated_at": "2026-10-19T05:42:47.672Z",
   "source": "browser",
   "coverage_since": "2026-10-16T21:12:21.000Z"
 }
