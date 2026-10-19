@@ -291,8 +291,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-17T20:01:20.701Z"
     },
     {
@@ -310,8 +310,8 @@
       },
       "kind": "reset",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-17T20:01:20.701Z"
     },
     {
@@ -6966,7 +6966,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-19T00:01:25.000Z",
+  "updated_at": "2026-10-19T01:10:16.865Z",
   "source": "browser",
   "coverage_since": "2026-10-16T21:12:21.000Z"
 }
