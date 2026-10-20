@@ -1,6 +1,14 @@
 {
   "records": [
     {
+      "id": "2112432076767289678",
+      "announced_at": "2026-10-20T06:33:48.000Z",
+      "type": "reset",
+      "text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
+      "url": "https://x.com/thsottiaux/status/2112432076767289678",
+      "attribution": "codex-resets.com"
+    },
+    {
       "id": "2111566005684289735",
       "announced_at": "2026-10-17T21:12:21.000Z",
       "type": "reset",
@@ -514,5 +522,5 @@
     }
   ],
   "bootstrapped_at": "2026-09-20T08:17:13.018Z",
-  "refreshed_at": "2026-10-19T20:01:00.360Z"
+  "refreshed_at": "2026-10-20T07:02:05.090Z"
 }

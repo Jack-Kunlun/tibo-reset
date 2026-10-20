@@ -1,6 +1,44 @@
 {
   "tweets": [
     {
+      "id": "2112432076767289678",
+      "text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
+      "created_at": "2026-10-20T06:33:48.000Z",
+      "url": "https://x.com/thsottiaux/status/2112432076767289678",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "thsottiaux",
+        "text": "Day 15/ We're cooked x.com/OpenAIDevs/sta…",
+        "created_at": "2026-10-19T19:45:28.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-20T07:02:15.881Z",
+      "text_full": true
+    },
+    {
+      "id": "2112426606870585551",
+      "text": "Instead 1) Buy a Pro 100 sub 2) ??? 3) Enjoy T3Code",
+      "created_at": "2026-10-20T06:12:04.000Z",
+      "url": "https://x.com/thsottiaux/status/2112426606870585551",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "Can I be real for a sec? I'm super nervous about this launch. It's something I never thought I would do, and I want to be as transparent as possible. This course is $1,300. You should not buy it. Let me explain. I've done YouTube for over 5 years now. I've never done a paid",
+        "created_at": "2026-10-19T23:55:05.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-20T07:02:15.881Z"
+    },
+    {
       "id": "2112268918681485431",
       "text": "Day 15/ We're cooked",
       "created_at": "2026-10-19T19:45:28.000Z",
@@ -7116,7 +7154,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-19T20:01:20.910Z",
+  "updated_at": "2026-10-20T07:02:15.882Z",
   "source": "browser",
-  "coverage_since": "2026-10-16T21:12:21.000Z"
+  "coverage_since": "2026-10-19T06:33:48.000Z"
 }
