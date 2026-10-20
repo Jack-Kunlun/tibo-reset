@@ -19,7 +19,7 @@ import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mergeHistory, mergeConfirmedResets, runCollection, patchTruncatedTexts, buildStats } from '../src/lib/collect.mjs';
+import { mergeHistory, reconcileHistory, mergeConfirmedResets, runCollection, patchTruncatedTexts, buildStats } from '../src/lib/collect.mjs';
 import { detectSignals } from '../src/lib/signals.mjs';
 import { detectNewResets } from '../server/subscribe.mjs';
 
@@ -43,8 +43,8 @@ function check(name, cond, detail = '') {
 console.log('\n【1】合并：上游新增的记录必须进库');
 
 {
-  // 真实 case（2026-09-22）：上游当天就收录了这条 banked reset，
-  // 而本地库在它之前就已有 1 条，旧实现此时**再也不会**去拉上游。
+  // 真实 case（2026-09-22）：上游新增完成记录进入已有历史；正文保留严格完成证据，
+  // 同时验证 banked 的 credit 类型仍会被保留。
   const local = [
     {
       id: '2098685367058612394',
@@ -59,7 +59,7 @@ console.log('\n【1】合并：上游新增的记录必须进库');
     id: '2102463847714247142',
     announced_at: '2026-09-22T18:23:37.000Z',
     type: 'credit',
-    text: 'GPT-6 Sol and Luna are out. … And one more thing. We are loading a banked reset into all accounts of our Plus, Pro and Business users. Let\u2019s go!',
+    text: 'Everyone\u2019s usage limits have been reset.',
     url: 'https://x.com/thsottiaux/status/2102463847714247142',
     attribution: 'codex-resets.com',
   };
@@ -93,11 +93,13 @@ console.log('\n【1】合并：上游新增的记录必须进库');
 }
 
 {
-  // 共有的条目以上游为准（他可能编辑过推文、上游可能修正时间）
+  // 有完成证据的共有条目可被上游修正；无完成证据的差异不得改写历史基线。
   const local = [{ id: 'a', announced_at: '2026-09-12T00:00:00.000Z', type: 'reset', text: 'old', url: null, attribution: 'codex-resets.com' }];
   const m = mergeHistory(local, [{ id: 'a', announced_at: '2026-09-12T08:09:17.000Z', type: 'credit', text: 'new', url: 'u', attribution: 'codex-resets.com' }]);
-  check('共有条目以上游为准（时间/类型/链接都更新）', m.records[0].announced_at === '2026-09-12T08:09:17.000Z' && m.records[0].type === 'credit' && m.records[0].url === 'u', JSON.stringify(m.records[0]));
-  check('且计入 updated', m.updated === 1, String(m.updated));
+  check('共有条目缺少完成证据时保持旧时间/正文/类型/链接',
+    m.records[0].announced_at === local[0].announced_at && m.records[0].type === 'reset' &&
+      m.records[0].text === 'old' && m.records[0].url === null, JSON.stringify(m.records[0]));
+  check('无完成证据不计入 updated', m.updated === 0, String(m.updated));
 }
 
 {
@@ -118,12 +120,157 @@ console.log('\n【1】合并：上游新增的记录必须进库');
   ]);
   check('缺 id 的条目被跳过', !m.records.some((r) => !r.id), JSON.stringify(m.records.map((r) => r.id)));
   check('时间非法的条目被跳过', !m.records.some((r) => r.id === 'b'), JSON.stringify(m.records.map((r) => r.id)));
-  check('合法条目正常进库', m.records.some((r) => r.id === 'c') && m.added === 1, `added=${m.added}`);
+  check('日期合法但缺少完成证据的条目仍不当作重置进库', !m.records.some((r) => r.id === 'c') && m.added === 0, `added=${m.added}`);
 }
 
 {
   const m = mergeHistory(undefined, undefined);
   check('空输入不炸（本地库首次为空时的路径）', Array.isArray(m.records) && m.records.length === 0 && m.added === 0, JSON.stringify(m));
+}
+
+{
+  const target = {
+    id: '2112432076767289678',
+    created_at: '2026-10-20T06:33:48.000Z',
+    text: "Day 15/ Nevermind, we're still cooking... and reset. Enjoy.",
+    url: 'https://x.com/thsottiaux/status/2112432076767289678',
+    account: 'thsottiaux', author_verified: true, foundVia: 'timeline-browser',
+  };
+  const thirdParty = {
+    id: target.id, announced_at: target.created_at, type: 'reset', text: target.text,
+    url: target.url, attribution: 'codex-resets.com',
+  };
+  const oldConfirmed = {
+    id: '2111566005684289735', announced_at: '2026-10-17T21:12:21.000Z', type: 'reset',
+    text: 'Done', url: 'https://x.com/thsottiaux/status/2111566005684289735', attribution: 'codex-resets.com',
+  };
+  const cleaned = mergeHistory([thirdParty, oldConfirmed], [thirdParty], { tweets: [target] });
+  check('已知 Day 15 预告从第三方落地历史移除',
+    !cleaned.records.some((r) => r.id === target.id));
+  check('清理误记后保留 10 月 17 日已确认基线',
+    cleaned.records.length === 1 && cleaned.records[0].id === oldConfirmed.id &&
+      buildStats(cleaned.records).last_at === oldConfirmed.announced_at);
+  const repeated = mergeHistory(cleaned.records, [{ ...thirdParty, id: `observed-${target.id}` }], { tweets: [target] });
+  check('重复同步 observed-* 预告不新增也不改动',
+    repeated.records.length === 1 && repeated.added === 0 && repeated.updated === 0);
+  const helper = reconcileHistory([thirdParty, oldConfirmed], [target]);
+  check('reconcileHistory 可独立清理并保留已确认基线',
+    helper.removed === 1 && helper.records.length === 1 && helper.records[0].id === oldConfirmed.id);
+  const noLocalPost = mergeHistory([oldConfirmed], [thirdParty]);
+  check('没有本地原帖时也拦住 standalone 明确预告',
+    noLocalPost.records.length === 1 && noLocalPost.records[0].id === oldConfirmed.id);
+  const upstreamClaimsDone = mergeHistory([oldConfirmed], [{ ...thirdParty,
+    text: 'Reset all propagated. Sweet dreams.' }], { tweets: [target] });
+  check('可信本地预告优先于第三方把同帖改写成完成句',
+    upstreamClaimsDone.records.length === 1 && upstreamClaimsDone.records[0].id === oldConfirmed.id);
+  const unverified = mergeHistory([thirdParty, oldConfirmed], [], {
+    tweets: [{ ...target, author_verified: false }],
+  });
+  check('作者未核验时保留旧第三方基线，不推断为误记', unverified.records.length === 2);
+
+  const denied = { ...target, id: 'denied', text: 'The reset has not propagated yet.',
+    url: 'https://x.com/thsottiaux/status/denied' };
+  const deniedRecord = { ...thirdParty, id: denied.id, url: denied.url, text: denied.text };
+  check('可信原帖的明确否定会移除第三方误记',
+    mergeHistory([deniedRecord], [], { tweets: [denied] }).records.length === 0);
+
+  const occurred = { ...target, id: 'actual', created_at: '2026-10-20T08:30:00.000Z',
+    text: 'Reset all propagated. Sweet dreams.', url: 'https://x.com/thsottiaux/status/actual' };
+  const occurredRecord = { id: occurred.id, announced_at: occurred.created_at, type: 'reset', text: occurred.text,
+    url: occurred.url, attribution: 'codex-resets.com' };
+  const retained = mergeHistory([oldConfirmed], [occurredRecord], { tweets: [occurred] });
+  check('真实 occurred 完成公告仍能进入历史且只新增一条',
+    retained.added === 1 && retained.records.filter((r) => r.id === occurred.id).length === 1);
+  const directConfirmed = { ...occurredRecord, attribution: 'x.com/thsottiaux' };
+  const protectedDirect = mergeHistory([oldConfirmed, directConfirmed], [thirdParty], { tweets: [target] });
+  check('第三方预告不能删除已有作者直接确认的完成记录',
+    protectedDirect.records.some((r) => r.id === directConfirmed.id && r.attribution === directConfirmed.attribution));
+
+  const edited = { ...target, text: 'Reset all propagated. Sweet dreams.' };
+  const editedRecord = mergeHistory([thirdParty], [thirdParty], { tweets: [edited] });
+  check('同一原帖编辑成完成公告后按可信正文更新',
+    editedRecord.records.length === 1 && editedRecord.records[0].text === edited.text &&
+      editedRecord.records[0].attribution === 'x.com/thsottiaux');
+
+  for (const [id, text] of [
+    ['progress', 'The reset is in progress.'],
+    ['cancelled', 'The reset is cancelled.'],
+    ['planned', 'A reset is planned but not available yet.'],
+  ]) {
+    const post = { ...target, id, text, url: `https://x.com/thsottiaux/status/${id}` };
+    const incoming = { id, announced_at: post.created_at, type: 'reset', text,
+      url: post.url, attribution: 'codex-resets.com' };
+    check(`无可信原帖时也拒收无严格完成证据的新历史：${text}`,
+      mergeHistory([], [incoming]).added === 0);
+    check(`可信原帖仍未完成时拒收第三方落地标签：${text}`,
+      mergeHistory([], [incoming], { tweets: [post] }).added === 0);
+  }
+  const noEvidenceBaseline = {
+    id: 'legacy-unknown', announced_at: '2026-10-17T21:12:21.000Z', type: 'reset',
+    text: 'Previously stored history with unknown evidence', url: null, attribution: 'codex-resets.com',
+  };
+  const noEvidenceUpdate = mergeHistory([noEvidenceBaseline], [{ ...noEvidenceBaseline,
+    announced_at: '2026-10-20T06:33:48.000Z', text: 'A reset is planned but not available yet.' }]);
+  check('无完成证据的上游更新不覆盖既有未知历史基线',
+    noEvidenceUpdate.updated === 0 && JSON.stringify(noEvidenceUpdate.records[0]) === JSON.stringify(noEvidenceBaseline));
+  const standaloneCompletion = { id: 'standalone-complete', announced_at: target.created_at,
+    type: 'reset', text: 'Reset all propagated. Sweet dreams.',
+    url: 'https://x.com/thsottiaux/status/standalone-complete', attribution: 'codex-resets.com' };
+  check('没有本地原帖时，严格完成句仍允许新增第三方历史',
+    mergeHistory([], [standaloneCompletion]).added === 1);
+
+  const firstUrl = 'https://x.com/thsottiaux/status/111';
+  const secondUrl = 'https://x.com/thsottiaux/status/222';
+  const aliasBaseline = { id: '111', announced_at: '2026-10-20T10:00:00.000Z',
+    first_confirmed_at: '2026-10-20T10:00:00.000Z', type: 'reset', text: 'Done', url: firstUrl,
+    confirmation_urls: [firstUrl, secondUrl], attribution: 'codex-resets.com' };
+  const completedAlias = { ...target, id: '222', created_at: '2026-10-20T11:00:00.000Z',
+    text: 'Reset all propagated. Sweet dreams.', url: secondUrl };
+  const reconciledAlias = reconcileHistory([aliasBaseline], [completedAlias]).records[0];
+  check('匹配后续完成别名时保留原 id、首次时刻与全部来源',
+    reconciledAlias.id === '111' && reconciledAlias.announced_at === aliasBaseline.announced_at &&
+      reconciledAlias.first_confirmed_at === aliasBaseline.first_confirmed_at &&
+      JSON.stringify(reconciledAlias.confirmation_urls) === JSON.stringify(aliasBaseline.confirmation_urls));
+  const completedPrimary = { ...completedAlias, id: '111', url: firstUrl,
+    created_at: aliasBaseline.announced_at };
+  const pendingAlias = { ...target, id: '222', url: secondUrl,
+    text: 'A reset is coming for everyone.' };
+  const bothSources = [completedPrimary, pendingAlias];
+  const sourceOrderA = reconcileHistory([aliasBaseline], bothSources).records;
+  const sourceOrderB = reconcileHistory([aliasBaseline], [...bothSources].reverse()).records;
+  check('主来源完成时预告别名不能改写首次时刻（正序）', sourceOrderA.length === 1 &&
+    sourceOrderA[0].id === '111' && sourceOrderA[0].announced_at === aliasBaseline.announced_at &&
+    sourceOrderA[0].first_confirmed_at === aliasBaseline.first_confirmed_at &&
+    sourceOrderA[0].text === completedPrimary.text);
+  check('主来源完成时预告别名不能改写首次时刻（反序）', sourceOrderB.length === 1 &&
+    sourceOrderB[0].id === '111' && sourceOrderB[0].announced_at === aliasBaseline.announced_at &&
+    sourceOrderB[0].first_confirmed_at === aliasBaseline.first_confirmed_at &&
+    sourceOrderB[0].text === completedPrimary.text);
+
+  const forecastPrimary = { ...completedPrimary, text: 'A reset is coming.' };
+  const correctedAlias = reconcileHistory([aliasBaseline], [forecastPrimary, completedAlias]).records[0];
+  const correctedAliasReverse = reconcileHistory([aliasBaseline], [completedAlias, forecastPrimary]).records[0];
+  check('主来源已明确为预告时，以最早可信完成别名纠正主事件时刻',
+    correctedAlias.id === '222' && correctedAlias.url === secondUrl &&
+      correctedAlias.announced_at === completedAlias.created_at &&
+      correctedAlias.first_confirmed_at === completedAlias.created_at &&
+      correctedAlias.text === completedAlias.text &&
+      correctedAlias.confirmation_urls.includes(firstUrl) && correctedAlias.confirmation_urls.includes(secondUrl) &&
+      correctedAliasReverse.id === correctedAlias.id && correctedAliasReverse.announced_at === correctedAlias.announced_at);
+  const upstreamForecast = { id: '111', announced_at: aliasBaseline.announced_at,
+    type: 'reset', text: forecastPrimary.text, url: firstUrl, attribution: 'codex-resets.com' };
+  const acrossMerge = mergeHistory([aliasBaseline], [upstreamForecast], {
+    tweets: [forecastPrimary, completedAlias],
+  });
+  check('mergeHistory 后续仍不能用 /111 预告覆盖或删除纠正后的 /222 完成记录',
+    acrossMerge.records.length === 1 && acrossMerge.records[0].id === '222' &&
+      acrossMerge.records[0].announced_at === completedAlias.created_at && acrossMerge.removed === 0);
+  const acrossMergeReverse = mergeHistory([aliasBaseline], [upstreamForecast], {
+    tweets: [completedAlias, forecastPrimary],
+  });
+  check('同一保障不依赖可信来源输入顺序',
+    acrossMergeReverse.records.length === 1 && acrossMergeReverse.records[0].id === '222' &&
+      acrossMergeReverse.records[0].announced_at === completedAlias.created_at && acrossMergeReverse.removed === 0);
 }
 
 /* ============ 2. 正文回填：被截断的长推文必须补全 ============ */
@@ -164,6 +311,27 @@ console.log('\n【2】正文回填：把被 X 页面截断的后半段补回来'
 }
 
 {
+  const forecast = {
+    id: '2112440000000000001', created_at: '2026-10-20T09:00:00.000Z',
+    text: 'A reset is coming.', url: 'https://x.com/thsottiaux/status/2112440000000000001',
+    account: 'thsottiaux', author_verified: true, foundVia: 'timeline-browser',
+  };
+  const fabricatedCompletion = 'Reset all propagated. We are so glad everyone can enjoy this!';
+  const unsafePatch = patchTruncatedTexts([forecast], new Map([[forecast.id, fabricatedCompletion]]));
+  check('不以非前缀的第三方长文改写可信原帖', unsafePatch.patched === 0 &&
+    unsafePatch.tweets[0].text === forecast.text && unsafePatch.tweets[0].text_full !== true,
+    JSON.stringify(unsafePatch.tweets[0]));
+  check('预告不能经第三方正文回填变成已落地记录',
+    mergeConfirmedResets([], unsafePatch.tweets, { now: Date.parse('2026-10-20T10:00:00.000Z') }).added === 0);
+
+  const alreadyFull = { ...forecast, id: '2112440000000000002', text: 'A reset is coming.', text_full: true };
+  const protectedFull = patchTruncatedTexts([alreadyFull], new Map([[alreadyFull.id,
+    'A reset is coming. Reset all propagated.'] ]));
+  check('第三方长文不覆盖已标记完整的正文', protectedFull.patched === 0 &&
+    protectedFull.tweets[0].text === alreadyFull.text, JSON.stringify(protectedFull.tweets[0]));
+}
+
+{
   const tweets = [{ id: 'X3', text: 'untouched' }, { id: 'X4', text: 'untouched' }];
   const r = patchTruncatedTexts(tweets, new Map([['X9', 'a'.repeat(100)]]));
   check('上游没有的 id → 全部不动', r.patched === 0 && r.tweets.every((t) => t.text === 'untouched'), JSON.stringify(r.patched));
@@ -195,7 +363,12 @@ const codeLines = collectSrc
     '仍存在 `opts.bootstrap || history.records.length === 0` 这个条件'
   );
   check('每轮都调用 fetchHistory 刷新历史', /const upstream = await fetchHistory\(\)/.test(collectSrc));
-  check('刷新结果经 mergeHistory 合并（而不是整体覆盖）', /mergeHistory\(history\.records,\s*upstream\)/.test(collectSrc));
+  check('刷新结果经带可信推文证据的 mergeHistory 合并（而不是整体覆盖）',
+    /mergeHistory\(history\.records,\s*upstream,\s*\{\s*tweets:\s*sourceTweets/.test(collectSrc));
+  check('采集开始和结束都会 reconcile 第三方历史',
+    (collectSrc.match(/reconcileHistory\(/g) ?? []).length >= 3);
+  check('reconcile 移除计入 changed 与报告',
+    /merged\.removed > 0/.test(collectSrc) && /removed: reconciled\.removed/.test(collectSrc));
 
   // ② 正文回填要真的接在推文库上
   check('正文回填被主流程调用', /patchTruncatedTexts\(live\.tweets/.test(collectSrc));

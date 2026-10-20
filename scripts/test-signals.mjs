@@ -13,7 +13,7 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { analyzeTweet, detectSignals, latestEventMs, hasOccurredPart, hasOccurredReset, detectProgram, SOURCE_ZONE, USER_ZONE } from '../src/lib/signals.mjs';
+import { analyzeTweet, detectSignals, latestEventMs, hasOccurredPart, hasOccurredReset, detectProgram, classifyEvent, SOURCE_ZONE, USER_ZONE } from '../src/lib/signals.mjs';
 import { renderSignal } from '../src/lib/render.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -1706,6 +1706,88 @@ console.log('\n【16】KI-013 日程式预告：`Day N/ Reset` 不含未来语�
   }
   check('日程序号本身不产生时间窗口', run('Day 10/ Reset', at).window === null);
   check('没有斜杠紧邻时不算日程式宣告', run('Day 10 ships a reset', at).level !== 'explicit');
+
+  const day15 = "Day 15/ Nevermind, we're still cooking... and reset. Enjoy.";
+  const target = run(day15, '2026-10-20T06:33:48.000Z', '2112432076767289678');
+  check('Day 15 未完工语境里的明确 reset 宣告是未定时预告',
+    target.level === 'explicit' && target.timing === 'pending' && target.window === null,
+    `实际 ${target.level}/${target.timing}`);
+  check('Day 15 未完工预告绝不判成已发生', target.level !== 'occurred');
+  check('Day 15 未完工预告仍归类为 reset 意图', classifyEvent(day15) === 'reset');
+  const day15Signals = detectSignals([{ id: '2112432076767289678', text: day15,
+    created_at: '2026-10-20T06:33:48.000Z', account: 'thsottiaux' }], {
+    now: Date.parse('2026-10-20T07:00:00.000Z'), lastResetAt: Date.parse('2026-10-17T21:12:21.000Z'),
+  });
+  check('Day 15 进入 forecasts 且不推进已确认重置',
+    day15Signals.forecasts[0]?.timing === 'pending' && day15Signals.occurred.length === 0);
+  check('不把其他 Day 15 reset 提及泛化成预告',
+    run('Day 15/ The reset button still looks different.', at).level !== 'explicit');
+  for (const text of [
+    "Day 15/ Nevermind, we're still cooking... and reset is cancelled.",
+    "Day 15/ Nevermind, we're still cooking... and reset is not happening.",
+  ]) {
+    const blocked = run(text, '2026-10-20T06:33:48.000Z');
+    check(`日程式未完成语境不能越过尾部否定：${text}`,
+      blocked.level !== 'explicit' && blocked.level !== 'occurred');
+  }
+
+  // `Enjoy.` 是口头禅不是语义要件 —— 少了它整条仍必须是预告。
+  for (const text of [
+    "Day 15/ Nevermind, we're still cooking... and reset.",
+    "Day 15/ Nevermind, we're still cooking... and reset!",
+    "Day 15/ Nevermind, we're still cooking... and reset. Enjoy",
+  ]) {
+    const variant = run(text, '2026-10-20T06:33:48.000Z');
+    check(`Enjoy 是口头禅不是语义要件：${text}`, variant.level === 'explicit',
+      `实际 ${variant.level}`);
+  }
+
+  // 斜杠后是「短名词短语 + reset 收尾」也算日程式宣告（法语 `Le limit reset`）。
+  // 长度上限（≤3 词）是保住 KI-013 红线的关键：长句发布说明必须挡住。
+  const day13 = run('Day 13/ Le limit reset', '2026-10-17T16:20:57.000Z');
+  check('斜杠后短名词短语以 reset 收尾仍是日程式预告',
+    day13.level === 'explicit' && day13.timing === 'pending', `实际 ${day13.level}/${day13.timing}`);
+  for (const text of [
+    'Day 1/ Shipping a reset of limits today',
+    'Day 3/ The big one is GPT-6 in Chat, but today is also a little celebration day',
+    'Day 12/ We’ve made improvements to Codex & Work that increase the effective usage',
+  ]) {
+    check(`长句发布说明不能被短短语规则泛化：${text.slice(0, 40)}`,
+      run(text, at).level !== 'explicit');
+  }
+  // 否定与回顾语境各有挡板，不靠正则本身分辨。
+  check('日程式否定句仍被否定挡板挡住', run('Day 10/ No reset', at).level !== 'explicit');
+  check('日程式回顾句不判成预告', run('Day 10/ There was a reset', at).level !== 'explicit');
+}
+
+/**
+ * 「已完成」不能因为出现 planned 就被降级。
+ *
+ * `Reset landed as planned` / `Reset completed as planned` 说的是**已经发生**，
+ * 而 RE_UNCOMPLETED_RESET 里的 `planned` 会把它们当成「计划中（还没发生）」挡掉
+ * —— 结果是已落地的重置被判成「没发生」，方向完全反了（旧版判 reset，新版曾误降级成 other）。
+ * 修法：`planned` 必须带被动/进行标记（is / was / be planned），才算「计划中」。
+ */
+console.log('\n【17】已完成公告不能被 planned 降级');
+{
+  for (const text of [
+    'Reset landed as planned.',
+    'Reset completed as planned.',
+    'The reset happened as planned.',
+  ]) {
+    check(`已完成且按计划仍是重置：${text}`,
+      hasOccurredReset(text) === true && classifyEvent(text) === 'reset',
+      `occurred=${hasOccurredReset(text)} classify=${classifyEvent(text)}`);
+  }
+  for (const text of [
+    'Reset is in progress.',
+    'Reset is not available yet.',
+    'Reset was cancelled.',
+    'Reset is planned for tomorrow.',
+  ]) {
+    check(`未完成语境不判成已发生：${text}`, hasOccurredReset(text) === false,
+      `occurred=${hasOccurredReset(text)}`);
+  }
 }
 
 

@@ -77,9 +77,9 @@
         <view class="pred-signal-note">{{pred.announcement ? '已捕获明确重置信号' : '根据历史重置节奏推算'}}</view>
 
         <view class="pred-stage">
-          <text class="pred-stage-title">{{pred.announcement ? '即将重置' : '下一次重置预测'}}</text>
-          <text wx:if="{{pred.announcement.pending}}" class="announcement-pending">时间待公布</text>
-          <view wx:else class="eta-date" aria-label="{{pred.announcement ? '公告日期' : '预测日期'}} {{pred.md}}">
+          <text class="pred-stage-title">{{pred.announcement.pending ? '模型预计到账' : pred.announcement ? '即将重置' : '下一次重置预测'}}</text>
+          <text wx:if="{{pred.announcement.pending}}" class="pending-notice">官方时间待公布 · 尚未确认落地</text>
+          <view wx:if="{{pred.hasEstimate}}" class="eta-date" aria-label="{{pred.etaKind === 'announced' ? '公告日期' : '模型预测日期'}} {{pred.md}}">
             <text
               wx:for="{{pred.dateDigits}}"
               wx:key="key"
@@ -89,8 +89,8 @@
             >{{digit.value}}</text>
           </view>
           <text class="eta-detail">{{pred.etaDetail}}</text>
-          <view wx:if="{{!pred.announcement.pending}}" class="pred-countdown {{pred.cd.over ? 'is-over' : ''}}">
-            <text class="pcd-cap">{{pred.cd.over ? pred.cd.label : pred.announcement ? '距公告窗口开启' : '预计还需等待'}}</text>
+          <view wx:if="{{pred.cd}}" class="pred-countdown {{pred.cd.over ? 'is-over' : ''}}">
+            <text class="pcd-cap">{{pred.cd.over ? pred.cd.label : pred.etaKind === 'announced' ? '距公告窗口开启' : pred.announcement.pending ? '距模型预计到账' : '预计还需等待'}}</text>
             <view wx:if="{{!pred.cd.over}}" class="pcd-row">
               <view class="pcd-g" wx:for="{{pred.cd.groups}}" wx:key="unit">
                 <text class="pcd-v">{{item.v}}</text>
@@ -100,8 +100,8 @@
           </view>
         </view>
 
-        <view wx:if="{{pred.band && !pred.announcement.pending}}" class="pred-range">
-          <text class="range-label">{{pred.etaKind === 'announced' ? '公告窗口' : '80% 预测区间'}}</text>
+        <view wx:if="{{pred.band}}" class="pred-range">
+          <text class="range-label">{{pred.bandLabel}}{{pred.bandNote ? ' · ' + pred.bandNote : ''}}</text>
           <text class="range-value">{{pred.band}}</text>
         </view>
         <view wx:if="{{pred.announcement.text}}" class="pred-announcement">
@@ -157,17 +157,61 @@
       </view>
     </view>
 
-    <view wx:if="{{remind.show}}" class="remind card">
-      <view class="rd-head">
-        <view class="rd-icon">◉</view>
-        <view class="rd-copy"><text class="rd-t">重置通知</text><text class="rd-sub">{{remind.state === 'unavailable' || remind.state === 'unknown' ? '通知暂未就绪' : '确认重置后，微信提醒'}}</text></view>
-        <button class="rd-btn {{remind.state}}" bindtap="onToggleRemind" disabled="{{remind.state === 'on' || remind.state === 'busy' || remind.state === 'checking' || remind.state === 'unavailable'}}" loading="{{remind.state === 'busy' || remind.state === 'checking'}}">{{remind.label}}</button>
+    <view wx:if="{{announcementRemind.show || landedRemind.show}}" class="remind card">
+      <view wx:if="{{announcementRemind.show}}" class="rd-row">
+        <view class="rd-head">
+          <view class="rd-icon">◉</view>
+          <view class="rd-copy"><text class="rd-t">重置预告通知</text><text class="rd-sub">明确预告时提醒，并注明尚未确认落地</text></view>
+          <button class="rd-btn {{announcementRemind.state}}" data-kind="announcement" bindtap="onToggleReminder" disabled="{{announcementRemind.state === 'on' || announcementRemind.state === 'busy' || announcementRemind.state === 'checking' || announcementRemind.state === 'unavailable'}}" loading="{{announcementRemind.state === 'busy' || announcementRemind.state === 'checking'}}">{{announcementRemind.label}}</button>
+        </view>
+        <view class="rd-hint">{{announcementRemind.hint}}</view>
+        <view wx:if="{{announcementRemind.feedback}}" class="rd-fb {{announcementRemind.tone}}">{{announcementRemind.feedback}}</view>
       </view>
-      <view class="rd-hint">{{remind.hint}}</view>
-      <view wx:if="{{remind.feedback}}" class="rd-fb {{remind.tone}}">{{remind.feedback}}</view>
+      <view wx:if="{{landedRemind.show}}" class="rd-row">
+        <view class="rd-head">
+          <view class="rd-icon">◉</view>
+          <view class="rd-copy"><text class="rd-t">重置落地通知</text><text class="rd-sub">公开完成公告确认后提醒一次</text></view>
+          <button class="rd-btn {{landedRemind.state}}" data-kind="landed" bindtap="onToggleReminder" disabled="{{landedRemind.state === 'on' || landedRemind.state === 'busy' || landedRemind.state === 'checking' || landedRemind.state === 'unavailable'}}" loading="{{landedRemind.state === 'busy' || landedRemind.state === 'checking'}}">{{landedRemind.label}}</button>
+        </view>
+        <view class="rd-hint">{{landedRemind.hint}}</view>
+        <view wx:if="{{landedRemind.feedback}}" class="rd-fb {{landedRemind.tone}}">{{landedRemind.feedback}}</view>
+      </view>
     </view>
 
-    <!-- 每日计划与某一天的预告分开呈现，默认收起，只在需要时查看时区和来源。 -->
+    <!-- 日历先于每日规则，预告与完成仍分别计数。 -->
+    <view wx:if="{{calendar}}" class="reset-calendar card">
+      <view class="section-head"><text class="section-title">重置月日历</text><text class="section-sub">非官方整理</text></view>
+      <text class="rc-caption">{{calendar.fromDate}} — {{calendar.toDate}} · UTC 实际日期</text>
+      <text wx:if="{{calendar.freshnessText}}" class="rc-data-note {{calendar.snapshot ? 'is-snapshot' : ''}}">{{calendar.freshnessText}}</text>
+      <view class="rc-summary">
+        <view class="rc-progress"><text class="rc-muted">日历进度</text><view><text class="rc-progress-value">{{calendar.progressDay}}</text><text class="rc-total"> / {{calendar.days}}</text></view></view>
+        <view class="rc-stats"><view><text>已确认到账</text><text class="rc-stat-value">{{calendar.confirmedCount}}<text class="rc-muted"> 次</text></text></view><text class="rc-muted">{{calendar.resetCount}} 次重置 · {{calendar.creditCount}} 次发券</text><view class="rc-awaiting"><text>预告待落地</text><text>{{calendar.awaitingCount}} 条</text></view></view>
+      </view>
+      <view class="rc-week"><text wx:for="{{calendar.weekdays}}" wx:key="*this">周{{item}}</text></view>
+      <view class="rc-grid">
+        <view wx:for="{{calendar.gridCells}}" wx:key="key" class="rc-slot">
+          <view wx:if="{{!item.blank}}" class="rc-cell rc-{{item.status}} {{item.isToday ? 'is-today' : ''}}" data-url="{{singlePage ? '' : item.sourceUrl}}" bindtap="onCopyCalendarSource">
+            <text class="rc-date">{{item.label}}</text><text class="rc-state">{{item.displayLabel}}</text><text wx:if="{{item.confirmedCount && item.awaitingCount}}" class="rc-extra">另有预告</text>
+          </view>
+        </view>
+      </view>
+      <view class="rc-legend"><text>● 已确认到账</text><text>● 预告待落地</text><text>● 日程更新</text></view>
+      <text class="rc-caption">暂无记录 ≠ 当日没有重置{{singlePage ? '' : ' · 点击有来源的日期可复制原推链接'}}</text>
+    </view>
+
+    <!-- 三行数据依据都来自当前预测、历史节奏与样本外回测。 -->
+    <view wx:if="{{basisRows.length}}" class="basis card">
+      <view class="section-head">
+        <text class="section-title">预测依据</text>
+      </view>
+      <view class="basis-row" wx:for="{{basisRows}}" wx:key="key">
+        <text class="basis-key">{{item.label}}</text>
+        <view class="basis-value" aria-label="{{item.value}}">
+          <text wx:for="{{item.parts}}" wx:for-item="part" wx:key="key" class="{{part.numeric ? 'basis-number' : 'basis-unit'}}">{{part.text}}</text>
+        </view>
+      </view>
+    </view>
+
     <view wx:if="{{signal.program.show}}" class="prog">
       <view class="prog-head" bindtap="onToggleProgram" role="button" aria-expanded="{{programOpen}}">
         <view class="program-icon"><text>{{signal.program.days}}</text></view>
@@ -214,18 +258,6 @@
       </view>
     </view>
 
-    <!-- 三行数据依据都来自当前预测、历史节奏与样本外回测。 -->
-    <view wx:if="{{basisRows.length}}" class="basis card">
-      <view class="section-head">
-        <text class="section-title">预测依据</text>
-      </view>
-      <view class="basis-row" wx:for="{{basisRows}}" wx:key="key">
-        <text class="basis-key">{{item.label}}</text>
-        <view class="basis-value" aria-label="{{item.value}}">
-          <text wx:for="{{item.parts}}" wx:for-item="part" wx:key="key" class="{{part.numeric ? 'basis-number' : 'basis-unit'}}">{{part.text}}</text>
-        </view>
-      </view>
-    </view>
 
     <!-- 最近七段已完成间隔，当前未完成的等待不混进历史样本。 -->
     <view class="trend-panel card">

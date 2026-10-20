@@ -9,8 +9,8 @@
  *
  *   · `announced`（有公告）—— Tibo 发过推文，窗口是他给的。ETA = **公告窗口开启时刻**，
  *     这是一个**可核对的承诺**，依据是那条推文。
- *   · `model`（无公告时间）—— 没有可用的公告窗口，ETA = **历史节奏的中位推算**。
- *     这是一个**区间估计**，必须带 80% 区间一起出现，绝不允许只给一个时刻。
+ *   · `model`（无公告时间）—— 已有预告时按预告到落地耗时推算；没有预告时按历史节奏推算。
+ *     前者配历史样本范围，后者配 80% 区间，不能混用两种口径。
  *
  * 两者共用一张卡，但 `etaKind` 不同、`etaNote` 不同、置信度的依据也不同。
  * 把 `model` 档说成「预计 10.10 13:48 重置」而不给区间，就是拿估计冒充承诺。
@@ -34,8 +34,9 @@ export const CONF_MIN_BACKTEST_N = 30;
 export const CONF_COV_TOLERANCE = 0.08;
 /** 重采样后中位估计的相对波动上限：(hi − lo) / mid */
 export const CONF_MAX_MEDIAN_REL = 1.5;
+export const MIN_ANNOUNCEMENT_SAMPLES = 3;
 
-export const STATUS_LABEL = { confirmed: '已确认', likely: '高概率', watching: '观察中' };
+export const STATUS_LABEL = { confirmed: '预告时间已明确', likely: '已预告', watching: '观察中' };
 export const CONFIDENCE_LABEL = { high: '高', medium: '中', low: '低' };
 export const CONFIDENCE_RANK = { high: 3, medium: 2, low: 1 };
 
@@ -100,7 +101,10 @@ export function buildOutlook({ chart, prediction, signals, now }) {
 
   let etaAt;
   let etaKind;
+  let etaBasis;
   let band = null;
+  let bandKind;
+  let arrival = null;
   let status;
   let level;
   let reason;
@@ -108,6 +112,8 @@ export function buildOutlook({ chart, prediction, signals, now }) {
   if (f) {
     etaAt = f.window.fromTs;
     etaKind = 'announced';
+    etaBasis = 'official-window';
+    bandKind = 'official-window';
     band = finite(f.window.toTs) ? { fromAt: f.window.fromTs, toAt: f.window.toTs } : null;
 
     const hard = (f.counts?.hard ?? 0) >= 1;
@@ -129,11 +135,34 @@ export function buildOutlook({ chart, prediction, signals, now }) {
       level = 'medium';
       reason = 'soft-only';
     }
+  } else if (pendingAnnouncement) {
+    // 同一轮后续补充预告不能重启等待时钟；锚点取本轮最早的明确承诺。
+    const lastAt = Date.parse(chart.lastAt);
+    const anchors = (pending.evidence ?? []).filter((e) => e.weight === 'hard')
+      .map((e) => Date.parse(e.createdAt));
+    if (!anchors.length) anchors.push(Date.parse(pending.createdAt));
+    const validAnchors = anchors.filter((t) => finite(t) && t > lastAt && t <= at);
+    const anchorAt = validAnchors.length ? Math.min(...validAnchors) : null;
+    const d = prediction?.announcementDelay;
+    const enough = Number.isInteger(d?.sampleCount) && d.sampleCount >= MIN_ANNOUNCEMENT_SAMPLES &&
+      [d.minMs, d.medianMs, d.maxMs].every((v) => finite(v) && v > 0) &&
+      d.minMs <= d.medianMs && d.medianMs <= d.maxMs && finite(anchorAt);
+    etaAt = enough ? Math.round(anchorAt + d.medianMs) : null;
+    etaKind = 'model';
+    etaBasis = 'announcement-delay';
+    bandKind = 'sample-range';
+    if (enough) band = { fromAt: Math.round(anchorAt + d.minMs), toAt: Math.round(anchorAt + d.maxMs) };
+    arrival = { anchorAt, sampleCount: d?.sampleCount ?? 0, medianMs: enough ? d.medianMs : null };
+    status = 'likely';
+    level = 'low';
+    reason = enough ? 'announcement-sample' : 'announcement-insufficient';
   } else {
     // 中位推算：`sinceDays` 与 `q50` 出自同一个 now，所以 now + q50 天就是那个时刻。
     // 取整到毫秒 —— 分位数是浮点天数，直接相加会得到小数毫秒，进 JSON 后是个脏值。
     etaAt = Math.round(at + p.q50 * DAY);
     etaKind = 'model';
+    etaBasis = 'reset-interval';
+    bandKind = 'central-80';
     status = 'watching';
 
     // 80% 双侧区间必须是 q10–q90（0.9 − 0.1 = 0.8）。
@@ -141,7 +170,8 @@ export function buildOutlook({ chart, prediction, signals, now }) {
     // （AGENTS.md「用户可见文案的红线」第 4 条）。实测 walk-forward：q10–q90 覆盖 83.3%，
     // q25–q90 只有 68.3%。所以 `q10` 由 `predict.mjs` 正式产出，这里不再回退：
     // 真缺了就让它变成 `NaN` 而被上游断言抓住，而不是静默降级成一个说得过去但错的区间。
-    band = { fromAt: at + p.q10 * DAY, toAt: at + p.q90 * DAY };
+    const central80Band = { fromAt: at + p.q10 * DAY, toAt: at + p.q90 * DAY };
+    band = central80Band;
 
     level = nOk && covOk && relOk ? 'medium' : 'low';
     reason = nOk && covOk && relOk ? 'calibrated' : 'insufficient';
@@ -164,6 +194,10 @@ export function buildOutlook({ chart, prediction, signals, now }) {
           'hard-vague': '依据来自公告本身，与上面这些模型统计无关 —— 但他只给到「一周内」这种粒度。',
           'soft-only': '公告里只有模糊提及、没有把话说死，窗口是推定出来的，依据弱于前两档。',
         }[reason] ?? '依据来自公告本身，与上面这些模型统计无关。'
+      : pendingAnnouncement
+        ? arrival.medianMs == null
+          ? `预告到落地的可配对样本 ${arrival.sampleCount} 次，暂不足以估计到账时间。`
+          : `预告到落地的可配对样本 ${arrival.sampleCount} 次；历史范围仅供参考，尚无样本外覆盖率。`
       : checks.failed
         ? `样本量、覆盖率与重采样波动中有 ${checks.failed} 项未达标，置信度因此降为「${
             CONFIDENCE_LABEL[level]
@@ -175,9 +209,14 @@ export function buildOutlook({ chart, prediction, signals, now }) {
     /** 结论 */
     etaAt,
     etaKind,
-    etaDate: new Date(etaAt).toISOString(),
-    etaNote: etaKind === 'announced' ? '公告窗口开启时刻' : '历史节奏的中位推算',
+    etaBasis,
+    hasEstimate: finite(etaAt),
+    etaDate: finite(etaAt) ? new Date(etaAt).toISOString() : null,
+    etaNote: etaKind === 'announced' ? '公告窗口开启时刻' : pendingAnnouncement ? '预告后历史耗时中位数' : '历史节奏的中位推算',
     band,
+    bandKind,
+    bandLabel: bandKind === 'official-window' ? '公告窗口' : bandKind === 'sample-range' ? '历史到账范围' : '80% 预测区间',
+    arrival,
     // 预告必须成为主卡状态，不能只在下面的原文详情中才看得见。
     announcement: announcement ? {
       pending: pendingAnnouncement,
@@ -187,8 +226,8 @@ export function buildOutlook({ chart, prediction, signals, now }) {
     } : null,
 
     status,
-    statusLabel: STATUS_LABEL[status],
-    statusNote: pendingAnnouncement ? '已预告重置，具体时间待公布；当前时间按历史节奏推算' : STATUS_NOTE[status],
+    statusLabel: pendingAnnouncement ? '等待落地确认' : STATUS_LABEL[status],
+    statusNote: pendingAnnouncement ? '已预告重置，具体时间待公布；尚未确认落地' : STATUS_NOTE[status],
 
     confidence: level,
     confidenceLabel: CONFIDENCE_LABEL[level],
@@ -235,6 +274,8 @@ export function buildOutlook({ chart, prediction, signals, now }) {
     brief: {
       kind: etaKind,
       pendingAnnouncement,
+      arrivalSamples: arrival?.sampleCount ?? null,
+      arrivalMedianMs: arrival?.medianMs ?? null,
       // announced 档
       announcedHard: f?.counts?.hard ?? 0,
       announcedSoft: f?.counts?.soft ?? 0,

@@ -630,6 +630,9 @@ function scanClause(o) {
  */
 function briefLine(o) {
   const b = o.brief;
+  if (b.pendingAnnouncement) return b.arrivalMedianMs == null
+    ? `已预告重置，具体时间待公布。预告到落地的可配对样本 ${b.arrivalSamples} 次，到账耗时样本不足。`
+    : `已预告重置，具体时间待公布。${b.arrivalSamples} 次预告到落地的历史中位耗时 ${fmtSpan(b.arrivalMedianMs / DAY)}。`;
   if (o.etaKind === 'announced') {
     const bits = [];
     if (b.announcedHard) bits.push(`${b.announcedHard} 条承诺`);
@@ -712,24 +715,25 @@ export function renderOutlook(o, m, prediction, signals, collect) {
 
   const announcement = o.announcement;
   const pending = announcement?.pending;
-  const eta = etaStamp(o.etaDate);
+  const hasEstimate = Number.isFinite(o.etaAt);
+  const eta = hasEstimate ? etaStamp(o.etaDate) : { wd: '', md: '', hm: '' };
   const over = o.etaAt - o.now <= 0;
 
   const left = Math.max(0, o.etaAt - o.now);
   const scale = left >= DAY ? 'd' : left >= 3_600_000 ? 'h' : left >= 60_000 ? 'm' : 's';
   const dateDigits = [...eta.md].map((ch, i) => `<span class="am-digit-cell${ch === '.' ? ' am-dot-digit' : ''}" aria-hidden="true"><span class="am-digit" style="--am-index:${i}">${ch}</span></span>`).join('');
   const band =
-    !pending && o.band && Number.isFinite(o.band.fromAt) && Number.isFinite(o.band.toAt)
+    o.band && Number.isFinite(o.band.fromAt) && Number.isFinite(o.band.toAt)
       ? `<div class="pc-band">
-          <span><span class="k">${o.etaKind === 'announced' ? '公告窗口' : '80% 预测区间'}</span>
+          <span><span class="k">${esc(o.bandLabel)}</span>
           <b class="am-mono">${esc(fmtMDHM(o.band.fromAt))} — ${esc(fmtMDHM(o.band.toAt))}</b></span>
-          <span class="am-tiny am-muted">${o.etaKind === 'model' ? '历史推算 · 仅供参考' : esc(o.statusLabel)}</span>
+          <span class="am-tiny am-muted">${pending ? `${o.arrival.sampleCount} 次配对 · 仅供参考` : o.etaKind === 'model' ? '历史推算 · 仅供参考' : esc(o.statusLabel)}</span>
         </div>`
       : '';
 
   return `
   <section class="pred">
-    <div class="pcard${announcement ? ' is-announced' : ''}" id="pred" data-announcement="${!!announcement}" data-status="${esc(o.status)}"${pending ? '' : ` data-eta="${o.etaAt}"`} data-over="${
+    <div class="pcard${announcement ? ' is-announced' : ''}" id="pred" data-announcement="${!!announcement}" data-eta-kind="${esc(o.etaKind)}" data-status="${esc(o.status)}" ${hasEstimate ? `data-eta="${o.etaAt}"` : ''} data-over="${
       over ? 1 : 0
     }">
       <div class="pcard-top">
@@ -738,15 +742,16 @@ export function renderOutlook(o, m, prediction, signals, collect) {
       </div>
       <div class="am-stage">
         ${OUTLOOK_DECO}
-        <h2>${announcement ? '即将重置' : '下一次重置预测'}</h2>
-        ${pending ? '<div class="announcement-pending">时间待公布</div><span class="am-small">等待 Tibo 公布具体安排</span>' : `<div class="pc-eta"><div class="am-date am-mono" aria-label="${attr(eta.md)}">${dateDigits}</div></div>
-        <span class="am-small">${esc(eta.wd)} · 北京时间 · ${o.etaKind === 'model' ? '历史中位推算' : `${esc(eta.hm)} ${esc(o.etaNote)}`}</span>`}
+        <h2>${pending ? '模型预计到账' : announcement ? '即将重置' : '下一次重置预测'}</h2>
+        ${pending ? '<span class="pc-pending-note">官方时间待公布 · 尚未确认落地</span>' : ''}
+        ${hasEstimate ? `<div class="pc-eta"><div class="am-date am-mono" aria-label="${attr(eta.md)}">${dateDigits}</div></div>
+        <span class="am-small">${esc(eta.wd)} · 北京时间 · ${pending ? `约 ${esc(eta.hm)} · 预告后历史推算` : o.etaKind === 'model' ? '历史中位推算' : `${esc(eta.hm)} ${esc(o.etaNote)}`}</span>` : '<span class="announcement-pending">到账耗时样本不足</span>'}
         <span class="pc-badge" data-status="${esc(o.status)}">${esc(o.statusLabel)}</span>
-        ${pending ? '' : `<div class="pc-wait" data-over="${over ? 1 : 0}">
-          <span class="pc-wait-cap" id="pcd-cap">${announcement ? (over ? '公告窗口已开启' : '距公告窗口开启') : (over ? '已到预测时刻' : '预计还需等待')}</span>
+        ${hasEstimate ? `<div class="pc-wait" data-over="${over ? 1 : 0}">
+          <span class="pc-wait-cap" id="pcd-cap">${o.etaKind === 'announced' ? (over ? '公告窗口已开启' : '距公告窗口开启') : pending ? (over ? '已到模型预计时刻' : '距模型预计到账') : (over ? '已到预测时刻' : '预计还需等待')}</span>
           <div class="counter" id="pcd" data-scale="${scale}" role="timer" aria-label="${attr(fmtSpan(left / DAY))}">${renderEtaCounter(o)}</div>
-          <span class="pc-wait-over">${announcement ? '等待重置确认' : '随时可能重置'}</span>
-        </div>`}
+          <span class="pc-wait-over">${pending ? '仍待落地确认' : announcement ? '等待重置确认' : '随时可能重置'}</span>
+        </div>` : ''}
       </div>
 
       ${band}
@@ -804,7 +809,7 @@ export function renderBasis(o, m, prediction, signals) {
     <div class="head">
       <h2>预测依据</h2>
       <span class="hint">${
-        o.etaKind === 'announced'
+        o.announcement
           ? '结论来自公告，以下是模型侧的辅助数字'
           : '结论在上方，这里是它凭什么成立'
       }</span>
@@ -817,6 +822,16 @@ export function renderBasis(o, m, prediction, signals) {
 /** 首屏只展示三项读数，完整概率与回测判据仍在下方展开区。 */
 export function renderBasisSummary(o, prediction) {
   if (!o) return '';
+  if (o.etaBasis === 'announcement-delay') {
+    const d = prediction.announcementDelay;
+    return `<section class="am-panel am-basis is-arrival" aria-label="预测依据摘要">
+      <h2>预测依据</h2>
+      <div class="am-basis-row"><span class="am-muted">预告到落地</span><strong class="am-mono">${o.arrival.sampleCount}<small>次配对</small></strong></div>
+      <div class="am-basis-row"><span class="am-muted">中位耗时</span><strong class="am-mono">${o.arrival.medianMs == null ? '—' : esc(fmtSpan(d.medianMs / DAY))}</strong></div>
+      <div class="am-basis-row"><span class="am-muted">历史耗时范围</span><strong class="am-mono">${o.arrival.medianMs == null ? '—' : `${esc(fmtSpan(d.minMs / DAY))} – ${esc(fmtSpan(d.maxMs / DAY))}`}</strong></div>
+      <p class="am-basis-note">历史范围仅供参考，尚无样本外覆盖率。</p>
+    </section>`;
+  }
   const recent = prediction?.phases?.at(-1);
   const pace = recent ? spanOf(recent.mean) : { big: '—', unit: '' };
   const coverage = prediction?.calibration?.covBand80;
@@ -1183,6 +1198,8 @@ export function renderDigest(m, prediction, outlook) {
         ? {
             etaAt: outlook.etaAt,
             etaKind: outlook.etaKind,
+            etaBasis: outlook.etaBasis,
+            sampleCount: outlook.arrival?.sampleCount ?? null,
             bandFromAt: outlook.band?.fromAt ?? null,
             bandToAt: outlook.band?.toAt ?? null,
             status: outlook.status,
@@ -1320,6 +1337,28 @@ export function renderFreshness(info, nowMs) {
 
 /* ------------------------------ 汇总 ------------------------------ */
 
+export function renderResetCalendar(c) {
+  if (!c) return '';
+  const blanks = Array.from({ length: c.startWeekday ?? 0 }, () => '<span class="rc-empty" aria-hidden="true"></span>').join('');
+  return `<section class="reset-calendar am-panel" aria-label="重置月日历">
+    <div class="rc-heading"><div><h2>重置月日历</h2><p>${esc(c.fromDate)} — ${esc(c.toDate)} · UTC 实际日期</p></div><span class="rc-caption">非官方整理</span></div>
+    <div class="rc-layout"><div class="rc-summary">
+      <span class="rc-muted">日历进度</span><strong class="rc-progress">${c.progressDay}<small> / ${c.days}</small></strong>
+      <div class="rc-stat"><span>已确认到账</span><b>${c.confirmedCount}<small> 次</small></b></div>
+      <p class="rc-muted">${c.resetCount} 次重置 · ${c.creditCount} 次发券</p>
+      <div class="rc-stat rc-pending"><span>预告待落地</span><b>${c.pendingCount + (c.datedCount ?? 0)}<small> 条</small></b></div>
+      <a class="rc-source" href="${attr(c.programUrl ?? c.sourceUrl)}" target="_blank" rel="noopener noreferrer">查看活动原文 ↗</a>
+    </div><div class="rc-board"><div class="rc-week">${['一','二','三','四','五','六','日'].map((d) => `<span>周${d}</span>`).join('')}</div>
+      <div class="rc-grid">${blanks}${c.cells.map((cell) => {
+        const tag = cell.sourceUrl ? 'a' : 'div';
+        const title = [cell.date, cell.statusLabel, cell.confirmedCount ? `已到账 ${cell.confirmedCount} 次` : '', cell.pendingCount + cell.datedCount ? `待落地 ${cell.pendingCount + cell.datedCount} 条` : ''].filter(Boolean).join(' · ');
+        return `<${tag} class="rc-cell rc-${esc(cell.status)}${cell.isToday ? ' is-today' : ''}"${cell.sourceUrl ? ` href="${attr(cell.sourceUrl)}" target="_blank" rel="noopener noreferrer"` : ''} title="${attr(title)}"><b>${esc(cell.label)}</b><span>${esc(cell.status === 'updated' ? '更新' : cell.status === 'elapsed-no-record' ? '无记录' : cell.statusLabel)}</span>${cell.confirmedCount && cell.pendingCount + cell.datedCount ? '<i>另有预告</i>' : ''}</${tag}>`;
+      }).join('')}</div>
+      <p class="rc-legend"><span>● 已确认到账</span><span>● 预告待落地</span><span>● 日程更新</span><span>暂无记录 ≠ 当日没有重置</span></p>
+    </div></div>
+  </section>`;
+}
+
 export function renderAll(m, prediction, signals, opts = {}) {
   const v = renderVerdict(m);
   // 首屏那三个结论（预计时间 / 状态 / 置信度）只在一处算出来，主卡、依据区、
@@ -1348,6 +1387,7 @@ export function renderAll(m, prediction, signals, opts = {}) {
     // renderProgram 返回空串，占位符位置什么都不留（不会出现一个空壳卡片）。
     // （键的顺序与页面顺序保持一致 —— 模板里 PROGRAM 确实在 BASIS 之前。）
     PROGRAM: renderProgram(signals?.program),
+    RESET_CALENDAR: renderResetCalendar(signals?.calendar),
     // 第二层：预测依据（三张卡）。
     BASIS: outlook ? renderBasis(outlook, m, prediction, signals) : '',
     BASIS_SUMMARY: renderBasisSummary(outlook, prediction),

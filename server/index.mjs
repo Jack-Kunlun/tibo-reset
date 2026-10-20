@@ -66,6 +66,7 @@ import { runCollection } from '../src/lib/collect.mjs';
 import { predictAll, DEFAULT_CONFIG } from '../src/lib/predict.mjs';
 import { detectSignals, latestEventMs, USER_ZONE, SOURCE_ZONE } from '../src/lib/signals.mjs';
 import { buildChartData } from '../src/lib/chart-data.js';
+import { buildResetCalendar } from '../src/lib/reset-calendar.mjs';
 import { derive, logoDataUri, renderPage } from '../src/lib/page.mjs';
 import { createStore } from './store.mjs';
 import { createScheduler } from './scheduler.mjs';
@@ -77,6 +78,7 @@ import {
   handleUnsubscribe,
   handleSubscriptionConfig,
   handleSubscriptionStatus,
+  notifyNewAnnouncements,
   notifyNewResets,
 } from './subscribe.mjs';
 import { createWeChatClient } from './wechat.mjs';
@@ -128,11 +130,11 @@ const wechat = createWeChatClient({ appId: WX_APPID, appSecret: WX_SECRET });
 let cache = { key: null, value: null };
 
 async function getPrediction() {
-  const { records } = await store.getResets();
+  const [{ records }, tweets] = await Promise.all([store.getResets(), store.getTweets()]);
   if (!records.length) return null;
   const key = `${await store.latestMtime()}|${DEFAULT_CONFIG.maxIntervals}|${DEFAULT_CONFIG.halfLifeDays}`;
   if (cache.key === key) return cache.value;
-  const value = predictAll(records);
+  const value = predictAll(records, { tweets: tweets.tweets ?? [], account: SOURCE_ACCOUNT });
   cache = { key, value };
   return value;
 }
@@ -153,12 +155,27 @@ async function getSignals() {
   //   · hourBucket —— 「窗口已经过去」是**时间驱动**的判据，没有数据变化也必须能失效。
   //     按小时重算足够：窗口边界精确到分钟的场景一年也遇不上几次，
   //     而 signals 只是对几十条推文做正则，重算的开销可忽略。
-  const hourBucket = Math.floor(Date.now() / 3_600_000);
-  const key = `${file.updated_at ?? ''}|${tweets.length}|${lastResetAt}|${hourBucket}|${SOURCE_ACCOUNT}|${SOURCE_ZONE}|${USER_ZONE}`;
+  const now = Date.now();
+  const hourBucket = Math.floor(now / 3_600_000);
+  const key = `${file.updated_at ?? ''}|${tweets.length}|${JSON.stringify(resets.records)}|${hourBucket}|${SOURCE_ACCOUNT}|${SOURCE_ZONE}|${USER_ZONE}`;
   if (sigCache.key === key) return sigCache.value;
-  const value = detectSignals(tweets, { account: SOURCE_ACCOUNT, lastResetAt });
+  const value = detectSignals(tweets, { now, account: SOURCE_ACCOUNT, lastResetAt });
+  value.calendar = buildResetCalendar({ records: resets.records, tweets, signals: value, now, account: SOURCE_ACCOUNT });
   sigCache = { key, value };
   return value;
+}
+
+/** 通知只接受主链路已核验归属的推文，避免免登录历史快照或他人推文触发预告。 */
+async function getTrustedAnnouncementForecasts() {
+  const [file, resets] = await Promise.all([store.getTweets(), store.getResets()]);
+  const account = SOURCE_ACCOUNT.toLowerCase();
+  const tweets = (file.tweets ?? []).filter((tweet) => tweet?.author_verified === true &&
+    String(tweet.account ?? '').toLowerCase() === account &&
+    ['timeline-browser', 'with-replies'].includes(tweet.foundVia));
+  return detectSignals(tweets, {
+    account: SOURCE_ACCOUNT,
+    lastResetAt: latestEventMs(resets.records ?? []),
+  }).forecasts;
 }
 
 async function getChart() {
@@ -479,19 +496,23 @@ async function handleApi(req, res, url) {
       dataDir: DATA_DIR,
       token: INGEST_TOKEN,
       send,
-      // F9：确认收到**新的重置事件**才推送。不在「预测可能重置」时推 —— 那是误报。
-      onAccepted: () =>
-        notifyNewResets({
+      // 两种通知各消费自己的授权和水位；预告只从实时重算的、已核验推文中产生。
+      onAccepted: async () => {
+        const options = {
           dataDir: DATA_DIR,
           store: subs,
           client: wechat,
           templateId: WX_TEMPLATE_ID,
           page: WX_SUBSCRIBE_PAGE,
           templateSpec: WX_TEMPLATE_DATA,
-        }).then((r) => {
-          if (r.skipped) console.log(`[subscribe] 未推送：${r.skipped}`);
-          else console.log(`[subscribe] 推送完成：${JSON.stringify(r)}`);
-        }),
+        };
+        const landed = await notifyNewResets(options);
+        const announcement = await notifyNewAnnouncements({ ...options, getForecasts: getTrustedAnnouncementForecasts });
+        for (const [kind, result] of [['landed', landed], ['announcement', announcement]]) {
+          if (result.skipped) console.log(`[subscribe:${kind}] 未推送：${result.skipped}`);
+          else console.log(`[subscribe:${kind}] 推送完成：${JSON.stringify(result)}`);
+        }
+      },
     });
   }
 

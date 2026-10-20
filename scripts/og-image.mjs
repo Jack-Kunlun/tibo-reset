@@ -24,11 +24,12 @@ import { fileURLToPath } from 'node:url';
 
 import { Resvg } from '@resvg/resvg-js';
 
-import { buildChartData, fmtDateIn, fmtDateTimeIn } from '../src/lib/chart-data.js';
-import { predictAll } from '../src/lib/predict.mjs';
+import { fmtDateIn, fmtDateTimeIn } from '../src/lib/chart-data.js';
 import { PALETTE, estimateTextWidth, fmtSpanShort, survivalScene } from '../src/lib/scene.js';
 import { spanOf, verdictOf } from '../src/lib/render.mjs';
 import { renderSceneSvg } from '../src/lib/svg.mjs';
+import { buildOutlook } from '../src/lib/outlook.mjs';
+import { derive } from '../src/lib/page.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CJK = 'Asia/Shanghai';
@@ -132,11 +133,20 @@ const NO_SPAN = { big: '—', unit: '', text: '—' };
  *     那行本来就长，再用完整档会顶出列宽，所以走 `fmtSpanShort`。
  *   ⚠ 两档都不能再退回 `toFixed(1) + '天'` —— 「0.9 天」这种读数读者得自己心算。
  */
-export function ogNumbers(model, prediction) {
+export function ogNumbers(model, prediction, signals) {
   const p = prediction?.prediction;
+  const outlook = signals ? buildOutlook({ chart: model, prediction, signals, now: model.now }) : null;
+  const arrival = outlook?.announcement?.pending ? {
+    clock: outlook.hasEstimate ? fmtDateTimeIn(outlook.etaDate, CJK).slice(-5) : '—',
+    date: outlook.hasEstimate ? fmtDateIn(outlook.etaDate, CJK).slice(5) : '',
+    samples: outlook.arrival?.sampleCount ?? 0,
+    from: outlook.band ? fmtDateTimeIn(new Date(outlook.band.fromAt).toISOString(), CJK).slice(5) : null,
+    to: outlook.band ? fmtDateTimeIn(new Date(outlook.band.toAt).toISOString(), CJK).slice(5) : null,
+  } : null;
   const elapsedDays = (model.now - new Date(model.lastAt).getTime()) / DAY;
   return {
     elapsed: spanOf(elapsedDays),
+    arrival,
     remaining: p ? spanOf(p.q50) : NO_SPAN,
     // ⚠ 下界是 `q10`，**不是** `q25` —— 双侧 80% 区间是 [q10, q90]（0.9 − 0.1 = 0.8），
     // 而 `q25–q90` 只有约 65% 覆盖率。在卡片上写「80% 区间 20 小时–6 天 19 小时」，
@@ -250,8 +260,8 @@ function verdictPill(model) {
   };
 }
 
-export function buildOgSvg({ model, prediction, siteUrl }) {
-  const n = ogNumbers(model, prediction);
+export function buildOgSvg({ model, prediction, signals, siteUrl }) {
+  const n = ogNumbers(model, prediction, signals);
   const pill = verdictPill(model);
 
   const scene = survivalScene(model, { width: SCENE_W, height: SCENE_H });
@@ -288,7 +298,7 @@ ${pill.html}
 <line x1="${M}" y1="${LY.divider}" x2="${OG_W - M}" y2="${LY.divider}" stroke="${PALETTE.line}" stroke-width="1"/>
 
 ${statCol(M, '距上次重置', n.elapsed.big, n.elapsed.unit, `自 ${n.last} 起`)}
-${statCol(M + 334, '中位剩余等待', n.remaining.big, n.remaining.unit, `历史中位间隔 ${n.medianIntervalShort} · 80% 区间 ${n.loShort}–${n.hiShort}`)}
+${n.arrival ? statCol(M + 334, '模型预计到账 · 官方时间待公布', n.arrival.clock, '北京', `${n.arrival.date} · ${n.arrival.samples} 次历史配对 · 尚待确认`) : statCol(M + 334, '中位剩余等待', n.remaining.big, n.remaining.unit, `历史中位间隔 ${n.medianIntervalShort} · 80% 区间 ${n.loShort}–${n.hiShort}`)}
 ${statCol(M + 668, '历史记录', n.count, '次', `${n.firstDate} 起`)}
 <g transform="translate(${M},${LY.chart}) scale(${SCENE_SCALE.toFixed(4)})">
 ${body}
@@ -310,11 +320,11 @@ ${host ? txt(OG_W - M, LY.footer, host, { size: 16, fill: PALETTE.mist, anchor: 
  * @returns {Promise<null|{png:Buffer, svg:string, numbers:object, imageUrl:string|null, pageUrl:string|null, description:string}>}
  *   找不到中文字体时返回 null（调用方负责提示，不产出一张方框图）。
  */
-export async function buildOgImage({ model, prediction, siteUrl, fontDirs }) {
+export async function buildOgImage({ model, prediction, signals, siteUrl, fontDirs }) {
   const font = detectCjkFont(fontDirs);
   if (!font) return null;
 
-  const svg = buildOgSvg({ model, prediction, siteUrl });
+  const svg = buildOgSvg({ model, prediction, signals, siteUrl });
 
   const rendered = new Resvg(svg, {
     loadSystemFonts: true,
@@ -322,7 +332,7 @@ export async function buildOgImage({ model, prediction, siteUrl, fontDirs }) {
   }).render();
 
   const base = siteUrl ? siteUrl.replace(/\/+$/, '') : '';
-  const numbers = ogNumbers(model, prediction);
+  const numbers = ogNumbers(model, prediction, signals);
 
   return {
     png: rendered.asPng(),
@@ -334,7 +344,7 @@ export async function buildOgImage({ model, prediction, siteUrl, fontDirs }) {
     pageUrl: base || null,
     imageUrl: base ? `${base}/og-image.png` : null,
     description:
-      `距上次重置 ${numbers.elapsed.text}，中位剩余等待 ${numbers.remaining.text}` +
+      numbers.arrival ? `重置已预告，官方时间待公布，尚未确认落地。${numbers.arrival.from ? `模型预计 ${numbers.arrival.date} ${numbers.arrival.clock} 北京时间到账；历史范围 ${numbers.arrival.from}–${numbers.arrival.to}，基于 ${numbers.arrival.samples} 次历史配对。` : '到账耗时样本不足。'}` : `距上次重置 ${numbers.elapsed.text}，中位剩余等待 ${numbers.remaining.text}` +
       `（80% 区间 ${numbers.loShort}–${numbers.hiShort}）。` +
       `基于 ${numbers.count} 次历史重置记录自动生成。`,
   };
@@ -346,13 +356,11 @@ const isMain = process.argv[1] && resolve(process.argv[1]) === resolve(fileURLTo
 
 if (isMain) {
   const read = async (p) => JSON.parse(await readFile(resolve(ROOT, p), 'utf8'));
-  const [resets, statsFile] = await Promise.all([read('data/resets.json'), read('data/stats.json')]);
+  const [resets, statsFile, tweets] = await Promise.all([read('data/resets.json'), read('data/stats.json'), read('data/tweets.json')]);
   const now = Date.now();
-  const chartData = buildChartData(resets.records, now);
-  const prediction = predictAll(resets.records, { now });
-  const model = { ...chartData, generatedAt: statsFile.generated_at ?? new Date(now).toISOString() };
+  const {model,prediction,signals} = derive({resets,statsFile,tweets,now,account:process.env.SOURCE_ACCOUNT ?? 'thsottiaux'});
 
-  const og = await buildOgImage({ model, prediction, siteUrl: process.env.SITE_URL ?? '' });
+  const og = await buildOgImage({ model, prediction, signals, siteUrl: process.env.SITE_URL ?? '' });
   if (!og) {
     console.error('✗ 未找到中文字体，跳过出图。Linux 下请先装 fonts-noto-cjk。');
     process.exit(1);

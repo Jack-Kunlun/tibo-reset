@@ -30,6 +30,8 @@
  * 因此所有输出都必须带不确定区间与回测成绩，不允许单独抛出一个裸概率。
  */
 
+import { deriveAnnouncementDelay } from './arrival.mjs';
+
 const DAY = 86_400_000;
 
 /** 风险桶切点。切分依据是各段的实际样本量（见 README「模型」一节）。 */
@@ -548,7 +550,8 @@ export function phases(records, segmentCount = 3) {
 
 /** 一次性产出完整预测对象：模型 → 原始预测 → 校准 → 披露数据 */
 export function predictAll(records, opts = {}) {
-  const cfg = { ...DEFAULT_CONFIG, ...opts };
+  const { tweets, account, ...modelOpts } = opts;
+  const cfg = { ...DEFAULT_CONFIG, ...modelOpts };
   const now = opts.now ?? Date.now();
   const { intervals, last } = buildIntervals(records, now);
   const model = fit(intervals, { ...cfg, now });
@@ -601,6 +604,9 @@ export function predictAll(records, opts = {}) {
   // 不参与呈现」同一个处理手法。
   const warnings = [];
   const ph = phases(records);
+  const announcementDelay = Array.isArray(tweets)
+    ? deriveAnnouncementDelay(records, { tweets, account, asOf: now })
+    : undefined;
 
   return {
     asOf: new Date(now).toISOString(),
@@ -624,6 +630,7 @@ export function predictAll(records, opts = {}) {
       })),
     },
     prediction: adjusted,
+    ...(announcementDelay === undefined ? {} : { announcementDelay }),
     rawPrediction: {
       q50: raw.median,
       q90: raw.q90,

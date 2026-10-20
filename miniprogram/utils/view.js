@@ -29,6 +29,24 @@ export function readoutParts(value) {
   }));
 }
 
+export function buildCalendarView(calendar) {
+  if (!calendar) return null;
+  const dataAt = toTs(calendar.dataAsOf);
+  const snapshot = calendar.source === 'snapshot';
+  const freshness = snapshot ? '日历快照' : calendar.source === 'cache' ? '日历缓存' : '日历数据';
+  return {
+    ...calendar,
+    awaitingCount: calendar.pendingCount + (calendar.datedCount ?? 0),
+    snapshot,
+    freshnessText: calendar.source ? `${freshness} · ${Number.isFinite(dataAt) ? `数据截至 ${fmtDateTime(dataAt).slice(5)} 北京` : '数据时间未知'}` : '',
+    weekdays: ['一', '二', '三', '四', '五', '六', '日'],
+    gridCells: [
+      ...Array.from({ length: calendar.startWeekday ?? 0 }, (_, i) => ({ key: `blank-${i}`, blank: true })),
+      ...calendar.cells.map((cell) => ({ ...cell, key: cell.date, displayLabel: cell.status === 'updated' ? '更新' : cell.status === 'elapsed-no-record' ? '无记录' : cell.statusLabel, awaitingCount: cell.pendingCount + (cell.datedCount ?? 0) })),
+    ],
+  };
+}
+
 /* ------------------------------ 信号 ------------------------------ */
 
 /**
@@ -371,9 +389,9 @@ function etaStamp(ts) {
  *   `.prog`（每日重置窗口，见 D-049）与 `.bc-grid`（依据三卡）至今都在它之后。
  *
  * ── 状态与置信度是两个轴，不能合并 ─────────────────────────────────
- * `status`（观察中 / 高概率 / 已确认）说的是**依据的来源**；
+ * `status`（观察中 / 已预告 / 预告时间已明确）说的是**依据的来源**；
  * `confidence`（高 / 中 / 低）说的是**这个来源值多少分**。公告档可以
- * 「已确认 + 置信度中」（他把话说死了，但样本本身不多）；推算档最高只到「中」。
+ * 「预告时间已明确 + 置信度中」（他把话说死了，但样本本身不多）；推算档最高只到「中」。
  *
  * @param {object} chart  `state.chart`
  * @param {object} pred   `state.prediction`
@@ -386,7 +404,7 @@ export function buildOutlookView(chart, pred, sig, now) {
   const o = buildOutlook({ chart, prediction: pred, signals: sig, now });
   if (!o) return null;
 
-  const eta = etaStamp(o.etaAt);
+  const eta = o.hasEstimate ? etaStamp(o.etaAt) : { md: '', wd: '', hm: '' };
   const b = o.brief;
   const announcedAt = toTs(o.announcement?.createdAt);
 
@@ -397,6 +415,10 @@ export function buildOutlookView(chart, pred, sig, now) {
     if (b.announcedHard) bits.push(`${b.announcedHard} 条承诺`);
     if (b.announcedSoft) bits.push(`${b.announcedSoft} 条同日提及`);
     brief = `Tibo 已给出公告${bits.length ? `（${bits.join(' · ')}）` : ''}，预计时间取窗口开启时刻。`;
+  } else if (b.pendingAnnouncement) {
+    brief = b.arrivalMedianMs == null
+      ? `已预告重置，具体时间待公布。预告到落地的可配对样本 ${b.arrivalSamples} 次，到账耗时样本不足。`
+      : `已预告重置，具体时间待公布。${b.arrivalSamples} 次预告到落地的历史中位耗时 ${fmtSpan(b.arrivalMedianMs / 86400_000)}。历史范围仅供参考。`;
   } else {
     const n = b.intervals ? `按 ${b.intervals} 次历史间隔的节奏推算` : '按历史间隔的节奏推算';
     const scan =
@@ -418,6 +440,8 @@ export function buildOutlookView(chart, pred, sig, now) {
     /** `announced` = 有公告（ETA 是窗口开启时刻）/ `model` = 无公告（ETA 是中位推算）。
      *  两档的**措辞必须能分开**，所以给它一个自己的字段，别让页面从 status 反推。 */
     etaKind: o.etaKind,
+    etaBasis: o.etaBasis,
+    hasEstimate: o.hasEstimate,
     announcement: o.announcement ? {
       ...o.announcement,
       when: Number.isFinite(announcedAt) ? `${fmtDateTime(announcedAt).slice(5)} 北京` : '',
@@ -438,6 +462,11 @@ export function buildOutlookView(chart, pred, sig, now) {
       announcedHard: b.announcedHard,
       announcedSoft: b.announcedSoft,
     },
+    arrivalRows: o.arrival ? [
+      { key: 'source', label: '预告到落地', value: `${o.arrival.sampleCount} 次配对` },
+      { key: 'median', label: '中位耗时', value: o.arrival.medianMs == null ? '—' : fmtSpan(o.arrival.medianMs / 86400_000) },
+      { key: 'range', label: '历史耗时范围', value: o.arrival.medianMs == null ? '—' : `${fmtSpan(pred.announcementDelay.minMs / 86400_000)} – ${fmtSpan(pred.announcementDelay.maxMs / 86400_000)}` },
+    ] : null,
     md: eta.md,
     dateDigits: [...eta.md].map((value, index) => ({
       key: `${index}-${value}`,
@@ -446,13 +475,14 @@ export function buildOutlookView(chart, pred, sig, now) {
     })),
     wd: eta.wd,
     hm: eta.hm,
-    etaDetail: o.announcement?.pending ? '等待 Tibo 公布具体安排' : o.etaKind === 'announced'
+    etaDetail: !o.hasEstimate ? '到账耗时样本不足' : o.announcement?.pending ? `${eta.wd} · 北京时间 · 约 ${eta.hm} · 预告后历史推算` : o.etaKind === 'announced'
       ? `${eta.wd} · 北京时间 · 公告日期`
       : `${eta.wd} · 北京时间 · 历史中位推算`,
     /** 倒计时锚点（时间戳直通，页面每秒据此重算，不做字符串反解析） */
     etaAt: o.etaAt,
     cd: null,
-    bandLabel: o.etaKind === 'announced' ? '公告窗口' : '80% 区间',
+    bandLabel: o.bandLabel,
+    bandNote: o.arrival ? `${o.arrival.sampleCount} 次配对 · 仅供参考` : '',
     band,
     brief,
     // 「预测算于」= 这条结论是什么时候算出来的。用 o.now（同一锚点），
@@ -484,18 +514,18 @@ export function buildOutlookView(chart, pred, sig, now) {
  */
 export function predCountdown(pred, now) {
   if (!pred || !Number.isFinite(pred.etaAt)) return null;
-  if (pred.announcement?.pending) return { over: false, groups: [], label: '具体时间待公布' };
+  const pending = pred.announcement?.pending === true;
   const cd = countdown(pred.etaAt, now);
   const allGroups = countdownGroups(cd);
   // 主卡只显示相邻的两个时间单位：一天以上为「天 / 时」，一小时以上为
   // 「时 / 分」，更短则为「分 / 秒」。完整精度仍由锚点计算，展示不再铺四列。
   const groups = cd.d >= 1 ? allGroups.slice(0, 2) : cd.h >= 1 ? allGroups.slice(1, 3) : allGroups.slice(2, 4);
   const over =
-    pred.etaKind === 'announced' ? '公告窗口已开启 · 等待重置确认' : '已到中位预测时刻 · 随时可能重置';
+    pred.etaKind === 'announced' ? '公告窗口已开启 · 等待重置确认' : pending ? '已到模型预计时刻 · 仍待落地确认' : '已到中位预测时刻 · 随时可能重置';
   return {
     over: cd.over,
     groups,
-    label: cd.over ? over : '预计还需等待',
+    label: cd.over ? over : pending ? '距模型预计到账' : '预计还需等待',
   };
 }
 

@@ -32,7 +32,7 @@ import { fileURLToPath } from 'node:url';
 import { buildChartData } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
 import { fmtSpanShort } from '../src/lib/scene.js';
-import { OG_H, OG_LAYOUT, OG_W, buildOgImage, detectCjkFont, ogNumbers } from './og-image.mjs';
+import { OG_H, OG_LAYOUT, OG_W, buildOgImage, buildOgSvg, detectCjkFont, ogNumbers } from './og-image.mjs';
 import { renderOgMeta } from '../src/lib/render.mjs';
 import { decodeOgPng, readOgMeta, resolveOgMeta, writeOgAsset } from '../server/og.mjs';
 
@@ -64,6 +64,11 @@ const model = {
 const prediction = predictAll(resets.records, { now });
 const numbers = ogNumbers(model, prediction);
 const SITE = 'https://tibo.example.com';
+const pendingSignals = {forecasts:[{timing:'pending',window:null,createdAt:new Date(now-3_600_000).toISOString()}]};
+const arrivalPrediction = {...prediction,announcementDelay:{sampleCount:3,minMs:1.5*3_600_000,medianMs:4*3_600_000,maxMs:6*3_600_000}};
+const arrivalNumbers = ogNumbers(model,arrivalPrediction,pendingSignals);
+const arrivalSvg = buildOgSvg({model,prediction:arrivalPrediction,signals:pendingSignals,siteUrl:SITE});
+check('分享图未定时预告用同一条件ETA，不能继续印无条件80%区间',arrivalNumbers.arrival?.samples===3 && arrivalSvg.includes(arrivalNumbers.arrival.clock) && arrivalSvg.includes('模型预计到账') && arrivalSvg.includes('尚待确认') && !arrivalSvg.includes('80% 区间'));
 
 /* ==================== 1. 缺字体时不出图 ==================== */
 

@@ -25,7 +25,7 @@ const remember = (state, degraded, reason) => {
 /* ------------------------------- 内置快照 ------------------------------- */
 
 export function snapshotState() {
-  return {
+  return withCalendar({
     chart: snapshot.chart,
     prediction: snapshot.prediction,
     signals: snapshot.signals,
@@ -34,6 +34,29 @@ export function snapshotState() {
     generatedAt: snapshot.generatedAt,
     dataUpdatedAt: snapshot.dataUpdatedAt,
     source: 'snapshot',
+  });
+}
+
+// 旧服务成功返回时也不能擦掉新包里的日历；局部降级必须保留自己的数据时刻。
+function withCalendar(state) {
+  const hasCalendar = Object.prototype.hasOwnProperty.call(state.signals ?? {}, 'calendar');
+  const sameAccount = !state.account || state.account.toLowerCase() === snapshot.account?.toLowerCase();
+  const fallback = !hasCalendar && sameAccount ? snapshot.signals?.calendar : null;
+  const calendar = hasCalendar ? state.signals.calendar : fallback;
+  // 显式 null 表示服务端主动不提供日历，不能拿包内旧活动覆盖它。
+  if (!calendar) return state;
+  const source = fallback || calendar.source === 'snapshot' || state.source === 'snapshot'
+    ? 'snapshot' : state.source;
+  return {
+    ...state,
+    signals: {
+      ...state.signals,
+      calendar: {
+        ...calendar,
+        source,
+        dataAsOf: calendar.dataAsOf ?? (fallback ? snapshot.dataUpdatedAt ?? snapshot.generatedAt : state.dataUpdatedAt ?? state.generatedAt),
+      },
+    },
   };
 }
 
@@ -85,7 +108,7 @@ function readCache() {
     const v = wx.getStorageSync(CACHE_KEY);
     if (!v || !v.at || !v.state) return null;
     if (Date.now() - v.at > CACHE_TTL_MS) return null;
-    return { ...v.state, source: 'cache', cachedAt: v.at };
+    return withCalendar({ ...v.state, source: 'cache', cachedAt: v.at });
   } catch (e) {
     return null;
   }
@@ -128,7 +151,7 @@ export async function loadState(opts = {}) {
 
   try {
     const remote = await request('/api/state');
-    const state = {
+    const state = withCalendar({
       chart: remote.chart,
       prediction: remote.prediction,
       signals: remote.signals,
@@ -138,7 +161,7 @@ export async function loadState(opts = {}) {
       dataUpdatedAt: remote.dataUpdatedAt,
       collectErrors: remote.collectErrors ?? [],
       source: 'api',
-    };
+    });
     if (!state.chart || !state.prediction) throw new Error('接口返回缺少 chart / prediction');
     writeCache(state);
     return remember(state, false, null);

@@ -11,15 +11,16 @@ import config from '../../config.js';
 import { loadState, snapshotState } from '../../utils/api.js';
 import { copyText } from '../../utils/clipboard.js';
 import { indexShareTitle, isSinglePage } from '../../utils/share.js';
-import { buildGauge, buildSignal, buildMetrics, buildForecast, buildOutlookView, predCountdown, readoutParts } from '../../utils/view.js';
+import { buildGauge, buildSignal, buildMetrics, buildForecast, buildOutlookView, buildCalendarView, predCountdown, readoutParts } from '../../utils/view.js';
 import { survivalScene, stripScene, histogramScene, rhythmScene } from '../../utils/scene.js';
 import { drawScene, setupCanvas } from '../../utils/draw.js';
 import { elapsed, reelGroups, verdict as makeVerdict, fmtDateTime, fmtClock, fmtClockSec, toTs } from '../../utils/format.js';
 import {
-  ACTION_LABEL,
-  DONE_LABEL,
+  ACTION_LABELS,
+  DONE_LABELS,
   SCOPE_HINT,
   subscribeAvailable,
+  supportsNotificationKind,
   subscribeOnce,
   loadSubscriptionConfig,
   subscriptionStatus,
@@ -91,6 +92,7 @@ function trendRows(chart) {
 }
 
 function basisRows(pred, forecast) {
+  if (pred?.arrivalRows) return pred.arrivalRows.map((row) => ({ ...row, parts: readoutParts(row.value) }));
   if (!pred || !forecast || !forecast.backtest) return [];
   const coverage = (forecast.backtest.rows || []).find((row) => row.k === '80% 区间覆盖率');
   const phaseRows = forecast.pace && Array.isArray(forecast.pace.phases) ? forecast.pace.phases : [];
@@ -136,6 +138,7 @@ Page({
     histShow: false,
     survivalN: 0,
     basisRows: [],
+    calendar: null,
     trend: [],
     trendCount: 0,
     trendFirst: '',
@@ -160,15 +163,8 @@ Page({
     notice: '',
     /** 分享到朋友圈的单页模式：禁用的组件/接口要在模板里让位（见 utils/share.js） */
     singlePage: false,
-    remind: {
-      show: false,
-      title: '重置通知',
-      hint: SCOPE_HINT,
-      label: '',
-      state: 'idle',
-      feedback: '',
-      tone: '',
-    },
+    announcementRemind: { show: false, hint: SCOPE_HINT, label: '', state: 'checking', feedback: '', tone: '' },
+    landedRemind: { show: false, hint: SCOPE_HINT, label: '', state: 'checking', feedback: '', tone: '' },
   },
 
   onLoad() {
@@ -179,7 +175,7 @@ Page({
     this._painting = false;
     this._paintAgain = false;
     this._programMeasure = 0;
-    this._reminding = false;
+    this._remindingKinds = new Set();
     this._rippleTimer = null;
     this._hasShown = false;
     // 单页模式判断要**在 initRemind 之前**完成 —— 它决定 F9 入口显不显示
@@ -209,7 +205,7 @@ Page({
     this.setData({ pageVisible: true, entering: !this._hasShown && this.data.motionEnabled });
     this._hasShown = true;
     this.startTicker();
-    this.refreshRemind();
+    this.refreshReminders();
     // 超过刷新间隔就静默刷新一次，避免用户切回来看到旧数据
     if (this._lastLoad && Date.now() - this._lastLoad > config.refreshIntervalMs) {
       this.load({ silent: true, force: true });
@@ -229,8 +225,10 @@ Page({
   },
 
   onPullDownRefresh() {
-    this.refreshRemind();
-    this.load({ force: true }).then(() => wx.stopPullDownRefresh());
+    return Promise.all([
+      this.refreshReminders(),
+      this.load({ force: true }),
+    ]).finally(() => wx.stopPullDownRefresh());
   },
 
   /* ------------------------------ 数据 ------------------------------ */
@@ -283,6 +281,7 @@ Page({
         forecast,
         survivalN: chart ? chart.gapDays.length : 0,
         basisRows: basisRows(outlook, forecast),
+        calendar: buildCalendarView(state.signals?.calendar),
         trend: this.trend,
         trendCount: this.trend.length,
         trendFirst: this.trend.length ? this.trend[0].label : '',
@@ -460,68 +459,127 @@ Page({
     }
   },
 
-  /* ------------------------------ F9 一次性提醒 ------------------------------ */
+  /* ------------------------ F9 预告 / 落地一次性提醒 ------------------------ */
+
+  reminderData(kind) {
+    const available = subscribeAvailable(kind);
+    const pending = hasPendingSync(kind);
+    return {
+      show: !this.data.singlePage,
+      hint: SCOPE_HINT,
+      label: pending ? '重试同步' : available ? ACTION_LABELS[kind] : '检查中…',
+      state: pending ? 'retry' : available ? 'idle' : 'checking',
+      feedback: '',
+      tone: '',
+    };
+  },
 
   initRemind() {
-    this.setRemind({
-      show: !this.data.singlePage,
-      label: !subscribeAvailable() ? '检查中…' : hasPendingSync() ? '重试同步' : ACTION_LABEL,
-      state: !subscribeAvailable() ? 'checking' : hasPendingSync() ? 'retry' : 'idle',
-      feedback: '', tone: '',
+    this.setData({
+      announcementRemind: this.reminderData('announcement'),
+      landedRemind: this.reminderData('landed'),
     });
   },
 
-  async refreshRemind() {
-    if (this.data.singlePage || this._reminding) return;
-    const revision = this._remindRevision = (this._remindRevision || 0) + 1;
-    const current = () => revision === this._remindRevision && !this._reminding;
+  async refreshReminders(kinds = ['announcement', 'landed']) {
+    // 真机生命周期会先经过 onLoad；夹具与局部调用也可能直接触发 onShow。
+    this._remindingKinds ||= new Set();
+    const targets = kinds.filter((kind) => !this.data.singlePage && !this._remindingKinds.has(kind));
+    if (!targets.length) return;
+    const revisions = new Map();
+    for (const kind of targets) {
+      const revision = ((this._remindRevisions ||= {})[kind] || 0) + 1;
+      this._remindRevisions[kind] = revision;
+      revisions.set(kind, revision);
+    }
+    const current = (kind) => revisions.get(kind) === this._remindRevisions?.[kind] && !this._remindingKinds.has(kind);
     try {
-      const available = await loadSubscriptionConfig();
-      if (!current()) return;
-      this.setRemind({ show: true, state: available ? 'checking' : 'unavailable', label: available ? '确认中…' : '暂未开放', feedback: '', tone: '' });
-      if (!available) return;
-      const active = await subscriptionStatus();
-      if (!current()) return;
-      this.setRemind({
-        state: active ? 'on' : hasPendingSync() ? 'retry' : 'idle',
-        label: active ? DONE_LABEL : hasPendingSync() ? '重试同步' : ACTION_LABEL,
-        feedback: hasPendingSync() ? '授权已获得，点击按钮完成同步。' : '', tone: hasPendingSync() ? 'warn' : '',
-      });
+      await loadSubscriptionConfig();
+      for (const kind of targets) {
+        if (!current(kind)) continue;
+        if (!supportsNotificationKind(kind)) {
+          const upgrade = subscribeAvailable('landed') && kind === 'announcement';
+          this.setReminder(kind, {
+            state: 'unavailable',
+            label: upgrade ? '待服务升级' : '暂未开放',
+            feedback: upgrade ? '服务端尚未支持预告通知。' : '',
+            tone: upgrade ? 'warn' : '',
+          });
+        } else {
+          this.setReminder(kind, { state: 'checking', label: '确认中…', feedback: '', tone: '' });
+        }
+      }
+      await Promise.all(targets.filter((kind) => supportsNotificationKind(kind)).map(async (kind) => {
+        try {
+          const active = await subscriptionStatus(kind);
+          if (!current(kind)) return;
+          const pending = hasPendingSync(kind);
+          this.setReminder(kind, {
+            state: active ? 'on' : pending ? 'retry' : 'idle',
+            label: active ? DONE_LABELS[kind] : pending ? '重试同步' : ACTION_LABELS[kind],
+            feedback: pending ? '授权已获得，点击按钮完成同步。' : '',
+            tone: pending ? 'warn' : '',
+          });
+        } catch {
+          if (current(kind)) this.setReminder(kind, { state: 'unknown', label: '重试', feedback: '通知暂不可用，请稍后重试。', tone: 'warn' });
+        }
+      }));
     } catch {
-      if (current()) this.setRemind({ show: true, state: 'unknown', label: '重试', feedback: '通知暂不可用，请稍后重试。', tone: 'warn' });
+      for (const kind of targets) {
+        if (current(kind)) this.setReminder(kind, { state: 'unknown', label: '重试', feedback: '通知暂不可用，请稍后重试。', tone: 'warn' });
+      }
     }
   },
 
-  setRemind(patch) {
-    this.setData({ remind: Object.assign({}, this.data.remind, patch) });
+  refreshRemind(kind = 'landed') {
+    return this.refreshReminders([kind]);
   },
 
-  onToggleRemind() {
-    if (!this.data.remind.show || this._reminding || ['on', 'checking', 'unavailable'].includes(this.data.remind.state)) return;
-    if (this.data.remind.state === 'unknown') return this.refreshRemind();
-    const retry = hasPendingSync();
-    this._reminding = true;
-    this._remindRevision = (this._remindRevision || 0) + 1;
-    this.setRemind({ label: retry ? '同步中…' : '开启中…', state: 'busy', feedback: '', tone: '' });
-    // 授权必须直接来自这次点击，不在它前面等待登录或配置请求。
-    return (retry ? syncSubscription() : subscribeOnce())
+  setReminder(kind, patch) {
+    const key = kind === 'announcement' ? 'announcementRemind' : 'landedRemind';
+    this.setData({ [key]: Object.assign({}, this.data[key], patch) });
+  },
+
+  setRemind(patch) {
+    this.setReminder('landed', patch);
+  },
+
+  onToggleReminder(event) {
+    const kind = event?.currentTarget?.dataset?.kind || 'landed';
+    const key = kind === 'announcement' ? 'announcementRemind' : 'landedRemind';
+    const reminder = this.data[key];
+    if (!reminder.show || this._remindingKinds.has(kind) || ['on', 'checking', 'unavailable'].includes(reminder.state)) return;
+    if (reminder.state === 'unknown') return this.refreshRemind(kind);
+    const retry = hasPendingSync(kind);
+    this._remindingKinds.add(kind);
+    this._remindRevisions ||= {};
+    this._remindRevisions[kind] = (this._remindRevisions[kind] || 0) + 1;
+    this.setReminder(kind, { label: retry ? '同步中…' : '授权中…', state: 'busy', feedback: '', tone: '' });
+    // 微信授权必须直接来自这次点击，不在它前面等待登录或配置请求。
+    return (retry ? syncSubscription(kind) : subscribeOnce(kind))
       .then((r) => {
         if (!r.ok) {
-          const unknown = r.status === 'template-changed' && !subscribeAvailable();
-          this.setRemind({ label: unknown ? '重试' : ACTION_LABEL, state: unknown ? 'unknown' : 'idle', feedback: r.reason, tone: 'warn' });
+          const unsupported = r.status === 'template-changed' && !subscribeAvailable(kind);
+          this.setReminder(kind, { label: unsupported ? '重试' : ACTION_LABELS[kind], state: unsupported ? 'unknown' : 'idle', feedback: r.reason, tone: 'warn' });
           return;
         }
-        this.setRemind({
-          label: r.synced ? DONE_LABEL : '重试同步',
+        this.setReminder(kind, {
+          label: r.synced ? DONE_LABELS[kind] : '重试同步',
           state: r.synced ? 'on' : 'retry',
           tone: r.synced ? 'ok' : 'warn',
           feedback: r.synced
-            ? '已开启，确认下次额度重置后将通知你一次。'
+            ? (kind === 'announcement'
+              ? '已开启；检测到明确预告时提醒一次，通知会说明尚未确认落地。'
+              : '已开启；公开完成公告确认后提醒一次。')
             : '授权已获得，服务器同步失败。点击重试同步，无需再次授权。',
         });
       })
-      .catch(() => this.setRemind({ label: ACTION_LABEL, state: 'idle', feedback: '未能开启，请检查微信通知设置后重试。', tone: 'warn' }))
-      .finally(() => { this._reminding = false; });
+      .catch(() => this.setReminder(kind, { label: ACTION_LABELS[kind], state: 'idle', feedback: '未能开启，请检查微信通知设置后重试。', tone: 'warn' }))
+      .finally(() => { this._remindingKinds.delete(kind); });
+  },
+
+  onToggleRemind() {
+    return this.onToggleReminder({ currentTarget: { dataset: { kind: 'landed' } } });
   },
 
   /* ------------------------------ 交互 ------------------------------ */
@@ -648,6 +706,12 @@ Page({
     const fromItem = e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.url;
     const url = fromItem || (this.data.signal && this.data.signal.url);
     copyText(url);
+  },
+
+  onCopyCalendarSource(e) {
+    if (this.data.singlePage) return;
+    const url = e?.currentTarget?.dataset?.url;
+    if (url) copyText(url);
   },
 
   /* ------------------------------ 分享 ------------------------------ */

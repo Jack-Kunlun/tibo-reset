@@ -9,8 +9,8 @@
  * 产品定位因此是**重要事件提醒**，不是订阅推送。这个限制必须写进小程序文案，
  * 否则用户会以为「订阅了就永久通知」—— 那是我们骗了他。
  *
- * 推送时机只有一种：**确认发生了新的重置事件**。
- * 绝不在「模型预测可能重置」时推送 —— 那直接违反 PRD 的 0 误报要求。
+ * 预告与落地是两种独立事件、两份一次性授权。预告只来自仍有效的明确公告；
+ * 落地只来自已确认的 reset / credit 记录。模型概率、hint 与每日窗口都不触发通知。
  */
 
 import { readFile } from 'node:fs/promises';
@@ -20,6 +20,16 @@ import { randomUUID } from 'node:crypto';
 import { saveJson } from '../src/lib/collect.mjs';
 
 const FILE = 'subscriptions.json';
+const SUBSCRIPTION_KINDS = Object.freeze(['announcement', 'landed']);
+
+function normalizeKind(value) {
+  return value === undefined ? 'landed' : value;
+}
+
+function itemKind(item) {
+  // 老名单没有 kind，历史上的授权始终表示「确认落地后通知」。
+  return item?.kind === 'announcement' ? 'announcement' : 'landed';
+}
 
 /** 订阅条数上限。个人小程序量级远小于此，设上限只为防存储被写爆 */
 const MAX_ITEMS = 20000;
@@ -38,7 +48,7 @@ export function createSubscriptionStore(dataDir) {
   let updates = Promise.resolve();
   let notifications = Promise.resolve();
 
-  const empty = () => ({ schema: 1, updated_at: null, last_event_at: null, items: [] });
+  const empty = () => ({ schema: 1, updated_at: null, last_event_at: null, announcement_ids: [], items: [] });
 
   const store = {
     path,
@@ -51,7 +61,8 @@ export function createSubscriptionStore(dataDir) {
           schema: 1,
           updated_at: raw.updated_at ?? null,
           last_event_at: raw.last_event_at ?? null,
-          items: raw.items,
+          announcement_ids: Array.isArray(raw.announcement_ids) ? raw.announcement_ids : [],
+          items: raw.items.map((item) => ({ ...item, kind: itemKind(item) })),
         };
       } catch (err) {
         if (err.code === 'ENOENT') return empty();
@@ -65,6 +76,7 @@ export function createSubscriptionStore(dataDir) {
         schema: 1,
         updated_at: new Date().toISOString(),
         last_event_at: state.last_event_at ?? null,
+        announcement_ids: state.announcement_ids ?? [],
         items: state.items,
       };
       await saveJson(path, next);
@@ -184,8 +196,13 @@ export async function notifyNewResets({ dataDir, store, client, templateId, page
   return store.notify(async () => {
     const records = JSON.parse(await readFile(resolve(dataDir, 'resets.json'), 'utf8')).records ?? [];
     const maxAt = latestEventAt(records);
-    if (maxAt === null) return { skipped: 'no-resets' };
+    const confirmedTimes = new Set(detectNewResets(records, null).map((record) => eventTime(record)));
     const work = await store.update((state) => {
+      // 修正/撤回的完成记录不能继续支撑旧待发项；旧名单只存时间戳时也按同一口径核验。
+      for (const item of state.items) {
+        if (item.pending_event_at && !confirmedTimes.has(Date.parse(item.pending_event_at))) delete item.pending_event_at;
+      }
+      if (maxAt === null) return { skipped: 'no-resets' };
       if (!state.last_event_at) {
         state.last_event_at = new Date(maxAt).toISOString();
         return { skipped: 'baseline-initialized', lastEventAt: state.last_event_at };
@@ -195,25 +212,43 @@ export async function notifyNewResets({ dataDir, store, client, templateId, page
       if (newest) {
         const at = new Date(eventTime(newest)).toISOString();
         for (const item of state.items) {
-          if (item.template_id !== templateId || Date.parse(item.created_at) > eventTime(newest)) continue;
+          if (itemKind(item) !== 'landed' || item.template_id !== templateId || Date.parse(item.created_at) > eventTime(newest)) continue;
           item.id ||= randomUUID();
           item.pending_event_at ||= at;
         }
         state.last_event_at = new Date(Math.max(Date.parse(state.last_event_at), maxAt)).toISOString();
       }
-      const items = state.items.filter((x) => x.template_id === templateId && x.pending_event_at);
+      const items = state.items.filter((x) => itemKind(x) === 'landed' && x.template_id === templateId && x.pending_event_at);
       return items.length ? { items: structuredClone(items) } : { skipped: 'no-new-event', lastEventAt: state.last_event_at };
     });
     if (work.skipped) return work;
     let sent = 0, failed = 0, removed = 0;
     for (const item of work.items) {
-      // 发送等待期间发生的退订也要生效。
-      if (!(await store.read()).items.some((x) => x.id === item.id)) continue;
+      // 长批次等待期间，重置记录可能被修正；发送前重新确认硬事实仍在当前快照中。
+      let currentTimes;
+      try {
+        const currentRecords = JSON.parse(await readFile(resolve(dataDir, 'resets.json'), 'utf8')).records ?? [];
+        currentTimes = new Set(detectNewResets(currentRecords, null).map((record) => eventTime(record)));
+      } catch (err) {
+        failed++;
+        log.warn?.(`[subscribe] 无法复核落地记录，保留待发授权：${err.message}`);
+        continue;
+      }
+      const eligible = await store.update((state) => {
+        const current = state.items.find((x) => x.id === item.id && itemKind(x) === 'landed' && x.template_id === templateId);
+        if (!current) return false;
+        if (!currentTimes.has(Date.parse(current.pending_event_at))) {
+          delete current.pending_event_at;
+          return false;
+        }
+        return true;
+      });
+      if (!eligible) continue;
       let consume = false;
       try {
         await client.sendSubscribeMessage({
           openid: item.openid, templateId, page,
-          data: buildTemplateData({ event: 'Codex 额度已重置', time: fmtWeChatTime(Date.parse(item.pending_event_at)), eta: '打开观测台查看重置详情' }, templateSpec),
+          data: buildTemplateData({ event: '重置已落地｜公开完成公告已确认', time: fmtWeChatTime(Date.parse(item.pending_event_at)), eta: '查看观测台了解详情' }, templateSpec),
         });
         sent++;
         consume = true;
@@ -223,6 +258,161 @@ export async function notifyNewResets({ dataDir, store, client, templateId, page
         log.warn?.(`[subscribe] ${err.permanent ? '授权失效，移除订阅' : '发送失败，下轮重试'}：${err.message}`);
       }
       if (consume) await store.update((state) => { state.items = state.items.filter((x) => x.id !== item.id); });
+      if (SEND_GAP_MS) await new Promise((r) => setTimeout(r, SEND_GAP_MS));
+    }
+    return { candidates: work.items.length, sent, failed, removed };
+  });
+}
+
+/**
+ * 从信号识别的 forecasts 中取仍有效、带硬证据的明确预告。
+ * 日期预告按 signals.mjs 已归并的窗口日去重；短时窗口按有效起止时刻标识；
+ * 未定时间预告按最早硬证据 ID 稳定标识。
+ */
+export function announcementEventsFromForecasts(forecasts, now = Date.now()) {
+  const events = [];
+  for (const forecast of forecasts ?? []) {
+    if (forecast?.level !== 'explicit') continue;
+    const hard = (forecast.evidence ?? [])
+      .filter((e) => e?.weight === 'hard' && (typeof e.id === 'string' || typeof e.id === 'number') && String(e.id).trim() &&
+        Number.isFinite(Date.parse(e.createdAt)) && Date.parse(e.createdAt) <= now);
+    if (!hard.length) continue;
+    const createdAt = Date.parse(forecast.createdAt);
+    if (!Number.isFinite(createdAt) || createdAt > now) continue;
+
+    let id;
+    if (forecast.window && Number.isFinite(forecast.window.dayNum)) {
+      // buildForecasts 把同一窗口日定义为一条预告，新增同日依据不应重复提醒。
+      id = `day:${forecast.window.dayNum}`;
+    } else if (forecast.window) {
+      const from = Date.parse(forecast.window.from);
+      const to = Date.parse(forecast.window.to);
+      if (!Number.isFinite(from) || !Number.isFinite(to) || to <= from) continue;
+      // 小时级窗口没有 dayNum；规范化边界后仍可跨采集轮次稳定去重。
+      id = `window:${new Date(from).toISOString()}:${new Date(to).toISOString()}`;
+    } else if (forecast.timing === 'pending' && forecast.window === null) {
+      const first = hard.reduce((a, b) => Date.parse(a.createdAt) <= Date.parse(b.createdAt) ? a : b);
+      id = `pending:${first.id}`;
+    } else {
+      continue;
+    }
+    events.push({
+      id,
+      keys: [id, ...new Set(hard.map((e) => `tweet:${String(e.id)}`))],
+      created_at: new Date(createdAt).toISOString(),
+      text: typeof forecast.text === 'string' ? forecast.text : '',
+      url: typeof forecast.url === 'string' ? forecast.url : '',
+    });
+  }
+  const merged = new Map();
+  for (const event of events) {
+    const prior = merged.get(event.id);
+    merged.set(event.id, prior ? { ...prior, keys: [...new Set([...prior.keys, ...event.keys])] } : event);
+  }
+  return [...merged.values()]
+    .sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
+}
+
+/** 发送一条当前有效的明确预告。预告名单与落地名单、水位和授权互相独立。 */
+export async function notifyNewAnnouncements({ store, client, templateId, page, templateSpec, forecasts, getForecasts, now = Date.now(), log = console }) {
+  if (!templateId) return { skipped: 'no-template-id' };
+  if (!client?.configured) return { skipped: 'wechat-not-configured' };
+  const readForecasts = async () => typeof getForecasts === 'function' ? getForecasts() : forecasts;
+  let initialForecasts;
+  try { initialForecasts = await readForecasts(); }
+  catch (err) {
+    log.warn?.(`[subscribe] 无法读取当前预告，保留待发授权：${err.message}`);
+    return { skipped: 'forecast-source-unavailable' };
+  }
+  const events = announcementEventsFromForecasts(initialForecasts, now);
+  return store.notify(async () => {
+    const work = await store.update((state) => {
+      state.announcement_ids ||= [];
+      const seen = new Set(state.announcement_ids);
+      // 暂时失败的预告只在当前仍有效时重试；被撤回、兑现或过期后删除待发送项，
+      // 但不消耗用户授权。按硬证据推文 ID 别名匹配，允许 pending 预告补上日期。
+      for (const item of state.items) {
+        const pending = item.pending_announcement;
+        if (!pending) continue;
+        const current = events.find((event) => event.keys.some((key) => pending.keys?.includes(key) || key === pending.id));
+        if (current) item.pending_announcement = current;
+        else delete item.pending_announcement;
+      }
+      const fresh = [];
+      for (const event of events) {
+        if (!event.keys.some((key) => seen.has(key))) fresh.push(event);
+        for (const key of event.keys) {
+          if (seen.has(key)) continue;
+          seen.add(key);
+          state.announcement_ids.push(key);
+        }
+      }
+      for (const event of fresh) {
+        for (const item of state.items) {
+          if (itemKind(item) !== 'announcement' || item.template_id !== templateId ||
+            !Number.isFinite(Date.parse(item.created_at)) || Date.parse(item.created_at) >= Date.parse(event.created_at)) continue;
+          item.id ||= randomUUID();
+          if (!item.pending_announcement) item.pending_announcement = event;
+        }
+      }
+      const items = state.items.filter((item) => itemKind(item) === 'announcement' &&
+        item.template_id === templateId && item.pending_announcement?.id);
+      return items.length ? { items: structuredClone(items) } : {
+        skipped: events.length ? 'no-new-announcement' : 'no-valid-announcement',
+        seen: fresh.length,
+      };
+    });
+    if (work.skipped) return work;
+    let sent = 0, failed = 0, removed = 0;
+    for (const item of work.items) {
+      let currentEvents;
+      try {
+        currentEvents = announcementEventsFromForecasts(await readForecasts());
+      } catch (err) {
+        failed++;
+        log.warn?.(`[subscribe] 无法复核预告有效性，保留待发授权：${err.message}`);
+        continue;
+      }
+      const latestEvent = currentEvents.find((event) => event.keys.some((key) =>
+        item.pending_announcement.keys?.includes(key) || key === item.pending_announcement.id));
+      if (!latestEvent) {
+        await store.update((state) => {
+          for (const current of state.items) {
+            if (current.id === item.id && current.pending_announcement?.id === item.pending_announcement?.id) {
+              delete current.pending_announcement;
+            }
+          }
+        });
+        continue;
+      }
+      // 发送前再次检查名单，且将仍有效的最新窗口写回，退订和 pending→dated 修正都生效。
+      const eligible = await store.update((state) => {
+        const current = state.items.find((x) => x.id === item.id && x.pending_announcement?.id === item.pending_announcement?.id);
+        if (!current) return false;
+        current.pending_announcement = latestEvent;
+        return true;
+      });
+      if (!eligible) continue;
+      let consume = false;
+      try {
+        await client.sendSubscribeMessage({
+          openid: item.openid, templateId, page,
+          data: buildTemplateData({
+            event: '重置预告｜尚未确认落地',
+            time: fmtWeChatTime(Date.parse(latestEvent.created_at)),
+            eta: '尚未确认重置完成',
+          }, templateSpec),
+        });
+        sent++;
+        consume = true;
+      } catch (err) {
+        failed++;
+        if (err.permanent) { removed++; consume = true; }
+        log.warn?.(`[subscribe] ${err.permanent ? '授权失效，移除预告订阅' : '预告发送失败，下轮重试'}：${err.message}`);
+      }
+      if (consume) await store.update((state) => {
+        state.items = state.items.filter((x) => !(x.id === item.id && x.pending_announcement?.id === latestEvent.id));
+      });
       if (SEND_GAP_MS) await new Promise((r) => setTimeout(r, SEND_GAP_MS));
     }
     return { candidates: work.items.length, sent, failed, removed };
@@ -280,14 +470,20 @@ export async function handleSubscribe(req, res, { store, client, templateId, sen
   catch (err) { if (err.code !== 'ENOENT') throw err; }
   const result = await store.update((state) => {
     // 在第一次订阅时建立历史基线，不能等下一次 ingest 才初始化而漏掉首条新重置。
-    state.last_event_at ||= new Date(latestEventAt(records) ?? Date.parse(nowIso)).toISOString();
-    const exists = state.items.some((x) => x.openid === openid && x.template_id === templateId);
+    if (payload.kind === 'landed') {
+      state.last_event_at ||= new Date(latestEventAt(records) ?? Date.parse(nowIso)).toISOString();
+    }
+    const exists = state.items.some((x) => x.openid === openid && x.template_id === templateId && itemKind(x) === payload.kind &&
+      (payload.grantId ? x.grant_id === payload.grantId : true));
     if (!exists && state.items.length >= MAX_ITEMS) return false;
-    if (!exists) state.items.push({ id: randomUUID(), openid, template_id: templateId, created_at: nowIso });
+    if (!exists) state.items.push({
+      id: randomUUID(), openid, template_id: templateId, kind: payload.kind, created_at: nowIso,
+      ...(payload.grantId ? { grant_id: payload.grantId } : {}),
+    });
     return true;
   });
   return result
-    ? send(res, 200, { ok: true, active: true, scope: 'once' })
+    ? send(res, 200, { ok: true, active: true, kind: payload.kind, scope: 'once' })
     : send(res, 503, { error: '提醒人数已达上限，请稍后再试' });
 }
 
@@ -298,8 +494,13 @@ async function subscriptionPayload(req, res, { templateId, send }) {
     if (!body || typeof body !== 'object' || Array.isArray(body) || typeof body.code !== 'string' || !body.code.trim() || body.code.length > 256) {
       send(res, 400, { error: '缺少有效登录 code' }); return null;
     }
+    const kind = normalizeKind(body.kind);
+    if (!SUBSCRIPTION_KINDS.includes(kind)) { send(res, 400, { error: '通知类型无效' }); return null; }
+    if (body.grantId !== undefined && (typeof body.grantId !== 'string' || !body.grantId.trim() || body.grantId !== body.grantId.trim() || body.grantId.length > 128)) {
+      send(res, 400, { error: '授权标识无效' }); return null;
+    }
     if (body.templateId !== templateId) { send(res, 422, { code: 'template_changed', error: '通知模板已变化，请重新进入小程序' }); return null; }
-    return body;
+    return { ...body, kind, grantId: body.grantId || undefined };
   } catch (err) { send(res, err.status ?? 400, { error: '订阅请求格式错误' }); return null; }
 }
 
@@ -307,7 +508,7 @@ async function subscriptionPayload(req, res, { templateId, send }) {
 export function handleSubscriptionConfig(req, res, { client, templateId, send }) {
   if (req.method !== 'GET') return send(res, 405, { error: 'method not allowed' });
   const enabled = Boolean(client?.configured && templateId);
-  return send(res, 200, { enabled, templateId: enabled ? templateId : '', scope: 'once' });
+  return send(res, 200, { enabled, templateId: enabled ? templateId : '', kinds: enabled ? SUBSCRIPTION_KINDS : [], scope: 'once' });
 }
 
 export async function handleSubscriptionStatus(req, res, { store, client, templateId, send }) {
@@ -319,7 +520,14 @@ export async function handleSubscriptionStatus(req, res, { store, client, templa
   try { openid = await client.codeToOpenid(payload.code); }
   catch { return send(res, 400, { error: '登录已过期，请重试' }); }
   const state = await store.read();
-  return send(res, 200, { ok: true, active: state.items.some((x) => x.openid === openid && x.template_id === templateId), scope: 'once' });
+  return send(res, 200, {
+    ok: true,
+    active: state.items.some((x) => x.openid === openid && x.template_id === templateId && itemKind(x) === payload.kind &&
+      (!payload.grantId || x.grant_id === payload.grantId)),
+    kind: payload.kind,
+    ...(payload.grantId ? { grantId: payload.grantId } : {}),
+    scope: 'once',
+  });
 }
 
 /**
@@ -334,6 +542,7 @@ export async function handleUnsubscribe(req, res, { store, client, send }) {
   try {
     payload = JSON.parse(await readBody(req));
     if (!payload || typeof payload.code !== 'string' || !payload.code.trim() || payload.code.length > 256) return send(res, 400, { error: '缺少有效登录 code' });
+    if (payload.kind !== undefined && !SUBSCRIPTION_KINDS.includes(payload.kind)) return send(res, 400, { error: '通知类型无效' });
   } catch (err) {
     return send(res, err.status ?? 400, { error: err.message });
   }
@@ -347,7 +556,8 @@ export async function handleUnsubscribe(req, res, { store, client, send }) {
 
   const removed = await store.update((state) => {
     const before = state.items.length;
-    state.items = state.items.filter((x) => x.openid !== openid);
+    state.items = state.items.filter((x) => x.openid !== openid ||
+      (payload.kind !== undefined && itemKind(x) !== payload.kind));
     return before - state.items.length;
   });
   return send(res, 200, { ok: true, removed });

@@ -648,7 +648,7 @@ function stripComments(src) {
 }
 
 const BAND_CONSUMERS = [
-  { name: '网页主卡', file: 'src/lib/outlook.mjs', marker: 'band = { fromAt', span: 160 },
+  { name: '网页主卡80%区间', file: 'src/lib/outlook.mjs', marker: 'const central80Band =', span: 160 },
   { name: '小程序', file: 'miniprogram/utils/view.js', marker: 'range:', span: 120 },
   { name: '网页依据区', file: 'src/lib/render.mjs', marker: 'class="bc-range"', span: 200 },
   { name: '分享卡片', file: 'scripts/og-image.mjs', marker: 'loShort:', span: 200 },

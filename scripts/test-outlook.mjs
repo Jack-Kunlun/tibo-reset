@@ -171,6 +171,7 @@ for (const [label, f, status, level, reason] of annCases) {
 }
 
 const oAnn = annOutlooks['hard-date'];
+check('有明确时刻也只确认预告时间，不显示为重置已确认', oAnn.statusLabel === '预告时间已明确' && annOutlooks['hard-vague'].statusLabel === '已预告');
 check('公告支的 ETA 取窗口开启时刻', oAnn.etaAt === NOW + 2 * DAY, `etaAt=${oAnn.etaAt}`);
 check('公告支的区间就是公告窗口本身', oAnn.band.fromAt === NOW + 2 * DAY && oAnn.band.toAt === NOW + 9 * DAY);
 check('主卡把公告窗口与模型 80% 区间区分开', renderOutlook(oAnn).includes('公告窗口') && !renderOutlook(oAnn).includes('80% 预测区间') && renderOutlook(oModel).includes('80% 预测区间'));
@@ -214,7 +215,13 @@ const MODEL_BRIEF = '历史间隔的节奏推算';
 const ANN_BRIEF = '已给出公告';
 
 const annHtml = pageOf(oAnn, { ...OUTLOOK_SIGNALS, forecasts: [forecast()] });
-const modelHtml = pageOf(oModel);
+// 这些用例检验三项均达标时的文案，不能依赖每天变化的真实回测恰好达标。
+const passingPrediction = {
+  ...prediction,
+  calibration: { ...prediction.calibration, n: CONF_MIN_BACKTEST_N + 1, covBand80: 0.8 },
+  uncertainty: { ...prediction.uncertainty, medianDays: { lo: 1, mid: 2, hi: 3 } },
+};
+const modelHtml = pageOf(outlookOf(OUTLOOK_SIGNALS, passingPrediction), OUTLOOK_SIGNALS, passingPrediction);
 
 check(
   '公告支的摘要说的是「公告」，不说「按历史节奏推算」',
@@ -256,8 +263,8 @@ check('推算支三项全达标时，结语不含「未达标」', !modelHtml.in
 
 // 逼 relOk 失败：把重采样区间撑宽到 (hi − lo) / mid > CONF_MAX_MEDIAN_REL
 const wide = {
-  ...prediction,
-  uncertainty: { ...prediction.uncertainty, medianDays: { lo: 1, mid: 10, hi: 30 } },
+  ...passingPrediction,
+  uncertainty: { ...passingPrediction.uncertainty, medianDays: { lo: 1, mid: 10, hi: 30 } },
 };
 check(
   `造出来的输入确实踩在 rel 阈值之外（rel = ${(30 - 1) / 10} > ${CONF_MAX_MEDIAN_REL}）`,
@@ -273,7 +280,7 @@ check(
 );
 
 // 逼 nOk 失败：样本量降到阈值以下
-const few = { ...prediction, calibration: { ...prediction.calibration, n: CONF_MIN_BACKTEST_N - 1 } };
+const few = { ...passingPrediction, calibration: { ...passingPrediction.calibration, n: CONF_MIN_BACKTEST_N - 1 } };
 const oFew = outlookOf(OUTLOOK_SIGNALS, few);
 const fewHtml = pageOf(oFew, OUTLOOK_SIGNALS, few);
 check(
@@ -354,15 +361,36 @@ check(
 
 section('8. 已预告但时间待公布：估计与公告不混用');
 {
-  const sig = { ...OUTLOOK_SIGNALS, forecasts: [{ timing: 'pending', window: null }] };
-  const o = outlookOf(sig);
-  check('未定时间预告不改变历史估计时刻和区间', o.etaKind === 'model' && o.etaAt === oModel.etaAt && JSON.stringify(o.band) === JSON.stringify(oModel.band));
+  const anchor = NOW - 3_600_000;
+  const sig = { ...OUTLOOK_SIGNALS, forecasts: [{ timing: 'pending', window: null, createdAt: new Date(anchor).toISOString() }] };
+  const delay = { sampleCount: 3, minMs: 1.5 * 3_600_000, medianMs: 4 * 3_600_000, maxMs: 6 * 3_600_000 };
+  const conditional = { ...prediction, announcementDelay: delay };
+  const o = outlookOf(sig, conditional);
+  check('未定时间预告改用预告到落地耗时，不沿用两次重置间隔', o.etaBasis === 'announcement-delay' && o.etaAt === anchor + delay.medianMs && o.etaAt !== oModel.etaAt);
+  check('历史范围取预告时刻加耗时端点，不能标成80%区间', o.band.fromAt === anchor + delay.minMs && o.band.toAt === anchor + delay.maxMs && o.bandKind === 'sample-range' && o.bandLabel === '历史到账范围');
+  check('只有3次样本的估计保持低置信，不借通用间隔回测提高可信度', o.confidence === 'low' && o.checks.note.includes('3 次') && o.checks.note.includes('尚无样本外覆盖率'));
   check('保留预告事实，不再说没有公告', o.brief.pendingAnnouncement && o.statusNote.includes('具体时间待公布') && !o.statusNote.includes('没有公告'));
-  const html = pageOf(o, sig) + renderBasisSummary(o, prediction);
+  check('未定时间预告明确等待落地，不把历史估计说成已到账', o.statusLabel === '等待落地确认' && o.statusNote.includes('尚未确认落地') && !o.statusNote.includes('当前时间按历史节奏推算'));
+  const html = pageOf(o, sig, conditional) + renderBasisSummary(o, conditional);
   check('网页总览和依据不会否认未定时间预告', html.includes('已预告重置，具体时间待公布') && !html.includes('均不足以构成预告') && !html.includes('没有公告'));
-  check('可见依据摘要也披露未定时间预告', /class="am-basis-note">[^<]*已预告重置，具体时间待公布/.test(html));
+  const pendingSummary = renderBasisSummary(o, conditional);
+  check('可见依据摘要披露预告后耗时样本，而非重置间隔',pendingSummary.includes('预告到落地') && pendingSummary.includes('3<small>次配对') && pendingSummary.includes('历史范围仅供参考'));
   const dated = outlookOf({ ...sig, forecasts: [...sig.forecasts, forecast()] });
   check('有窗口时优先使用公告时间', dated.etaKind === 'announced' && !dated.brief.pendingAnnouncement);
+  const missing = outlookOf(sig);
+  const missingHtml = renderOutlook(missing);
+  check('耗时样本不足时保留预告，不能退回无条件重置间隔', missing.etaAt === null && missing.band === null && !missing.hasEstimate && missingHtml.includes('到账耗时样本不足') && !missingHtml.includes('data-eta='));
+  check('不足3次样本、倒序范围、未来预告都不生成ETA', [
+    { ...conditional, announcementDelay: { ...delay, sampleCount: 2 } },
+    { ...conditional, announcementDelay: { ...delay, minMs: delay.maxMs + 1 } },
+  ].every((pred) => outlookOf(sig, pred).etaAt === null) && outlookOf({forecasts:[{timing:'pending',window:null,createdAt:new Date(NOW+1).toISOString()}]}, conditional).etaAt === null);
+  const later = buildOutlook({ chart, prediction: conditional, signals: sig, now: NOW + DAY });
+  check('越过预计时刻后锚点不后移，仍等待落地确认', later.etaAt === o.etaAt && renderOutlook(later).includes('已到模型预计时刻') && renderOutlook(later).includes('仍待落地确认'));
+  const clarified = outlookOf({forecasts:[{...sig.forecasts[0],createdAt:new Date(NOW-1).toISOString(),evidence:[
+    {weight:'hard',createdAt:new Date(anchor).toISOString()}, {weight:'hard',createdAt:new Date(NOW-1).toISOString()},
+  ]}]}, conditional);
+  check('后续补充预告不能重启预计到账时钟', clarified.etaAt === o.etaAt);
+  check('当前主卡展示条件估计与样本量，不标注80%概率', renderOutlook(o).includes('模型预计到账') && renderOutlook(o).includes('历史到账范围') && renderOutlook(o).includes('3 次配对') && !renderOutlook(o).includes('80%'));
 }
 
 section('9. 首屏公告态：预告必须成为主卡的主要内容');
@@ -377,7 +405,7 @@ section('9. 首屏公告态：预告必须成为主卡的主要内容');
   check('窗口开启后仍是等待确认，不显示已到预测时刻', open.includes('公告窗口已开启') && open.includes('等待重置确认') && !open.includes('已到预测时刻'));
   const pending = outlookOf({ forecasts: [{ timing: 'pending', window: null, text: 'A reset is coming.' }] });
   const pendingHtml = renderOutlook(pending);
-  check('未定时间预告主卡不展示推算日期或倒计时', pendingHtml.includes('announcement-pending">时间待公布') && pendingHtml.includes('<h2>即将重置</h2>') && !pendingHtml.includes('class="am-date') && !pendingHtml.includes('data-eta=') && !pendingHtml.includes('80% 预测区间'));
+  check('未定时间且缺配对样本时，不拿重置间隔冒充到账耗时', pendingHtml.includes('到账耗时样本不足') && pendingHtml.includes('官方时间待公布 · 尚未确认落地') && !pendingHtml.includes('class="am-date') && !pendingHtml.includes('data-eta=') && !pendingHtml.includes('80% 预测区间'));
 }
 
 /* ======================== 结果 ======================== */

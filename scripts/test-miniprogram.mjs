@@ -101,7 +101,7 @@ function makeWx(record) {
     showToast(opts) {
       record.toasts.push(opts && opts.title);
     },
-    stopPullDownRefresh: () => {},
+    stopPullDownRefresh: () => { record.pullDownStopCount = (record.pullDownStopCount || 0) + 1; },
     showLoading: () => {},
     hideLoading: () => {},
     // F9：code 一次性，这里每次调用都换一个，能测出「有没有复用旧 code」
@@ -190,6 +190,7 @@ const wxRecord = {
   requestCount: 0,
   loginCount: 0,
   subscribeCalls: [],
+  pullDownStopCount: 0,
   subscribeVerdict: 'accept',
   onRequest: null,
   rendersAtFirstRequest: undefined,
@@ -532,6 +533,7 @@ check(
     '卡②结语的「N 项未达标」与卡上那三个判据自洽',
     note.length > 8 && (d.pred.etaKind === 'announced'
       ? /依据来自公告本身/.test(note) && !/三项.*容差内/.test(note)
+      : d.pred.etaBasis === 'announcement-delay' ? /预告到落地的可配对样本/.test(note) && !/都在容差内/.test(note)
       : failed === 0 ? /都在容差内/.test(note) : new RegExp(`有 ${failed} 项未达标`).test(note)),
     `failed=${failed} / note=「${note}」`
   );
@@ -581,8 +583,9 @@ check(
 );
 check('③ 凭什么：一句话依据摘要', typeof ov.brief === 'string' && ov.brief.length > 8, ov.brief);
 check(
-  '③ 依据摘要的字面必须分档（无公告说「没有公告」，有公告说「已给出公告」）',
-  ov.etaKind === 'announced' ? /已给出公告/.test(ov.brief) : /没有公告/.test(ov.brief),
+  '③ 依据摘要区分公告时间、未定时预告与没有公告',
+  ov.announcement?.pending ? /已预告重置，具体时间待公布/.test(ov.brief) :
+    ov.etaKind === 'announced' ? /已给出公告/.test(ov.brief) : /没有公告/.test(ov.brief),
   `${ov.etaKind} → ${ov.brief}`
 );
 check(
@@ -607,9 +610,20 @@ check(
     ? announcedParts.join(' · ') || '公告窗口已确认'
     : `${ov.briefData.intervals} 次间隔`;
   check('首屏保留三行真实预测依据摘要', rows.length === 3, JSON.stringify(rows));
+  if (ov.etaBasis === 'announcement-delay') {
+    const arrival = (await import(resolve(ROOT, 'miniprogram/data/snapshot.js'))).default.prediction.announcementDelay;
+    const {fmtSpan} = await import(resolve(ROOT, 'miniprogram/utils/format.js'));
+    check('依据摘要来源行显示预告到落地配对数',rows[0].label==='预告到落地' && rows[0].value===`${arrival.sampleCount} 次配对`);
+    check('条件估计依据为预告后中位耗时，不搬间隔模型覆盖率', rows[1].label==='中位耗时' && rows[1].value===fmtSpan(arrival.medianMs/86400_000));
+    check('条件估计依据范围使用历史最小和最大耗时',rows[2].label==='历史耗时范围' && rows[2].value===`${fmtSpan(arrival.minMs/86400_000)} – ${fmtSpan(arrival.maxMs/86400_000)}`);
+  } else {
   check('依据摘要的来源行与当前预测模式一致', rows[0].value === sourceValue, `${rows[0].value} / ${sourceValue}`);
   check('覆盖率行复用回测的 80% 区间值', rows[1].value === coverage.v, `${rows[1].value} / ${coverage.v}`);
   check('近期节奏行复用最新分段均值', rows[2].value === `${phase.mean}${phase.unit.replace(/\s+/g, '')}`, rows[2].value);
+  }
+  const calendar=d.calendar;
+  check('日历接入首页且格子保留实际日期与状态',calendar?.zone==='UTC' && calendar.cells.length===calendar.days && calendar.cells.every(c=>/^\d{2}\/\d{2}$/.test(c.label) && c.statusLabel));
+  check('日历确认数与预告条数分别保留，格内合计不混淆',calendar.confirmedCount===calendar.cells.reduce((n,c)=>n+c.confirmedCount,0) && calendar.awaitingCount===calendar.cells.reduce((n,c)=>n+c.pendingCount+c.datedCount,0));
 }
 check(
   '总览里没有 undefined / NaN',
@@ -660,14 +674,15 @@ check(
 /* ---- 4c. 总览的倒计时：与公告倒计时是两个锚点 ---- */
 
 check(
-  'tick() 之后总览的倒计时已挂上（否则首屏那一块是空的）',
-  !!page.data.pred.cd && Array.isArray(page.data.pred.cd.groups) && page.data.pred.cd.groups.length === 2,
+  'tick() 后有效模型或公告时间挂倒计时，缺样本时没有倒计时',
+  ov.hasEstimate ? !!page.data.pred.cd && Array.isArray(page.data.pred.cd.groups) && page.data.pred.cd.groups.length === 2 : page.data.pred.cd === null,
   JSON.stringify(page.data.pred.cd)
 );
 check(
-  '倒计时只显示相邻的最高两组单位',
-  ['天时', '时分', '分秒'].includes((page.data.pred.cd.groups || []).map((g) => g.unit).join('')),
-  JSON.stringify(page.data.pred.cd.groups)
+  '有效倒计时只显示相邻的最高两组单位',
+  !ov.hasEstimate ? page.data.pred.cd === null :
+    ['天时', '时分', '分秒'].includes((page.data.pred.cd.groups || []).map((g) => g.unit).join('')),
+  JSON.stringify(page.data.pred.cd?.groups)
 );
 // 去重：同一秒内重复 tick 不该再发一次 setData。整块卡片随倒计时重排会掉帧，
 // 所以这条不是「优化」，是首屏流畅度的前提。
@@ -685,6 +700,9 @@ check(
   check('超过一天显示天/小时', units(26 * 3600_000) === '天时', units(26 * 3600_000));
   check('一小时以上显示小时/分钟', units(90 * 60_000) === '时分', units(90 * 60_000));
   check('不足一小时显示分钟/秒', units(30 * 60_000) === '分秒', units(30 * 60_000));
+  const pending = predCountdown({ etaAt: anchor + 3600_000, etaKind: 'model', announcement: { pending: true } }, anchor);
+  check('未定时预告的模型耗时估计与公告倒计时分开措辞', !pending.over && pending.groups.length === 2 && pending.label === '距模型预计到账');
+  check('缺耗时样本而没有ETA时不展示倒计时', predCountdown({etaAt:null,announcement:{pending:true}},anchor) === null);
 }
 // 过点之后的措辞必须分档：公告档不能说「已到中位预测时刻」—— 那时根本没有中位预测。
 // 直接喂一个「已经过点」的 ETA，而不是等它真的过期（那要等到数据换代）。
@@ -693,8 +711,11 @@ let overAnnLabel = '';
 {
   const realEta = page.data.pred.etaAt;
   const realKind = page.data.pred.etaKind;
+  const realAnnouncement = page.data.pred.announcement;
   const nowMs = Date.now();
   page.data.pred.etaAt = nowMs - 60_000;
+  // 这组测已给出时间的过点行为，与当前快照是否恰好处于未定时预告无关。
+  page.data.pred.announcement = null;
 
   page.data.pred.etaKind = 'model';
   page._pcdKey = null;
@@ -718,6 +739,7 @@ let overAnnLabel = '';
 
   page.data.pred.etaAt = realEta;
   page.data.pred.etaKind = realKind;
+  page.data.pred.announcement = realAnnouncement;
   page._pcdKey = null;
   page.tickPredCountdown(nowMs);
 }
@@ -1181,11 +1203,11 @@ check('明确预告没有时间也展示', pendingVm.show && pendingVm.level ===
 check('未定时间预告显示待公布且保留依据', pendingVm.title.includes('时间待公布') && pendingVm.timeNote === '具体时间待公布' && pendingVm.evCount === 1 && pendingVm.ev[0].text.includes('reset is coming'));
 check('未定时间预告不造窗口或倒计时锚点', pendingVm.window === null && pendingVm.headline === null);
 const pendingOutlookVm = buildOutlookView(chart, snapPred, pendingSig, now);
-check('小程序预测卡保留未定时间预告事实，估计仍标为历史推算', pendingOutlookVm.etaKind === 'model' && pendingOutlookVm.brief.includes('已预告重置，具体时间待公布') && !pendingOutlookVm.brief.includes('没有公告') && !pendingOutlookVm.brief.includes('均不足以构成预告'));
+check('小程序预测卡保留未定时间预告事实，估计按预告后耗时', pendingOutlookVm.etaKind === 'model' && pendingOutlookVm.etaBasis === 'announcement-delay' && pendingOutlookVm.brief.includes('已预告重置，具体时间待公布') && !pendingOutlookVm.brief.includes('没有公告') && !pendingOutlookVm.brief.includes('均不足以构成预告'));
 {
   const { predCountdown } = await import(resolve(ROOT, 'miniprogram/utils/view.js'));
   const cd = predCountdown(pendingOutlookVm, now);
-  check('小程序未定时间预告进入公告态，主卡不倒数历史估计', pendingOutlookVm.announcement?.pending === true && pendingOutlookVm.announcement.text.includes('reset is coming') && cd.groups.length === 0 && cd.label === '具体时间待公布');
+  check('小程序未定时间预告进入公告态，条件估计有独立范围与样本量', pendingOutlookVm.announcement?.pending === true && pendingOutlookVm.announcement.text.includes('reset is coming') && (pendingOutlookVm.hasEstimate ? cd.groups.length === 2 && pendingOutlookVm.bandLabel === '历史到账范围' && pendingOutlookVm.arrivalRows[0].value.includes('次配对') : cd === null));
   const announced = buildOutlookView(chart, snapPred, { forecasts: [{
     precision: 'day', counts: { hard: 1 },
     window: { fromTs: now - 60_000, toTs: now + 3_600_000 },
@@ -1226,10 +1248,11 @@ console.log('\n【9】F9 一次性订阅提醒');
 const sub = await import(resolve(ROOT, 'miniprogram/utils/subscribe.js'));
 const configMod = (await import(resolve(ROOT, 'miniprogram/config.js'))).default;
 const TMPL = 'TMPL_TEST';
+const toggleReminder = (kind) => page.onToggleReminder({ currentTarget: { dataset: { kind } } });
 
 check('未取得可用模板时不能申请授权', sub.subscribeAvailable() === false);
 check(
-  '入口文案说清「一次授权只能收到一次通知」',
+  '每类入口都说明一次授权只对应一次通知',
   /一次/.test(sub.SCOPE_HINT) && /通知/.test(sub.SCOPE_HINT),
   sub.SCOPE_HINT
 );
@@ -1245,87 +1268,140 @@ configMod.enabled = true;
 const grantsBeforeConfig = wxRecord.subscribeCalls.length, loginsBeforeConfig = wxRecord.loginCount;
 page.initRemind();
 wxRecord.onRequest = (opts) => opts.success({ statusCode: 404, data: { error: 'unknown endpoint' } });
-await page.refreshRemind();
-await page.onToggleRemind();
-check('通知配置 404 时保留重试入口，不授权、不登录、不显示已开启', page.data.remind.show && page.data.remind.state === 'unknown' && page.data.remind.label === '重试' && wxRecord.subscribeCalls.length === grantsBeforeConfig && wxRecord.loginCount === loginsBeforeConfig);
+await page.refreshReminders();
+await toggleReminder('announcement');
+check('通知配置 404 时两项都保留重试入口，不授权、不登录、不显示已开启', page.data.announcementRemind.show && page.data.announcementRemind.state === 'unknown' && page.data.announcementRemind.label === '重试' && page.data.landedRemind.show && page.data.landedRemind.state === 'unknown' && wxRecord.subscribeCalls.length === grantsBeforeConfig && wxRecord.loginCount === loginsBeforeConfig);
 wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: { enabled: false, templateId: '' } });
-await page.refreshRemind();
-await page.onToggleRemind();
-check('通知服务未启用时保留未开放状态并阻止授权', page.data.remind.show && page.data.remind.state === 'unavailable' && page.data.remind.label === '暂未开放' && wxRecord.subscribeCalls.length === grantsBeforeConfig && wxRecord.loginCount === loginsBeforeConfig);
+await page.refreshReminders();
+await toggleReminder('landed');
+check('通知服务未启用时两项显示未开放并阻止授权', page.data.announcementRemind.show && page.data.announcementRemind.state === 'unavailable' && page.data.landedRemind.state === 'unavailable' && wxRecord.subscribeCalls.length === grantsBeforeConfig && wxRecord.loginCount === loginsBeforeConfig);
 
-// 打开联网与模板 ID，走一遍完整链路
+// 旧服务缺少 kinds 时仍支持落地通知，预告项明确等待服务升级。
 configMod.enabled = true;
 configMod.subscribeTemplateId = '';
-wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: { enabled: true, templateId: TMPL, scope: 'once' } });
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: opts.url.endsWith('/config')
+  ? { enabled: true, templateId: TMPL, scope: 'once' }
+  : { ok: true, active: false } });
 await sub.loadSubscriptionConfig();
-check('配置齐备后入口可用', sub.subscribeAvailable() === true);
+check('旧服务兼容落地通知，但不伪称支持预告通知', sub.subscribeAvailable('landed') === true && sub.subscribeAvailable('announcement') === false);
+await page.refreshReminders();
+check('旧服务仍显示落地入口，预告显示待服务升级', page.data.landedRemind.state === 'idle' && page.data.announcementRemind.state === 'unavailable' && /升级/.test(page.data.announcementRemind.label));
+
+// 新服务声明两个独立通知类型。
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: opts.url.endsWith('/config')
+  ? { enabled: true, templateId: TMPL, kinds: ['announcement', 'landed'], scope: 'once' }
+  : { ok: true, active: false } });
+await page.refreshReminders();
+check('新服务配置后两类通知都可独立开启', sub.subscribeAvailable('announcement') && sub.subscribeAvailable('landed') && page.data.announcementRemind.state === 'idle' && page.data.landedRemind.state === 'idle');
+
+const pullKinds = [];
+const previousLoad = page.load;
+let forcedLoads = 0;
+page.load = async (options) => { if (options?.force) forcedLoads++; };
+const stopsBeforePull = wxRecord.pullDownStopCount;
+wxRecord.onRequest = (opts) => {
+  if (opts.url.endsWith('/config')) return opts.success({ statusCode: 200, data: { enabled: true, templateId: TMPL, kinds: ['announcement', 'landed'] } });
+  pullKinds.push(opts.data.kind);
+  opts.success({ statusCode: 200, data: { ok: true, active: opts.data.kind === 'announcement' } });
+};
+await page.onPullDownRefresh();
+page.load = previousLoad;
+check('下拉刷新同时查询并更新预告与落地授权状态',
+  pullKinds.sort().join() === 'announcement,landed' && page.data.announcementRemind.state === 'on' &&
+  page.data.landedRemind.state === 'idle' && forcedLoads === 1 && wxRecord.pullDownStopCount === stopsBeforePull + 1);
 
 page.initRemind();
 check(
-  '入口显示且按钮文案为「下次重置时提醒我」',
-  page.data.remind.show === true && page.data.remind.label === sub.ACTION_LABEL,
-  JSON.stringify(page.data.remind.label)
+  '两项通知入口分别显示对应操作',
+  page.data.announcementRemind.show === true && page.data.announcementRemind.label === sub.ACTION_LABELS.announcement && page.data.landedRemind.label === sub.ACTION_LABELS.landed,
+  JSON.stringify([page.data.announcementRemind.label, page.data.landedRemind.label])
 );
 
-let posted = null;
+const posts = [];
 wxRecord.onRequest = (opts) => {
-  posted = { url: opts.url, method: opts.method, data: opts.data };
+  posts.push({ url: opts.url, method: opts.method, data: opts.data });
   opts.success({ statusCode: 200, data: { ok: true, active: true } });
 };
 
-await page.onToggleRemind();
-check('申请订阅时带上了模板 ID', wxRecord.subscribeCalls.slice(-1)[0] === TMPL, wxRecord.subscribeCalls.join(' | '));
+await toggleReminder('announcement');
+check('预告授权提交独立 kind，且不提交客户端 openid', posts.at(-1)?.data?.kind === 'announcement' && posts.at(-1)?.data?.templateId === TMPL && !!posts.at(-1)?.data?.code && !('openid' in posts.at(-1).data));
+const firstAnnouncementGrant = posts.at(-1)?.data?.grantId;
+check('每次微信真实授权都附带稳定的 grantId', typeof firstAnnouncementGrant === 'string' && firstAnnouncementGrant.length > 8);
+check('开启预告通知不会改变落地项状态', page.data.announcementRemind.state === 'on' && page.data.landedRemind.state === 'idle');
+check('申请授权时仍使用公开模板 ID', wxRecord.subscribeCalls.slice(-1)[0] === TMPL, wxRecord.subscribeCalls.join(' | '));
 check('走了一次 wx.login 换 code', wxRecord.loginCount > 0, String(wxRecord.loginCount));
 check(
-  '上报到 /api/subscribe（POST）',
-  posted && /\/api\/subscribe$/.test(posted.url) && posted.method === 'POST',
-  posted && `${posted.method} ${posted.url}`
+  '预告授权上报到 /api/subscribe（POST）',
+  /\/api\/subscribe$/.test(posts.at(-1)?.url || '') && posts.at(-1)?.method === 'POST',
+  posts.at(-1) && `${posts.at(-1).method} ${posts.at(-1).url}`
 );
-check(
-  '上报体含 code 与 templateId，且**不含 openid**',
-  posted && !!posted.data.code && posted.data.templateId === TMPL && !('openid' in posted.data),
-  JSON.stringify(posted && posted.data)
-);
-check('成功后按钮转为「已开启」', page.data.remind.state === 'on' && page.data.remind.tone === 'ok', JSON.stringify(page.data.remind));
+check('成功后预告按钮显示已开启，落地仍可单独授权', page.data.announcementRemind.label === sub.DONE_LABELS.announcement && page.data.announcementRemind.tone === 'ok' && page.data.landedRemind.label === sub.ACTION_LABELS.landed);
+
+await toggleReminder('landed');
+check('落地授权也独立提交 landed kind', posts.at(-1)?.data?.kind === 'landed' && page.data.landedRemind.state === 'on' && page.data.announcementRemind.state === 'on');
 
 // 拒绝分支：不该产生任何网络动作
 wxRecord.subscribeVerdict = 'reject';
 page.initRemind();
 const loginBefore = wxRecord.loginCount;
 const reqBefore = wxRecord.requestCount;
-await page.onToggleRemind();
+await toggleReminder('announcement');
 check('用户拒绝时不换 code、不上报', wxRecord.loginCount === loginBefore && wxRecord.requestCount === reqBefore);
-check('用户拒绝时给出可操作提示', page.data.remind.tone === 'warn' && /拒绝/.test(page.data.remind.feedback), page.data.remind.feedback);
-check('用户拒绝后状态仍是未开启', page.data.remind.state === 'idle');
+check('用户拒绝时给出可操作提示', page.data.announcementRemind.tone === 'warn' && /拒绝/.test(page.data.announcementRemind.feedback), page.data.announcementRemind.feedback);
+check('用户拒绝后预告项仍可重新授权', page.data.announcementRemind.state === 'idle' && page.data.landedRemind.state === 'idle');
 
 // 授权成功但后端同步失败：微信侧已经计入一次授权，不能谎报成功骗用户再点一次
 wxRecord.subscribeVerdict = 'accept';
-wxRecord.onRequest = (opts) => opts.success({ statusCode: 503, data: { error: 'subscribe disabled' } });
+const retryPosts = [];
+wxRecord.onRequest = (opts) => {
+  if (opts.url.endsWith('/subscribe')) retryPosts.push(opts.data);
+  opts.success({ statusCode: 503, data: { error: 'subscribe disabled' } });
+};
 page.initRemind();
-await page.onToggleRemind();
+await toggleReminder('announcement');
 check(
   '授权成功但同步失败 → 如实说「可能收不到」，不谎报成功',
-  page.data.remind.state === 'retry' && page.data.remind.tone === 'warn' && /同步/.test(page.data.remind.feedback),
-  page.data.remind.feedback
+  page.data.announcementRemind.state === 'retry' && page.data.announcementRemind.tone === 'warn' && /同步/.test(page.data.announcementRemind.feedback),
+  page.data.announcementRemind.feedback
 );
+check('预告待同步标记与落地授权状态分开保存', sub.hasPendingSync('announcement') && !sub.hasPendingSync('landed'));
+
+// 兼容旧服务的「任一授权 active」状态：它不能证明这次新的 grant 已登记。
+let pendingGrantChecked = '';
+wxRecord.onRequest = (opts) => {
+  if (opts.url.endsWith('/config')) return opts.success({ statusCode: 200, data: { enabled: true, templateId: TMPL, kinds: ['announcement', 'landed'] } });
+  if (opts.url.endsWith('/status')) {
+    if (opts.data.kind === 'announcement') pendingGrantChecked = opts.data.grantId;
+    return opts.success({ statusCode: 200, data: { ok: true, active: opts.data.kind === 'announcement' } });
+  }
+  return opts.success({ statusCode: 503, data: { error: 'subscribe disabled' } });
+};
+await page.refreshReminders();
+check('旧授权仍 active 时，新 grant 未获精确确认仍保留可点的重试状态',
+  !!pendingGrantChecked && page.data.announcementRemind.state === 'retry' && page.data.announcementRemind.label === '重试同步' && sub.hasPendingSync('announcement'));
 
 // 已有微信授权时，重试登记不能再次弹授权或叠加授权次数。
 const granted = wxRecord.subscribeCalls.length;
-wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: { ok: true, active: true } });
-await page.onToggleRemind();
-check('同步失败后只重试登记，服务器确认后才显示已开启', wxRecord.subscribeCalls.length === granted && page.data.remind.state === 'on' && !sub.hasPendingSync());
+wxRecord.onRequest = (opts) => {
+  if (opts.url.endsWith('/subscribe')) retryPosts.push(opts.data);
+  opts.success({ statusCode: 200, data: { ok: true, active: true } });
+};
+await toggleReminder('announcement');
+check('同步失败后只重试预告登记，服务器确认后才显示已开启', wxRecord.subscribeCalls.length === granted && page.data.announcementRemind.state === 'on' && !sub.hasPendingSync('announcement') && !sub.hasPendingSync('landed'));
+check('同步失败后的重试复用同一 grantId，不制造第二份授权',
+  retryPosts.length === 2 && !!retryPosts[0].grantId && retryPosts[0].grantId === retryPosts[1].grantId);
 
-wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: opts.url.endsWith('/config') ? { enabled: true, templateId: TMPL } : { ok: true, active: false } });
-await page.refreshRemind();
-check('通知发送消耗后，重新查询恢复开启按钮，不信任本地永久标记', page.data.remind.state === 'idle' && page.data.remind.label === sub.ACTION_LABEL);
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: opts.url.endsWith('/config') ? { enabled: true, templateId: TMPL, kinds: ['announcement', 'landed'] } : { ok: true, active: false } });
+await page.refreshReminders();
+check('服务查询确认授权已消耗后恢复两项按钮，不信任本地永久标记', page.data.announcementRemind.state === 'idle' && page.data.announcementRemind.label === sub.ACTION_LABELS.announcement && page.data.landedRemind.label === sub.ACTION_LABELS.landed);
 
 const callsBefore = wxRecord.subscribeCalls.length;
 const singleLoginBefore = wxRecord.loginCount, singleRequestBefore = wxRecord.requestCount;
 page.data.singlePage = true;
-await page.refreshRemind();
+await page.refreshReminders();
 page.initRemind();
-await page.onToggleRemind();
-check('朋友圈单页不展示入口、不触发授权', !page.data.remind.show && wxRecord.subscribeCalls.length === callsBefore && wxRecord.loginCount === singleLoginBefore && wxRecord.requestCount === singleRequestBefore);
+await toggleReminder('announcement');
+check('朋友圈单页不展示任一入口、不触发授权', !page.data.announcementRemind.show && !page.data.landedRemind.show && wxRecord.subscribeCalls.length === callsBefore && wxRecord.loginCount === singleLoginBefore && wxRecord.requestCount === singleRequestBefore);
 page.data.singlePage = false;
 page.initRemind();
 
@@ -1334,23 +1410,45 @@ wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: { ok: true 
 const unconfirmed = await sub.syncSubscription();
 check('HTTP 成功但没有 active 确认，不显示开通成功', unconfirmed.synced === false);
 
+// 授权弹窗期间另一类请求可能刷新服务配置，旧模板的 accept 不能被登记到新模板。
+let acceptCapturedTemplate;
+const nativeRequestSubscribe = wx.requestSubscribeMessage;
+wx.requestSubscribeMessage = (opts) => {
+  wxRecord.subscribeCalls.push((opts.tmplIds || []).join(','));
+  acceptCapturedTemplate = () => opts.success({ [opts.tmplIds[0]]: 'accept' });
+};
+const racePosts = [];
+const raceSubscription = sub.subscribeOnce('announcement');
+await Promise.resolve();
 wxRecord.onRequest = (opts) => opts.url.endsWith('/config')
-  ? opts.success({ statusCode: 200, data: { enabled: true, templateId: 'NEW_TEMPLATE' } })
-  : opts.success({ statusCode: 422, data: { code: 'template_changed', error: 'template changed' } });
-const templateChanged = await sub.subscribeOnce();
-check('模板更换清除旧同步待办，刷新配置并要求重新授权', templateChanged.ok === false && templateChanged.status === 'template-changed' && !sub.hasPendingSync() && /重新/.test(templateChanged.reason));
-wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: { enabled: true, templateId: TMPL } });
+  ? opts.success({ statusCode: 200, data: { enabled: true, templateId: 'NEW_TEMPLATE', kinds: ['announcement', 'landed'] } })
+  : (racePosts.push(opts.data), opts.success({ statusCode: 200, data: { ok: true, active: true } }));
+await sub.loadSubscriptionConfig();
+acceptCapturedTemplate();
+const templateRace = await raceSubscription;
+wx.requestSubscribeMessage = nativeRequestSubscribe;
+check('授权过程中模板切换时不把旧模板 accept 同步到新模板',
+  templateRace.status === 'template-changed' && !racePosts.length && !sub.hasPendingSync('announcement'));
+
+wxRecord.onRequest = (opts) => opts.url.endsWith('/config')
+  ? opts.success({ statusCode: 200, data: { enabled: true, templateId: 'NEW_TEMPLATE', kinds: ['announcement', 'landed'] } })
+  : (racePosts.push(opts.data), opts.success({ statusCode: 422, data: { code: 'template_changed', error: 'template changed' } }));
+const templateChanged = await sub.subscribeOnce('announcement');
+check('模板更换清除对应类型的同步待办并要求重新授权', templateChanged.ok === false && templateChanged.status === 'template-changed' && !sub.hasPendingSync('announcement') && /重新/.test(templateChanged.reason));
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: { enabled: true, templateId: TMPL, kinds: ['announcement', 'landed'] } });
 await sub.loadSubscriptionConfig();
 
 // code 是一次性的：每次调用都必须重新 wx.login
 const codes = [];
+const repeatedGrantIds = [];
 wxRecord.onRequest = (opts) => {
   codes.push(opts.data && opts.data.code);
+  repeatedGrantIds.push(opts.data && opts.data.grantId);
   opts.success({ statusCode: 200, data: { ok: true, active: true } });
 };
-await sub.subscribeOnce();
-await sub.subscribeOnce();
-check('每次都重新 wx.login，不复用旧 code', codes.length === 2 && codes[0] !== codes[1], codes.join(' / '));
+await sub.subscribeOnce('landed');
+await sub.subscribeOnce('landed');
+check('每次都重新 wx.login 且新授权生成新的 grantId', codes.length === 2 && codes[0] !== codes[1] && !!repeatedGrantIds[0] && repeatedGrantIds[0] !== repeatedGrantIds[1], codes.join(' / '));
 
 // 缺模板 ID 时应在本地就拦住，不去骚扰微信接口
 configMod.subscribeTemplateId = '';
@@ -1506,6 +1604,16 @@ console.log('\n【12】复制原推链接（隐私接口，失败必须有反馈
   page.data.signal = Object.assign({}, page.data.signal, { url: URL_OK });
   page.onCopySource({ currentTarget: { dataset: {} } });
   check('条目无 url 时回退到横幅主链接', wxRecord.clipboard[0] === URL_OK, JSON.stringify(wxRecord.clipboard));
+  reset();
+  page.onCopyCalendarSource({ currentTarget: { dataset: {} } });
+  check('无来源日历格不复制当前预告链接', wxRecord.clipboard.length === 0 && wxRecord.toasts.length === 0);
+  page.onCopyCalendarSource({ currentTarget: { dataset: {url:URL_OK} } });
+  check('有来源日历格只复制本格链接',wxRecord.clipboard[0]===URL_OK);
+  reset();
+  const wasSinglePage=page.data.singlePage;page.data.singlePage=true;
+  page.onCopyCalendarSource({currentTarget:{dataset:{url:URL_OK}}});
+  check('朋友圈单页模式的日历不调用剪贴板',wxRecord.clipboard.length===0);
+  page.data.singlePage=wasSinglePage;
 
   // 核心守位：这些形态此前会让点击变成「什么都不发生」——没有 toast、没有日志、
   // 界面上也不显示 URL，用户既复制不到也看不到。errMsg 文案为示意，判定看 errno。
@@ -1796,7 +1904,7 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
   );
   const tagWith = (src, attr) => src.match(new RegExp(`<[a-z-]+[^>]*${attr}[^>]*>`, 'g')) || [];
 
-  const copyTags = [...tagWith(wxmlIndex, 'onCopySource'), ...tagWith(wxmlHistory, 'onCopy')];
+  const copyTags = [...tagWith(wxmlIndex, 'onCopySource'), ...tagWith(wxmlIndex, 'onCopyCalendarSource'), ...tagWith(wxmlHistory, 'onCopy')];
   const unguarded = copyTags.filter((t) => !/singlePage/.test(t));
   check(
     `每个「复制原推链接」入口都有守卫（剪贴板在单页模式下被禁，共 ${copyTags.length} 处）`,
@@ -1945,6 +2053,9 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
   const iPred = at('class="pred ');
   const iSig = at('class="sig ');
   const iProg = at('class="prog"');
+  const iCalendar = at('class="reset-calendar card"');
+  const iBasisSummary = at('class="basis card"');
+  check('日历与每日重置窗口已调换位置，中间保留依据摘要',iCalendar>=0 && iCalendar<iBasisSummary && iBasisSummary<iProg);
   // 2026-10-08 第二轮：依据区从 `.fc`（一块 `card fc-meta`）扩成 `.bc-grid`（三张卡），
   // 并在它后面**新增**了一组 `.hr-grid`（历史规律：三张图从「各占一节」收成一组）。
   // 锚点随之从 `.fc` 换成这两个 —— 用旧锚点会 `-1`，同样会被上面那条前置断言挡住。
@@ -2027,6 +2138,32 @@ console.log('\n【14】状态刷新不是重复返回旧内存缓存');
     globalThis.wx.setStorageSync = () => {};
     const fresh = await api.loadState({ force: true });
     check('强制刷新能更新上次重置而不是继续返回快照', !fresh.degraded && fresh.state.chart.lastAt === '2026-10-15T06:28:13.000Z');
+    const {buildCalendarView} = await import('../miniprogram/utils/view.js');
+    const legacySignals = {...state.signals};delete legacySignals.calendar;
+    const legacyRemote = {...state,signals:legacySignals,generatedAt:new Date(now+60_000).toISOString(),dataUpdatedAt:new Date(now+60_000).toISOString()};
+    let calendarCache;
+    globalThis.wx.setStorageSync = (_,value)=>{calendarCache=value;};
+    globalThis.wx.getStorageSync = ()=>calendarCache;
+    globalThis.wx.request = o=>o.success({statusCode:200,data:legacyRemote});
+    const legacy = await api.loadState({force:true});
+    check('旧后端缺日历时只对日历降级，保留当前接口数据',!legacy.degraded && legacy.state.source==='api' && legacy.state.generatedAt===legacyRemote.generatedAt && legacy.state.signals.calendar?.source==='snapshot');
+    const legacyCalendar = buildCalendarView(legacy.state.signals.calendar);
+    check('局部日历快照明确标注原始数据时间，不冒充接口刚更新时间',legacyCalendar.snapshot && legacyCalendar.freshnessText.includes('日历快照') && legacy.state.signals.calendar.dataAsOf===state.signals.calendar.dataAsOf);
+    const legacyHost={...captured,data:{...page.data},setData(patch){Object.assign(this.data,patch);},tick(){},paint(){}};
+    legacyHost.apply({state:legacy.state,degraded:false});
+    check('接口覆盖首屏后，日历仍能进入首页可见数据',legacyHost.data.calendar?.cells.length===state.signals.calendar.cells.length && legacyHost.data.calendar.freshnessText.includes('日历快照'));
+    globalThis.wx.request = o=>o.fail({errMsg:'offline'});
+    const cachedCalendar = await api.loadState({force:true});
+    check('缓存保留日历快照来源，重试失败不推进它的数据时刻',cachedCalendar.degraded && cachedCalendar.state.signals.calendar.source==='snapshot' && cachedCalendar.state.signals.calendar.dataAsOf===legacy.state.signals.calendar.dataAsOf);
+    const {source:ignoredSource,dataAsOf:ignoredAsOf,...serverCalendar}=state.signals.calendar;
+    const newRemote={...legacyRemote,signals:{...legacySignals,calendar:{...serverCalendar,title:'服务端日历'}}};
+    globalThis.wx.request = o=>o.success({statusCode:200,data:newRemote});
+    const upgraded = await api.loadState({force:true});
+    check('新后端提供日历后自动替换快照并使用服务端数据时刻',upgraded.state.signals.calendar.title==='服务端日历' && upgraded.state.signals.calendar.source==='api' && upgraded.state.signals.calendar.dataAsOf===newRemote.dataUpdatedAt && !buildCalendarView(upgraded.state.signals.calendar).snapshot);
+    globalThis.wx.request = o=>o.success({statusCode:200,data:{...newRemote,signals:{...legacySignals,calendar:null}}});
+    check('新后端明确不提供日历时，不复活旧活动快照',(await api.loadState({force:true})).state.signals.calendar===null);
+    globalThis.wx.request = o=>o.success({statusCode:200,data:{...legacyRemote,account:'different-account'}});
+    check('不同账号的接口数据不混入包内日历',!(await api.loadState({force:true})).state.signals.calendar);
     let calls = [];
     const host = { ...captured, data: { pageVisible: true, motionEnabled: false }, _lastLoad: now - config.refreshIntervalMs - 1,
       setData() {}, startTicker() {}, refreshRemind() {}, load(o) { calls.push(o); }, lastAt: null };

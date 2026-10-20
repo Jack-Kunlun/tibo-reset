@@ -430,6 +430,7 @@
   #observatory .pc-band b{color:#d9def1;font-weight:400;margin-left:10px}
   #observatory .pc-band>span:last-child{display:none}
   #observatory .announcement-pending{font-size:34px;font-weight:400;margin:28px 0 20px;color:#ece7ff}
+  #observatory .pc-pending-note{margin-top:12px;font-size:12px;line-height:1.6;color:#a6edce}
   #observatory .pc-announcement{display:block;padding:13px 0 17px;position:relative;z-index:1;text-align:left;color:#d8dcf1;text-decoration:none}
   #observatory .pc-announcement>span{display:flex;justify-content:space-between;gap:8px;color:#929bb8;font-size:10px}
   #observatory .pc-announcement i{font-style:normal;color:#a6edce}
@@ -473,6 +474,19 @@
   #observatory .cwarn{background:#2a241a;border:0;border-radius:14px}
   #observatory .cwarn-h,#observatory .cwarn-b,#observatory .cwarn-l{color:#e7c28a}
   #observatory .am-more{margin-top:24px;background:transparent;box-shadow:none;padding:0}
+  #observatory .basis-detail .bc{padding:18px;border:0;border-radius:16px;background:#0f1525;box-shadow:inset 0 1px #ffffff09}
+  #observatory .basis-detail .bc-h h3{color:#dce0f2;font-weight:500}
+  #observatory .basis-detail .bc-num{color:#ded8f5;font-size:26px}
+  #observatory .basis-detail .bc-num small{color:#b2b6cd}
+  #observatory .basis-detail .bc-range{color:#b4a3ff;line-height:1.7}
+  #observatory .basis-detail .bc-bar{grid-template-columns:58px minmax(0,1fr) 44px;gap:8px}
+  #observatory .basis-detail .bc-row{grid-template-columns:minmax(0,1fr);gap:5px}
+  #observatory .basis-detail .bc-row .v{font-size:18px;overflow-wrap:anywhere}
+  #observatory .basis-detail .bc-note.is-warn{padding:10px 12px;border:0;border-radius:10px;background:#e7c28a0d}
+  #observatory .basis-detail .ph .pm{color:#ded8f5;font-size:18px}
+  #observatory .am-more-body .hr{padding:18px;border-radius:16px;background:#12182a;box-shadow:inset 0 1px #ffffff09}
+  #observatory .am-more-body .metric{padding:16px;border-radius:16px;background:#12182a}
+  #observatory .am-more-body .metric .v{color:#ded8f5}
   #observatory .am-footer{border-top-color:var(--am-line);font-size:10px;margin-top:28px;padding-top:18px}
   #observatory svg text{fill:#9ca6c2}
   #observatory svg [fill="#1F1E1B"],#observatory svg [fill="#4A4842"]{fill:#d4dbf0}
@@ -502,6 +516,70 @@
   }
   #observatory[data-running="false"] .program-enhanced>.am-detail{animation:none}
   @media(prefers-reduced-motion:reduce){#observatory .program-enhanced>.am-detail{animation:none}}
+
+  #observatory .reset-calendar{margin-top:24px}
+  #observatory .rc-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px}
+  #observatory .rc-heading h2{font-size:17px;margin:0 0 7px;color:#eeeafa;font-weight:500}
+  #observatory .rc-heading p,#observatory .rc-caption,#observatory .rc-muted{font-size:11px;color:#9da8c3;line-height:1.7;margin:0}
+  #observatory .rc-caption{white-space:nowrap}
+  #observatory .rc-layout{display:grid;grid-template-columns:170px minmax(0,1fr);gap:25px}
+  #observatory .rc-summary{padding:8px 20px 0 0;border-right:1px solid var(--am-line)}
+  #observatory .rc-progress{display:block;font-family:var(--mono);font-size:44px;color:#ded5ff;line-height:1.4;margin:2px 0 18px}
+  #observatory .rc-progress small{font-size:18px;color:#8793b3;font-weight:400}
+  #observatory .rc-stat{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:#a6edce}
+  #observatory .rc-stat b{font-family:var(--mono);font-size:25px;font-weight:500}
+  #observatory .rc-stat small{font-family:var(--sans);font-size:11px;font-weight:400}
+  #observatory .rc-stat.rc-pending{margin-top:19px;color:#edc28a}
+  #observatory .rc-source{display:block;margin-top:23px;font-size:11px;color:#b7a6ff}
+  #observatory .rc-week,#observatory .rc-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+  #observatory .rc-week{margin-bottom:9px;font-size:11px;text-align:center;color:#929fba}
+  #observatory .rc-cell{display:flex;min-height:68px;flex-direction:column;align-items:center;justify-content:center;border:1px solid #ffffff08;border-radius:11px;background:#ffffff03;color:#8491af;text-decoration:none;gap:5px;min-width:0;box-sizing:border-box}
+  #observatory .rc-cell b{font-family:var(--mono);font-size:13px;font-weight:500}
+  #observatory .rc-cell span{font-size:10px;white-space:nowrap}
+  #observatory .rc-cell i{font-size:8px;font-style:normal;color:#edc28a}
+  #observatory .rc-confirmed{background:linear-gradient(145deg,#21443e,#182e32);border-color:#a6edce23;color:#b7f2db}
+  #observatory .rc-pending,#observatory .rc-dated,#observatory .rc-announced{background:#3b3025;border-color:#edc28a40;color:#edc28a}
+  #observatory .rc-stat.rc-pending{background:none;border:0}
+  #observatory .rc-updated{background:#2c2946;border-color:#baabff20;color:#bcb2e0}
+  #observatory .rc-cell.is-today{outline:2px solid #b7a6ff;outline-offset:2px}
+  #observatory a.rc-cell:hover{filter:brightness(1.15)}
+  #observatory .rc-legend{display:flex;gap:13px;flex-wrap:wrap;margin:15px 0 0;font-size:10px;color:#8996b2}
+  #observatory .rc-legend span:first-child{color:#a6edce}#observatory .rc-legend span:nth-child(2){color:#edc28a}#observatory .rc-legend span:nth-child(3){color:#bcb2e0}
+  @media(max-width:700px){#observatory .reset-calendar{margin-top:18px}#observatory .rc-layout{display:block}#observatory .rc-summary{border:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:20px}#observatory .rc-progress{grid-column:1;grid-row:2/4;margin:0;font-size:36px}#observatory .rc-summary>.rc-muted:first-child{grid-column:1;grid-row:1}#observatory .rc-stat{grid-column:2;grid-row:1/3}#observatory .rc-summary>.rc-muted:nth-of-type(2){grid-column:2;grid-row:3}#observatory .rc-stat.rc-pending{grid-column:1;grid-row:4;margin:0;justify-content:flex-start;gap:10px}#observatory .rc-source{grid-column:2;grid-row:4;margin:0;align-self:center}#observatory .rc-grid,#observatory .rc-week{gap:5px}#observatory .rc-cell{min-height:60px;border-radius:8px}#observatory .rc-cell b{font-size:11px}#observatory .rc-cell span{font-size:8px}#observatory .rc-heading p{font-size:10px}#observatory .rc-caption{font-size:10px}#observatory .rc-legend{gap:8px;font-size:9px}}
+
+  #observatory .am-side .reset-calendar{margin:0;padding:19px 16px}
+  #observatory .am-side .rc-heading{margin-bottom:14px;gap:7px;flex-wrap:wrap}
+  #observatory .am-side .rc-heading h2{font-size:15px}
+  #observatory .am-side .rc-heading p{font-size:9px}
+  #observatory .am-side .rc-caption{font-size:9px}
+  #observatory .am-side .rc-layout{display:block}
+  #observatory .am-side .rc-summary{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;border:0;padding:0;margin-bottom:17px}
+  #observatory .am-side .rc-progress{grid-column:1;grid-row:2/4;margin:0;font-size:32px}
+  #observatory .am-side .rc-progress small{font-size:14px}
+  #observatory .am-side .rc-summary>.rc-muted:first-child{grid-column:1;grid-row:1}
+  #observatory .am-side .rc-stat{grid-column:2;grid-row:1/3;font-size:10px}
+  #observatory .am-side .rc-stat b{font-size:25px}
+  #observatory .am-side .rc-summary>.rc-muted:nth-of-type(2){grid-column:2;grid-row:3;font-size:9px}
+  #observatory .am-side .rc-stat.rc-pending{grid-column:1;grid-row:4;margin:0;justify-content:flex-start;gap:6px}
+  #observatory .am-side .rc-source{grid-column:2;grid-row:4;margin:0;align-self:center;font-size:9px}
+  #observatory .am-side .rc-grid,#observatory .am-side .rc-week{gap:4px}
+  #observatory .am-side .rc-cell{min-height:47px;gap:5px;border-radius:7px}
+  #observatory .am-side .rc-cell b{font-size:9px}
+  #observatory .am-side .rc-cell span{font-size:8px}
+  #observatory .am-side .rc-legend{gap:7px;font-size:8px;line-height:1.7;margin-top:13px}
+  #observatory .am-focus>.pred>.pcard{display:flex;flex-direction:column}
+  #observatory .am-stage{flex:1}
+  #observatory>.sig-prog{margin-top:22px}
+
+  #observatory .am-side .reset-calendar{padding:16px}
+  #observatory .am-side .rc-heading{margin-bottom:10px}
+  #observatory .am-side .rc-summary{margin-bottom:12px}
+  #observatory .am-side .rc-cell{min-height:42px}
+  #observatory .am-side .is-arrival{padding:17px}
+  #observatory .am-side .is-arrival h2{margin-bottom:9px;font-size:14px}
+  #observatory .am-side .is-arrival .am-basis-row{padding:9px 0;font-size:11px}
+  #observatory .am-side .is-arrival .am-basis-row strong{font-size:14px}
+  #observatory .am-side .is-arrival .am-basis-note{margin-top:10px;font-size:10px;line-height:1.7}
 </style>
 
 </head>
@@ -525,10 +603,11 @@
         <!--__SIGNAL__-->
       </div>
       <div class="am-side">
-        <!--__PROGRAM__-->
+        <!--__RESET_CALENDAR__-->
         <!--__BASIS_SUMMARY__-->
       </div>
     </div>
+    <!--__PROGRAM__-->
     <div class="am-lower">
       <section class="am-panel am-history">
         <div class="am-panel-head"><h2>历史重置节奏</h2><span class="am-tiny am-muted">最近 7 次间隔 · 天</span></div>
@@ -707,9 +786,11 @@
       var over = left <= 0;
       if (pcdWait && pcdWait.dataset.over !== (over ? '1' : '0')) {
         pcdWait.dataset.over = over ? '1' : '0';
-        if (pcdCap) pcdCap.textContent = pred.dataset.announcement === 'true'
+        if (pcdCap) pcdCap.textContent = pred.dataset.etaKind === 'announced'
           ? (over ? '公告窗口已开启' : '距公告窗口开启')
-          : (over ? '已到预测时刻' : '预计还需等待');
+          : pred.dataset.announcement === 'true'
+            ? (over ? '已到模型预计时刻' : '距模型预计到账')
+            : (over ? '已到预测时刻' : '预计还需等待');
       }
       if (!over) {
         var q = parts(left);

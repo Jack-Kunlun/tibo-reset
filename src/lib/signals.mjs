@@ -235,24 +235,58 @@ const RE_ALTERNATIVE = /\b(?:or|either)\b(?:\s+\w+){0,3}\s+reset/i;
  *
  * 「Day N/」里的 N 只作日程序号，**不参与时间窗口计算** —— 它不是「N 天后」，
  * 落在哪一天由后面的正文和当天日期决定。这里只回答「是不是一句预告」。
- * 因此必须紧邻（斜杠后立刻是 reset），否则 `Day 1/ … a reset of limits …`
- * 这类把 reset 塞进长句尾部的发布说明会被误判成预告。
+ *
+ * 斜杠后有两种形态，都必须放行：
+ *   ① **紧邻**：`Day 10/ Reset` —— 斜杠后第一个词就是 reset。
+ *   ② **短名词短语**：`Day 13/ Le limit reset`（2026-10-17 实测）—— 斜杠后是
+ *      ≤3 个词的名词短语且以 reset 收尾。他用法语写「限额重置」，中间夹了
+ *      `Le limit`，因此 ① 抓不到；而这条 16:20 发出、21:12 就真的 `Done` 了，
+ *      是货真价实的预告，漏掉它会同时少一个 ETA 配对样本。
+ *
+ * ② 的长度上限（≤3 词）是**保住 KI-013 红线的关键**：`Day 1/ … a reset of limits …`
+ * 这类把 reset 塞进长句尾部的发布说明必须挡住。收紧到「短语」而不是「任意长句」，
+ * 就是为了让 `Day 1/ Shipping a reset of limits today`（6 词）不中、
+ * `Day 13/ Le limit reset`（3 词）中。
+ *
+ * ⚠ 回顾与否定语境另有挡板兜着，不靠这条正则分辨：
+ * `Day 10/ No reset` 走 `blockedResetSentence`（否定 → none），
+ * `Day 10/ There was a reset` 走 `RE_PAST`（陈述过去 → occurred）。
+ *
+ * 另一条扩展是 2026-10-20 实测的
+ * `Day N/ Nevermind, we're still cooking... and reset.`：日程前缀、未完成语态与
+ * 并列 reset 共同表达「还在做、重置随后发生」，不能因为句中省略了 will 就掉成 hint。
+ * ⚠ `Enjoy.` 是口头禅、**不是语义要件** —— 旧实现把它写进可选组的前提位置，
+ * 导致少了它就整条不命中。改成 `reset[.!]?( Enjoy[.!]?)?`：句号归 reset，
+ * Enjoy 独立可选。
  */
-const RE_SCHEDULE_RESET = /\bday\s+\d+\s*\/\s*reset\s*[.!]*$/i;
+const RE_SCHEDULE_RESET = /(?:\bday\s+\d+\s*\/\s*(?:[a-z’'’]{1,20}\s+){0,3}reset\s*[.!]*$|\bday\s+\d+\s*\/\s*nevermind\b[\s\S]{0,100}?\bstill\s+cooking\b[\s\S]{0,80}?\band\s+reset\b[.!]?(?:\s+enjoy\b[.!]?)?\s*$)/i;
+/** 日程前缀本身 —— 用来识别「`Day N/ <发布说明>`」这一整类，不能只认 reset 收尾的形态。 */
+const RE_SCHEDULE_PREFIX = /\bday\s+\d+\s*\//i;
 const withoutUrls = (text) => String(text ?? '').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
 const RE_OWN_RESET_DONE = /^what would you like with your side of reset\?\s*it[’']s done[.!]?$/i;
 const RE_LINKED_DONE = /^(?:it[’']s\s+|it is\s+)?done(?:\s+and\s+dusted)?[.!]?$/i;
 
 // 否定完成与无关对象也必须挡住预告分支，不能只给 occurred 扣分。
 const RE_NEGATED_COMPLETION = /\bresets?\s+(?:(?:has|have|is|are|was|were)\s+)?(?:not|never|hasn[’']t|haven[’']t|isn[’']t)\s+(?:been\s+|yet\s+)?(?:propagated|completed?|done|finished|landed|happened|live|available)\b/i;
+// 「还没发生」的表述。⚠ `planned` 不能单列 —— `Reset landed as planned` /
+// `Reset completed as planned` 是**已完成**的说法，挡掉它会把已落地的重置
+// 误判成没发生（旧版判 reset，新版误降级成 other）。只有「计划中」这个
+// 未完成语义才算数，所以要求它带被动/进行标记：`is planned` / `was planned`。
+const RE_UNCOMPLETED_RESET = /(?:\breset\b[^.!?]{0,80}\b(?:in\s+progress|cancel(?:led|ed)|not\s+(?:available|ready|done|happening)|(?:is|are|was|were|be|been|being)\s+planned)\b[^.!?]*|\b(?:in\s+progress|cancel(?:led|ed)|not\s+(?:available|ready|done|happening)|(?:is|are|was|were|be|been|being)\s+planned)\b[^.!?]{0,80}\breset\b)/i;
 const RE_OTHER_RESET = /\bmodel\s+weights?\b/i;
 function blockedResetSentence(text) {
-  return RE_DENIED.test(text) || RE_NEGATED_COMPLETION.test(text) || RE_OTHER_RESET.test(text) ||
+  return RE_DENIED.test(text) || RE_NEGATED_COMPLETION.test(text) || RE_UNCOMPLETED_RESET.test(text) || RE_OTHER_RESET.test(text) ||
     /\b(?:not|never|isn[’']t|aren[’']t|won[’']t)\b[^.!?]{0,24}\b(?:coming|landing|arriving|inbound|on\s+the\s+way)\b/i.test(text);
 }
 
 // 「是否会重置」与「何时重置」分开判断；单独的 soon 及疑问、愿望不构成承诺。
 function hasUntimedAnnouncement(text, viaContext) {
+  const whole = withoutUrls(text);
+  // `splitSentences` 会把省略号后的 `and reset` 与 `Day N/` 拆开；只对上面的窄
+  // 日程式形态跨句检查，仍沿用否定、假设、疑问和回顾语境的挡板。
+  if (RE_SCHEDULE_RESET.test(whole) && !blockedResetSentence(whole) &&
+    !RE_HYPOTHETICAL.test(whole) && !whole.trim().endsWith('?') &&
+    !/\b(?:maybe|hope|wish|or|either|was|were|had|yesterday|previously)\b/i.test(whole)) return true;
   return splitSentences(text).some((s) => {
     if (!RE_RESET.test(s) && !(viaContext && RE_CONTINUE.test(s))) return false;
     if (blockedResetSentence(s) || RE_HYPOTHETICAL.test(s) || s.trim().endsWith('?') ||
@@ -387,7 +421,7 @@ export function classifyEvent(text) {
   const t = String(text ?? '');
   if (!RE_RESET.test(t)) return RE_CREDIT.test(t) ? 'credit' : 'other';
   if (RE_CREDIT.test(t)) return 'credit'; // 发券型重置
-  if (hasOccurredReset(t) || RE_SCOPE.test(t)) return 'reset';
+  if (hasOccurredReset(t) || RE_SCOPE.test(t) || hasUntimedAnnouncement(t, false)) return 'reset';
   return 'other';
 }
 
@@ -1248,7 +1282,16 @@ export function analyzeTweet(tweet, opts = {}) {
   // 升到 explicit 的条件：额度意图足够强（单独一个 reset 词算 3 分，
   // 或「额度词 + 新额度词」合起来算 3 分）。只有额度词没有「新给」的含义时，
   // 仍降级为线索 —— 否则「我们在调 usage limits」这种无关推文会被误报。
-  const level = intent >= 3 ? 'explicit' : 'hint';
+  //
+  // ⚠ 另有一道**日程前缀闸**：他的 28 天日程每天发 `Day N/ <当天内容>`，
+  // 10 条里 8 条是发布说明。这类长句里只要出现 reset + 一个时间词
+  // （`Day 1/ Shipping a reset of limits today`），intent 会到 3、还有时间线索
+  // ⇒ 直接升成 explicit —— 但它说的是「这次发布**包含**一次额度重置」，
+  // 不是「我要重置」。KI-013 早就把这条列为红线，实现却一直没兑现：
+  // 真正的日程式宣告必须命中 RE_SCHEDULE_RESET（斜杠后是短名词短语或
+  // nevermind 句式），否则一律按发布说明降级为线索。
+  const scheduleOnly = RE_SCHEDULE_PREFIX.test(text) && !RE_SCHEDULE_RESET.test(withoutUrls(text));
+  const level = intent >= 3 && !scheduleOnly ? 'explicit' : 'hint';
   const win = describeWindow(w, sourceZone, userZone);
 
   return {
@@ -1595,6 +1638,13 @@ const RE_PROGRAM_EITHER = /\beither\b[\s\S]{0,240}?\bor\b/i;
  * 纯判定：这条推文是不是在宣布一段「每日重置窗口」。命中返回 `{ days }`，否则 null。
  * 抽成独立导出函数是为了能单测 —— `buildProgram` 要跑时间换算，测起来太重。
  */
+// 旧确认基线可保留，但已采原文明示预告、否定或进行中时不能沿用完成标签。
+// 此函数只排除历史矛盾，不用于接纳新事件；新事件仍须 confirmedResetEvent 的证据链。
+export function contradictsConfirmedHistory(tweet, opts = {}) {
+  if (analyzeTweet(tweet, opts).level === 'explicit') return true;
+  return splitSentences(tweet?.text ?? '').filter((s) => RE_RESET.test(s)).some(blockedResetSentence);
+}
+
 export function detectProgram(text) {
   const t = String(text ?? '');
   const m = t.match(RE_PROGRAM_SPAN);

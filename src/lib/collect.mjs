@@ -392,7 +392,8 @@ export async function fetchLiveTweetsViaBrowser(account = SOURCE_ACCOUNT, opts =
   // 而下游（页面、统计、「他的发言里有多少条与额度有关」）读的正是 `kind`。
   const { tweets: fullTweets } = patchTruncatedTexts(
     enriched.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
-    fullTexts ?? new Map()
+    fullTexts ?? new Map(),
+    { source: 'detail' },
   );
 
   const tweets = fullTweets.map(({ via, ...t }) => ({
@@ -485,32 +486,76 @@ export async function fetchHistory() {
  * 合并规则：上游可修正本地记录，但**不能无条件覆盖** ——
  *   · 按 id 与来源推文对齐，兼容上游的 observed-* 合成 id；
  *     id 缺失或时间非法的条目直接跳过，不污染库。
- *   · 共有条目以上游字段为准（他的推文可能被编辑、上游可能修正时间）；
+ *   · 若可信本地原帖显示它是预告/否定，则挡住或移除第三方历史；
+ *     若原帖已编辑成严格完成公告，则使用作者原文与归因。
+ *   · 其余共有条目仍以上游字段为准（上游可能修正时间）；
  *   · 唯独 `text` 取**两者中更长的** —— 上游偶有截断/摘要化，而本地可能已经从
  *     别处补过完整正文，用短的去覆盖长的会让识别能力无声退步。
  *
- * 返回 `added` / `updated`：调用方靠它判断「这轮历史到底有没有变」，
+ * 返回 `added` / `updated` / `removed`：调用方靠它判断「这轮历史到底有没有变」，
  * 因为「没变」与「变了」在落盘与短路上的处理不同。
  */
-export function mergeHistory(local = [], upstream = []) {
+export function mergeHistory(local = [], upstream = [], opts = {}) {
+  const account = opts.account ?? SOURCE_ACCOUNT;
+  const reconciled = reconcileHistory(local, opts.tweets, { account });
   const byId = new Map();
-  for (const r of local ?? []) if (r?.id) byId.set(r.id, r);
+  for (const r of reconciled.records) if (r?.id) byId.set(r.id, r);
 
   // 上游可能用 observed-* 作 id；同一来源推文只能算一次重置。
   const bySource = new Map();
   for (const r of byId.values()) for (const source of recordSources(r)) bySource.set(source, r.id);
 
   let added = 0;
-  let updated = 0;
+  let updated = reconciled.updated;
+  let removed = reconciled.removed;
   const candidates = new Map();
   for (const u of upstream ?? []) {
     if (!u?.id || !u.announced_at || Number.isNaN(new Date(u.announced_at).getTime())) continue;
+    const localTweets = matchingTrustedTweets(u, opts.tweets, account);
+    const localEvents = localTweets.map((tweet) => confirmedResetEvent(tweet, {
+      account, tweets: opts.tweets ?? [],
+    }));
+    const localEvent = localEvents.find(Boolean);
+    const upstreamEvent = localTweets.length ? null : confirmedResetEvent(
+      tweetForHistoryRecord(u, account), { account, tweets: opts.tweets ?? [] },
+    );
+    const normalized = localEvent ? {
+      ...localEvent,
+      confirmation_urls: [localEvent.url].filter(Boolean),
+    } : u;
+    const localContradiction = !localEvent && localTweets.some((tweet) =>
+      contradictsCompletion(tweet, opts.tweets, account));
+    if (!localEvent && localContradiction) {
+      // 同一条上游记录后来改成了预告/否定，也要清掉既有第三方行；否则只挡新增
+      // 会留下「旧记录继续算落地」的旁路。只有可信本地原帖能证明矛盾；上游自己的
+      // 未完成文本只能阻止新增/更新，不能单方面删除旧的未知历史基线。
+      for (const [id, r] of byId) {
+        if (!isThirdPartyHistory(r)) continue;
+        const sameId = id === u.id || id === normalized.id;
+        const sourceIdentity = statusIdentity(u.url);
+        const sameSource = sourceIdentity && recordSources(r).includes(sourceIdentity);
+        const hasConfirmedSource = matchingTrustedTweets(r, opts.tweets, account).some((tweet) =>
+          confirmedResetEvent(tweet, { account, tweets: opts.tweets ?? [] }));
+        if ((sameId || sameSource) && !hasConfirmedSource) {
+          byId.delete(id);
+          for (const [alias, sourceId] of bySource) if (sourceId === id) bySource.delete(alias);
+          removed++;
+        }
+      }
+      continue;
+    }
+    // 第三方标签只说明收录来源，不是完成证据。可信原帖优先；没有本地原帖时，
+    // 上游原文也必须通过与直接入库相同的严格完成判定。无法核实的旧本地行保留，
+    // 但未知文本不再新增或更新成「已落地」。
+    if (!localEvent && !upstreamEvent) continue;
     const source = statusIdentity(u.url);
-    const prevId = byId.has(u.id) ? u.id : bySource.get(source);
+    const prevId = byId.has(normalized.id) ? normalized.id : bySource.get(source);
     const key = prevId ? `known:${prevId}` : source ? `source:${source}` : `id:${u.id}`;
     const candidate = candidates.get(key);
     // 同次发放的多个确认都被上游收录时，只采用最新确认，不能来回换 id、每轮报变化。
-    if (!candidate || Date.parse(u.announced_at) > Date.parse(candidate.announced_at)) candidates.set(key, u);
+    if (!candidate || Date.parse(normalized.announced_at) > Date.parse(candidate.announced_at)) {
+      candidates.set(key, normalized);
+    }
   }
   for (const u of candidates.values()) {
     const source = statusIdentity(u.url);
@@ -525,8 +570,19 @@ export function mergeHistory(local = [], upstream = []) {
     const keepLongerText =
       (u.text ?? '').length >= (prev.text ?? '').length ? u.text : prev.text;
     const samePost = prev.id === u.id || (source && source === statusIdentity(prev.url));
-    const next = { ...prev, ...u, announced_at: prev.first_confirmed_at ?? u.announced_at,
+    const firstConfirmedAt = prev.first_confirmed_at ?? prev.announced_at;
+    const confirmationUrls = [...new Set([
+      ...(prev.confirmation_urls ?? []), prev.url,
+      ...(u.confirmation_urls ?? []), u.url,
+    ].filter(Boolean))];
+    const next = { ...prev, ...u,
+      announced_at: firstConfirmedAt,
+      ...(prev.first_confirmed_at != null ? { first_confirmed_at: prev.first_confirmed_at } : null),
+      ...(Object.hasOwn(prev, 'confirmation_urls') || Object.hasOwn(u, 'confirmation_urls') || confirmationUrls.length > 1
+        ? { confirmation_urls: confirmationUrls }
+        : null),
       text: samePost ? keepLongerText : u.text };
+    if (prev.first_confirmed_at == null) delete next.first_confirmed_at;
     // 只在字段真的变了时才计入 updated —— 否则每轮都会「有变化」，
     // 短路形同虚设，自动化会每轮多提交一条空历史（历史上「48 条提交/天」的成因）。
     if (JSON.stringify(next) !== JSON.stringify(prev)) updated++;
@@ -541,6 +597,7 @@ export function mergeHistory(local = [], upstream = []) {
     ),
     added,
     updated,
+    removed,
   };
 }
 
@@ -555,6 +612,131 @@ function statusIdentity(url) {
 
 function recordSources(record) {
   return [record.url, ...(record.confirmation_urls ?? [])].map(statusIdentity).filter(Boolean);
+}
+
+function isThirdPartyHistory(record) {
+  return String(record?.attribution ?? '').toLowerCase().includes('codex-resets.com');
+}
+
+function isTrustedSourceTweet(tweet, account) {
+  return tweet?.author_verified === true &&
+    String(tweet.account ?? '').toLowerCase() === String(account).toLowerCase() &&
+    ['timeline-browser', 'with-replies'].includes(tweet.foundVia);
+}
+
+function matchingTrustedTweets(record, tweets = [], account = SOURCE_ACCOUNT) {
+  const identities = new Set(recordSources(record));
+  return (tweets ?? []).filter((tweet) => {
+    if (!isTrustedSourceTweet(tweet, account)) return false;
+    const identity = statusIdentity(tweet.url);
+    if (identity && identities.has(identity)) return true;
+    // 上游 id 是原帖 id；仅在上面的作者核验成立后才用它兜底。
+    return Boolean(tweet.id && String(tweet.id) === String(record.id));
+  });
+}
+
+function tweetForHistoryRecord(record, account = SOURCE_ACCOUNT) {
+  const source = statusIdentity(record?.url);
+  return {
+    id: String(record?.id ?? ''),
+    created_at: record?.created_at ?? record?.announced_at,
+    text: record?.text ?? '',
+    url: record?.url ?? null,
+    account: source?.split('/')[0] ?? account,
+  };
+}
+
+function contradictsCompletion(record, tweets = [], account = SOURCE_ACCOUNT) {
+  const tweet = record?.created_at ? record : tweetForHistoryRecord(record, account);
+  const analysis = analyzeTweet(tweet, { account, tweets: tweets ?? [] });
+  return analysis.level === 'explicit' || analysis.rejected === '重置被否定或对象并非使用额度';
+}
+
+/**
+ * 只校正第三方归因的历史：可信本地原帖若是预告/否定，就移除误记；若是窄口径
+ * 完成公告，则改记为作者原帖。未知旧记录与直接确认记录保持原样，避免清空历史基线。
+ */
+export function reconcileHistory(records = [], tweets = [], opts = {}) {
+  const account = opts.account ?? SOURCE_ACCOUNT;
+  const output = [];
+  let removed = 0;
+  let updated = 0;
+  for (const record of records ?? []) {
+    if (!isThirdPartyHistory(record)) {
+      output.push(record);
+      continue;
+    }
+    const matchedTweets = matchingTrustedTweets(record, tweets, account);
+    if (!matchedTweets.length) {
+      output.push(record);
+      continue;
+    }
+    const completed = matchedTweets.map((tweet) => ({
+      tweet,
+      event: confirmedResetEvent(tweet, { account, tweets: tweets ?? [] }),
+    })).filter((match) => match.event);
+    if (completed.length) {
+      const primarySource = statusIdentity(record.url);
+      const primaryTweet = matchedTweets.find((tweet) =>
+        (primarySource && statusIdentity(tweet.url) === primarySource) ||
+        (record.id && String(record.id) === String(tweet.id)));
+      const primary = completed.find(({ tweet }) => tweet === primaryTweet);
+      if (!primary) {
+        if (primaryTweet && contradictsCompletion(primaryTweet, tweets, account)) {
+          // 主来源已被可信原帖明确证伪时，第三方给它记下的时刻不能继续冒充落地时刻。
+          // 改用所有可信完成来源里最早可证明的一条，并保留原有 aliases 供后续逐条核验。
+          const earliest = [...completed].sort((a, b) =>
+            Date.parse(a.event.announced_at) - Date.parse(b.event.announced_at) ||
+            String(a.event.url ?? '').localeCompare(String(b.event.url ?? '')))[0].event;
+          const next = {
+            ...record,
+            id: earliest.id,
+            announced_at: earliest.announced_at,
+            first_confirmed_at: earliest.announced_at,
+            type: earliest.type,
+            text: earliest.text,
+            url: earliest.url,
+            attribution: earliest.attribution,
+            confirmation_urls: [...new Set([
+              ...(record.confirmation_urls ?? []), record.url,
+              ...completed.map(({ event }) => event.url),
+            ].filter(Boolean))],
+          };
+          if (JSON.stringify(next) !== JSON.stringify(record)) updated++;
+          output.push(next);
+          continue;
+        }
+        output.push(record);
+        continue;
+      }
+      // 只有主来源原帖本身被编辑成完成公告时才改作者归因/正文；保留原始事件
+      // 时刻、first_confirmed_at 与所有历史来源，避免把后续确认伪装成新事件。
+      const next = {
+        ...record,
+        type: primary.event.type,
+        text: primary.event.text,
+        attribution: primary.event.attribution,
+        first_confirmed_at: record.first_confirmed_at ?? record.announced_at,
+        confirmation_urls: [...new Set([
+          ...(record.confirmation_urls ?? []), record.url,
+          ...completed.map(({ event }) => event.url),
+        ].filter(Boolean))],
+      };
+      if (JSON.stringify(next) !== JSON.stringify(record)) updated++;
+      output.push(next);
+      continue;
+    }
+    if (matchedTweets.some((tweet) => contradictsCompletion(tweet, tweets, account))) {
+      removed++;
+      continue;
+    }
+    output.push(record);
+  }
+  return {
+    records: output.sort((a, b) => Date.parse(b.announced_at) - Date.parse(a.announced_at)),
+    removed,
+    updated,
+  };
 }
 
 // 缺少事件 id 时只能保守归并短期重复确认；新预告/明确「又一次」可打开新事件。
@@ -620,19 +802,33 @@ export function mergeConfirmedResets(records = [], tweets = [], opts = {}) {
  *
  * 归一化口径与推文库一致（`\s+` → 单空格），避免同一份库里混进两种格式；
  * 只在更长时替换，短的一律不动。
+ * 历史站点的正文不是作者原帖：它只能补出与采集正文逐字衔接的长截断，或补一个尾链，
+ * 不能把一条短预告拼接成完成公告。详情页正文走独立的浏览器可信路径。
  */
-export function patchTruncatedTexts(tweets = [], textById = new Map()) {
+export function patchTruncatedTexts(tweets = [], textById = new Map(), opts = {}) {
+  const source = opts.source ?? 'upstream';
   let patched = 0;
   const next = (tweets ?? []).map((t) => {
     const full = textById.get(t.id);
     if (!full) return t;
     const norm = String(full).replace(/\s+/g, ' ').trim();
     if (norm.length <= (t.text ?? '').length) return t;
+    if (source === 'upstream' && !canPatchFromHistory(t, norm)) return t;
     patched++;
     // text_full 是显式记账：这条的正文是**补全**来的，不是页面上直接采到的。
     return { ...t, text: norm, text_full: true };
   });
   return { tweets: next, patched };
+}
+
+function canPatchFromHistory(tweet, fullText) {
+  const current = String(tweet?.text ?? '').replace(/\s+/g, ' ').trim();
+  if (!current || tweet?.text_full === true || !fullText.startsWith(current)) return false;
+  const suffix = fullText.slice(current.length);
+  // 短句只允许补上正文尾随的链接；否则「A reset is coming.」也可能被上游拼接成
+  // 完成公告。历史里真正被 X 折叠的长文接近其页面截断长度，且通常截在半句中。
+  if (/^\s+(?:https?:\/\/\S+)(?:\s+https?:\/\/\S+)*\s*$/.test(suffix)) return true;
+  return current.length >= 200 && !/[.!?]["'’”\])}]*$/.test(current);
 }
 
 // 增量可能只采到完成帖；已核验的缓存父帖也要接收详情页补出的关联。
@@ -839,18 +1035,23 @@ export async function runCollection(opts = {}) {
   //
   // 这个请求很便宜（一次 GET，limit=100 的历史列表），比「漏掉一次重置」的代价低得多。
   let history = await readJson(resolve(dataDir, 'resets.json'), { records: [] });
+  let live = await readJson(resolve(dataDir, 'tweets.json'), { tweets: [] });
+  const sourceTweets = live.tweets ?? [];
+  const reconciled = reconcileHistory(history.records, sourceTweets, { account: opts.account });
+  history.records = reconciled.records;
   /** 上游正文映射（id → 完整正文），用于回填被截断的推文，见 patchTruncatedTexts。 */
   const upstreamText = new Map();
   /** 本轮历史相对本地是否有实质变化 —— 短路判断要参考它。 */
-  let historyChanged = false;
-  let historyReport = { added: 0, updated: 0, upstreamCount: 0, refreshedAt: null, error: null };
+  let historyChanged = reconciled.removed > 0 || reconciled.updated > 0;
+  let historyReport = { added: 0, updated: reconciled.updated, removed: reconciled.removed,
+    upstreamCount: 0, refreshedAt: null, error: null };
 
   if (!opts.skipLive) {
     try {
       const upstream = await fetchHistory();
       for (const r of upstream) if (r.id && r.text) upstreamText.set(r.id, r.text);
-      const merged = mergeHistory(history.records, upstream);
-      historyChanged = merged.added > 0 || merged.updated > 0;
+      const merged = mergeHistory(history.records, upstream, { tweets: sourceTweets, account: opts.account });
+      historyChanged ||= merged.added > 0 || merged.updated > 0 || merged.removed > 0;
       history = {
         ...history,
         records: merged.records,
@@ -861,7 +1062,8 @@ export async function runCollection(opts = {}) {
       };
       historyReport = {
         added: merged.added,
-        updated: merged.updated,
+        updated: reconciled.updated + merged.updated,
+        removed: reconciled.removed + merged.removed,
         upstreamCount: upstream.length,
         refreshedAt: history.refreshed_at,
         error: null,
@@ -895,7 +1097,6 @@ export async function runCollection(opts = {}) {
   //   年龄从刚采完的 0 涨到下一轮采集前的满一个周期 —— 阈值小于周期就意味着有一段窗口
   //   必然超阈值，于是每一轮都真去采、必然失败、必然写 errors。历史上这里正是
   //   120 < 480 这个配置矛盾，让 CI 有 75% 的运行在必然失败。
-  let live = await readJson(resolve(dataDir, 'tweets.json'), { tweets: [] });
   const prevStats = await readJson(resolve(dataDir, 'stats.json'), {});
   const lastLiveAt = live.updated_at ? new Date(live.updated_at).getTime() : 0;
   const liveAgeMs = Date.now() - lastLiveAt;
@@ -1100,16 +1301,24 @@ export async function runCollection(opts = {}) {
   //
   //     ⚠ 正文补全**有两条来源**，这里是第二条。第一条在采集出口（`browser.mjs`
   //     逐条开详情页取全文，见 KI-009），它已经应用到本轮采到的推文上了。
-  //     两条的关系是「谁长用谁」而不是「谁先谁后」——
-  //     上游偶有摘要化、详情页偶有渲染折叠，都可能一方比另一方短。
+  //     详情页是浏览器直接核验；第三方历史只用于补齐能证明是原文延续的截断长帖，
+  //     不能借较长文本把可信采集到的预告改写成完成公告。
   let textPatched = 0;
   if (upstreamText.size) {
-    const r = patchTruncatedTexts(live.tweets, upstreamText);
+    const r = patchTruncatedTexts(live.tweets, upstreamText, { source: 'upstream' });
     if (r.patched > 0) {
       live = { ...live, tweets: r.tweets, updated_at: new Date().toISOString() };
       textPatched = r.patched;
     }
   }
+
+  // 本轮刚采到的可信原帖/全文也可能揭示已有第三方行其实是预告；在重算统计前
+  // 再核对一次，确保新鲜证据能阻止旧上游文本或误记推进 lastResetAt。
+  const finalReconciled = reconcileHistory(history.records, live.tweets, { account: opts.account });
+  history.records = finalReconciled.records;
+  historyChanged ||= finalReconciled.removed > 0 || finalReconciled.updated > 0;
+  historyReport.removed = (historyReport.removed ?? 0) + finalReconciled.removed;
+  historyReport.updated = (historyReport.updated ?? 0) + finalReconciled.updated;
 
   const signalNow = Date.now();
   const confirmed = mergeConfirmedResets(history.records, live.tweets, {

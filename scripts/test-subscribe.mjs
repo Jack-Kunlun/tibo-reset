@@ -22,15 +22,18 @@ import {
   buildTemplateData,
   createSubscriptionStore,
   detectNewResets,
+  announcementEventsFromForecasts,
   fmtWeChatTime,
   handleSubscribe,
   handleUnsubscribe,
   handleSubscriptionConfig,
   handleSubscriptionStatus,
   latestEventAt,
+  notifyNewAnnouncements,
   notifyNewResets,
 } from '../server/subscribe.mjs';
 import { createWeChatClient } from '../server/wechat.mjs';
+import { detectSignals } from '../src/lib/signals.mjs';
 import subscriptionTemplate from '../server/subscribe-template.json' with { type: 'json' };
 
 const SEND = '/message/subscribe/send';
@@ -489,20 +492,20 @@ section('8. 已选模板的实际字段');
   await store.write({ last_event_at: '2026-09-01T00:00:00.000Z', items: [{ openid: 'U', template_id: subscriptionTemplate.templateId }] });
   let message;
   await notifyNewResets({ dataDir, store, templateId: subscriptionTemplate.templateId, templateSpec: subscriptionTemplate.data, client: { configured: true, sendSubscribeMessage: async (m) => { message = m; } }, log: silence });
-  check('已选模板按 thing13/time10/thing5 发送实际文案与北京时间', message.templateId === subscriptionTemplate.templateId && JSON.stringify(message.data) === JSON.stringify({ thing13: { value: 'Codex 额度已重置' }, time10: { value: '2026-09-20 10:30' }, thing5: { value: '打开观测台查看重置详情' } }));
+  check('落地通知文案声明公开完成公告已确认', message.templateId === subscriptionTemplate.templateId && JSON.stringify(message.data) === JSON.stringify({ thing13: { value: '重置已落地｜公开完成公告已确认' }, time10: { value: '2026-09-20 10:30' }, thing5: { value: '查看观测台了解详情' } }));
 }
 
 section('8. 实际开启、状态与并发回归');
 
 const authClient = { configured: true, codeToOpenid: async (code) => code, sendSubscribeMessage: async () => {} };
-const register = async (store, code, templateId = 'T') => {
+const register = async (store, code, templateId = 'T', kind, grantId) => {
   const res = makeRes();
-  await handleSubscribe(makeReq('POST', { code, templateId }), res, { store, client: authClient, templateId: 'T', send });
+  await handleSubscribe(makeReq('POST', { code, templateId, ...(kind ? { kind } : {}), ...(grantId ? { grantId } : {}) }), res, { store, client: authClient, templateId: 'T', send });
   return res;
 };
-const status = async (store, code) => {
+const status = async (store, code, kind, grantId) => {
   const res = makeRes();
-  await handleSubscriptionStatus(makeReq('POST', { code, templateId: 'T' }), res, { store, client: authClient, templateId: 'T', send });
+  await handleSubscriptionStatus(makeReq('POST', { code, templateId: 'T', ...(kind ? { kind } : {}), ...(grantId ? { grantId } : {}) }), res, { store, client: authClient, templateId: 'T', send });
   return res.json();
 };
 {
@@ -525,7 +528,7 @@ const status = async (store, code) => {
   const enabled = config.json();
   config = makeRes();
   handleSubscriptionConfig(makeReq('GET'), config, { client: authClient, templateId: '', send });
-  check('公开配置仅在凭据和模板齐备时启用', enabled.enabled === true && enabled.templateId === 'T' && config.json().enabled === false && Object.keys(enabled).sort().join() === 'enabled,scope,templateId');
+  check('公开配置列出两类通知且不暴露服务凭据', enabled.enabled === true && enabled.templateId === 'T' && enabled.kinds.join() === 'announcement,landed' && config.json().enabled === false && Object.keys(enabled).sort().join() === 'enabled,kinds,scope,templateId');
   // 登记已完成，构造一个随后确认的事件；不用等待真实时间推进。
   const at = new Date(Date.now() - 1000).toISOString();
   await store.update((state) => { state.items.forEach((x) => { x.created_at = at; }); });
@@ -534,6 +537,225 @@ const status = async (store, code) => {
   const options = { dataDir, store, client: { ...authClient, sendSubscribeMessage: async () => { sends++; } }, templateId: 'T', log: silence };
   await Promise.all([notifyNewResets(options), notifyNewResets(options)]);
   check('重复并发采集只发送一次，发送后查询恢复未开启', sends === 2 && (await status(store, 'U')).active === false && (await status(store, 'V')).active === false);
+}
+
+section('9. 预告通知与落地授权隔离');
+{
+  const now = Date.parse('2026-09-20T10:00:00.000Z');
+  const forecastSignal = detectSignals([{
+    id: 'announcement-1',
+    account: 'thsottiaux',
+    text: 'We will reset everyones usage limits next Tuesday',
+    created_at: '2026-09-19T18:00:00.000Z',
+    foundVia: 'timeline-browser',
+    author_verified: true,
+  }], { now, account: 'thsottiaux' });
+  const forecasts = forecastSignal.forecasts;
+  const events = announcementEventsFromForecasts(forecasts, now);
+  check('仅当前仍有效的 explicit forecast 生成预告事件', forecasts.length === 1 && events.length === 1 && events[0].id === `day:${forecasts[0].window.dayNum}` && events[0].created_at === forecasts[0].createdAt);
+  check('hint、occurred、软证据、未来时间和缺来源 ID 均不生成通知', announcementEventsFromForecasts([
+    { ...forecasts[0], level: 'hint' },
+    { ...forecasts[0], level: 'occurred' },
+    { ...forecasts[0], evidence: forecasts[0].evidence.map((e) => ({ ...e, weight: 'soft' })) },
+    { ...forecasts[0], createdAt: new Date(now + 1).toISOString() },
+    { ...forecasts[0], evidence: forecasts[0].evidence.map((e) => ({ ...e, createdAt: new Date(now + 1).toISOString() })) },
+    { ...forecasts[0], evidence: [{ ...forecasts[0].evidence[0], id: null }] },
+  ], now).length === 0);
+
+  // 使用 detectSignals 的真实输出复现小时级窗口；这类有效窗口没有 dayNum。
+  const shortNow = Date.now();
+  const shortTweet = {
+    id: 'short-window-1', account: 'thsottiaux',
+    text: 'We will reset everyone’s usage limits within the next 2 hours.',
+    created_at: new Date(shortNow - 10 * 60_000).toISOString(),
+    foundVia: 'timeline-browser', author_verified: true,
+  };
+  const shortForecasts = detectSignals([shortTweet], { now: shortNow, account: 'thsottiaux' }).forecasts;
+  const shortEvents = announcementEventsFromForecasts(shortForecasts, shortNow);
+  const shortReplay = announcementEventsFromForecasts(
+    detectSignals([shortTweet], { now: shortNow + 60_000, account: 'thsottiaux' }).forecasts,
+    shortNow + 60_000,
+  );
+  check('真实 detectSignals 小时窗口（dayNum=null、from/to 有效）生成稳定预告键',
+    shortForecasts[0]?.level === 'explicit' && shortForecasts[0]?.window?.dayNum === null &&
+    Number.isFinite(Date.parse(shortForecasts[0]?.window?.from)) && Date.parse(shortForecasts[0]?.window?.to) > Date.parse(shortForecasts[0]?.window?.from) &&
+    shortEvents.length === 1 && shortEvents[0].id.startsWith('window:') && shortReplay[0]?.id === shortEvents[0].id);
+  const shortStore = createSubscriptionStore(await makeDir());
+  await shortStore.write({ items: [{ openid: 'SHORT', template_id: 'T', kind: 'announcement', created_at: new Date(shortNow - 11 * 60_000).toISOString() }] });
+  let shortSends = 0;
+  const shortOptions = {
+    store: shortStore, templateId: 'T', now: shortNow, forecasts: shortForecasts, log: silence,
+    client: { configured: true, sendSubscribeMessage: async () => { shortSends++; } },
+  };
+  const shortSent = await notifyNewAnnouncements(shortOptions);
+  await notifyNewAnnouncements(shortOptions);
+  check('短时明确窗口会派发一次，重放仍按稳定键去重', shortSent.sent === 1 && shortSends === 1);
+
+  const dataDir = await makeDir(), store = createSubscriptionStore(dataDir);
+  await seedResets(dataDir, ['2026-09-01T00:00:00.000Z']);
+  await store.write({
+    last_event_at: '2026-09-01T00:00:00.000Z',
+    items: [
+      { openid: 'U', template_id: 'T', kind: 'announcement', created_at: '2026-09-19T17:59:00.000Z' },
+      { openid: 'U', template_id: 'T', created_at: '2026-09-19T17:59:00.000Z' },
+    ],
+  });
+  let sent = [];
+  const options = {
+    store, client: { configured: true, sendSubscribeMessage: async (m) => sent.push(m) },
+    templateId: 'T', templateSpec: subscriptionTemplate.data, forecasts, now, log: silence,
+  };
+  const r = await notifyNewAnnouncements(options);
+  check('预告只发送给预告授权，且明确尚未确认落地', r.sent === 1 && sent[0].data.thing13.value === '重置预告｜尚未确认落地' && sent[0].data.thing5.value === '尚未确认重置完成');
+  check('发送预告不推进落地水位，也不消耗落地授权', (await store.read()).last_event_at === '2026-09-01T00:00:00.000Z' && (await status(store, 'U')).active === true && (await status(store, 'U', 'announcement')).active === false);
+  const duplicate = await notifyNewAnnouncements(options);
+  check('重复 ingest / 并发重放同一 forecast 不会重复预告', duplicate.skipped === 'no-new-announcement' && sent.length === 1);
+
+  const confirmedDir = await makeDir(), confirmedStore = createSubscriptionStore(confirmedDir);
+  const landedAt = '2026-09-20T00:00:00.000Z';
+  await seedResets(confirmedDir, ['2026-09-01T00:00:00.000Z', landedAt]);
+  await confirmedStore.write({ last_event_at: '2026-09-01T00:00:00.000Z', items: [
+    { openid: 'CONFIRMED', template_id: 'T', kind: 'announcement', created_at: '2026-09-19T17:00:00.000Z' },
+    { openid: 'CONFIRMED', template_id: 'T', kind: 'landed', created_at: '2026-09-19T17:00:00.000Z' },
+  ] });
+  let confirmedMessages = [];
+  const confirmed = await notifyNewResets({
+    dataDir: confirmedDir, store: confirmedStore, client: { configured: true, sendSubscribeMessage: async (m) => confirmedMessages.push(m) },
+    templateId: 'T', templateSpec: subscriptionTemplate.data, log: silence,
+  });
+  check('确认落地事件只消耗落地授权，不触发预告通知', confirmed.sent === 1 && confirmedMessages.length === 1 && confirmedMessages[0].data.thing13.value.startsWith('重置已落地') && (await status(confirmedStore, 'CONFIRMED')).active === false && (await status(confirmedStore, 'CONFIRMED', 'announcement')).active === true);
+
+  // 旧客户端省略 kind 时只落 landed 订阅；旧名单同样按 landed 解释。
+  const defaultKind = await register(store, 'LEGACY');
+  check('旧客户端省略 kind 时默认登记为落地通知', defaultKind.statusCode === 200 && (await status(store, 'LEGACY')).active === true && (await status(store, 'LEGACY', 'announcement')).active === false);
+  const invalidKind = await register(store, 'INVALID', 'T', 'probability');
+  const invalidStatus = makeRes();
+  await handleSubscriptionStatus(makeReq('POST', { code: 'INVALID', templateId: 'T', kind: 'probability' }), invalidStatus, { store, client: authClient, templateId: 'T', send });
+  const invalidUnsubscribe = makeRes();
+  await handleUnsubscribe(makeReq('POST', { code: 'U', kind: 'probability' }), invalidUnsubscribe, { store, client: authClient, send });
+  check('非法 kind 在登记、状态查询和退订中均被拒绝', invalidKind.statusCode === 400 && invalidStatus.statusCode === 400 && invalidUnsubscribe.statusCode === 400);
+
+  const unsubscribeStore = createSubscriptionStore(await makeDir());
+  await unsubscribeStore.write({ items: [
+    { openid: 'UNSUB', template_id: 'T', kind: 'announcement' },
+    { openid: 'UNSUB', template_id: 'T' },
+  ] });
+  const unsub = makeRes();
+  await handleUnsubscribe(makeReq('POST', { code: 'UNSUB', kind: 'announcement' }), unsub, { store: unsubscribeStore, client: authClient, send });
+  check('按 kind 退订只移除对应通知', unsub.json().removed === 1 && (await status(unsubscribeStore, 'UNSUB')).active === true && (await status(unsubscribeStore, 'UNSUB', 'announcement')).active === false);
+  const legacyUnsub = makeRes();
+  await handleUnsubscribe(makeReq('POST', { code: 'UNSUB' }), legacyUnsub, { store: unsubscribeStore, client: authClient, send });
+  check('省略 kind 的旧退订仍清除该用户全部通知', legacyUnsub.json().removed === 1 && (await status(unsubscribeStore, 'UNSUB')).active === false);
+}
+
+section('10. 预告通知重试与开启前不追发');
+{
+  const now = Date.parse('2026-09-20T10:00:00.000Z');
+  const forecasts = detectSignals([{
+    id: 'announcement-retry', account: 'thsottiaux',
+    text: 'We will reset everyones usage limits next Tuesday',
+    created_at: '2026-09-19T18:00:00.000Z', foundVia: 'with-replies', author_verified: true,
+  }], { now, account: 'thsottiaux' }).forecasts;
+  const dataDir = await makeDir(), store = createSubscriptionStore(dataDir);
+  await store.write({ items: [{ openid: 'U', template_id: 'T', kind: 'announcement', created_at: '2026-09-19T17:59:00.000Z' }] });
+  let attempts = 0;
+  const options = {
+    store, forecasts, now, templateId: 'T', log: silence,
+    client: { configured: true, sendSubscribeMessage: async () => { if (++attempts === 1) throw new Error('network'); } },
+  };
+  const failed = await notifyNewAnnouncements(options);
+  check('瞬时失败保留预告授权和已落盘待发送事件', failed.failed === 1 && (await store.read()).items[0].pending_announcement?.id);
+  const retried = await notifyNewAnnouncements(options);
+  check('同一预告在后续 ingest 重试成功后才消耗授权', retried.sent === 1 && attempts === 2 && (await store.read()).items.length === 0);
+
+  const lateDir = await makeDir(), lateStore = createSubscriptionStore(lateDir);
+  await lateStore.write({ items: [{ openid: 'LATE', template_id: 'T', kind: 'announcement', created_at: '2026-09-19T19:00:00.000Z' }] });
+  let lateSends = 0;
+  const late = await notifyNewAnnouncements({ ...options, store: lateStore, client: { configured: true, sendSubscribeMessage: async () => { lateSends++; } } });
+  check('预告发生后才开启的订阅不追发历史预告', late.skipped === 'no-new-announcement' && lateSends === 0 && (await lateStore.read()).items.length === 1);
+
+  const withdrawnStore = createSubscriptionStore(await makeDir());
+  await withdrawnStore.write({ items: [{ openid: 'WITHDRAWN', template_id: 'T', kind: 'announcement', created_at: '2026-09-19T17:59:00.000Z' }] });
+  let withdrawnAttempts = 0;
+  const withdrawnOptions = {
+    ...options, store: withdrawnStore,
+    client: { configured: true, sendSubscribeMessage: async () => { withdrawnAttempts++; throw new Error('network'); } },
+  };
+  await notifyNewAnnouncements(withdrawnOptions);
+  const invalidated = await notifyNewAnnouncements({ ...withdrawnOptions, forecasts: [] });
+  const withdrawnItem = (await withdrawnStore.read()).items[0];
+  check('已撤回或过期的待发预告被清除且授权保留', invalidated.skipped === 'no-valid-announcement' && withdrawnAttempts === 1 && !withdrawnItem.pending_announcement && withdrawnItem.kind === 'announcement');
+
+  const evolvingStore = createSubscriptionStore(await makeDir());
+  await evolvingStore.write({ items: [{ openid: 'EVOLVING', template_id: 'T', kind: 'announcement', created_at: '2026-09-19T17:59:00.000Z' }] });
+  const tweet = (text) => ({ id: 'same-hard-evidence', account: 'thsottiaux', text, created_at: '2026-09-19T18:00:00.000Z', foundVia: 'timeline-browser', author_verified: true });
+  const pendingForecasts = detectSignals([tweet('We will reset everyones usage limits')], { now, account: 'thsottiaux' }).forecasts;
+  const datedForecasts = detectSignals([tweet('We will reset everyones usage limits next Tuesday')], { now, account: 'thsottiaux' }).forecasts;
+  let evolvingAttempts = 0;
+  const evolvingOptions = {
+    ...options, store: evolvingStore,
+    client: { configured: true, sendSubscribeMessage: async () => { if (++evolvingAttempts <= 2) throw new Error('network'); } },
+  };
+  const pendingResult = await notifyNewAnnouncements({ ...evolvingOptions, forecasts: pendingForecasts });
+  const pendingId = (await evolvingStore.read()).items[0].pending_announcement.id;
+  const dateUpdate = await notifyNewAnnouncements({ ...evolvingOptions, forecasts: datedForecasts });
+  const datedId = (await evolvingStore.read()).items[0]?.pending_announcement?.id;
+  const dayAlias = announcementEventsFromForecasts(datedForecasts, now)[0]?.id;
+  const aliasRecorded = (await evolvingStore.read()).announcement_ids.includes(dayAlias);
+  const datedResult = await notifyNewAnnouncements({ ...evolvingOptions, forecasts: datedForecasts });
+  check('预告补上日期后更新原待发项并登记日期别名，再重试成功', pendingForecasts[0]?.timing === 'pending' && datedForecasts[0]?.window && pendingId.startsWith('pending:') && datedId?.startsWith('day:') && aliasRecorded && pendingResult.failed === 1 && dateUpdate.failed === 1 && datedResult.sent === 1 && evolvingAttempts === 3 && (await evolvingStore.read()).items.length === 0);
+
+  const laterTweet = {
+    id: 'new-hard-evidence-same-day', account: 'thsottiaux',
+    text: 'We will reset everyones usage limits next Tuesday',
+    created_at: '2026-09-19T18:30:00.000Z', foundVia: 'timeline-browser', author_verified: true,
+  };
+  const laterForecasts = detectSignals([laterTweet], { now, account: 'thsottiaux' }).forecasts;
+  await evolvingStore.update((state) => state.items.push({
+    id: 'reauthorized-after-first-notice', openid: 'NEW-GRANT', template_id: 'T', kind: 'announcement',
+    created_at: '2026-09-19T18:15:00.000Z', grant_id: 'new-grant',
+  }));
+  let aliasSends = 0;
+  const aliasReplay = await notifyNewAnnouncements({
+    ...evolvingOptions, client: { configured: true, sendSubscribeMessage: async () => { aliasSends++; } },
+    forecasts: laterForecasts,
+  });
+  check('同日新硬证据沿用已登记日期别名，不向重新授权者重复推送',
+    laterForecasts[0]?.window?.dayNum === datedForecasts[0]?.window?.dayNum &&
+    aliasReplay.skipped === 'no-new-announcement' && aliasSends === 0 &&
+    !(await evolvingStore.read()).items[0].pending_announcement);
+}
+{
+  const now = Date.now();
+  const forecasts = detectSignals([{
+    id: 'withdraw-during-batch', account: 'thsottiaux', text: 'We will reset everyones usage limits next Tuesday',
+    created_at: new Date(now - 10 * 60_000).toISOString(), foundVia: 'timeline-browser', author_verified: true,
+  }], { now, account: 'thsottiaux' }).forecasts;
+  const store = createSubscriptionStore(await makeDir());
+  await store.write({ items: ['U', 'V'].map((openid) => ({
+    openid, template_id: 'T', kind: 'announcement', created_at: new Date(now - 11 * 60_000).toISOString(),
+  })) });
+  let currentForecasts = forecasts;
+  let release, started;
+  const waiting = new Promise((r) => { release = r; });
+  const entered = new Promise((r) => { started = r; });
+  const recipients = [];
+  const client = { configured: true, sendSubscribeMessage: async (message) => {
+    recipients.push(message.openid);
+    if (message.openid === 'U') { started(); await waiting; }
+  } };
+  const options = { store, client, templateId: 'T', getForecasts: async () => currentForecasts, now, log: silence };
+  const sending = notifyNewAnnouncements(options);
+  await entered;
+  currentForecasts = [];
+  const invalidation = notifyNewAnnouncements(options);
+  release();
+  const [first, second] = await Promise.all([sending, invalidation]);
+  const state = await store.read();
+  const v = state.items.find((item) => item.openid === 'V');
+  check('长批次中当前预告撤回后跳过下一位并保留授权',
+    first.sent === 1 && second.skipped === 'no-valid-announcement' && recipients.join() === 'U' &&
+    v && !v.pending_announcement && (await status(store, 'V', 'announcement')).active === true);
 }
 {
   const dataDir = await makeDir(), store = createSubscriptionStore(dataDir);
@@ -546,6 +768,53 @@ const status = async (store, code) => {
   await notifyNewResets(options);
   await notifyNewResets(options);
   check('失败事件持久化，下轮无新事件也补推，成功后停止', Boolean(failed.items[0].pending_event_at) && attempts === 2 && (await store.read()).items.length === 0);
+}
+{
+  const dataDir = await makeDir(), store = createSubscriptionStore(dataDir);
+  const validAt = new Date(Date.now() - 60 * 60_000).toISOString();
+  const deletedAt = new Date(Date.now() - 30 * 60_000).toISOString();
+  await seedResets(dataDir, [validAt]);
+  await store.write({ last_event_at: validAt, items: [{
+    id: 'obsolete-landed-pending', openid: 'OBSOLETE', template_id: 'T', kind: 'landed',
+    created_at: new Date(Date.now() - 2 * 60 * 60_000).toISOString(), pending_event_at: deletedAt,
+  }] });
+  let sends = 0;
+  const result = await notifyNewResets({
+    dataDir, store, templateId: 'T', log: silence,
+    client: { ...authClient, sendSubscribeMessage: async () => { sends++; } },
+  });
+  const remaining = (await store.read()).items[0];
+  check('当前完成记录已删除时清除旧落地 pending 但保留授权',
+    result.skipped === 'no-new-event' && sends === 0 && !remaining.pending_event_at && (await status(store, 'OBSOLETE')).active === true);
+}
+{
+  const dataDir = await makeDir(), store = createSubscriptionStore(dataDir);
+  const old = new Date(Date.now() - 2 * 60 * 60_000).toISOString();
+  const event = new Date(Date.now() - 60 * 60_000).toISOString();
+  await seedResets(dataDir, [old, event]);
+  await store.write({ last_event_at: event, items: [
+    { id: 'landed-U', openid: 'U', template_id: 'T', kind: 'landed', created_at: old, pending_event_at: event },
+    { id: 'landed-V', openid: 'V', template_id: 'T', kind: 'landed', created_at: old, pending_event_at: event },
+  ] });
+  let release, started;
+  const waiting = new Promise((r) => { release = r; });
+  const entered = new Promise((r) => { started = r; });
+  const recipients = [];
+  const options = {
+    dataDir, store, templateId: 'T', log: silence,
+    client: { ...authClient, sendSubscribeMessage: async (message) => {
+      recipients.push(message.openid);
+      if (message.openid === 'U') { started(); await waiting; }
+    } },
+  };
+  const sending = notifyNewResets(options);
+  await entered;
+  await seedResets(dataDir, [old]);
+  release();
+  await sending;
+  const v = (await store.read()).items.find((item) => item.openid === 'V');
+  check('长批次中落地记录被删除后跳过下一位并保留其授权',
+    recipients.join() === 'U' && v && !v.pending_event_at && (await status(store, 'V')).active === true);
 }
 {
   const dataDir = await makeDir(), store = createSubscriptionStore(dataDir);
@@ -564,6 +833,49 @@ const status = async (store, code) => {
   await sending;
   await notifyNewResets(options);
   check('发送期间新订阅不丢失，也不追发开启前的事件', sends === 1 && (await status(store, 'NEW')).active === true);
+}
+for (const kind of ['announcement', 'landed']) {
+  const now = Date.now();
+  const createdAt = new Date(now - 10 * 60_000).toISOString();
+  const old = new Date(now - 2 * 60 * 60_000).toISOString();
+  const eventAt = new Date(now - 60 * 60_000).toISOString();
+  const dataDir = await makeDir(), store = createSubscriptionStore(dataDir);
+  await seedResets(dataDir, [old, eventAt]);
+  await store.write({ last_event_at: kind === 'landed' ? old : null, items: [{
+    id: 'old-grant', openid: 'U', template_id: 'T', kind, grant_id: 'grant-old',
+    created_at: kind === 'announcement' ? new Date(now - 11 * 60_000).toISOString() : old,
+  }] });
+  const forecastNow = Date.now();
+  const forecasts = detectSignals([{
+    id: `grant-${kind}-event`, account: 'thsottiaux', text: 'We will reset everyones usage limits',
+    created_at: createdAt, foundVia: 'timeline-browser', author_verified: true,
+  }], { now: forecastNow, account: 'thsottiaux' }).forecasts;
+  let release, started;
+  const waiting = new Promise((r) => { release = r; });
+  const entered = new Promise((r) => { started = r; });
+  let sends = 0;
+  const client = { ...authClient, sendSubscribeMessage: async () => { sends++; started(); await waiting; } };
+  const sending = kind === 'announcement'
+    ? notifyNewAnnouncements({ store, client, templateId: 'T', forecasts, now: forecastNow, log: silence })
+    : notifyNewResets({ dataDir, store, client, templateId: 'T', log: silence });
+  await entered;
+  const oldGrantStillActive = await status(store, 'U', kind);
+  const newGrantNotRegistered = await status(store, 'U', kind, 'grant-new');
+  const first = await register(store, 'U', 'T', kind, 'grant-new');
+  const afterFirst = await store.read();
+  const newId = afterFirst.items.find((item) => item.grant_id === 'grant-new')?.id;
+  const repeated = await register(store, 'U', 'T', kind, 'grant-new');
+  const afterRepeat = await store.read();
+  const exactStatus = await status(store, 'U', kind, 'grant-new');
+  const wrongStatus = await status(store, 'U', kind, 'not-registered');
+  release();
+  await sending;
+  const finalState = await store.read();
+  const newGrant = finalState.items.find((item) => item.grant_id === 'grant-new');
+  check(`${kind} 发送中重新授权保留为独立授权，重试同 grantId 幂等`,
+    first.statusCode === 200 && repeated.statusCode === 200 && afterFirst.items.length === 2 && afterRepeat.items.length === 2 &&
+    newGrant?.id === newId && finalState.items.length === 1 && exactStatus.active && !wrongStatus.active &&
+    oldGrantStillActive.active && !newGrantNotRegistered.active && (await status(store, 'U', kind)).active === true && sends === 1);
 }
 {
   const dataDir = await makeDir(), store = createSubscriptionStore(dataDir);

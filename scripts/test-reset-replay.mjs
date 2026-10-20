@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { runInNewContext } from 'node:vm';
 import { analyzeTweet, detectSignals, latestEventMs } from '../src/lib/signals.mjs';
-import { mergeConfirmedResets, mergeTweetContexts } from '../src/lib/collect.mjs';
+import { mergeConfirmedResets, mergeHistory, mergeTweetContexts } from '../src/lib/collect.mjs';
 import { harvestExpression, detailProbeExpression, normalizeTimelineItems, pickFullTextCandidates, contextParentId } from '../src/lib/browser.mjs';
 
 let passed = 0;
@@ -16,6 +16,8 @@ const done8 = tweet('2109873287853707513', '2026-10-13T05:06:06.000Z', "What wou
 const day10 = tweet('2110595484180214059', '2026-10-15T04:55:51.000Z', 'The reports of my reset button being lost are greatly exaggerated Day 10/ Reset');
 const landing = tweet('2110595554036400151', '2026-10-15T04:56:07.000Z', 'Landing within the next 2 hours');
 const done10 = tweet('2110618732666257557', '2026-10-15T06:28:13.000Z', 'Done and dusted');
+const day15 = tweet('2112432076767289678', '2026-10-20T06:33:48.000Z',
+  "Day 15/ Nevermind, we're still cooking... and reset. Enjoy.");
 const base = [{ id: '2109132167112782291', announced_at: '2026-10-11T04:01:09.000Z', type: 'reset' }];
 
 // 最小 DOM 替身保留真实页面的结构契约：引用时刻在前，本帖时间链接在后。
@@ -107,4 +109,27 @@ for (const timed of [true, false]) {
   const merged = mergeConfirmedResets(base, [parent, completion], { now: Date.parse('2026-10-15T07:00:00Z') });
   check('完成短句继承已核验预告的发券类型', merged.records[0]?.type === 'credit');
 }
+{
+  const oct17 = { id: '2111566005684289735', announced_at: '2026-10-17T21:12:21.000Z', type: 'reset' };
+  const upstreamPrediction = { id: day15.id, announced_at: day15.created_at, type: 'reset', text: day15.text,
+    url: day15.url, attribution: 'codex-resets.com' };
+  const prediction = analyzeTweet(day15);
+  check('10 月 20 日真实预告进入未定时 explicit', prediction.level === 'explicit' && prediction.timing === 'pending');
+  check('第三方把 Day 15 记为 reset 也不能推进历史',
+    mergeHistory([oct17], [upstreamPrediction]).records[0]?.id === oct17.id);
+  const landing = tweet('2112440000000000000', '2026-10-20T09:00:00.000Z', 'Done and dusted', {
+    quotedTweet: { account, text: day15.text, created_at: day15.created_at, relation: 'quote' },
+  });
+  const posts = [day15, landing];
+  const confirmed = mergeConfirmedResets([oct17], posts, { now: Date.parse('2026-10-20T09:10:00.000Z') });
+  check('真实完成公告沿 Day 15 预告证据链新增一次',
+    confirmed.added === 1 && confirmed.records[0]?.id === landing.id);
+  check('确认后重复采集仍只有一次落地记录',
+    mergeConfirmedResets(confirmed.records, posts, { now: Date.parse('2026-10-20T09:10:00.000Z') }).added === 0);
+  const repeatedUpstream = mergeHistory(confirmed.records, [upstreamPrediction], { tweets: posts });
+  check('后续第三方重复同步不能复活 Day 15 预告为落地记录',
+    repeatedUpstream.records.length === confirmed.records.length &&
+      repeatedUpstream.records.every((r) => r.id !== day15.id));
+}
+
 console.log(`✓ 重置全链路回放 ${passed} 项通过`);

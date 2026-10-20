@@ -23,8 +23,9 @@ import { fileURLToPath } from 'node:url';
 import { buildChartData } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
 import { detectSignals, latestEventMs } from '../src/lib/signals.mjs';
+import { buildResetCalendar } from '../src/lib/reset-calendar.mjs';
 import { elapsed, reelGroups, fmtDateTime, fmtClockSec, toTs, verdict as makeVerdict } from '../miniprogram/utils/format.js';
-import { buildGauge, buildSignal, buildMetrics, buildForecast, buildOutlookView, predCountdown, readoutParts } from '../miniprogram/utils/view.js';
+import { buildGauge, buildSignal, buildMetrics, buildForecast, buildOutlookView, buildCalendarView, predCountdown, readoutParts } from '../miniprogram/utils/view.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = async (p) => JSON.parse(await readFile(resolve(ROOT, p), 'utf8'));
@@ -37,7 +38,7 @@ const wxssToCss = (s) =>
 
 /* ------------------------------ 数据 ------------------------------ */
 
-const [resets, tweets] = await Promise.all([read('data/resets.json'), read('data/tweets.json')]);
+const [resets, tweets, statsFile] = await Promise.all([read('data/resets.json'), read('data/tweets.json'), read('data/stats.json')]);
 const now = Date.now();
 
 // --demo-signal：注入一条合成推文，把「有预告」这条路径点亮。
@@ -56,7 +57,7 @@ const DEMO_TWEET = {
 const tweetPool = DEMO_SIGNAL ? [DEMO_TWEET, ...tweets.tweets] : tweets.tweets;
 
 const chart = buildChartData(resets.records, now);
-const prediction = predictAll(resets.records, { now });
+const prediction = predictAll(resets.records, { now, tweets: tweets.tweets, account: 'thsottiaux' });
 // ⚠ `lastResetAt` 不能省。它不只是给「窗口已过去」用的 —— 少了它，
 // `staleWindowReason` 里 `fulfilled`（窗口内已发生过重置）这一支永不触发，
 // 于是**已兑现的预告会被当成仍然有效的预告**显示出来。
@@ -68,6 +69,8 @@ const signals = detectSignals(tweetPool, {
   account: 'thsottiaux',
   lastResetAt: latestEventMs(resets.records),
 });
+signals.calendar = buildResetCalendar({ records: resets.records, tweets: tweetPool, signals, now, account: 'thsottiaux' });
+const calendar = buildCalendarView(signals.calendar);
 
 const lastAt = new Date(chart.lastAt).getTime();
 const counter = reelGroups(elapsed(lastAt));
@@ -107,7 +110,7 @@ const announcementParts = [];
 if (pred?.briefData?.announcedHard > 0) announcementParts.push(pred.briefData.announcedHard + ' 条硬承诺');
 if (pred?.briefData?.announcedSoft > 0) announcementParts.push(pred.briefData.announcedSoft + ' 条同日提及');
 const basisRows = pred && forecast
-  ? [
+  ? pred.arrivalRows ?? [
       {
         label: pred.etaKind === 'announced' ? '公告依据' : '历史推算',
         value: pred.etaKind === 'announced'
@@ -162,19 +165,20 @@ const predHtml = pred ? (
       '<div class="pred-head"><span class="pred-t">' + (pred.announcement ? '<span class="announcement-beacon"></span>重置预告' : '重置预测') + '</span><div class="pred-badge"><span>' + esc(pred.announcement ? '来自 TIBO' : '置信度 · ' + pred.confidenceLabel) + '</span></div></div>' +
       '<div class="pred-signal-note">' + (pred.announcement ? '已捕获明确重置信号' : '根据历史重置节奏推算') + '</div>' +
       '<div class="pred-stage">' +
-        '<span class="pred-stage-title">' + (pred.announcement ? '即将重置' : '下一次重置预测') + '</span>' +
-        (pred.announcement?.pending ? '<span class="announcement-pending">时间待公布</span>' : '<div class="eta-date" aria-label="' + (pred.announcement ? '公告日期 ' : '预测日期 ') + escAttr(pred.md) + '">' + pred.dateDigits.map((digit) =>
+        '<span class="pred-stage-title">' + (pred.announcement?.pending ? '模型预计到账' : pred.announcement ? '即将重置' : '下一次重置预测') + '</span>' +
+        (pred.announcement?.pending ? '<span class="pending-notice">官方时间待公布 · 尚未确认落地</span>' : '') +
+        (!pred.hasEstimate ? '' : '<div class="eta-date" aria-label="' + (pred.etaKind === 'announced' ? '公告日期 ' : '模型预测日期 ') + escAttr(pred.md) + '">' + pred.dateDigits.map((digit) =>
           '<span class="eta-digit entering' + (digit.value === '.' ? ' eta-digit-dot' : '') + '" style="animation-delay:' + escAttr(digit.delay) + '">' + esc(digit.value) + '</span>'
         ).join('') + '</div>') +
         '<span class="eta-detail">' + esc(pred.etaDetail) + '</span>' +
-        (pred.announcement?.pending ? '' : '<div class="pred-countdown' + (predCd && predCd.over ? ' is-over' : '') + '">' +
-          '<span class="pcd-cap">' + esc(predCd && predCd.over ? predCd.label : pred.announcement ? '距公告窗口开启' : '预计还需等待') + '</span>' +
-          '<div class="pcd-row" id="pcd" data-eta="' + pred.etaAt + '" data-kind="' + esc(pred.etaKind) + '">' +
+        (!predCd ? '' : '<div class="pred-countdown' + (predCd.over ? ' is-over' : '') + '">' +
+          '<span class="pcd-cap">' + esc(predCd.over ? predCd.label : pred.etaKind === 'announced' ? '距公告窗口开启' : predCd.label) + '</span>' +
+          '<div class="pcd-row" id="pcd" data-eta="' + pred.etaAt + '" data-kind="' + esc(pred.etaKind) + '" data-pending="' + !!pred.announcement?.pending + '">' +
             pcdHtml(predCd && !predCd.over ? predCd.groups : []) +
           '</div>' +
         '</div>') +
       '</div>' +
-      (pred.band && !pred.announcement?.pending ? '<div class="pred-range"><span class="range-label">' + (pred.etaKind === 'announced' ? '公告窗口' : '80% 预测区间') + '</span><span class="range-value">' + esc(pred.band) + '</span></div>' : '') +
+      (pred.band ? '<div class="pred-range"><span class="range-label">' + esc(pred.bandLabel) + (pred.bandNote ? ' · ' + esc(pred.bandNote) : '') + '</span><span class="range-value">' + esc(pred.band) + '</span></div>' : '') +
       (pred.announcement?.text ? '<div class="pred-announcement"><div class="announcement-meta"><span>公告原文 · ' + esc(pred.announcement.when) + '</span><span class="announcement-link">复制原推链接 ↗</span></div><span class="announcement-quote">' + esc(pred.announcement.text) + '</span></div>' : '') +
     '</div>' +
   '</div>'
@@ -237,6 +241,14 @@ const basisHtml = basisRows.map((r) =>
   '</span></div>'
 ).join('');
 
+const calendarHtml = calendar ? '<div class="reset-calendar card"><div class="section-head"><span class="section-title">重置月日历</span><span class="section-sub">非官方整理</span></div>' +
+  '<span class="rc-caption">' + esc(calendar.fromDate + ' — ' + calendar.toDate + ' · UTC 实际日期') + '</span>' +
+  '<div class="rc-summary"><div class="rc-progress"><span class="rc-muted">日历进度</span><div><span class="rc-progress-value">' + calendar.progressDay + '</span><span class="rc-total"> / ' + calendar.days + '</span></div></div>' +
+  '<div class="rc-stats"><div><span>已确认到账</span><span class="rc-stat-value">' + calendar.confirmedCount + '<span class="rc-muted"> 次</span></span></div><span class="rc-muted">' + calendar.resetCount + ' 次重置 · ' + calendar.creditCount + ' 次发券</span><div class="rc-awaiting"><span>预告待落地</span><span>' + calendar.awaitingCount + ' 条</span></div></div></div>' +
+  '<div class="rc-week">' + calendar.weekdays.map((d) => '<span>周' + d + '</span>').join('') + '</div><div class="rc-grid">' + calendar.gridCells.map((cell) =>
+    '<div class="rc-slot">' + (cell.blank ? '' : '<a class="rc-cell rc-' + esc(cell.status) + (cell.isToday ? ' is-today' : '') + '"' + (cell.sourceUrl ? ' href="' + escAttr(cell.sourceUrl) + '" target="_blank" rel="noopener noreferrer"' : '') + '><span class="rc-date">' + esc(cell.label) + '</span><span class="rc-state">' + esc(cell.displayLabel) + '</span>' + (cell.confirmedCount && cell.awaitingCount ? '<span class="rc-extra">另有预告</span>' : '') + '</a>') + '</div>'
+  ).join('') + '</div><div class="rc-legend"><span>● 已确认到账</span><span>● 预告待落地</span><span>● 日程更新</span></div><span class="rc-caption">暂无记录 ≠ 当日没有重置 · 点击有来源的日期查看原推</span></div>' : '';
+
 const recordHtml = (r) =>
   '<div class="record-row"><div class="record-top"><span class="record-date">' + esc(r.date) + '</span>' +
     '<span class="record-type' + (r.type === '发券型' ? ' credit' : '') + '">' + esc(r.type) + '</span></div>' +
@@ -289,6 +301,7 @@ const normalize = [
   '.phone{position:relative}.preview-capsule{position:absolute;z-index:5;top:31px;right:9px;width:88px;height:32px;display:flex;align-items:center;justify-content:space-around;border:1px solid #ffffff1a;border-radius:99px;background:#12182a;color:#eff0fa;font-size:13px;line-height:1}.preview-capsule i{height:18px;border-left:1px solid #ffffff1a}',
   '.signal-detail[hidden],.more-records[hidden],.detail-area[hidden],.tap-ring[hidden]{display:none}',
   '.detail-area{display:block}.trend-chart{height:160px}',
+  '.rc-week>span{width:14.2857%;text-align:center}.rc-stats>div{display:flex;align-items:center;justify-content:space-between;gap:4px}.rc-cell{text-decoration:none}.rc-legend>span:first-child{color:#A6EDCE}.rc-legend>span:nth-child(2){color:#EDC28A}',
 ].join('');
 
 const safeChart = JSON.stringify(chart).replace(/</g, '\\u003c');
@@ -301,9 +314,12 @@ const html = '<!DOCTYPE html>\n' +
 '<span class="brand-copy"><span class="h1">等 TIBO 按按钮</span><span class="pulse"><i class="dot"></i><span>观测中 · <span id="upd">' + esc(fmtClockSec(now)) + '</span></span></span></span></div></div></div>' +
 '<div class="hero" id="elapsed"><div class="elapsed-line"><div class="elapsed-copy"><span class="label">距上次重置</span>' +
 '<span class="since">上次 ' + esc(fmtDateTime(lastAt).slice(5)) + ' · 北京时间</span></div><div class="counter" id="counter">' + counterHtml + '</div></div></div>' +
-predHtml + signalHtml + signalDetailHtml + (DEMO_REMINDER ? '<div class="remind card"><div class="rd-head"><div class="rd-icon">◉</div><div class="rd-copy"><span class="rd-t">重置通知</span><span class="rd-sub">确认重置后，微信提醒</span></div><button class="rd-btn">开启重置通知</button></div><div class="rd-hint">一次授权只能收到一次通知，用完需要重新开启</div></div>' : '') + progHtml +
+predHtml + signalHtml + signalDetailHtml + (DEMO_REMINDER ? '<div class="remind card">' + [
+  { title: '重置预告', sub: '发现明确预告，尚未确认落地', label: '开启预告提醒' },
+  { title: '重置落地', sub: '公开完成公告已确认后提醒', label: '开启落地提醒' },
+].map((item) => '<div class="rd-row"><div class="rd-head"><div class="rd-icon">◉</div><div class="rd-copy"><span class="rd-t">' + item.title + '</span><span class="rd-sub">' + item.sub + '</span></div><button class="rd-btn">' + item.label + '</button></div><div class="rd-hint">每类一次授权只能收到一次通知，用完需要重新开启</div></div>').join('') + '</div>' : '') + calendarHtml +
 '<div class="basis card"><div class="section-head"><span class="section-title">预测依据</span></div>' +
-basisHtml + '</div>' +
+basisHtml + '</div>' + progHtml +
 '<div class="trend-panel card"><div class="section-head"><span class="section-title">历史节奏</span><span class="section-sub">最近 ' + trendCount + ' 次完整间隔</span></div>' +
 '<canvas type="2d" id="trend" class="trend-chart"></canvas><div class="trend-caption"><span>' + esc(trendFirst) + '</span><span>间隔天数</span><span>' + esc(trendLast) + '</span></div></div>' +
 '<div class="records card"><div class="section-head"><span class="section-title">最近记录</span><span class="section-sub">' + chart.gapDays.length + ' 次历史间隔</span></div>' +
@@ -316,7 +332,7 @@ recentHtml + '<div role="button" tabindex="0" class="more-records-toggle" id="mo
 '<div class="section-head detail-heading"><span class="section-title">模型侧辅助数据</span><span class="section-sub">' + esc(forecast ? forecast.hint : '') + '</span></div>' +
 forecastHtml + '<div class="bc-note pred-brief"><b>预测判据：</b>' + esc(pred ? pred.brief : '') + '</div>' + historyHtml +
 '<div class="section-head detail-heading"><span class="section-title">样本摘要</span></div><div class="metrics">' + metricsHtml + '</div></div>' +
-'<div class="foot"><div>数据：公开推文记录 · 最近一次采集 ' + esc(fmtDateTime(now)) + ' 北京</div><div>观测账号 x.com/thsottiaux</div></div>' +
+'<div class="foot"><div>数据：公开推文记录 · 最近一次采集 ' + esc(fmtDateTime(toTs(statsFile.generated_at))) + ' 北京</div><div>观测账号 x.com/thsottiaux</div></div>' +
 '</div></div></div>' +
 '<script type="application/json" id="chart-data">' + safeChart + '</script>' +
 '<script type="module">' +
@@ -330,7 +346,7 @@ forecastHtml + '<div class="bc-note pred-brief"><b>预测判据：</b>' + esc(pr
 "function paintTrend(){paint('#trend',rhythmScene)}" +
 "function paintDetails(){paint('#hist',histogramScene);paint('#survival',survivalScene);paint('#strip',stripScene)}" +
 "function renderCounter(now){const el=elapsed(lastAt,now);return reelGroups(el).map(g=>'<div class=\"grp\"><div class=\"reels\">'+g.digits.map(d=>'<div class=\"reel\"><div class=\"strip\" style=\"transform:translateY(-'+d+'em)\">'+digits.split('').map(n=>'<div class=\"dg\">'+n+'</div>').join('')+'</div></div>').join('')+'</div><span class=\"unit\">'+g.unit+'</span></div>').join('')}" +
-"function tick(){const now=Date.now(),pcd=document.getElementById('pcd'),upd=document.getElementById('upd'),counter=document.getElementById('counter');if(pcd){const cd=predCountdown({etaAt:Number(pcd.dataset.eta),etaKind:pcd.dataset.kind},now);if(cd){pcd.innerHTML=(cd.over?[]:cd.groups).map(g=>'<div class=\"pcd-g\"><span class=\"pcd-v\">'+g.v+'</span><span class=\"pcd-u\">'+g.unit+'</span></div>').join('');pcd.parentElement.querySelector('.pcd-cap').textContent=!cd.over&&pcd.dataset.kind==='announced'?'距公告窗口开启':cd.label;pcd.parentElement.classList.toggle('is-over',cd.over)}}if(upd)upd.textContent=fmtClockSec(now);if(counter)counter.innerHTML=renderCounter(now)}" +
+"function tick(){const now=Date.now(),pcd=document.getElementById('pcd'),upd=document.getElementById('upd'),counter=document.getElementById('counter');if(pcd){const cd=predCountdown({etaAt:Number(pcd.dataset.eta),etaKind:pcd.dataset.kind,announcement:{pending:pcd.dataset.pending==='true'}},now);if(cd){pcd.innerHTML=(cd.over?[]:cd.groups).map(g=>'<div class=\"pcd-g\"><span class=\"pcd-v\">'+g.v+'</span><span class=\"pcd-u\">'+g.unit+'</span></div>').join('');pcd.parentElement.querySelector('.pcd-cap').textContent=!cd.over&&pcd.dataset.kind==='announced'?'距公告窗口开启':cd.label;pcd.parentElement.classList.toggle('is-over',cd.over)}}if(upd)upd.textContent=fmtClockSec(now);if(counter)counter.innerHTML=renderCounter(now)}" +
 "let timer=null;function syncMotion(){const visible=!document.hidden;root.classList.toggle('motion-on',visible);root.classList.toggle('motion-off',!visible)}" +
 "document.getElementById('program-toggle')?.addEventListener('click',()=>{const toggle=document.getElementById('program-toggle'),body=document.getElementById('program-body'),mark=document.getElementById('program-mark'),open=!body.classList.contains('is-open');body.classList.toggle('is-open',open);mark.classList.toggle('is-open',open);toggle.setAttribute('aria-expanded',String(open));body.setAttribute('aria-hidden',String(!open));body.style.height=open?Math.ceil(body.querySelector('.prog-body').getBoundingClientRect().height)+'px':'0px'});" +
 "document.getElementById('signal-toggle')?.addEventListener('click',()=>{const body=document.getElementById('signal-details');if(body)body.hidden=!body.hidden});" +

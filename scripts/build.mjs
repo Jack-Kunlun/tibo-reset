@@ -78,7 +78,7 @@ const { chart: chartData, prediction, signals, model } = derive({
 // SITE_URL 决定 og:url / og:image 的绝对地址。没配就不输出这两条 meta ——
 // 宁可少两条，也不给平台一个抓不到的域名（抓不到会展开成空白卡）。
 const SITE_URL = (process.env.SITE_URL ?? '').trim().replace(/\/+$/, '');
-const og = await buildOgImage({ model, prediction, siteUrl: SITE_URL });
+const og = await buildOgImage({ model, prediction, signals, siteUrl: SITE_URL });
 if (!og) {
   console.warn(
     '⚠ 未找到中文字体，已跳过 OG 分享图；og:image / og:url 不会输出。\n' +

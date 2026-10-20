@@ -38,6 +38,8 @@ import { fileURLToPath } from 'node:url';
 import { buildChartData, partsIn } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
 import { spanOf } from '../src/lib/render.mjs';
+import { buildOutlook } from '../src/lib/outlook.mjs';
+import { detectSignals } from '../src/lib/signals.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DAY = 86_400_000;
@@ -95,9 +97,10 @@ if (process.argv.includes('--build')) {
 }
 
 const read = async (p) => JSON.parse(await readFile(resolve(ROOT, p), 'utf8'));
-const [resets, html] = await Promise.all([
+const [resets, html, tweetsFile] = await Promise.all([
   read('data/resets.json'),
   readFile(resolve(ROOT, 'dist/index.html'), 'utf8'),
+  read('data/tweets.json'),
 ]);
 
 /* ------------------------ 1. 取出页面 digest ------------------------ */
@@ -131,7 +134,11 @@ check(
 console.log('\n【① 页面是数据的忠实渲染】');
 
 const pageChart = buildChartData(resets.records, builtAtMs);
-const pagePred = predictAll(resets.records, { now: builtAtMs });
+const account = process.env.SOURCE_ACCOUNT ?? 'thsottiaux';
+const pagePred = predictAll(resets.records, { now: builtAtMs, tweets: tweetsFile.tweets, account });
+const pageSignals = detectSignals(tweetsFile.tweets, { now: builtAtMs, account, lastResetAt: Date.parse(digest.lastResetAt) });
+const pageOutlook = buildOutlook({ chart: buildChartData(resets.records, builtAtMs), prediction: pagePred, signals: pageSignals, now: builtAtMs });
+check('主卡 ETA、口径和样本数与同锚点推导一致', digest.outlook?.etaAt === pageOutlook?.etaAt && digest.outlook?.etaBasis === pageOutlook?.etaBasis && digest.outlook?.sampleCount === (pageOutlook?.arrival?.sampleCount ?? null));
 
 check('记录总数一致', digest.records === pageChart.count, `${digest.records} vs ${pageChart.count}`);
 check(
@@ -310,7 +317,8 @@ if (!api) {
   const apiAsOf = Date.parse(api.prediction.asOf);
 
   const apiChart = buildChartData(resets.records, apiChartNow);
-  const apiPred = predictAll(resets.records, { now: apiAsOf });
+  const apiPred = predictAll(resets.records, { now: apiAsOf, tweets: tweetsFile.tweets, account });
+  check('API预告到落地样本与同锚点重算一致', JSON.stringify(api.prediction.announcementDelay) === JSON.stringify(apiPred.announcementDelay));
 
   check('API 记录总数 == 重算', api.chart.count === apiChart.count, `${api.chart.count} vs ${apiChart.count}`);
   check(
@@ -356,7 +364,7 @@ if (!api) {
   );
   check(
     `中位剩余等待（页面显示「${spanOf(digest.remainingDays.q50).text}」）`,
-    d1(digest.remainingDays.q50) === d1(api.prediction.prediction.q50),
+    d1WithDrift(digest.remainingDays.q50, api.prediction.prediction.q50),
     `页面 ${d1(digest.remainingDays.q50)} vs API ${d1(api.prediction.prediction.q50)}（按 0.1 天精度比）`
   );
   check(
@@ -364,8 +372,8 @@ if (!api) {
     // 而用户看到的是「6 小时 17 分」，报告本身就在换一个口径说话。
     // 端点是 [q10, q90] —— 页面显示的就是这一对（2026-10-09 更正，原先比的是 q25）。
     `80% 区间显示值一致（页面显示「${spanOf(digest.remainingDays.q10).text} – ${spanOf(digest.remainingDays.q90).text}」）`,
-    d1(digest.remainingDays.q10) === d1(api.prediction.prediction.q10) &&
-      d1(digest.remainingDays.q90) === d1(api.prediction.prediction.q90),
+    d1WithDrift(digest.remainingDays.q10, api.prediction.prediction.q10) &&
+      d1WithDrift(digest.remainingDays.q90, api.prediction.prediction.q90),
     `页面 ${d1(digest.remainingDays.q10)}–${d1(digest.remainingDays.q90)} vs API ${d1(api.prediction.prediction.q10)}–${d1(api.prediction.prediction.q90)}`
   );
   check(
@@ -406,13 +414,14 @@ const cds = [
 // 判据取**预告块本身**，而不是静默态标记 `sig-idle` —— 后者在「留档触顶」那条
 // 小提示上也在用（`render.mjs:187`），预告在场时同样会出现，拿它判静默会误伤。
 // 预告块的标志是 `data-level` 非 hint 的 `.sig` section（hintBlock 走 hint 档）。
-const forecastBlocks = (html.match(/<section class="sig" data-level="(?!hint")/g) || []).length;
+const forecastSections = [...html.matchAll(/<section class="sig" data-level="(?!hint")[^"]+">([\s\S]*?)<\/section>/g)].map((match) => match[1]);
+const pendingSections = forecastSections.filter((section) => section.includes('<p class="sig-note">具体时间待公布</p>'));
+// 未定时预告保留事实，不拿历史估计伪造倒数；每个有时间窗口的预告仍须有倒数。
+const timedForecasts = forecastSections.length - pendingSections.length;
 check(
-  `倒计时块与页面档位一致（预告块 ${forecastBlocks} 个 / 倒数 ${cds.length} 个）`,
-  forecastBlocks > 0 ? cds.length > 0 : cds.length === 0,
-  forecastBlocks > 0
-    ? '有预告块却没有 .sig-cd —— 这条倒数必须存在'
-    : '没有预告块却出现了 .sig-cd —— 已兑现 / 已过期的预告漏出来了？'
+  `倒计时块与页面档位一致（定时预告 ${timedForecasts} 个 / 待公布 ${pendingSections.length} 个 / 倒数 ${cds.length} 个）`,
+  cds.length === timedForecasts && pendingSections.every((section) => !section.includes('class="sig-cd"')),
+  '每个定时预告须有倒数，未定时预告不得显示倒数'
 );
 for (const [, fromStr, anchor] of cds) {
   const from = Number(fromStr);
