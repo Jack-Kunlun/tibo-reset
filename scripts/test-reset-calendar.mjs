@@ -30,11 +30,12 @@ const current = buildResetCalendar({
 });
 check('真实 Day 1 锚定 UTC 10/05，而非 program.from 的 10/04', current?.fromDate === '2026-10-05');
 check('当前 28 天格覆盖 10/05–11/01', current?.days === 28 && current.toDate === '2026-11-01');
-check('真实快照只计 6 条已确认事件（5 reset + 1 credit）',
-  current?.confirmedCount === 6 && current.resetCount === 5 && current.creditCount === 1);
-check('Day 15 预告留在 UTC 10/20 且不增加到账数',
-  current?.pendingCount === 1 && current.confirmedCount === 6 &&
-  current.cells.find((cell) => cell.date === '2026-10-20')?.pendingCount === 1);
+check('真实快照计 7 条已确认事件（6 reset + 1 credit）',
+  current?.confirmedCount === 7 && current.resetCount === 6 && current.creditCount === 1);
+check('Day 15 随帖落地在 UTC 10/20，只增加一次确认而非待落地预告',
+  current?.pendingCount === 0 && current.confirmedCount === 7 &&
+  current.cells.find((cell) => cell.date === '2026-10-20')?.status === 'confirmed' &&
+  current.cells.find((cell) => cell.date === '2026-10-20')?.confirmedCount === 1);
 check('真实快照 Day 1 来源可追溯且进度按 UTC 日期计算',
   current?.sourceUrl === 'https://x.com/thsottiaux/status/2107158998495748264' && current.progressDay === 16);
 

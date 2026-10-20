@@ -1709,17 +1709,17 @@ console.log('\n【16】KI-013 日程式预告：`Day N/ Reset` 不含未来语�
 
   const day15 = "Day 15/ Nevermind, we're still cooking... and reset. Enjoy.";
   const target = run(day15, '2026-10-20T06:33:48.000Z', '2112432076767289678');
-  check('Day 15 未完工语境里的明确 reset 宣告是未定时预告',
-    target.level === 'explicit' && target.timing === 'pending' && target.window === null,
+  check('Day 15 功能仍在开发不妨碍重置随帖落地',
+    target.level === 'occurred' && target.occurredAt === '2026-10-20T06:33:48.000Z' && target.window === null,
     `实际 ${target.level}/${target.timing}`);
-  check('Day 15 未完工预告绝不判成已发生', target.level !== 'occurred');
-  check('Day 15 未完工预告仍归类为 reset 意图', classifyEvent(day15) === 'reset');
+  check('Day 15 不再生成等待落地的预告', target.level !== 'explicit' && target.timing !== 'pending');
+  check('Day 15 完成公告仍归类为 reset', classifyEvent(day15) === 'reset');
   const day15Signals = detectSignals([{ id: '2112432076767289678', text: day15,
     created_at: '2026-10-20T06:33:48.000Z', account: 'thsottiaux' }], {
     now: Date.parse('2026-10-20T07:00:00.000Z'), lastResetAt: Date.parse('2026-10-17T21:12:21.000Z'),
   });
-  check('Day 15 进入 forecasts 且不推进已确认重置',
-    day15Signals.forecasts[0]?.timing === 'pending' && day15Signals.occurred.length === 0);
+  check('Day 15 只进入 occurred，不进入 forecasts',
+    day15Signals.forecasts.length === 0 && day15Signals.occurred[0]?.id === '2112432076767289678');
   check('不把其他 Day 15 reset 提及泛化成预告',
     run('Day 15/ The reset button still looks different.', at).level !== 'explicit');
   for (const text of [
@@ -1731,15 +1731,26 @@ console.log('\n【16】KI-013 日程式预告：`Day N/ Reset` 不含未来语�
       blocked.level !== 'explicit' && blocked.level !== 'occurred');
   }
 
-  // `Enjoy.` 是口头禅不是语义要件 —— 少了它整条仍必须是预告。
+  // 完整句式的语义不依赖末尾寒暄或 ASCII 标点。
   for (const text of [
     "Day 15/ Nevermind, we're still cooking... and reset.",
     "Day 15/ Nevermind, we're still cooking... and reset!",
     "Day 15/ Nevermind, we're still cooking... and reset. Enjoy",
+    'Day 15/ Nevermind, we’re still cooking… and reset. Enjoy.',
   ]) {
     const variant = run(text, '2026-10-20T06:33:48.000Z');
-    check(`Enjoy 是口头禅不是语义要件：${text}`, variant.level === 'explicit',
+    check(`随帖落地句式兼容寒暄和标点：${text}`, variant.level === 'occurred',
       `实际 ${variant.level}`);
+  }
+  for (const text of [
+    "Day 15/ Nevermind, we're still cooking... and reset is coming. Enjoy.",
+    "Day 15/ Nevermind, we're still cooking... and we'll reset tomorrow. Enjoy.",
+    "Day 15/ Nevermind, we're still cooking... and reset is in progress. Enjoy.",
+    "Day 15/ Nevermind, we're still cooking... and reset? Enjoy.",
+    "Day 15/ Nevermind, we're still cooking... and reset button update. Enjoy.",
+    'Day 15/ Enjoy.',
+  ]) {
+    check(`相似措辞不能冒充已落地：${text}`, run(text, '2026-10-20T06:33:48.000Z').level !== 'occurred');
   }
 
   // 斜杠后是「短名词短语 + reset 收尾」也算日程式宣告（法语 `Le limit reset`）。

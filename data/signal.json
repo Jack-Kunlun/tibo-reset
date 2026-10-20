@@ -1,5 +1,5 @@
 {
-  "level": "explicit",
+  "level": "occurred",
   "program": {
     "id": "2106845241357824205",
     "url": "https://x.com/thsottiaux/status/2106845241357824205",
@@ -112,8 +112,7 @@
     "createdAt": "2026-10-20T06:33:48.000Z",
     "url": "https://x.com/thsottiaux/status/2112432076767289678",
     "reasons": [
-      "命中重置词 reset",
-      "明确预告重置，具体时间待公布"
+      "命中重置词 reset"
     ],
     "viaContext": false,
     "inReplyTo": null,
@@ -138,14 +137,15 @@
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "explicit",
-    "timing": "pending",
+    "level": "occurred",
     "rejected": null,
     "intent": 3,
+    "occurredAt": "2026-10-20T06:33:48.000Z",
     "window": null,
-    "candidateWindow": null
+    "confidence": 0.6799999999999999
   },
-  "signals": [
+  "signals": [],
+  "occurred": [
     {
       "id": "2112432076767289678",
       "account": "thsottiaux",
@@ -153,8 +153,7 @@
       "createdAt": "2026-10-20T06:33:48.000Z",
       "url": "https://x.com/thsottiaux/status/2112432076767289678",
       "reasons": [
-        "命中重置词 reset",
-        "明确预告重置，具体时间待公布"
+        "命中重置词 reset"
       ],
       "viaContext": false,
       "inReplyTo": null,
@@ -179,15 +178,13 @@
         },
         "diffText": "北京时间比 Tibo 当地时间快 15 小时"
       },
-      "level": "explicit",
-      "timing": "pending",
+      "level": "occurred",
       "rejected": null,
       "intent": 3,
+      "occurredAt": "2026-10-20T06:33:48.000Z",
       "window": null,
-      "candidateWindow": null
-    }
-  ],
-  "occurred": [
+      "confidence": 0.6799999999999999
+    },
     {
       "id": "2109873287853707513",
       "account": "thsottiaux",
@@ -798,50 +795,6 @@
         "spec": 74,
         "note": "他写明了时区（PST），按那个时区算当天结束"
       }
-    },
-    {
-      "id": "2111492673890824348",
-      "account": "thsottiaux",
-      "text": "Day 13/ Le limit reset",
-      "createdAt": "2026-10-17T16:20:57.000Z",
-      "url": "https://x.com/thsottiaux/status/2111492673890824348",
-      "reasons": [
-        "命中重置词 reset",
-        "命中额度词 limits/usage/credits",
-        "上下文：回复 @ajambrosino「👀…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "ajambrosino",
-        "id": "",
-        "text": "👀"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.18",
-          "weekday": "周日",
-          "time": "00:20",
-          "text": "2026.10.18（周日）00:20",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.17",
-          "weekday": "周六",
-          "time": "09:20",
-          "text": "2026.10.17（周六）09:20",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "hint",
-      "rejected": "有额度意图但没给出时间，只能作线索",
-      "intent": 5,
-      "window": null,
-      "candidateWindow": null
     },
     {
       "id": "2111492028177723532",
@@ -11638,71 +11591,12 @@
     }
   ],
   "hypothesis": null,
-  "forecasts": [
-    {
-      "level": "explicit",
-      "timing": "pending",
-      "window": null,
-      "precision": null,
-      "text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
-      "url": "https://x.com/thsottiaux/status/2112432076767289678",
-      "createdAt": "2026-10-20T06:33:48.000Z",
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.20",
-          "weekday": "周二",
-          "time": "14:33",
-          "text": "2026.10.20（周二）14:33",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.19",
-          "weekday": "周一",
-          "time": "23:33",
-          "text": "2026.10.19（周一）23:33",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "reasons": [
-        "命中重置词 reset",
-        "明确预告重置，具体时间待公布"
-      ],
-      "timeNote": "具体时间待公布",
-      "sources": 1,
-      "evidence": [
-        {
-          "id": "2112432076767289678",
-          "createdAt": "2026-10-20T06:33:48.000Z",
-          "text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
-          "url": "https://x.com/thsottiaux/status/2112432076767289678",
-          "via": "原创",
-          "weight": "hard",
-          "contributes": "已预告重置，尚未给出时间",
-          "timeWord": null,
-          "precision": null,
-          "ambiguous": false,
-          "note": null,
-          "from": null,
-          "to": null
-        }
-      ],
-      "counts": {
-        "hard": 1,
-        "soft": 0
-      },
-      "clockHints": []
-    }
-  ],
+  "forecasts": [],
   "counts": {
     "scanned": 429,
-    "explicit": 1,
-    "occurred": 9,
-    "hint": 61,
+    "explicit": 0,
+    "occurred": 10,
+    "hint": 60,
     "none": 345,
     "rejected": 345
   },

@@ -252,18 +252,15 @@ const RE_ALTERNATIVE = /\b(?:or|either)\b(?:\s+\w+){0,3}\s+reset/i;
  * `Day 10/ No reset` 走 `blockedResetSentence`（否定 → none），
  * `Day 10/ There was a reset` 走 `RE_PAST`（陈述过去 → occurred）。
  *
- * 另一条扩展是 2026-10-20 实测的
- * `Day N/ Nevermind, we're still cooking... and reset.`：日程前缀、未完成语态与
- * 并列 reset 共同表达「还在做、重置随后发生」，不能因为句中省略了 will 就掉成 hint。
- * ⚠ `Enjoy.` 是口头禅、**不是语义要件** —— 旧实现把它写进可选组的前提位置，
- * 导致少了它就整条不命中。改成 `reset[.!]?( Enjoy[.!]?)?`：句号归 reset，
- * Enjoy 独立可选。
  */
-const RE_SCHEDULE_RESET = /(?:\bday\s+\d+\s*\/\s*(?:[a-z’'’]{1,20}\s+){0,3}reset\s*[.!]*$|\bday\s+\d+\s*\/\s*nevermind\b[\s\S]{0,100}?\bstill\s+cooking\b[\s\S]{0,80}?\band\s+reset\b[.!]?(?:\s+enjoy\b[.!]?)?\s*$)/i;
+const RE_SCHEDULE_RESET = /\bday\s+\d+\s*\/\s*(?:[a-z’'’]{1,20}\s+){0,3}reset\s*[.!]*$/i;
 /** 日程前缀本身 —— 用来识别「`Day N/ <发布说明>`」这一整类，不能只认 reset 收尾的形态。 */
 const RE_SCHEDULE_PREFIX = /\bday\s+\d+\s*\//i;
 const withoutUrls = (text) => String(text ?? '').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
 const RE_OWN_RESET_DONE = /^what would you like with your side of reset\?\s*it[’']s done[.!]?$/i;
+// 10/20 已核实为随帖落地：cooking 讲功能开发，不能据此推断 reset 仍未完成。
+// 只接纳完整的已核实句式；不把任意「and reset」或 Enjoy 升格成完成公告。
+const RE_SCHEDULE_RESET_DONE = /^day\s+\d+\s*\/\s*nevermind,?\s+we[’']re\s+still\s+cooking(?:\.{3}|…)\s+and\s+reset[.!]?(?:\s+enjoy[.!]?)?$/i;
 const RE_LINKED_DONE = /^(?:it[’']s\s+|it is\s+)?done(?:\s+and\s+dusted)?[.!]?$/i;
 
 // 否定完成与无关对象也必须挡住预告分支，不能只给 occurred 扣分。
@@ -282,8 +279,7 @@ function blockedResetSentence(text) {
 // 「是否会重置」与「何时重置」分开判断；单独的 soon 及疑问、愿望不构成承诺。
 function hasUntimedAnnouncement(text, viaContext) {
   const whole = withoutUrls(text);
-  // `splitSentences` 会把省略号后的 `and reset` 与 `Day N/` 拆开；只对上面的窄
-  // 日程式形态跨句检查，仍沿用否定、假设、疑问和回顾语境的挡板。
+  // 日程标题按完整正文检查，否定、假设、疑问和回顾仍不能构成预告。
   if (RE_SCHEDULE_RESET.test(whole) && !blockedResetSentence(whole) &&
     !RE_HYPOTHETICAL.test(whole) && !whole.trim().endsWith('?') &&
     !/\b(?:maybe|hope|wish|or|either|was|were|had|yesterday|previously)\b/i.test(whole)) return true;
@@ -329,7 +325,7 @@ const RE_FUTURE_PERFECT =
  */
 export function hasOccurredReset(text) {
   const t = String(text ?? '');
-  if (RE_OWN_RESET_DONE.test(withoutUrls(t))) return true;
+  if (RE_OWN_RESET_DONE.test(withoutUrls(t)) || RE_SCHEDULE_RESET_DONE.test(withoutUrls(t))) return true;
   if (!RE_RESET.test(t)) return false;
   if (blockedResetSentence(t)) return false;
   if (RE_HYPOTHETICAL.test(t)) return false;
@@ -1345,7 +1341,11 @@ export function confirmedResetEvent(tweet, opts = {}) {
   const propagated = parts.some((s, i) => /^all\s+propagated[.!]?$/i.test(s.trim()) &&
     i > 0 && direct(parts[i - 1]) && !partial(parts[i - 1]) && RE_RESET.test(parts[i - 1]) &&
     hasOccurredReset(parts[i - 1]) && /^put the reset in the bag[.!]?$/i.test(parts[i - 1].trim()));
-  const contextual = a.linkedCompletion === true || RE_OWN_RESET_DONE.test(withoutUrls(a.text));
+  // 这条随帖落地句式已由用户核实，但第三方复述不能冒充核验过的作者原帖。
+  const scheduleDone = RE_SCHEDULE_RESET_DONE.test(withoutUrls(a.text)) &&
+    tweet.author_verified === true && String(tweet.account).toLowerCase() === String(opts.account ?? 'thsottiaux').toLowerCase() &&
+    ['timeline-browser', 'with-replies'].includes(tweet.foundVia);
+  const contextual = a.linkedCompletion === true || RE_OWN_RESET_DONE.test(withoutUrls(a.text)) || scheduleDone;
   if (!done && !propagated && !contextual) return null;
   const credit = RE_CREDIT.test(a.text) || a.linkedCompletion &&
     a.contextEvidence?.some((e) => RE_CREDIT.test(e.text));

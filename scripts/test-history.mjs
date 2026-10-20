@@ -130,10 +130,10 @@ console.log('\n【1】合并：上游新增的记录必须进库');
 
 {
   const target = {
-    id: '2112432076767289678',
+    id: '2112430000000000001',
     created_at: '2026-10-20T06:33:48.000Z',
-    text: "Day 15/ Nevermind, we're still cooking... and reset. Enjoy.",
-    url: 'https://x.com/thsottiaux/status/2112432076767289678',
+    text: 'A reset is coming soon.',
+    url: 'https://x.com/thsottiaux/status/2112430000000000001',
     account: 'thsottiaux', author_verified: true, foundVia: 'timeline-browser',
   };
   const thirdParty = {
@@ -145,7 +145,7 @@ console.log('\n【1】合并：上游新增的记录必须进库');
     text: 'Done', url: 'https://x.com/thsottiaux/status/2111566005684289735', attribution: 'codex-resets.com',
   };
   const cleaned = mergeHistory([thirdParty, oldConfirmed], [thirdParty], { tweets: [target] });
-  check('已知 Day 15 预告从第三方落地历史移除',
+  check('明确预告从第三方落地历史移除',
     !cleaned.records.some((r) => r.id === target.id));
   check('清理误记后保留 10 月 17 日已确认基线',
     cleaned.records.length === 1 && cleaned.records[0].id === oldConfirmed.id &&

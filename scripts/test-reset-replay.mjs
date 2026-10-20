@@ -4,6 +4,10 @@ import { runInNewContext } from 'node:vm';
 import { analyzeTweet, detectSignals, latestEventMs } from '../src/lib/signals.mjs';
 import { mergeConfirmedResets, mergeHistory, mergeTweetContexts } from '../src/lib/collect.mjs';
 import { harvestExpression, detailProbeExpression, normalizeTimelineItems, pickFullTextCandidates, contextParentId } from '../src/lib/browser.mjs';
+import { buildResetCalendar } from '../src/lib/reset-calendar.mjs';
+import { buildChartData } from '../src/lib/chart-data.js';
+import { buildOutlook } from '../src/lib/outlook.mjs';
+import { announcementEventsFromForecasts, detectNewResets } from '../server/subscribe.mjs';
 
 let passed = 0;
 const check = (name, value) => { assert.ok(value, name); passed++; console.log(`✓ ${name}`); };
@@ -111,25 +115,54 @@ for (const timed of [true, false]) {
 }
 {
   const oct17 = { id: '2111566005684289735', announced_at: '2026-10-17T21:12:21.000Z', type: 'reset' };
-  const upstreamPrediction = { id: day15.id, announced_at: day15.created_at, type: 'reset', text: day15.text,
+  const upstreamCompletion = { id: day15.id, announced_at: day15.created_at, type: 'reset', text: day15.text,
     url: day15.url, attribution: 'codex-resets.com' };
-  const prediction = analyzeTweet(day15);
-  check('10 月 20 日真实预告进入未定时 explicit', prediction.level === 'explicit' && prediction.timing === 'pending');
-  check('第三方把 Day 15 记为 reset 也不能推进历史',
-    mergeHistory([oct17], [upstreamPrediction]).records[0]?.id === oct17.id);
-  const landing = tweet('2112440000000000000', '2026-10-20T09:00:00.000Z', 'Done and dusted', {
-    quotedTweet: { account, text: day15.text, created_at: day15.created_at, relation: 'quote' },
-  });
-  const posts = [day15, landing];
-  const confirmed = mergeConfirmedResets([oct17], posts, { now: Date.parse('2026-10-20T09:10:00.000Z') });
-  check('真实完成公告沿 Day 15 预告证据链新增一次',
-    confirmed.added === 1 && confirmed.records[0]?.id === landing.id);
-  check('确认后重复采集仍只有一次落地记录',
-    mergeConfirmedResets(confirmed.records, posts, { now: Date.parse('2026-10-20T09:10:00.000Z') }).added === 0);
-  const repeatedUpstream = mergeHistory(confirmed.records, [upstreamPrediction], { tweets: posts });
-  check('后续第三方重复同步不能复活 Day 15 预告为落地记录',
+  const now = Date.parse('2026-10-20T07:10:00.000Z');
+  const confirmed = mergeConfirmedResets([oct17], [day15], { now });
+  check('10 月 20 日随帖落地公告直接判为 occurred', analyzeTweet(day15).level === 'occurred');
+  check('Day 15 不等第三方收录即可新增，完成时刻取原帖而非采集时刻',
+    confirmed.added === 1 && confirmed.records[0]?.id === day15.id &&
+      confirmed.records[0].announced_at === day15.created_at && confirmed.records[0].attribution === `x.com/${account}`);
+  const chart = buildChartData(confirmed.records, now);
+  const signals = detectSignals([day15], { now, lastResetAt: latestEventMs(confirmed.records) });
+  check('主卡最近重置为 20 日 14:33，北京和 UTC 指向同一时刻', chart.lastAt === day15.created_at);
+  check('已经落地的 Day 15 不再提供预告或预告通知',
+    signals.forecasts.length === 0 && announcementEventsFromForecasts(signals.forecasts, now).length === 0);
+  const outlook = buildOutlook({ chart, signals,
+    prediction: { prediction: { q10: 1, q25: 2, q50: 3, q75: 4, q90: 5 } }, now });
+  check('主卡不再等待本次预告落地或推算本次到账 ETA', !outlook.announcement && outlook.etaBasis !== 'announcement-delay');
+  const day1 = tweet('2107158998495748264', '2026-10-05T08:00:00.000Z', 'Day 1/ Improvements');
+  const calendar = buildResetCalendar({ records: confirmed.records, tweets: [day1, day15], now,
+    signals: { ...signals, program: { days: 28, announcedAt: '2026-10-04T20:33:43.000Z' } } });
+  const today = calendar.cells.find(c => c.date === '2026-10-20');
+  check('日历同一条 Day 15 已确认且无待落地重复项',
+    today.status === 'confirmed' && today.confirmedCount === 1 && today.pendingCount === 0 &&
+      today.details.some(d => d.id === day15.id && d.confirmedAt === day15.created_at));
+  const newEvents = detectNewResets(confirmed.records, oct17.announced_at, now);
+  check('本次只生成一条落地通知事件，保留原帖完成时间',
+    newEvents.length === 1 && newEvents[0].id === day15.id && newEvents[0].announced_at === day15.created_at);
+  check('确认后重复采集不新增、不更新',
+    mergeConfirmedResets(confirmed.records, [day15], { now }).added === 0 &&
+      mergeConfirmedResets(confirmed.records, [day15], { now }).updated === 0);
+  const repeatedUpstream = mergeHistory(confirmed.records, [upstreamCompletion], { tweets: [day15] });
+  check('第三方重采和 observed 别名不会重复入账',
     repeatedUpstream.records.length === confirmed.records.length &&
-      repeatedUpstream.records.every((r) => r.id !== day15.id));
+      mergeHistory(repeatedUpstream.records, [{ ...upstreamCompletion, id: `observed-${day15.id}` }], { tweets: [day15] }).records.length === confirmed.records.length);
+  const followup = tweet('2112440000000000000', '2026-10-20T07:00:00.000Z', 'Reset all propagated.');
+  const followed = mergeConfirmedResets(confirmed.records, [day15, followup], { now });
+  check('稍后重复确认合并为同一事件，不后移首次落地时刻',
+    followed.added === 0 && followed.updated === 1 && followed.records[0].announced_at === day15.created_at &&
+      detectNewResets(followed.records, day15.created_at, now).length === 0);
+  for (const extra of [{ author_verified: false }, { account: 'someone' }, { foundVia: 'timeline' }]) {
+    check(`未核验原帖不因随帖落地句式自动入库：${JSON.stringify(extra)}`,
+      mergeConfirmedResets([oct17], [{ ...day15, ...extra }], { now }).added === 0);
+    check(`第三方转述不能绕过随帖落地来源核验：${JSON.stringify(extra)}`,
+      mergeHistory([oct17], [upstreamCompletion], { tweets: [{ ...day15, ...extra }] }).added === 0);
+  }
+  for (const url of [day15.url, 'https://x.com/someone/status/2112432076767289678', null]) {
+    check(`无可信原帖时第三方复述不能新增落地：${url}`,
+      mergeHistory([oct17], [{ ...upstreamCompletion, url }], { tweets: [] }).added === 0);
+  }
 }
 
 console.log(`✓ 重置全链路回放 ${passed} 项通过`);
