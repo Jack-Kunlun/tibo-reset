@@ -1,14 +1,6 @@
 {
   "records": [
     {
-      "id": "2112432076767289678",
-      "announced_at": "2026-10-20T06:33:48.000Z",
-      "type": "reset",
-      "text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
-      "url": "https://x.com/thsottiaux/status/2112432076767289678",
-      "attribution": "codex-resets.com"
-    },
-    {
       "id": "2111566005684289735",
       "announced_at": "2026-10-17T21:12:21.000Z",
       "type": "reset",
@@ -30,7 +22,11 @@
       "type": "reset",
       "text": "What would you like with your side of reset? It's done. https://t.co/gpNaB6otgy",
       "url": "https://x.com/thsottiaux/status/2109873287853707513",
-      "attribution": "codex-resets.com"
+      "attribution": "x.com/thsottiaux",
+      "first_confirmed_at": "2026-10-13T05:06:06.000Z",
+      "confirmation_urls": [
+        "https://x.com/thsottiaux/status/2109873287853707513"
+      ]
     },
     {
       "id": "2109132167112782291",
@@ -38,7 +34,11 @@
       "type": "reset",
       "text": "Put the reset in the bag. All propagated. https://t.co/HGxaD3Zdcj",
       "url": "https://x.com/thsottiaux/status/2109132167112782291",
-      "attribution": "codex-resets.com"
+      "attribution": "x.com/thsottiaux",
+      "first_confirmed_at": "2026-10-11T04:01:09.000Z",
+      "confirmation_urls": [
+        "https://x.com/thsottiaux/status/2109132167112782291"
+      ]
     },
     {
       "id": "2108040921044639779",
@@ -522,5 +522,5 @@
     }
   ],
   "bootstrapped_at": "2026-09-20T08:17:13.018Z",
-  "refreshed_at": "2026-10-20T07:02:05.090Z"
+  "refreshed_at": "2026-10-20T08:03:29.840Z"
 }

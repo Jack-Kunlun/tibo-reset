@@ -1,5 +1,5 @@
 {
-  "level": "occurred",
+  "level": "explicit",
   "program": {
     "id": "2106845241357824205",
     "url": "https://x.com/thsottiaux/status/2106845241357824205",
@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-20T07:02:15.882Z",
+  "generatedAt": "2026-10-20T08:03:49.618Z",
   "checkedTweets": 429,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-21T07:02:15.882Z",
-  "windowTo": "2026-10-20T07:02:15.882Z",
+  "windowFrom": "2026-08-21T08:03:49.618Z",
+  "windowTo": "2026-10-20T08:03:49.618Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.20",
       "weekday": "周二",
-      "time": "15:02",
-      "text": "2026.10.20（周二）15:02",
+      "time": "16:03",
+      "text": "2026.10.20（周二）16:03",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,8 +98,8 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.20",
       "weekday": "周二",
-      "time": "00:02",
-      "text": "2026.10.20（周二）00:02",
+      "time": "01:03",
+      "text": "2026.10.20（周二）01:03",
       "offset": "UTC-7"
     },
     "diffHours": 15,
@@ -112,7 +112,8 @@
     "createdAt": "2026-10-20T06:33:48.000Z",
     "url": "https://x.com/thsottiaux/status/2112432076767289678",
     "reasons": [
-      "命中重置词 reset"
+      "命中重置词 reset",
+      "明确预告重置，具体时间待公布"
     ],
     "viaContext": false,
     "inReplyTo": null,
@@ -137,13 +138,55 @@
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "hint",
-    "rejected": "有额度意图但没给出时间，只能作线索",
+    "level": "explicit",
+    "timing": "pending",
+    "rejected": null,
     "intent": 3,
     "window": null,
     "candidateWindow": null
   },
-  "signals": [],
+  "signals": [
+    {
+      "id": "2112432076767289678",
+      "account": "thsottiaux",
+      "text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
+      "createdAt": "2026-10-20T06:33:48.000Z",
+      "url": "https://x.com/thsottiaux/status/2112432076767289678",
+      "reasons": [
+        "命中重置词 reset",
+        "明确预告重置，具体时间待公布"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.20",
+          "weekday": "周二",
+          "time": "14:33",
+          "text": "2026.10.20（周二）14:33",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.19",
+          "weekday": "周一",
+          "time": "23:33",
+          "text": "2026.10.19（周一）23:33",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "explicit",
+      "timing": "pending",
+      "rejected": null,
+      "intent": 3,
+      "window": null,
+      "candidateWindow": null
+    }
+  ],
   "occurred": [
     {
       "id": "2109873287853707513",
@@ -530,44 +573,6 @@
     }
   ],
   "hints": [
-    {
-      "id": "2112432076767289678",
-      "account": "thsottiaux",
-      "text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
-      "createdAt": "2026-10-20T06:33:48.000Z",
-      "url": "https://x.com/thsottiaux/status/2112432076767289678",
-      "reasons": [
-        "命中重置词 reset"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.20",
-          "weekday": "周二",
-          "time": "14:33",
-          "text": "2026.10.20（周二）14:33",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.19",
-          "weekday": "周一",
-          "time": "23:33",
-          "text": "2026.10.19（周一）23:33",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "hint",
-      "rejected": "有额度意图但没给出时间，只能作线索",
-      "intent": 3,
-      "window": null,
-      "candidateWindow": null
-    },
     {
       "id": "2112034063934742720",
       "account": "thsottiaux",
@@ -2636,7 +2641,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-20T07:02:15.882Z"
+        "checkedAt": "2026-10-20T08:03:49.618Z"
       }
     },
     {
@@ -11633,12 +11638,71 @@
     }
   ],
   "hypothesis": null,
-  "forecasts": [],
+  "forecasts": [
+    {
+      "level": "explicit",
+      "timing": "pending",
+      "window": null,
+      "precision": null,
+      "text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
+      "url": "https://x.com/thsottiaux/status/2112432076767289678",
+      "createdAt": "2026-10-20T06:33:48.000Z",
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.20",
+          "weekday": "周二",
+          "time": "14:33",
+          "text": "2026.10.20（周二）14:33",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.19",
+          "weekday": "周一",
+          "time": "23:33",
+          "text": "2026.10.19（周一）23:33",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "reasons": [
+        "命中重置词 reset",
+        "明确预告重置，具体时间待公布"
+      ],
+      "timeNote": "具体时间待公布",
+      "sources": 1,
+      "evidence": [
+        {
+          "id": "2112432076767289678",
+          "createdAt": "2026-10-20T06:33:48.000Z",
+          "text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
+          "url": "https://x.com/thsottiaux/status/2112432076767289678",
+          "via": "原创",
+          "weight": "hard",
+          "contributes": "已预告重置，尚未给出时间",
+          "timeWord": null,
+          "precision": null,
+          "ambiguous": false,
+          "note": null,
+          "from": null,
+          "to": null
+        }
+      ],
+      "counts": {
+        "hard": 1,
+        "soft": 0
+      },
+      "clockHints": []
+    }
+  ],
   "counts": {
     "scanned": 429,
-    "explicit": 0,
+    "explicit": 1,
     "occurred": 9,
-    "hint": 62,
+    "hint": 61,
     "none": 345,
     "rejected": 345
   },

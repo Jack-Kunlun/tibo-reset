@@ -12,7 +12,7 @@
         "created_at": "2026-10-19T19:45:28.000Z",
         "relation": "quote"
       },
-      "kind": "other",
+      "kind": "reset",
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
@@ -7154,7 +7154,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-20T07:02:15.882Z",
+  "updated_at": "2026-10-20T08:03:49.550Z",
   "source": "browser",
-  "coverage_since": "2026-10-19T06:33:48.000Z"
+  "coverage_since": "2026-10-16T21:12:21.000Z"
 }
