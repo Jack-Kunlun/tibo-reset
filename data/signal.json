@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-21T07:01:47.508Z",
-  "checkedTweets": 432,
+  "generatedAt": "2026-10-21T16:01:38.973Z",
+  "checkedTweets": 433,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-22T07:01:47.508Z",
-  "windowTo": "2026-10-21T07:01:47.508Z",
+  "windowFrom": "2026-08-22T16:01:38.973Z",
+  "windowTo": "2026-10-21T16:01:38.973Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -87,10 +87,10 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.10.21",
-      "weekday": "周三",
-      "time": "15:01",
-      "text": "2026.10.21（周三）15:01",
+      "date": "2026.10.22",
+      "weekday": "周四",
+      "time": "00:01",
+      "text": "2026.10.22（周四）00:01",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,29 +98,28 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.21",
       "weekday": "周三",
-      "time": "00:01",
-      "text": "2026.10.21（周三）00:01",
+      "time": "09:01",
+      "text": "2026.10.21（周三）09:01",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2112798407928713717",
+    "id": "2112906496736641416",
     "account": "thsottiaux",
-    "text": "I demand a reset",
-    "createdAt": "2026-10-21T06:49:29.000Z",
-    "url": "https://x.com/thsottiaux/status/2112798407928713717",
+    "text": "@sama is this true",
+    "createdAt": "2026-10-21T13:58:59.000Z",
+    "url": "https://x.com/thsottiaux/status/2112906496736641416",
     "reasons": [
-      "命中重置词 reset",
-      "命中「A/the reset」名词化陈述",
-      "上下文：回复 @theo「T3 Connect has not been reliable tod…」"
+      "上下文：回复 @JustLingonberry「Unconfirmed OpenAI insider info: The…」",
+      "被回复的推文含额度语境（本条无延续语气，不借意图）"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "theo",
+      "account": "JustLingonberry",
       "id": "",
-      "text": "T3 Connect has not been reliable today. Super sorry about that. Should be recovered now 🤞 Nerdy deets below for those who care: T3 Connect is our built-in alternative to Tailscale for remote connections on T3 Code. Turns out there's so many T3 Connect users that we are"
+      "text": "Unconfirmed OpenAI insider info: They are not happy with Tibo and no more endless resets. $500 worth of credits that won't last a few hours with astra is ****ing insult."
     },
     "createdZones": {
       "a": {
@@ -128,27 +127,26 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.21",
         "weekday": "周三",
-        "time": "14:49",
-        "text": "2026.10.21（周三）14:49",
+        "time": "21:58",
+        "text": "2026.10.21（周三）21:58",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.10.20",
-        "weekday": "周二",
-        "time": "23:49",
-        "text": "2026.10.20（周二）23:49",
+        "date": "2026.10.21",
+        "weekday": "周三",
+        "time": "06:58",
+        "text": "2026.10.21（周三）06:58",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "occurred",
-    "rejected": null,
-    "intent": 3,
-    "occurredAt": "2026-10-21T06:49:29.000Z",
+    "level": "none",
+    "rejected": "无额度相关词",
+    "intent": 0,
     "window": null,
-    "confidence": 0.6799999999999999
+    "candidateWindow": null
   },
   "signals": [],
   "occurred": [
@@ -2729,7 +2727,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-21T07:01:47.508Z"
+        "checkedAt": "2026-10-21T16:01:38.973Z"
       }
     },
     {
@@ -3484,6 +3482,49 @@
     }
   ],
   "rejected": [
+    {
+      "id": "2112906496736641416",
+      "account": "thsottiaux",
+      "text": "@sama is this true",
+      "createdAt": "2026-10-21T13:58:59.000Z",
+      "url": "https://x.com/thsottiaux/status/2112906496736641416",
+      "reasons": [
+        "上下文：回复 @JustLingonberry「Unconfirmed OpenAI insider info: The…」",
+        "被回复的推文含额度语境（本条无延续语气，不借意图）"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "JustLingonberry",
+        "id": "",
+        "text": "Unconfirmed OpenAI insider info: They are not happy with Tibo and no more endless resets. $500 worth of credits that won't last a few hours with astra is ****ing insult."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.21",
+          "weekday": "周三",
+          "time": "21:58",
+          "text": "2026.10.21（周三）21:58",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.21",
+          "weekday": "周三",
+          "time": "06:58",
+          "text": "2026.10.21（周三）06:58",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2112712984644784534",
       "account": "thsottiaux",
@@ -11680,56 +11721,17 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2105519215092584786",
-      "account": "thsottiaux",
-      "text": "One more thing, you can now build and deploy MCP servers right through ChatGPT. And restrict its access to anyone you want or share it with the world.",
-      "createdAt": "2026-10-01T04:44:34.000Z",
-      "url": "https://x.com/thsottiaux/status/2105519215092584786",
-      "reasons": [
-        "命中「新额度」类词 fresh/new/top up",
-        "含发布/宣传语境（下调置信度）"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.01",
-          "weekday": "周四",
-          "time": "12:44",
-          "text": "2026.10.01（周四）12:44",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.30",
-          "weekday": "周三",
-          "time": "21:44",
-          "text": "2026.09.30（周三）21:44",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 1,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": null,
   "forecasts": [],
   "counts": {
-    "scanned": 432,
+    "scanned": 433,
     "explicit": 0,
     "occurred": 11,
     "hint": 61,
-    "none": 346,
-    "rejected": 346
+    "none": 347,
+    "rejected": 347
   },
   "truncated": true
 }
