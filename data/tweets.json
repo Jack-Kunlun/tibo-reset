@@ -1,6 +1,25 @@
 {
   "tweets": [
     {
+      "id": "2112798407928713717",
+      "text": "I demand a reset",
+      "created_at": "2026-10-21T06:49:29.000Z",
+      "url": "https://x.com/thsottiaux/status/2112798407928713717",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "T3 Connect has not been reliable today. Super sorry about that. Should be recovered now 🤞 Nerdy deets below for those who care: T3 Connect is our built-in alternative to Tailscale for remote connections on T3 Code. Turns out there's so many T3 Connect users that we are",
+        "created_at": "2026-10-20T01:44:21.000Z",
+        "url": ""
+      },
+      "kind": "reset",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-21T07:01:47.395Z"
+    },
+    {
       "id": "2112712984644784534",
       "text": "Day 16/ You can now cache for 12h in the API and for logged in users across Codex & Work we keep cache forever and you don’t have any penalty for coming back to an old conversation or resuming after a few hours and are now guaranteed to hit the cache.",
       "created_at": "2026-10-21T01:10:02.000Z",
@@ -7185,7 +7204,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-21T06:01:00.262Z",
+  "updated_at": "2026-10-21T07:01:47.396Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }
