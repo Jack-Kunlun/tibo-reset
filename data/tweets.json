@@ -1,6 +1,25 @@
 {
   "tweets": [
     {
+      "id": "2112992042465009736",
+      "text": "Dot, meet Duet. Duet, meet Dot. Be nice to each other.",
+      "created_at": "2026-10-21T19:38:55.000Z",
+      "url": "https://x.com/thsottiaux/status/2112992042465009736",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "claudeai",
+        "id": "",
+        "text": "We’re opening a research preview of Claude Duet, a new app where Claude works as a proactive agent. It comes to you with what needs your attention, completes tasks you ask of it, keeps working when you step away, and checks with you before it acts on your behalf.",
+        "created_at": "2026-10-21T19:09:35.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-21T20:01:45.576Z"
+    },
+    {
       "id": "2112906496736641416",
       "text": "@sama is this true",
       "created_at": "2026-10-21T13:58:59.000Z",
@@ -7223,7 +7242,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-21T16:01:38.946Z",
+  "updated_at": "2026-10-21T20:01:45.578Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }
