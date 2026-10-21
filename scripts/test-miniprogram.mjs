@@ -113,7 +113,11 @@ function makeWx(record) {
       const ids = (opts && opts.tmplIds) || [];
       record.subscribeCalls.push(ids.join(','));
       const res = {};
-      for (const id of ids) res[id] = record.subscribeVerdict;
+      for (const id of ids) {
+        res[id] = record.subscribeVerdicts && Object.prototype.hasOwnProperty.call(record.subscribeVerdicts, id)
+          ? record.subscribeVerdicts[id]
+          : record.subscribeVerdict;
+      }
       if (opts && opts.success) opts.success(res);
     },
   };
@@ -192,6 +196,7 @@ const wxRecord = {
   subscribeCalls: [],
   pullDownStopCount: 0,
   subscribeVerdict: 'accept',
+  subscribeVerdicts: null,
   onRequest: null,
   rendersAtFirstRequest: undefined,
   // 复制路径：clipboard 记写入了什么，toasts 记弹了什么，后两个开关模拟失败
@@ -300,7 +305,8 @@ check('onLoad / onReady 未抛异常', true);
 
 {
   const originalQuery = wx.createSelectorQuery;
-  const drawPage = { ...page, _painting: false, _paintAgain: false };
+  const { createDashboardPage } = await import('../miniprogram/utils/dashboard.js');
+  const drawPage = { ...page, ...createDashboardPage('analysis'), data: { ...page.data, pageVisible: true }, ready: true, chart: page.chart, _painting: false, _paintAgain: false };
   let releaseFirst;
   let trendQueries = 0;
   let trendCanvas;
@@ -1395,6 +1401,223 @@ wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: opts.url.en
 await page.refreshReminders();
 check('服务查询确认授权已消耗后恢复两项按钮，不信任本地永久标记', page.data.announcementRemind.state === 'idle' && page.data.announcementRemind.label === sub.ACTION_LABELS.announcement && page.data.landedRemind.label === sub.ACTION_LABELS.landed);
 
+// 两个新模板必须从同一首页按钮发起一次批量授权；选择默认开启，但初始化与状态查询不授权。
+const ANN_TMPL = 'ANNOUNCEMENT_TEST';
+const batchConfig = {
+  enabled: true,
+  templateId: TMPL,
+  templateIds: { announcement: ANN_TMPL, landed: TMPL },
+  kinds: ['announcement', 'landed'],
+  scope: 'once',
+};
+const respondWithBatchConfig = (opts) => opts.success({ statusCode: 200, data: opts.url.endsWith('/config') ? batchConfig : { ok: true, active: false } });
+wxRecord.onRequest = respondWithBatchConfig;
+await sub.loadSubscriptionConfig();
+page.initRemind();
+const batchPopupStart = wxRecord.subscribeCalls.length;
+await page.refreshReminders();
+check('新模板配置默认勾选两类提醒，初始化与状态刷新不弹授权',
+  sub.supportsBatchSubscription() && page.data.reminderBatch && page.data.announcementRemind.selected && page.data.landedRemind.selected &&
+  wxRecord.subscribeCalls.length === batchPopupStart);
+check('两类均选中时使用一个明确的批量开启按钮',
+  page.data.reminderAction.label === '开启重置提醒' && page.data.reminderAction.disabled === false);
+
+const sceneBatchCalls = wxRecord.subscribeCalls.length;
+page.data.singlePage = true;
+page.initRemind();
+page.onSelectReminder({ currentTarget: { dataset: { kind: 'announcement' } } });
+await page.onEnableReminders();
+check('scene 1154 单页隐藏并拦截两个新授权入口',
+  !page.data.announcementRemind.show && !page.data.landedRemind.show &&
+  page.data.announcementRemind.selected && page.data.landedRemind.selected &&
+  wxRecord.subscribeCalls.length === sceneBatchCalls);
+page.data.singlePage = false;
+page.initRemind();
+await page.refreshReminders();
+
+// 快速连点不能在上一份原生授权仍打开时再申请第二次。
+const nativeRequestSubscribeForGuard = wx.requestSubscribeMessage;
+let settleGuardPopup;
+wx.requestSubscribeMessage = (opts) => {
+  wxRecord.subscribeCalls.push((opts.tmplIds || []).join(','));
+  settleGuardPopup = opts.success;
+};
+const guardPopupStart = wxRecord.subscribeCalls.length;
+const guardedBatch = page.onEnableReminders();
+const repeatedBatch = page.onEnableReminders();
+const onePopupOnly = wxRecord.subscribeCalls.length === guardPopupStart + 1 && repeatedBatch === undefined;
+check('联合授权在点击中直接调用微信接口，不先等待登录或网络', typeof settleGuardPopup === 'function');
+settleGuardPopup({ [ANN_TMPL]: 'reject', [TMPL]: 'reject' });
+await guardedBatch;
+wx.requestSubscribeMessage = nativeRequestSubscribeForGuard;
+check('批量提醒正在处理时重复点击不会叠加第二次微信授权', onePopupOnly && wxRecord.subscribeCalls.length === guardPopupStart + 1);
+
+// 两类都同意时，两个待办必须在任何 wx.login / HTTP 登记之前全部落盘；服务器失败也要逐项保留。
+wxRecord.subscribeVerdicts = { [ANN_TMPL]: 'accept', [TMPL]: 'accept' };
+const acceptedPosts = [];
+const pendingAtLogin = [];
+const nativeLogin = wx.login;
+wx.login = (opts) => {
+  pendingAtLogin.push({ announcement: sub.hasPendingSync('announcement'), landed: sub.hasPendingSync('landed') });
+  return nativeLogin(opts);
+};
+wxRecord.onRequest = (opts) => {
+  if (opts.url.endsWith('/config')) return opts.success({ statusCode: 200, data: batchConfig });
+  if (opts.url.endsWith('/subscribe')) acceptedPosts.push(opts.data);
+  return opts.success({ statusCode: 503, data: { error: 'temporary failure' } });
+};
+const batchCallsBeforeGrant = wxRecord.subscribeCalls.length;
+await page.onEnableReminders();
+wx.login = nativeLogin;
+check('单击一次只调用一次微信弹窗，并传入两个不同模板 ID',
+  wxRecord.subscribeCalls.length === batchCallsBeforeGrant + 1 && wxRecord.subscribeCalls.at(-1) === `${ANN_TMPL},${TMPL}`,
+  wxRecord.subscribeCalls.at(-1));
+check('两项授权结果先分别持久化，再开始任一 wx.login',
+  pendingAtLogin.length === 2 && pendingAtLogin.every((entry) => entry.announcement && entry.landed), JSON.stringify(pendingAtLogin));
+check('两类分别携带正确 kind、模板与独立 grantId 登记',
+  acceptedPosts.length === 2 && acceptedPosts.some((entry) => entry.kind === 'announcement' && entry.templateId === ANN_TMPL) &&
+  acceptedPosts.some((entry) => entry.kind === 'landed' && entry.templateId === TMPL) &&
+  acceptedPosts[0].grantId !== acceptedPosts[1].grantId && acceptedPosts.every((entry) => !!entry.code && !('openid' in entry)));
+check('登记失败后两类各自保留可重试状态与待办',
+  page.data.announcementRemind.state === 'retry' && page.data.landedRemind.state === 'retry' &&
+  sub.hasPendingSync('announcement') && sub.hasPendingSync('landed'));
+
+// 只选一项重试待同步授权时，不再弹窗；另一项仍保留自己的待办。
+page.onSelectReminder({ currentTarget: { dataset: { kind: 'landed' } } });
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: opts.url.endsWith('/config') ? batchConfig : { ok: true, active: true } });
+const retryPopupStart = wxRecord.subscribeCalls.length;
+await page.onEnableReminders();
+check('已有授权的单项重试只同步，不再次弹窗或清除另一项待办',
+  wxRecord.subscribeCalls.length === retryPopupStart && page.data.announcementRemind.state === 'on' &&
+  page.data.landedRemind.state === 'retry' && sub.hasPendingSync('landed'));
+
+// 若另一类已有待同步授权、当前选择中还有新类型，先同步申请新类型；即使弹窗失败，待办仍可独立同步。
+wxRecord.onRequest = (opts) => {
+  if (opts.url.endsWith('/config')) return opts.success({ statusCode: 200, data: batchConfig });
+  if (opts.url.endsWith('/status')) return opts.success({ statusCode: 200, data: { ok: true, active: false } });
+  return opts.success({ statusCode: 200, data: { ok: true, active: true } });
+};
+await page.refreshReminders();
+page.onSelectReminder({ currentTarget: { dataset: { kind: 'landed' } } });
+const nativeRequestSubscribeForFailure = wx.requestSubscribeMessage;
+const authorizeOrder = [];
+wx.requestSubscribeMessage = (opts) => {
+  wxRecord.subscribeCalls.push((opts.tmplIds || []).join(','));
+  authorizeOrder.push('popup');
+  opts.fail({ errMsg: 'popup failed' });
+};
+const nativeLoginForOrder = wx.login;
+wx.login = (opts) => { authorizeOrder.push('login'); return nativeLoginForOrder(opts); };
+const failedNewPopupStart = wxRecord.subscribeCalls.length;
+await page.onEnableReminders();
+wx.login = nativeLoginForOrder;
+wx.requestSubscribeMessage = nativeRequestSubscribeForFailure;
+check('有待同步授权和新授权时先申请新模板；弹窗失败仍独立完成待同步登记',
+  authorizeOrder[0] === 'popup' && authorizeOrder.includes('login') &&
+  wxRecord.subscribeCalls.length === failedNewPopupStart + 1 && wxRecord.subscribeCalls.at(-1) === ANN_TMPL &&
+  page.data.announcementRemind.state === 'idle' && page.data.landedRemind.state === 'on' &&
+  !sub.hasPendingSync('landed'));
+
+// 一个拒绝、另一个同意时，两边状态不能互相覆盖，也不能登记被拒绝的一类。
+wxRecord.subscribeVerdicts = { [ANN_TMPL]: 'reject', [TMPL]: 'accept' };
+const mixedPosts = [];
+wxRecord.onRequest = (opts) => {
+  if (opts.url.endsWith('/config')) return opts.success({ statusCode: 200, data: batchConfig });
+  if (opts.url.endsWith('/status')) return opts.success({ statusCode: 200, data: { ok: true, active: false } });
+  if (opts.url.endsWith('/subscribe')) mixedPosts.push(opts.data);
+  return opts.success({ statusCode: 200, data: { ok: true, active: true } });
+};
+await page.refreshReminders();
+const mixedPopupStart = wxRecord.subscribeCalls.length;
+await page.onEnableReminders();
+check('微信对两模板分别返回拒绝和同意时，只登记同意的类型',
+  wxRecord.subscribeCalls.length === mixedPopupStart + 1 && mixedPosts.length === 1 &&
+  mixedPosts[0].kind === 'landed' && mixedPosts[0].templateId === TMPL &&
+  page.data.announcementRemind.state === 'idle' && /拒绝/.test(page.data.announcementRemind.feedback) &&
+  page.data.landedRemind.state === 'on');
+wxRecord.subscribeVerdicts = null;
+
+// 状态查询失败后总入口要能重试查询，但点击不能退化成授权。
+wxRecord.onRequest = (opts) => {
+  if (opts.url.endsWith('/config')) return opts.success({ statusCode: 200, data: batchConfig });
+  if (opts.url.endsWith('/status')) return opts.fail({ errMsg: 'temporary offline' });
+  return opts.success({ statusCode: 200, data: { ok: true, active: false } });
+};
+await page.refreshReminders();
+check('未知状态显示可操作的重试检查，而非永久 loading',
+  page.data.announcementRemind.state === 'unknown' && page.data.reminderAction.label === '重试检查' &&
+  page.data.reminderAction.disabled === false && page.data.reminderAction.loading === false);
+const unknownPopupStart = wxRecord.subscribeCalls.length;
+wxRecord.onRequest = (opts) => {
+  if (opts.url.endsWith('/config')) return opts.success({ statusCode: 200, data: batchConfig });
+  return opts.success({ statusCode: 200, data: { ok: true, active: false } });
+};
+await page.onEnableReminders();
+check('重试检查只刷新配置和状态，不请求微信授权',
+  wxRecord.subscribeCalls.length === unknownPopupStart && page.data.announcementRemind.state === 'idle');
+
+page.onSelectReminder({ currentTarget: { dataset: { kind: 'announcement' } } });
+page.onSelectReminder({ currentTarget: { dataset: { kind: 'landed' } } });
+check('两类都取消选择时不会显示成功，也不能提交',
+  page.data.reminderAction.label === '请选择提醒类型' && page.data.reminderAction.disabled === true);
+
+// 字段一旦出现就严格按类型读取；损坏映射、缺 key 或重复 ID 均不能回退伪装成批量模板。
+for (const invalidMap of [null, [], 'broken', {}]) {
+  wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: {
+    enabled: true, templateId: TMPL, templateIds: invalidMap, kinds: ['announcement', 'landed'],
+  } });
+  await sub.loadSubscriptionConfig();
+  check(`存在但无效的 templateIds 不回退 scalar（${JSON.stringify(invalidMap)}）`,
+    !sub.subscribeAvailable('announcement') && !sub.subscribeAvailable('landed') &&
+    !sub.supportsNotificationKind('announcement') && !sub.supportsNotificationKind('landed') &&
+    !sub.supportsBatchSubscription());
+}
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: {
+  enabled: true, templateId: TMPL, templateIds: { announcement: ANN_TMPL }, kinds: ['announcement', 'landed'],
+} });
+await sub.loadSubscriptionConfig();
+check('缺失的单类映射不借用旧 scalar，剩余单类也不能伪装批量',
+  sub.subscribeAvailable('announcement') && !sub.subscribeAvailable('landed') &&
+  sub.supportsNotificationKind('announcement') && !sub.supportsNotificationKind('landed') &&
+  !sub.supportsBatchSubscription());
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: {
+  enabled: true, templateId: TMPL, templateIds: { announcement: TMPL, landed: TMPL }, kinds: ['announcement', 'landed'],
+} });
+await sub.loadSubscriptionConfig();
+check('重复模板 ID 不代表两份独立授权',
+  !sub.supportsBatchSubscription() && !sub.supportsNotificationKind('announcement') && sub.supportsNotificationKind('landed'));
+
+// 配置在微信弹窗期间切换时，原 ID 的授权不能被同步到新模板。
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: batchConfig });
+await sub.loadSubscriptionConfig();
+const nativeRequestSubscribeForBatch = wx.requestSubscribeMessage;
+let acceptCapturedBatch;
+wx.requestSubscribeMessage = (opts) => {
+  wxRecord.subscribeCalls.push((opts.tmplIds || []).join(','));
+  acceptCapturedBatch = () => opts.success(Object.fromEntries(opts.tmplIds.map((id) => [id, 'accept'])));
+};
+const batchRacePosts = [];
+const batchRace = sub.subscribeKinds(['announcement', 'landed']);
+await Promise.resolve();
+wxRecord.onRequest = (opts) => opts.url.endsWith('/config')
+  ? opts.success({ statusCode: 200, data: { enabled: true, templateId: 'NEW_LANDED', templateIds: { announcement: 'NEW_ANNOUNCEMENT', landed: 'NEW_LANDED' }, kinds: ['announcement', 'landed'] } })
+  : (batchRacePosts.push(opts.data), opts.success({ statusCode: 200, data: { ok: true, active: true } }));
+await sub.loadSubscriptionConfig();
+acceptCapturedBatch();
+const batchRaceResult = await batchRace;
+wx.requestSubscribeMessage = nativeRequestSubscribeForBatch;
+check('弹窗期间配置切换时两类旧授权都不登记到新模板',
+  !batchRacePosts.length && batchRaceResult.announcement.status === 'template-changed' &&
+  batchRaceResult.landed.status === 'template-changed' && !sub.hasPendingSync('announcement') && !sub.hasPendingSync('landed'));
+
+// 返回旧 scalar 服务，保留原有逐项入口并继续走后续朋友圈单页回归。
+wxRecord.onRequest = (opts) => opts.success({ statusCode: 200, data: opts.url.endsWith('/config')
+  ? { enabled: true, templateId: TMPL, kinds: ['announcement', 'landed'], scope: 'once' }
+  : { ok: true, active: false } });
+await sub.loadSubscriptionConfig();
+page.initRemind();
+await page.refreshReminders();
+
 const callsBefore = wxRecord.subscribeCalls.length;
 const singleLoginBefore = wxRecord.loginCount, singleRequestBefore = wxRecord.requestCount;
 page.data.singlePage = true;
@@ -1667,8 +1890,8 @@ console.log('\n【12】复制原推链接（隐私接口，失败必须有反馈
   // 两个页面必须共用同一份实现 —— 否则就是「只修了一处」的老坑。
   // 用 `wx.setClipboardData(` 而不是裸词匹配：注释里提到接口名是正常的，
   // 真正要挡住的是**又一次**手写调用。
-  const srcIndex = await readFile(resolve(ROOT, 'miniprogram/pages/index/index.js'), 'utf8');
-  const srcHistory = await readFile(resolve(ROOT, 'miniprogram/pages/history/index.js'), 'utf8');
+  const srcIndex = await readFile(resolve(ROOT, 'miniprogram/utils/dashboard.js'), 'utf8');
+  const srcHistory = await readFile(resolve(ROOT, 'miniprogram/utils/dashboard.js'), 'utf8');
   const srcClip = await readFile(resolve(ROOT, 'miniprogram/utils/clipboard.js'), 'utf8');
   const CALL = /wx\.setClipboardData\(/;
   check(
@@ -1864,12 +2087,12 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
 
   // 模板在 Node 里渲染不了，但「守卫有没有写」可以查。少了它 = 朋友圈点开的人
   // 点了复制会弹「请前往小程序使用完整服务」—— 真机上不报错，也测不出来。
-  const wxmlIndex = await readFile(resolve(ROOT, 'miniprogram/pages/index/index.wxml'), 'utf8');
-  const wxmlHistory = await readFile(resolve(ROOT, 'miniprogram/pages/history/index.wxml'), 'utf8');
+  const wxmlIndex = (await readFile(resolve(ROOT, 'miniprogram/pages/index/index.wxml'), 'utf8')).replace(/class="tr-(?:view|text|button|image) /g, 'class="');
+  const wxmlHistory = (await readFile(resolve(ROOT, 'miniprogram/pages/history/index.wxml'), 'utf8')).replace(/class="tr-(?:view|text|button|image) /g, 'class="');
   const indexJson = JSON.parse(await readFile(resolve(ROOT, 'miniprogram/pages/index/index.json'), 'utf8'));
   const historyJson = JSON.parse(await readFile(resolve(ROOT, 'miniprogram/pages/history/index.json'), 'utf8'));
-  const indexJs = await readFile(resolve(ROOT, 'miniprogram/pages/index/index.js'), 'utf8');
-  const indexWxss = (await readFile(resolve(ROOT, 'miniprogram/pages/index/index.wxss'), 'utf8')).replace(/\/\*[\s\S]*?\*\//g, '');
+  const indexJs = await readFile(resolve(ROOT, 'miniprogram/utils/dashboard.js'), 'utf8');
+  const indexWxss = ((await readFile(resolve(ROOT, 'miniprogram/styles/dashboard.wxss'), 'utf8')) + (await readFile(resolve(ROOT, 'miniprogram/styles/design.wxss'), 'utf8'))).replace(/\/\*[\s\S]*?\*\//g, '');
 
   check(
     '首页采用自定义导航且单页模式显式 squeezed',
@@ -1877,8 +2100,8 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
     JSON.stringify(indexJson)
   );
   check(
-    '历史页保留原生导航并使用极光背景',
-    !historyJson.navigationStyle && historyJson.navigationBarBackgroundColor === '#F5F4FB' && historyJson.navigationBarTextStyle === 'black',
+    '记录页与观测页统一自定义导航和极光背景',
+    historyJson.navigationStyle === 'custom' && historyJson.backgroundColor === '#090D19' && historyJson.navigationBarTextStyle === 'white',
     JSON.stringify(historyJson)
   );
   check(
@@ -1897,14 +2120,16 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
   );
   const cssAttributeSelector = [...indexWxss.matchAll(/([^{}]+)\{[^{}]*\}/g)].find((match) => match[1].includes('['));
   check('首页 WXSS 不含开发者工具禁用的属性选择器', !cssAttributeSelector, cssAttributeSelector ? cssAttributeSelector[1].trim() : '');
+  const universalSelector = [...indexWxss.matchAll(/([^{}]+)\{[^{}]*\}/g)].find(match => match[1].includes('*'));
+  check('设计样式不含微信编译器禁用的通配选择器', !universalSelector);
   check(
-    '首页日期由独立数字位渲染，未放回单个紧缩文本',
-    /wx:for="\{\{pred\.dateDigits\}\}"/.test(wxmlIndex) && !/class="eta-date[^>]*>\s*\{\{pred\.md\}\}/.test(wxmlIndex),
-    '逐位循环与真实日期字段'
+    '首页按设计稿展示预测日期与独立钟点',
+    wxmlIndex.includes('class="tr-eta-date"') && wxmlIndex.includes('pred.md') && wxmlIndex.includes('class="tr-eta-time"'),
+    '真实日期与钟点分层显示'
   );
   const tagWith = (src, attr) => src.match(new RegExp(`<[a-z-]+[^>]*${attr}[^>]*>`, 'g')) || [];
 
-  const copyTags = [...tagWith(wxmlIndex, 'onCopySource'), ...tagWith(wxmlIndex, 'onCopyCalendarSource'), ...tagWith(wxmlHistory, 'onCopy')];
+  const copyTags = [...tagWith(wxmlIndex, 'onCopySource'), ...tagWith(wxmlHistory, 'onCopySource'), ...tagWith(wxmlHistory, 'onCopyCalendarSource')];
   const unguarded = copyTags.filter((t) => !/singlePage/.test(t));
   check(
     `每个「复制原推链接」入口都有守卫（剪贴板在单页模式下被禁，共 ${copyTags.length} 处）`,
@@ -1914,8 +2139,8 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
 
   const navTags = [...(wxmlIndex.match(/<navigator[^>]*>/g) || []), ...(wxmlHistory.match(/<navigator[^>]*>/g) || [])];
   check(
-    '两页的 navigator 都有守卫（单页模式下 navigator 组件被禁）',
-    navTags.length === 2 && navTags.every((t) => /singlePage/.test(t)),
+    '原生Tab页面没有遗留 navigate 跳转，单页模式不显示额外导航',
+    navTags.length === 0,
     `${navTags.length} 个：${navTags.join(' | ')}`
   );
 
@@ -1954,165 +2179,37 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
   );
 }
 
-/* ---------- 13g. 首屏相邻块：几何不贴线 + 顺序不能回退 ---------- */
-
-/* 两件事，理由完全不同，放在一起是因为它们钉的是**同一批元素**：
- *
- * ① 几何：端上 `.top` 自带 1rpx 下边框（app.wxss），它下面那些内容块要是
- *    margin-top 为 0，上边框就压在顶栏那条线上，两条 1rpx 叠成一条 ——
- *    网页端 2026-10-07 线上就是这个毛病，端上是同一套结构、同一个错法。
- *    网页端已由 `scripts/check-layout.mjs` 的 A7b 用**真实几何**盯住；
- *    端上量不到几何，退一步钉住「margin-top 非 0、且与同族同值」。
- *    ⚠ 形状级断言，别把它当成 A7b 的等价物。
- *
- * ② 顺序：2026-10-08 改版把 `.pred`（下一次什么时候）提到了首屏第一块，
- *    而它以前是 `.prog`（每日重置窗口 = 规则）。顺序回退**不会报任何错** ——
- *    页面照常渲染，只是这一页从「预测中心」退回「观察站」。
- *    这正是这次改版要修的问题，所以它必须能被机械核对，不能靠 review 时记得。
- *
- *    2026-10-09 老大又要求把「每日重置窗口」放到**预测下方**，于是它从
- *    「预测依据之后」提到「信号区之后、依据之前」。判据没变（规则不抢结论的位置），
- *    变的是它的**上界**：它划的是「这个结论的边界」（期间任何一天都可能重置），
- *    属于「这个日子有多硬」；「算得准不准」才是三张依据卡回答的。
- *    ⚠ 2026-10-08 曾以「留在信号之后仍会探进首屏（实测 375×812 露出大半）」
- *    为由把它一路后置。那条实测**没被推翻，是前提没了**：当时它上面只有 `.pred`，
- *    现在上面还压着整块 `.hero`（219px）。2026-10-09 用预览 + 无头 Chrome 重测
- *    （`dist/miniprogram-preview.html`，iframe 固定视口，375px 下 1rpx = 0.5px）：
- *      · 320×568 / 360×780 → 整块在首屏之外
- *      · 375×812 → 只露出 **15px**（≈ 上边框 + padding 上沿，读不到任何字）
- *      · 390×844 / 414×896 → 露出 47 / 99px（这两个是**下限**：预览把 rpx 固定成
- *        0.5px，真机在更宽的屏上块更高、露出更多）
- *    「挤进首屏」这个说法已经不成立 —— 结论（`.pred`）与信号（`.sig-idle`）都完整
- *    在首屏内，露出的只是它自己那条上沿。**这是老大要的位置，别再拿旧实测把它后置。** */
+/* ------------------ 三 Tab 的职责与原生路由 ------------------ */
 {
-  const wxssIndex = await readFile(resolve(ROOT, 'miniprogram/pages/index/index.wxss'), 'utf8');
-  /* 同一个选择器在文件里可能有好几条规则（`.sig` 既有一条 `animation-delay`、
-   * 又有一条真正设尺寸的），所以不能只取第一条匹配 —— 那会读到 `animation-delay`
-   * 那条、拿不到边距。这里遍历该选择器的**全部**规则，取第一条真带边距的。
-   * 边距可能写成 `margin-top`，也可能被收进 `margin` 简写的第一位，两种都认。 */
-  const topMarginOf = (selEscaped) => {
-    const rules = wxssIndex.match(new RegExp('^' + selEscaped + '\\s*\\{[^}]*\\}', 'gm')) ?? [];
-    for (const r of rules) {
-      const long = r.match(/margin-top:\s*(-?[\d.]+)rpx/);
-      if (long) return Number(long[1]);
-      // 简写只取第一位的数值即可，**不要**要求数值后面紧跟 `rpx` ——
-      // `margin: 0 0 20rpx` 这类写法会让正则匹配不上、报出 `NaNrpx` 这种难读的失败信息。
-      const short = r.match(/margin:\s*(-?[\d.]+)/);
-      if (short) return Number(short[1]);
-    }
-    return NaN;
-  };
-  const hasRule = (selEscaped) => new RegExp('^' + selEscaped + '\\s*\\{', 'm').test(wxssIndex);
-
-  /* 同族 = 会**相邻出现**的那几块。`.top` 下面依次是 hero → pred → sig|sig-idle
-   * → prog，彼此相邻处各有一条 1rpx 边框，所以这几块的上边距必须是同一个数。
-   * `.pred` 单独看一遍的理由：它是 2026-10-08 新加入这个家族的，最容易被写漏。
-   *
-   * ⚠ `.prog`（每日重置窗口）**进出这一族走过两趟**，改之前先确认它的
-   *   **上方邻居是谁**，别只看类名：
-   *     · 2026-10-08 移出 —— 那时它排在「预测依据之后」，上方邻居是 `.bc-grid`
-   *       里的 `.bc`（也带边框），但不再是这几块，所以不能要求同值；
-   *     · 2026-10-09 收回 —— 它挪回「信号之后」，上方邻居**又变回带边框的
-   *       `.sig` / `.sig-idle`**，「与同族同值」重新成为必要条件。
-   *   两次都是对的，错的是照抄上一次的 `FAMILY`。
-   */
-  const FAMILY = ['.pred', '.sig', '.sig-idle', '.prog'];
-  const margins = FAMILY.map((s) => [s, topMarginOf(s.replace('.', '\\.'))]);
-  const missing = margins.filter(([, v]) => !Number.isFinite(v)).map(([s]) => s);
-  check(
-    '首屏相邻的四块都有上边距',
-    missing.length === 0,
-    missing.length ? `缺 margin-top：${missing.join(' / ')}` : margins.map(([s, v]) => `${s}=${v}`).join(' · ')
-  );
-  const first = margins[0][1];
-  check(
-    '四块的上边距彼此一致（相邻处两条 1rpx 边框才不会被压在一起）',
-    Number.isFinite(first) && first >= 8 && margins.every(([, v]) => v === first),
-    margins.map(([s, v]) => `${s}=${v}`).join(' · ')
-  );
-  // 与上一条重复，但把它单独留一条：`.prog` 是最常被搬来搬去的那块，
-  // 单独报出它的值比在四块的一长串里找它快。上面那条绿而这条红 = 只错在 `.prog`。
-  check(
-    '每日重置窗口的上边距 ≥8（上方邻居是同样带边框的 .sig / .sig-idle，不能贴线）',
-    topMarginOf('\\.prog') >= 8,
-    `.prog=${topMarginOf('\\.prog')}`
-  );
-
-  /* ---- 顺序 ---- */
-  // ⚠ 再读一次 wxml：13e 里那个 `wxmlIndex` 声明在**块作用域**里，出了那块就没了，
-  //   直接引用会 ReferenceError（实测踩过一次）。别为了省一次读文件去改作用域。
-  const wxmlIndex = await readFile(resolve(ROOT, 'miniprogram/pages/index/index.wxml'), 'utf8');
-  // 先剥注释再找位置：注释里会提到类名（这一页的注释特别多），
-  // 拿原串比下标会把注释里的 `class="pred"` 也算进去。
-  const wxmlBody = wxmlIndex.replace(/<!--[\s\S]*?-->/g, '');
-  const at = (needle) => wxmlBody.indexOf(needle);
-  // 2026-10-08 第三轮：「已经等了多久」（`.hero`）从页尾提到**最前**，锚点随之新增。
-  // 它必须留在下面那条前置断言里 —— 用旧锚点会 `-1`，而 `-1` 恰好能让「排在之前」
-  // 那类比较**看起来**成立（`-1 < x` 恒真），所以「找得到」那条必须留着。
-  const iHero = at('class="hero"');
-  const iPred = at('class="pred ');
-  const iSig = at('class="sig ');
-  const iProg = at('class="prog"');
-  const iCalendar = at('class="reset-calendar card"');
-  const iBasisSummary = at('class="basis card"');
-  check('日历与每日重置窗口已调换位置，中间保留依据摘要',iCalendar>=0 && iCalendar<iBasisSummary && iBasisSummary<iProg);
-  // 2026-10-08 第二轮：依据区从 `.fc`（一块 `card fc-meta`）扩成 `.bc-grid`（三张卡），
-  // 并在它后面**新增**了一组 `.hr-grid`（历史规律：三张图从「各占一节」收成一组）。
-  // 锚点随之从 `.fc` 换成这两个 —— 用旧锚点会 `-1`，同样会被上面那条前置断言挡住。
-  const iBc = at('class="bc-grid"');
-  const iHr = at('class="hr-grid"');
-
-  check(
-    '模板里找得到六块（顺序断言的前提）',
-    [iHero, iPred, iSig, iProg, iBc, iHr].every((i) => i >= 0),
-    `hero=${iHero} pred=${iPred} sig=${iSig} prog=${iProg} bc=${iBc} hr=${iHr}`
-  );
-  check(
-    '预测总览排在信号之前（结论在前，依据在后）',
-    iPred >= 0 && iSig >= 0 && iPred < iSig,
-    `pred@${iPred} vs sig@${iSig}`
-  );
-  check(
-    '预测依据（.bc-grid 三卡）排在预测总览之后',
-    iPred >= 0 && iBc >= 0 && iBc > iPred,
-    `bc@${iBc} vs pred@${iPred}`
-  );
-  // 2026-10-09：「每日重置窗口」从「依据之后」提到「信号之后、依据之前」。
-  // **两条一起钉** —— 只钉「在依据之前」的话，它越过 `.pred` 挤回首屏也会绿，
-  // 而那正是 2026-10-08 要修的毛病（第一条断言就是为它加的）。
-  check(
-    '每日重置窗口排在信号区之后（规则不抢结论的位置）',
-    iSig >= 0 && iProg >= 0 && iProg > iSig,
-    `prog@${iProg} vs sig@${iSig}`
-  );
-  check(
-    '每日重置窗口排在预测依据之前（它划的是结论的边界，不是「算得准不准」）',
-    iProg >= 0 && iBc >= 0 && iProg < iBc,
-    `prog@${iProg} vs bc@${iBc}`
-  );
-  check(
-    '历史规律（.hr-grid 三张图）排在每日重置窗口之后',
-    iProg >= 0 && iHr >= 0 && iHr > iProg,
-    `hr@${iHr} vs prog@${iProg}`
-  );
-  // 2026-10-08 第三轮：大计数器从**页尾**提到**最前**（事实在前、推断在后），
-  // 判据的方向跟着反过来。两条一起钉：只钉一条的话，「挪一半」（删了旧位置、
-  // 忘了插新位置，或插到了别处）可能不报。
-  check(
-    '「已经等了多久」的大计数器排在预测总览之前（事实在前、推断在后）',
-    iHero >= 0 && iPred >= 0 && iHero < iPred,
-    `hero@${iHero} vs pred@${iPred}`
-  );
-  check(
-    '大计数器也排在预测依据与三张图之前（它不再后置到页尾）',
-    iHero >= 0 && iBc > 0 && iHr > 0 && iHero < iBc && iHero < iHr,
-    `hero@${iHero} vs bc@${iBc} / hr@${iHr}`
-  );
-  check(
-    '间隔直方图的 canvas 在模板里（第三层图表的第一张）',
-    at('id="hist"') > iHr,
-    `hist@${at('id="hist"')} vs hr@${iHr}`
-  );
+  const app = JSON.parse(await readFile(resolve(ROOT, 'miniprogram/app.json'), 'utf8'));
+  const home = await readFile(resolve(ROOT, 'miniprogram/pages/index/index.wxml'), 'utf8');
+  const records = await readFile(resolve(ROOT, 'miniprogram/pages/history/index.wxml'), 'utf8');
+  const analysis = await readFile(resolve(ROOT, 'miniprogram/pages/analysis/index.wxml'), 'utf8');
+  const strip = (s) => s.replace(/<!--[\s\S]*?-->/g, '').replace(/class="tr-(?:view|text|button|image) /g, 'class="');
+  const h = strip(home), r = strip(records), a = strip(analysis);
+  check('微信原生Tab固定为观测、记录、分析，保留旧历史分享路由',
+    app.tabBar.list.map(t => t.text).join(',') === '观测,记录,分析' &&
+    app.tabBar.list.map(t => t.pagePath).join(',') === 'pages/index/index,pages/history/index,pages/analysis/index');
+  check('三Tab图标均为存在的本地PNG', app.tabBar.list.every(t =>
+    existsSync(resolve(ROOT, 'miniprogram', t.iconPath)) && existsSync(resolve(ROOT, 'miniprogram', t.selectedIconPath))));
+  check('首页信号置顶，预测之后是提醒、紧凑经过时间与每日窗口',
+    h.indexOf('class="tr-signal ') >= 0 && h.indexOf('class="tr-signal ') < h.indexOf('class="tr-outlook"') &&
+    h.indexOf('class="tr-outlook"') < h.indexOf('class="tr-reminders"') &&
+    h.indexOf('class="tr-reminders"') < h.indexOf('class="tr-elapsed"') &&
+    h.indexOf('class="tr-elapsed"') < h.indexOf('class="tr-window"'));
+  check('首页不再堆叠日历、历史记录和完整图表', !/reset-calendar|id="trend"|id="hist"|id="survival"|id="strip"/.test(h));
+  check('两类提醒仍在首页且未增加提醒Tab', /data-kind="announcement"/.test(h) && /data-kind="landed"/.test(h) && !/onToggleReminder/.test(r+a));
+  check('新模板按选择状态共用一个批量入口，旧服务仍有逐项回退入口',
+    home.includes('{{reminderBatch}}') && home.includes('bindtap="onSelectReminder"') &&
+    home.includes('bindtap="onEnableReminders"') && home.includes('{{reminderAction.label}}') &&
+    home.includes('bindtap="onToggleReminder"') && home.includes('aria-checked="{{announcementRemind.selected}}"'));
+  check('记录页日历可点选明细，之后展示完整记录',
+    r.includes('bindtap="onSelectCalendarDay"') && r.includes('selectedDay.details') && r.includes('allRecords') &&
+    r.indexOf('tr-calendar-card') < r.indexOf('tr-selected-date') && r.indexOf('tr-selected-date') < r.indexOf('tr-history-list'));
+  check('分析页保留节奏、回测、概率、历史三图和样本披露',
+    ['class="tr-bars"','data-bc="wait"','data-bc="backtest"','data-bc="pace"','id="hist"','id="survival"','id="strip"','class="metrics"'].every(t=>a.includes(t)));
+  check('三个Tab均声明数据截至时间，未用请求时刻冒充采集时刻',
+    [home,records,analysis].every(t=>t.includes('数据截至 {{dataText}}')));
 }
 
 console.log('\n【14】状态刷新不是重复返回旧内存缓存');

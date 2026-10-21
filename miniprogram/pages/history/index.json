@@ -1,9 +1,12 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "重置历史",
-  "navigationBarBackgroundColor": "#F5F4FB",
-  "navigationBarTextStyle": "black",
+  "navigationStyle": "custom",
+  "singlePage": {
+    "navigationBarFit": "squeezed"
+  },
+  "navigationBarTitleText": "重置记录",
+  "navigationBarTextStyle": "white",
   "enablePullDownRefresh": true,
-  "backgroundTextStyle": "dark",
-  "backgroundColor": "#F5F4FB"
+  "backgroundTextStyle": "light",
+  "backgroundColor": "#090D19"
 }

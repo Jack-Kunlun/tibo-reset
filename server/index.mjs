@@ -52,9 +52,11 @@
  * F9 订阅消息（不配即整体关闭，订阅端点回 503）：
  *   WX_APPID             小程序 AppID
  *   WX_SECRET            小程序 AppSecret（**只放服务器 .env，绝不进 git**）
- *   WX_TEMPLATE_ID       订阅消息模板 ID
+ *   WX_TEMPLATE_ID       落地通知模板 ID
+ *   WX_ANNOUNCEMENT_TEMPLATE_ID 预告通知模板 ID
  *   WX_SUBSCRIBE_PAGE    点击通知跳转的小程序页面，默认 pages/index/index
- *   WX_TEMPLATE_DATA     更换模板时必填；字段 JSON 支持 {event}/{time}/{eta} 占位
+ *   WX_TEMPLATE_DATA     更换落地模板时必填；支持 {event}/{time}/{eta} 占位
+ *   WX_ANNOUNCEMENT_TEMPLATE_DATA 更换预告模板时必填；支持 {event}/{time} 占位
  */
 
 import { createServer } from 'node:http';
@@ -82,6 +84,7 @@ import {
   notifyNewResets,
 } from './subscribe.mjs';
 import { createWeChatClient } from './wechat.mjs';
+import { resolveSubscriptionTemplate } from './subscribe-config.mjs';
 import subscriptionTemplate from './subscribe-template.json' with { type: 'json' };
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -100,23 +103,35 @@ const SOURCE_ACCOUNT = process.env.SOURCE_ACCOUNT ?? 'thsottiaux';
 
 const WX_APPID = process.env.WX_APPID ?? '';
 const WX_SECRET = process.env.WX_SECRET ?? '';
-let WX_TEMPLATE_ID = process.env.WX_TEMPLATE_ID?.trim() || subscriptionTemplate.templateId;
 const WX_SUBSCRIBE_PAGE = process.env.WX_SUBSCRIBE_PAGE ?? 'pages/index/index';
-
-// 模板字段名要与微信后台一致。这里允许用环境变量整份覆盖，避免为了改字段名去动代码。
-let WX_TEMPLATE_DATA = subscriptionTemplate.data;
-if (process.env.WX_TEMPLATE_DATA) {
-  try {
-    WX_TEMPLATE_DATA = JSON.parse(process.env.WX_TEMPLATE_DATA);
-    if (!WX_TEMPLATE_DATA || Array.isArray(WX_TEMPLATE_DATA) || typeof WX_TEMPLATE_DATA !== 'object' ||
-      !Object.keys(WX_TEMPLATE_DATA).length || Object.values(WX_TEMPLATE_DATA).some((x) => typeof x !== 'string' && typeof x?.value !== 'string')) throw new Error('invalid template data');
-  } catch {
-    WX_TEMPLATE_ID = '';
-    console.error('[subscribe] WX_TEMPLATE_DATA 无效，已关闭订阅入口，请检查模板字段映射');
-  }
-} else if (WX_TEMPLATE_ID !== subscriptionTemplate.templateId) {
-  WX_TEMPLATE_ID = '';
-  console.error('[subscribe] 更换模板时必须同时配置 WX_TEMPLATE_DATA，已关闭订阅入口');
+// 两类模板各自校验 ID 与字段映射，某一类配置错误不影响另一类。
+const landedTemplate = resolveSubscriptionTemplate({
+  defaultTemplateId: subscriptionTemplate.templateId,
+  defaultData: subscriptionTemplate.data,
+  templateIdOverride: process.env.WX_TEMPLATE_ID,
+  templateDataOverride: process.env.WX_TEMPLATE_DATA,
+});
+const announcementTemplate = resolveSubscriptionTemplate({
+  defaultTemplateId: subscriptionTemplate.announcement.templateId,
+  defaultData: subscriptionTemplate.announcement.data,
+  templateIdOverride: process.env.WX_ANNOUNCEMENT_TEMPLATE_ID,
+  templateDataOverride: process.env.WX_ANNOUNCEMENT_TEMPLATE_DATA,
+});
+const WX_TEMPLATE_ID = landedTemplate.templateId;
+const WX_TEMPLATE_DATA = landedTemplate.data;
+const WX_ANNOUNCEMENT_TEMPLATE_ID = announcementTemplate.templateId &&
+  announcementTemplate.templateId !== WX_TEMPLATE_ID ? announcementTemplate.templateId : '';
+const WX_ANNOUNCEMENT_TEMPLATE_DATA = announcementTemplate.data;
+const WX_TEMPLATE_IDS = {
+  announcement: WX_ANNOUNCEMENT_TEMPLATE_ID,
+  landed: WX_TEMPLATE_ID,
+};
+if (landedTemplate.error) {
+  console.error(`[subscribe] 落地模板配置无效（${landedTemplate.error}），已关闭落地通知`);
+}
+if (announcementTemplate.error || (announcementTemplate.templateId && !WX_ANNOUNCEMENT_TEMPLATE_ID)) {
+  const reason = announcementTemplate.error || 'duplicate-template-id';
+  console.error(`[subscribe] 预告模板配置无效（${reason}），已关闭预告通知`);
 }
 
 const store = createStore(DATA_DIR);
@@ -498,16 +513,23 @@ async function handleApi(req, res, url) {
       send,
       // 两种通知各消费自己的授权和水位；预告只从实时重算的、已核验推文中产生。
       onAccepted: async () => {
-        const options = {
+        const common = {
           dataDir: DATA_DIR,
           store: subs,
           client: wechat,
-          templateId: WX_TEMPLATE_ID,
           page: WX_SUBSCRIBE_PAGE,
-          templateSpec: WX_TEMPLATE_DATA,
         };
-        const landed = await notifyNewResets(options);
-        const announcement = await notifyNewAnnouncements({ ...options, getForecasts: getTrustedAnnouncementForecasts });
+        const landed = await notifyNewResets({
+          ...common,
+          templateId: WX_TEMPLATE_ID,
+          templateSpec: WX_TEMPLATE_DATA,
+        });
+        const announcement = await notifyNewAnnouncements({
+          ...common,
+          templateId: WX_ANNOUNCEMENT_TEMPLATE_ID,
+          templateSpec: WX_ANNOUNCEMENT_TEMPLATE_DATA,
+          getForecasts: getTrustedAnnouncementForecasts,
+        });
         for (const [kind, result] of [['landed', landed], ['announcement', announcement]]) {
           if (result.skipped) console.log(`[subscribe:${kind}] 未推送：${result.skipped}`);
           else console.log(`[subscribe:${kind}] 推送完成：${JSON.stringify(result)}`);
@@ -522,14 +544,15 @@ async function handleApi(req, res, url) {
       store: subs,
       client: wechat,
       templateId: WX_TEMPLATE_ID,
+      templateIds: WX_TEMPLATE_IDS,
       send,
     });
   }
   if (url.pathname === '/api/subscribe/config') {
-    return handleSubscriptionConfig(req, res, { client: wechat, templateId: WX_TEMPLATE_ID, send });
+    return handleSubscriptionConfig(req, res, { client: wechat, templateId: WX_TEMPLATE_ID, templateIds: WX_TEMPLATE_IDS, send });
   }
   if (url.pathname === '/api/subscribe/status') {
-    return handleSubscriptionStatus(req, res, { store: subs, client: wechat, templateId: WX_TEMPLATE_ID, send });
+    return handleSubscriptionStatus(req, res, { store: subs, client: wechat, templateId: WX_TEMPLATE_ID, templateIds: WX_TEMPLATE_IDS, send });
   }
   if (url.pathname === '/api/unsubscribe') {
     return handleUnsubscribe(req, res, { store: subs, client: wechat, send });
@@ -596,9 +619,9 @@ server.listen(PORT, () => {
     `  F9 订阅    ${
       !wechat.configured
         ? '已关闭（未配 WX_APPID / WX_SECRET）'
-        : WX_TEMPLATE_ID
-          ? `已启用 · 模板 ${WX_TEMPLATE_ID.slice(0, 12)}…`
-          : '已关闭（缺 WX_TEMPLATE_ID）'
+        : WX_TEMPLATE_ID || WX_ANNOUNCEMENT_TEMPLATE_ID
+          ? `已启用 · 预告 ${WX_ANNOUNCEMENT_TEMPLATE_ID ? '开' : '关'} · 落地 ${WX_TEMPLATE_ID ? '开' : '关'}`
+          : '已关闭（未配置有效模板）'
     }`
   );
   if (INTERVAL_MIN > 0) {

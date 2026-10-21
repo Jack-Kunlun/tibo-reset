@@ -1,17 +1,44 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/history/index"
+    "pages/history/index",
+    "pages/analysis/index"
   ],
   "window": {
-    "backgroundTextStyle": "dark",
-    "navigationBarBackgroundColor": "#F5F4FB",
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#0B1020",
     "navigationBarTitleText": "等 TIBO 按按钮",
-    "navigationBarTextStyle": "black",
-    "backgroundColor": "#F5F4FB",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#0B1020",
     "enablePullDownRefresh": false
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
-  "lazyCodeLoading": "requiredComponents"
+  "lazyCodeLoading": "requiredComponents",
+  "tabBar": {
+    "color": "#76839E",
+    "selectedColor": "#C9B8FF",
+    "backgroundColor": "#101728",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "观测",
+        "iconPath": "assets/tab-observe.png",
+        "selectedIconPath": "assets/tab-observe-active.png"
+      },
+      {
+        "pagePath": "pages/history/index",
+        "text": "记录",
+        "iconPath": "assets/tab-records.png",
+        "selectedIconPath": "assets/tab-records-active.png"
+      },
+      {
+        "pagePath": "pages/analysis/index",
+        "text": "分析",
+        "iconPath": "assets/tab-analysis.png",
+        "selectedIconPath": "assets/tab-analysis-active.png"
+      }
+    ]
+  }
 }

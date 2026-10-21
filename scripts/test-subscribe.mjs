@@ -33,6 +33,7 @@ import {
   notifyNewResets,
 } from '../server/subscribe.mjs';
 import { createWeChatClient } from '../server/wechat.mjs';
+import { resolveSubscriptionTemplate } from '../server/subscribe-config.mjs';
 import { detectSignals } from '../src/lib/signals.mjs';
 import subscriptionTemplate from '../server/subscribe-template.json' with { type: 'json' };
 
@@ -495,17 +496,43 @@ section('8. 已选模板的实际字段');
   check('落地通知文案声明公开完成公告已确认', message.templateId === subscriptionTemplate.templateId && JSON.stringify(message.data) === JSON.stringify({ thing13: { value: '重置已落地｜公开完成公告已确认' }, time10: { value: '2026-09-20 10:30' }, thing5: { value: '查看观测台了解详情' } }));
 }
 
+section('8.1 两类模板独立配置');
+{
+  const announcement = subscriptionTemplate.announcement;
+  const defaults = resolveSubscriptionTemplate({
+    defaultTemplateId: announcement.templateId,
+    defaultData: announcement.data,
+  });
+  const missingData = resolveSubscriptionTemplate({
+    defaultTemplateId: announcement.templateId,
+    defaultData: announcement.data,
+    templateIdOverride: 'other-template',
+  });
+  const invalidData = resolveSubscriptionTemplate({
+    defaultTemplateId: announcement.templateId,
+    defaultData: announcement.data,
+    templateDataOverride: '{broken',
+  });
+  check('预告使用新增的 43 位模板 ID 与字段映射', announcement.title === '信息发布提醒' &&
+    announcement.templateId === 'zGRyHGCRVq9ZqNFeDj7EO98YZ7cK4dAjzDbB7RMxm2g' && announcement.templateId.length === 43 &&
+    defaults.templateId === announcement.templateId && defaults.data.thing12 === '{event}' && defaults.data.thing3 === '重置预告' &&
+    defaults.data.thing4 === 'Tibo' && defaults.data.time8 === '{time}');
+  check('更换模板 ID 必须同时给字段映射，错误配置只关闭该模板', !missingData.templateId && missingData.error === 'template-data-required' &&
+    !invalidData.templateId && invalidData.error === 'invalid-template-data' &&
+    Boolean(resolveSubscriptionTemplate({ defaultTemplateId: subscriptionTemplate.templateId, defaultData: subscriptionTemplate.data }).templateId));
+}
+
 section('8. 实际开启、状态与并发回归');
 
 const authClient = { configured: true, codeToOpenid: async (code) => code, sendSubscribeMessage: async () => {} };
-const register = async (store, code, templateId = 'T', kind, grantId) => {
+const register = async (store, code, templateId = 'T', kind, grantId, templateIds) => {
   const res = makeRes();
-  await handleSubscribe(makeReq('POST', { code, templateId, ...(kind ? { kind } : {}), ...(grantId ? { grantId } : {}) }), res, { store, client: authClient, templateId: 'T', send });
+  await handleSubscribe(makeReq('POST', { code, templateId, ...(kind ? { kind } : {}), ...(grantId ? { grantId } : {}) }), res, { store, client: authClient, templateId: 'T', templateIds, send });
   return res;
 };
-const status = async (store, code, kind, grantId) => {
+const status = async (store, code, kind, grantId, templateId = 'T', templateIds) => {
   const res = makeRes();
-  await handleSubscriptionStatus(makeReq('POST', { code, templateId: 'T', ...(kind ? { kind } : {}), ...(grantId ? { grantId } : {}) }), res, { store, client: authClient, templateId: 'T', send });
+  await handleSubscriptionStatus(makeReq('POST', { code, templateId, ...(kind ? { kind } : {}), ...(grantId ? { grantId } : {}) }), res, { store, client: authClient, templateId: 'T', templateIds, send });
   return res.json();
 };
 {
@@ -528,7 +555,21 @@ const status = async (store, code, kind, grantId) => {
   const enabled = config.json();
   config = makeRes();
   handleSubscriptionConfig(makeReq('GET'), config, { client: authClient, templateId: '', send });
-  check('公开配置列出两类通知且不暴露服务凭据', enabled.enabled === true && enabled.templateId === 'T' && enabled.kinds.join() === 'announcement,landed' && config.json().enabled === false && Object.keys(enabled).sort().join() === 'enabled,kinds,scope,templateId');
+  check('旧单模板配置仍能服务既有调用', enabled.enabled === true && enabled.templateId === 'T' && enabled.kinds.join() === 'landed' &&
+    enabled.templateIds.landed === 'T' && enabled.templateIds.announcement === '' && config.json().enabled === false);
+  const pairConfig = makeRes();
+  handleSubscriptionConfig(makeReq('GET'), pairConfig, {
+    client: authClient, templateIds: { announcement: subscriptionTemplate.announcement.templateId, landed: subscriptionTemplate.templateId }, send,
+  });
+  const pair = pairConfig.json();
+  const duplicateConfig = makeRes();
+  handleSubscriptionConfig(makeReq('GET'), duplicateConfig, { client: authClient, templateIds: { announcement: 'T', landed: 'T' }, send });
+  const malformedConfig = makeRes();
+  handleSubscriptionConfig(makeReq('GET'), malformedConfig, { client: authClient, templateIds: ['bad'], send });
+  check('双模板配置只开放不同 ID，重复与错误配置不会开放预告', pair.enabled && pair.templateId === subscriptionTemplate.templateId &&
+    pair.templateIds.announcement === subscriptionTemplate.announcement.templateId && pair.templateIds.landed === subscriptionTemplate.templateId &&
+    pair.kinds.join() === 'announcement,landed' && duplicateConfig.json().kinds.join() === 'landed' &&
+    malformedConfig.json().enabled === false && malformedConfig.json().kinds.length === 0);
   // 登记已完成，构造一个随后确认的事件；不用等待真实时间推进。
   const at = new Date(Date.now() - 1000).toISOString();
   await store.update((state) => { state.items.forEach((x) => { x.created_at = at; }); });
@@ -646,6 +687,80 @@ section('9. 预告通知与落地授权隔离');
   const legacyUnsub = makeRes();
   await handleUnsubscribe(makeReq('POST', { code: 'UNSUB' }), legacyUnsub, { store: unsubscribeStore, client: authClient, send });
   check('省略 kind 的旧退订仍清除该用户全部通知', legacyUnsub.json().removed === 1 && (await status(unsubscribeStore, 'UNSUB')).active === false);
+
+  const pairIds = { announcement: subscriptionTemplate.announcement.templateId, landed: subscriptionTemplate.templateId };
+  const pairStore = createSubscriptionStore(await makeDir());
+  await seedResets(pairStore.path.replace(/subscriptions\.json$/, ''), ['2026-09-01T00:00:00.000Z']);
+  const announcementGrant = await register(pairStore, 'PAIR-A', pairIds.announcement, 'announcement', undefined, pairIds);
+  const landedGrant = await register(pairStore, 'PAIR-L', pairIds.landed, undefined, undefined, pairIds);
+  const wrongKind = await register(pairStore, 'PAIR-WRONG', pairIds.landed, 'announcement', undefined, pairIds);
+  const noTemplate = await register(pairStore, 'PAIR-NONE', pairIds.announcement, 'announcement', undefined, ['bad']);
+  check('双模板授权按类型存储，旧客户端省略 kind 仍归落地', announcementGrant.statusCode === 200 && landedGrant.statusCode === 200 &&
+    wrongKind.statusCode === 422 && wrongKind.json().code === 'template_changed' && noTemplate.statusCode === 503 &&
+    (await status(pairStore, 'PAIR-A', 'announcement', undefined, pairIds.announcement, pairIds)).active &&
+    (await status(pairStore, 'PAIR-L', undefined, undefined, pairIds.landed, pairIds)).active &&
+    (await pairStore.read()).items.length === 2);
+}
+
+section('9.1 预告与落地使用各自模板');
+{
+  const ids = { announcement: subscriptionTemplate.announcement.templateId, landed: subscriptionTemplate.templateId };
+  const dataDir = await makeDir(), store = createSubscriptionStore(dataDir);
+  const old = '2026-09-01T00:00:00.000Z';
+  const landedAt = '2026-09-20T00:00:00.000Z';
+  await seedResets(dataDir, [old, landedAt]);
+  await store.write({ last_event_at: old, items: [
+    { openid: 'DUAL', template_id: ids.announcement, kind: 'announcement', created_at: '2026-09-19T17:59:00.000Z' },
+    { openid: 'DUAL', template_id: ids.landed, created_at: '2026-09-19T17:59:00.000Z' },
+  ] });
+  const now = Date.parse('2026-09-20T10:00:00.000Z');
+  const forecasts = detectSignals([{
+    id: 'dual-template-announcement', account: 'thsottiaux',
+    text: 'We will reset everyones usage limits next Tuesday',
+    created_at: '2026-09-19T18:00:00.000Z', foundVia: 'timeline-browser', author_verified: true,
+  }], { now, account: 'thsottiaux' }).forecasts;
+  const sent = [];
+  const client = { configured: true, sendSubscribeMessage: async (message) => sent.push(message) };
+  const legacyGrantStore = createSubscriptionStore(await makeDir());
+  await legacyGrantStore.write({ items: [
+    { openid: 'OLD-GRANT', template_id: ids.landed, kind: 'announcement', created_at: '2026-09-19T17:00:00.000Z' },
+  ] });
+  const legacyAttempt = await notifyNewAnnouncements({
+    store: legacyGrantStore, client, templateId: ids.announcement, templateSpec: subscriptionTemplate.announcement.data,
+    forecasts, now, log: silence,
+  });
+  check('旧模板下的预告授权不会迁移、发送或消耗', legacyAttempt.skipped === 'no-new-announcement' && sent.length === 0 &&
+    (await legacyGrantStore.read()).items[0]?.template_id === ids.landed &&
+    (await legacyGrantStore.read()).items[0]?.kind === 'announcement');
+
+  const announce = await notifyNewAnnouncements({
+    store, client, templateId: ids.announcement, templateSpec: subscriptionTemplate.announcement.data,
+    forecasts, now, log: silence,
+  });
+  const afterAnnouncement = (await store.read()).items;
+  const mappedAnnouncement = sent[0];
+  check('预告消息使用信息发布提醒模板及用户配置的四个字段', announce.sent === 1 &&
+    mappedAnnouncement.templateId === ids.announcement && JSON.stringify(mappedAnnouncement.data) === JSON.stringify({
+      thing12: { value: '重置预告｜尚未确认落地' },
+      thing3: { value: '重置预告' },
+      thing4: { value: 'Tibo' },
+      time8: { value: '2026-09-20 02:00' },
+    }));
+  check('发送预告只消耗新模板授权，落地授权仍有效', afterAnnouncement.length === 1 &&
+    afterAnnouncement[0].template_id === ids.landed &&
+    (await status(store, 'DUAL', 'landed', undefined, ids.landed, ids)).active &&
+    !(await status(store, 'DUAL', 'announcement', undefined, ids.announcement, ids)).active);
+
+  const landed = await notifyNewResets({
+    dataDir, store, client, templateId: ids.landed, templateSpec: subscriptionTemplate.data, log: silence,
+  });
+  const afterLanded = await store.read();
+  check('落地消息继续使用原服务进度模板字段', landed.sent === 1 && sent.length === 2 &&
+    sent[1].templateId === ids.landed && sent[1].data.thing13.value === '重置已落地｜公开完成公告已确认' &&
+    sent[1].data.time10.value === '2026-09-20 08:00');
+  check('发送落地只消耗原模板授权，预告授权不会交叉消耗', afterLanded.items.length === 0 &&
+    !(await status(store, 'DUAL', 'landed', undefined, ids.landed, ids)).active &&
+    !(await status(store, 'DUAL', 'announcement', undefined, ids.announcement, ids)).active);
 }
 
 section('10. 预告通知重试与开启前不追发');

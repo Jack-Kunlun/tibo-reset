@@ -1,398 +1,121 @@
-<!-- 极光观测台：经过时长 → 下一次预测 → 信号 → 每日窗口 → 依据 → 节奏与记录。 -->
-<view class="wrap {{singlePage ? 'sp' : ''}} {{motionEnabled && pageVisible ? 'motion-on' : 'motion-off'}}">
-  <view class="aurora-sky" aria-hidden="true">
-    <view class="aurora-cloud cloud-mint"></view>
-    <view class="aurora-cloud cloud-violet"></view>
-    <view class="aurora-cloud cloud-blue"></view>
+<!-- 观测页与三 Tab 设计稿逐项对应，完整信号保留在详情中。 -->
+<view class="tr-view wrap design {{singlePage ? 'sp' : ''}} {{motionEnabled && pageVisible ? 'motion-on' : 'motion-off'}}">
+  <view class="tr-view tr-sky"></view>
+  <view class="tr-view tr-header" style="padding-top:{{nav.statusBarHeight}}px">
+    <view class="tr-view tr-brand-row" style="min-height:{{nav.brandHeight}}px;padding-right:{{nav.capsuleReserve}}px">
+      <view class="tr-view tr-mark"><view class="tr-view tr-mark-core"></view></view>
+      <view class="tr-view tr-brand"><text class="tr-text tr-strong">等 TIBO 按按钮</text><view class="tr-view tr-brand-status"><view class="tr-view tr-status-dot {{degraded ? 'warn' : ''}}"></view><text class="tr-text">{{updText}}</text></view></view>
+    </view>
   </view>
-
-  <view class="page-content">
-    <view class="top" style="padding-top:{{nav.statusBarHeight}}px">
-      <view class="brand-line" style="min-height:{{nav.brandHeight}}px;padding-right:{{nav.capsuleReserve}}px">
-        <view class="brand">
-          <view class="brand-mark"><view class="brand-core"></view></view>
-          <view class="brand-copy">
-            <text class="h1">等 TIBO 按按钮</text>
-            <view class="pulse {{degraded ? 'warn' : ''}}">
-              <text class="dot"></text>
-              <text>{{updText}}</text>
-            </view>
-          </view>
-        </view>
-      </view>
+  <view class="tr-view tr-main">
+    <view wx:if="{{notice}}" class="tr-view notice">{{notice}}</view>
+    <view class="tr-view tr-page-heading"><view class="tr-view"><text class="tr-text tr-eyebrow">{{pageEyebrow}}</text><text class="tr-text tr-h2">{{pageTitle}}</text></view><text class="tr-text tr-day">{{view === 'records' ? 'UTC 日期' : view === 'analysis' ? '仅供参考' : todayLabel}}</text></view>
+    <view class="tr-view tr-signal {{signal.show ? signal.level : 'idle'}}" data-level="{{signal.level}}">
+      <view class="tr-view tr-row"><view class="tr-view tr-chip"><view class="tr-view tr-chip-dot"></view><text class="tr-text">{{signal.show ? signal.level === 'explicit' ? 'TIBO 已预告' : '线索 · 未确认' : '持续观测中'}}</text></view><text class="tr-text tr-secondary">{{signal.show ? signalAge : '持续检查'}}</text></view>
+      <text class="tr-text tr-title">{{signal.show ? signal.level === 'explicit' ? '明确预告额度重置' : '出现新的额度相关发言' : '暂无有效重置预告或线索'}}</text>
+      <text class="tr-text tr-p">{{signal.show ? signal.level === 'explicit' ? signal.timing === 'pending' ? '官方具体时间待公布，尚未确认落地。' : '具体时间以公告窗口为准，等待落地确认。' : '尚未构成明确重置承诺，继续关注后续公告。' : '新的有效信号出现后，会优先展示在这里。'}}</text>
+      <view wx:if="{{signal.show}}" class="tr-view tr-text-button" bindtap="onToggleSignalDetails" role="button"><text class="tr-text">{{signal.level === 'explicit' ? '查看公告依据' : '查看线索详情'}}</text><text class="tr-text tr-arrow">↗</text></view>
     </view>
-
-    <view wx:if="{{notice}}" class="notice">{{notice}}</view>
-
-    <!-- 已经过去的时间是事实，使用紧凑卷轴放在预测之前。 -->
-    <view class="hero" id="elapsed">
-      <view class="elapsed-line">
-        <view class="elapsed-copy">
-          <text class="label">距上次重置</text>
-          <text class="since">{{since}}</text>
-        </view>
-        <view class="counter">
-          <view class="grp" wx:for="{{counter}}" wx:key="unit" wx:for-item="g">
-            <view class="reels">
-              <view class="reel" wx:for="{{g.digits}}" wx:key="index" wx:for-item="d">
-                <view class="strip" style="transform: translateY(-{{d}}em)">
-                  <view class="dg" wx:for="{{digits}}" wx:key="*this" wx:for-item="n">{{n}}</view>
-                </view>
+    <view wx:if="{{pred}}" class="tr-view tr-outlook" id="forecast">
+      <view class="tr-view tr-orbit"></view>
+      <view class="tr-view tr-row"><text class="tr-text tr-kicker">{{pred.announcement.pending ? '模型预计到账' : pred.etaKind === 'announced' ? '公告重置窗口' : '下一次重置预测'}}</text><text class="tr-text tr-confidence">{{pred.announcement.pending ? '已预告 · 时间待定' : '置信度 · ' + pred.confidenceLabel}}</text></view>
+      <view class="tr-view tr-eta"><text class="tr-text tr-eta-date">{{pred.hasEstimate ? pred.md : '待公布'}}</text><text wx:if="{{pred.hasEstimate}}" class="tr-text tr-eta-time">{{pred.wd}} · {{pred.hm}}</text></view>
+      <text class="tr-text tr-outlook-note">{{pred.announcement.pending ? pred.hasEstimate ? '官方时间未公布 · 历史配对估计，仅供参考' : '官方时间未公布 · 到账耗时样本不足' : pred.etaKind === 'announced' ? '以公告时间为准 · 等待落地确认' : '按历史节奏推算 · 仅供参考'}}</text>
+      <view wx:if="{{pred.band}}" class="tr-view tr-range"><text class="tr-text">{{pred.etaKind === 'model' && !pred.announcement ? '80% 区间' : pred.bandLabel}}{{pred.bandNote ? ' · ' + pred.bandNote : ''}}</text><text class="tr-text tr-strong">{{pred.band}}</text></view>
+      <view wx:if="{{!singlePage}}" class="tr-view tr-text-button tr-on-dark" bindtap="onOpenAnalysis" role="button"><text class="tr-text">查看预测依据</text><text class="tr-text tr-arrow">→</text></view>
+    </view>
+    <view wx:if="{{announcementRemind.show || landedRemind.show}}" class="tr-view tr-reminders">
+      <block wx:if="{{reminderBatch}}">
+        <view wx:if="{{announcementRemind.show}}" class="tr-view tr-reminder tr-reminder-select {{announcementRemind.selected ? 'is-selected' : ''}} {{announcementRemind.state === 'on' ? 'is-on' : ''}}" data-kind="announcement" bindtap="onSelectReminder" role="checkbox" aria-checked="{{announcementRemind.selected}}">
+          <image class="tr-image tr-icon" src="/assets/design-bell.png"></image><view class="tr-view tr-reminder-copy"><text class="tr-text tr-strong">预告通知</text><text class="tr-text">明确预告时提醒</text></view>
+          <text class="tr-text tr-choice-state">{{announcementRemind.state === 'on' ? '已开启' : announcementRemind.selected ? '已选' : '未选'}}</text>
+        </view><text wx:if="{{announcementRemind.feedback}}" class="tr-text tr-feedback {{announcementRemind.tone}}">{{announcementRemind.feedback}}</text>
+        <view wx:if="{{landedRemind.show}}" class="tr-view tr-reminder tr-reminder-select {{landedRemind.selected ? 'is-selected' : ''}} {{landedRemind.state === 'on' ? 'is-on' : ''}}" data-kind="landed" bindtap="onSelectReminder" role="checkbox" aria-checked="{{landedRemind.selected}}">
+          <image class="tr-image tr-icon" src="/assets/design-check.png"></image><view class="tr-view tr-reminder-copy"><text class="tr-text tr-strong">落地通知</text><text class="tr-text">确认落地后提醒</text></view>
+          <text class="tr-text tr-choice-state">{{landedRemind.state === 'on' ? '已开启' : landedRemind.selected ? '已选' : '未选'}}</text>
+        </view><text wx:if="{{landedRemind.feedback}}" class="tr-text tr-feedback {{landedRemind.tone}}">{{landedRemind.feedback}}</text>
+        <button class="tr-button tr-enable tr-enable-all {{reminderAction.disabled ? 'is-disabled' : 'is-idle'}}" bindtap="onEnableReminders" disabled="{{reminderAction.disabled}}" loading="{{reminderAction.loading}}">{{reminderAction.label}}</button>
+        <text class="tr-text tr-p">可一次选择两类提醒 · 每类授权仅发送一次</text>
+      </block>
+      <block wx:else>
+        <view wx:if="{{announcementRemind.show}}" class="tr-view tr-reminder">
+          <image class="tr-image tr-icon" src="/assets/design-bell.png"></image><view class="tr-view tr-reminder-copy"><text class="tr-text tr-strong">预告通知</text><text class="tr-text">明确预告时提醒</text></view>
+          <button class="tr-button tr-enable {{announcementRemind.state === 'idle' ? 'is-idle' : ''}} {{announcementRemind.state === 'on' || announcementRemind.state === 'unavailable' ? 'is-disabled' : ''}}" data-kind="announcement" bindtap="onToggleReminder" disabled="{{announcementRemind.state === 'on' || announcementRemind.state === 'busy' || announcementRemind.state === 'checking' || announcementRemind.state === 'unavailable'}}" loading="{{announcementRemind.state === 'busy' || announcementRemind.state === 'checking'}}">{{announcementRemind.state === 'idle' ? '开启' : announcementRemind.label}}</button>
+        </view><text wx:if="{{announcementRemind.feedback}}" class="tr-text tr-feedback {{announcementRemind.tone}}">{{announcementRemind.feedback}}</text>
+        <view wx:if="{{landedRemind.show}}" class="tr-view tr-reminder">
+          <image class="tr-image tr-icon" src="/assets/design-check.png"></image><view class="tr-view tr-reminder-copy"><text class="tr-text tr-strong">落地通知</text><text class="tr-text">确认落地后提醒</text></view>
+          <button class="tr-button tr-enable {{landedRemind.state === 'idle' ? 'is-idle' : ''}} {{landedRemind.state === 'on' || landedRemind.state === 'unavailable' ? 'is-disabled' : ''}}" data-kind="landed" bindtap="onToggleReminder" disabled="{{landedRemind.state === 'on' || landedRemind.state === 'busy' || landedRemind.state === 'checking' || landedRemind.state === 'unavailable'}}" loading="{{landedRemind.state === 'busy' || landedRemind.state === 'checking'}}">{{landedRemind.state === 'idle' ? '开启' : landedRemind.label}}</button>
+        </view><text wx:if="{{landedRemind.feedback}}" class="tr-text tr-feedback {{landedRemind.tone}}">{{landedRemind.feedback}}</text>
+        <text class="tr-text tr-p">每类单独授权 · 一次授权对应一次通知</text>
+      </block>
+    </view>
+    <view class="tr-view tr-elapsed" id="elapsed"><view class="tr-view tr-elapsed-copy"><text class="tr-text tr-label">距上次重置</text><text class="tr-text tr-secondary">{{lastResetText}}</text></view><view class="tr-view tr-numbers"><block wx:for="{{elapsedGroups}}" wx:key="unit"><text class="tr-text">{{item.value}}</text><text class="tr-text tr-small">{{item.unit}}</text></block></view></view>
+    <view wx:if="{{signal.program.show}}" class="tr-view tr-window">
+      <view class="tr-view tr-summary" bindtap="onToggleProgram" role="button" aria-expanded="{{programOpen}}"><view class="tr-view tr-summary-title"><image class="tr-image tr-icon" src="/assets/design-clock.png"></image><text class="tr-text">每日重置窗口</text></view><view class="tr-view tr-summary-tail"><text class="tr-text">{{signal.program.daysLeft > 0 ? '活动进行中' : '活动已结束'}}</text><text class="tr-text tr-chevron {{programOpen ? 'open' : ''}}">⌄</text></view></view>
+<view class="tr-view prog-reveal {{programOpen ? 'is-open' : ''}}" style="height:{{programHeight}}px" aria-hidden="{{!programOpen}}">
+        <view class="tr-view prog-body">
+          <view class="tr-view prog-intro">
+            <text class="tr-text prog-rule">每天发布一项改进，或进行完整重置。</text>
+            <text class="tr-text prog-rule-note">期间任何一天都可能重置</text>
+          </view>
+          <view wx:if="{{signal.program.window}}" class="tr-view prog-zones">
+            <view class="tr-view prog-zone prog-zone-primary">
+              <view class="tr-view prog-zone-head"><text class="tr-text">北京时间</text><text class="tr-text prog-offset">{{signal.program.window.usrOffset}}</text></view>
+              <view class="tr-view prog-time-row" wx:for="{{signal.program.beijingRange}}" wx:key="label">
+                <text class="tr-text prog-time-label">{{item.label}}</text>
+                <view class="tr-view prog-time-value"><text class="tr-text">{{item.date}}</text><text class="tr-text prog-time-clock">{{item.time}}</text><text class="tr-text prog-weekday">{{item.weekday}}</text></view>
               </view>
             </view>
-            <text class="unit">{{g.unit}}</text>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 预测是视觉主卡。日期、倒计时与区间均来自 outlook 视图模型。 -->
-    <view
-      wx:if="{{pred}}"
-      id="forecast"
-      class="pred {{pred.statusClass}} {{pred.confidenceClass}} {{pred.announcement ? 'is-announced' : ''}}"
-      data-status="{{pred.status}}"
-      data-level="{{pred.confidence}}"
-      bindtouchstart="onHeroTouch"
-    >
-      <view class="orbit-field" aria-hidden="true">
-        <view class="stage-aura aura-violet"></view>
-        <view class="stage-aura aura-mint"></view>
-        <view class="orbit-plane orbit-outer"><view class="orbit-orbiter"><view class="orbit-dot"></view></view></view>
-        <view class="orbit-plane orbit-mid"><view class="orbit-orbiter"><view class="orbit-dot"></view></view></view>
-        <view class="orbit-plane orbit-inner"><view class="orbit-orbiter"><view class="orbit-dot"></view></view></view>
-        <view class="stage-glow"></view>
-        <view class="star star-a"></view>
-        <view class="star star-b"></view>
-        <view class="star star-c"></view>
-        <view class="star star-d"></view>
-      </view>
-      <view wx:if="{{ripple.show}}" class="tap-ring" style="left:{{ripple.x}}px;top:{{ripple.y}}px"></view>
-
-      <view class="pred-content">
-        <view class="pred-head">
-          <view class="pred-t"><view wx:if="{{pred.announcement}}" class="announcement-beacon"></view><text>{{pred.announcement ? '重置预告' : '重置预测'}}</text></view>
-          <view class="pred-badge"><text>{{pred.announcement ? '来自 TIBO' : '置信度 · ' + pred.confidenceLabel}}</text></view>
-        </view>
-        <view class="pred-signal-note">{{pred.announcement ? '已捕获明确重置信号' : '根据历史重置节奏推算'}}</view>
-
-        <view class="pred-stage">
-          <text class="pred-stage-title">{{pred.announcement.pending ? '模型预计到账' : pred.announcement ? '即将重置' : '下一次重置预测'}}</text>
-          <text wx:if="{{pred.announcement.pending}}" class="pending-notice">官方时间待公布 · 尚未确认落地</text>
-          <view wx:if="{{pred.hasEstimate}}" class="eta-date" aria-label="{{pred.etaKind === 'announced' ? '公告日期' : '模型预测日期'}} {{pred.md}}">
-            <text
-              wx:for="{{pred.dateDigits}}"
-              wx:key="key"
-              wx:for-item="digit"
-              class="eta-digit {{digit.value === '.' ? 'eta-digit-dot' : ''}} {{entering && pageVisible ? 'entering' : ''}}"
-              style="animation-delay:{{digit.delay}}"
-            >{{digit.value}}</text>
-          </view>
-          <text class="eta-detail">{{pred.etaDetail}}</text>
-          <view wx:if="{{pred.cd}}" class="pred-countdown {{pred.cd.over ? 'is-over' : ''}}">
-            <text class="pcd-cap">{{pred.cd.over ? pred.cd.label : pred.etaKind === 'announced' ? '距公告窗口开启' : pred.announcement.pending ? '距模型预计到账' : '预计还需等待'}}</text>
-            <view wx:if="{{!pred.cd.over}}" class="pcd-row">
-              <view class="pcd-g" wx:for="{{pred.cd.groups}}" wx:key="unit">
-                <text class="pcd-v">{{item.v}}</text>
-                <text class="pcd-u">{{item.unit}}</text>
-              </view>
-            </view>
-          </view>
-        </view>
-
-        <view wx:if="{{pred.band}}" class="pred-range">
-          <text class="range-label">{{pred.bandLabel}}{{pred.bandNote ? ' · ' + pred.bandNote : ''}}</text>
-          <text class="range-value">{{pred.band}}</text>
-        </view>
-        <view wx:if="{{pred.announcement.text}}" class="pred-announcement">
-          <view class="announcement-meta"><text>公告原文 · {{pred.announcement.when}}</text><text wx:if="{{pred.announcement.url && !singlePage}}" class="announcement-link" data-url="{{pred.announcement.url}}" catchtap="onCopySource">复制原推链接 ↗</text></view>
-          <text class="announcement-quote">{{pred.announcement.text}}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- 信号紧贴预测；没发现预告时也明确展示扫描结论。 -->
-    <view wx:if="{{signal.show}}" class="sig sig-{{signal.level}}" data-level="{{signal.level}}" bindtap="onToggleSignalDetails">
-      <view class="signal-dot"></view>
-      <text class="signal-badge">{{pred.announcement ? '来源' : signal.badge}}</text>
-      <text class="signal-title">{{pred.announcement ? '公告依据与时间说明' : signal.title}}</text>
-      <text wx:if="{{signal.evCount}}" class="signal-count">{{signal.evCount}} 条依据 ›</text>
-      <text wx:else class="signal-count">查看线索 ›</text>
-    </view>
-    <view wx:else class="sig-idle" bindtap="onIdleTap">
-      <view class="idle-ico"></view>
-      <view class="idle-body">
-        <text class="idle-t">最近 <text class="b">{{signal.checked}}</text> 条推文中没有检测到重置预告</text>
-        <text wx:if="{{signal.windowFrom}}" class="idle-sub">时间窗自 {{signal.windowFrom}} 起</text>
-      </view>
-      <text class="idle-go">›</text>
-    </view>
-
-    <view wx:if="{{signal.show && signalDetailsOpen}}" class="signal-detail">
-      <view wx:if="{{signal.window}}" class="win">
-        <view class="wrow"><text class="k">Tibo 当地时间</text><text class="v">{{signal.window.sourceZone}}</text><text class="z">{{signal.window.srcOffset}}</text></view>
-        <view class="wrow"><text class="k">北京时间</text><text class="v">{{signal.window.userZone}}</text><text class="z">{{signal.window.usrOffset}}</text></view>
-        <text class="wfoot">{{signal.window.diffText}}{{signal.window.rangeNote ? ' · ' + signal.window.rangeNote : ''}}</text>
-        <text wx:if="{{signal.precision}}" class="wprec">粒度：{{signal.precision}}</text>
-      </view>
-      <view wx:if="{{signal.evCount}}" class="ev">
-        <text wx:if="{{signal.evNote}}" class="ev-note">{{signal.evNote}}</text>
-        <view wx:for="{{signal.ev}}" wx:key="id" class="ev-item {{item.weight === 'hard' ? 'hard' : ''}}">
-          <view class="ev-top">
-            <text class="ev-when">{{item.when}} 北京</text>
-            <text class="ev-tag {{item.weight}}">{{item.tag}}</text>
-            <text wx:if="{{item.via}}" class="ev-via">{{item.via}}</text>
-            <text wx:if="{{item.word}}" class="ev-word">{{item.word}}</text>
-          </view>
-          <text class="ev-quote">{{item.text}}</text>
-          <text wx:if="{{item.url && !singlePage}}" class="ev-link" data-url="{{item.url}}" bindtap="onCopySource">复制原推链接</text>
-        </view>
-      </view>
-      <text wx:if="{{!signal.evCount}}" class="quote">{{signal.text}}</text>
-      <view class="meta">
-        <text wx:if="{{signal.createdText}}">发布于 {{signal.createdText}}</text>
-        <text wx:if="{{signal.timeNote}}" class="note">{{signal.timeNote}}</text>
-        <text wx:if="{{signal.reason}}">判定依据：{{signal.reason}}</text>
-        <text wx:if="{{signal.url && !signal.evCount && !singlePage}}" class="link" data-url="{{signal.url}}" bindtap="onCopySource">复制原推链接</text>
-      </view>
-    </view>
-
-    <view wx:if="{{announcementRemind.show || landedRemind.show}}" class="remind card">
-      <view wx:if="{{announcementRemind.show}}" class="rd-row">
-        <view class="rd-head">
-          <view class="rd-icon">◉</view>
-          <view class="rd-copy"><text class="rd-t">重置预告通知</text><text class="rd-sub">明确预告时提醒，并注明尚未确认落地</text></view>
-          <button class="rd-btn {{announcementRemind.state}}" data-kind="announcement" bindtap="onToggleReminder" disabled="{{announcementRemind.state === 'on' || announcementRemind.state === 'busy' || announcementRemind.state === 'checking' || announcementRemind.state === 'unavailable'}}" loading="{{announcementRemind.state === 'busy' || announcementRemind.state === 'checking'}}">{{announcementRemind.label}}</button>
-        </view>
-        <view class="rd-hint">{{announcementRemind.hint}}</view>
-        <view wx:if="{{announcementRemind.feedback}}" class="rd-fb {{announcementRemind.tone}}">{{announcementRemind.feedback}}</view>
-      </view>
-      <view wx:if="{{landedRemind.show}}" class="rd-row">
-        <view class="rd-head">
-          <view class="rd-icon">◉</view>
-          <view class="rd-copy"><text class="rd-t">重置落地通知</text><text class="rd-sub">公开完成公告确认后提醒一次</text></view>
-          <button class="rd-btn {{landedRemind.state}}" data-kind="landed" bindtap="onToggleReminder" disabled="{{landedRemind.state === 'on' || landedRemind.state === 'busy' || landedRemind.state === 'checking' || landedRemind.state === 'unavailable'}}" loading="{{landedRemind.state === 'busy' || landedRemind.state === 'checking'}}">{{landedRemind.label}}</button>
-        </view>
-        <view class="rd-hint">{{landedRemind.hint}}</view>
-        <view wx:if="{{landedRemind.feedback}}" class="rd-fb {{landedRemind.tone}}">{{landedRemind.feedback}}</view>
-      </view>
-    </view>
-
-    <!-- 日历先于每日规则，预告与完成仍分别计数。 -->
-    <view wx:if="{{calendar}}" class="reset-calendar card">
-      <view class="section-head"><text class="section-title">重置月日历</text><text class="section-sub">非官方整理</text></view>
-      <text class="rc-caption">{{calendar.fromDate}} — {{calendar.toDate}} · UTC 实际日期</text>
-      <text wx:if="{{calendar.freshnessText}}" class="rc-data-note {{calendar.snapshot ? 'is-snapshot' : ''}}">{{calendar.freshnessText}}</text>
-      <view class="rc-summary">
-        <view class="rc-progress"><text class="rc-muted">日历进度</text><view><text class="rc-progress-value">{{calendar.progressDay}}</text><text class="rc-total"> / {{calendar.days}}</text></view></view>
-        <view class="rc-stats"><view><text>已确认到账</text><text class="rc-stat-value">{{calendar.confirmedCount}}<text class="rc-muted"> 次</text></text></view><text class="rc-muted">{{calendar.resetCount}} 次重置 · {{calendar.creditCount}} 次发券</text><view class="rc-awaiting"><text>预告待落地</text><text>{{calendar.awaitingCount}} 条</text></view></view>
-      </view>
-      <view class="rc-week"><text wx:for="{{calendar.weekdays}}" wx:key="*this">周{{item}}</text></view>
-      <view class="rc-grid">
-        <view wx:for="{{calendar.gridCells}}" wx:key="key" class="rc-slot">
-          <view wx:if="{{!item.blank}}" class="rc-cell rc-{{item.status}} {{item.isToday ? 'is-today' : ''}}" data-url="{{singlePage ? '' : item.sourceUrl}}" bindtap="onCopyCalendarSource">
-            <text class="rc-date">{{item.label}}</text><text class="rc-state">{{item.displayLabel}}</text><text wx:if="{{item.confirmedCount && item.awaitingCount}}" class="rc-extra">另有预告</text>
-          </view>
-        </view>
-      </view>
-      <view class="rc-legend"><text>● 已确认到账</text><text>● 预告待落地</text><text>● 日程更新</text></view>
-      <text class="rc-caption">暂无记录 ≠ 当日没有重置{{singlePage ? '' : ' · 点击有来源的日期可复制原推链接'}}</text>
-    </view>
-
-    <!-- 三行数据依据都来自当前预测、历史节奏与样本外回测。 -->
-    <view wx:if="{{basisRows.length}}" class="basis card">
-      <view class="section-head">
-        <text class="section-title">预测依据</text>
-      </view>
-      <view class="basis-row" wx:for="{{basisRows}}" wx:key="key">
-        <text class="basis-key">{{item.label}}</text>
-        <view class="basis-value" aria-label="{{item.value}}">
-          <text wx:for="{{item.parts}}" wx:for-item="part" wx:key="key" class="{{part.numeric ? 'basis-number' : 'basis-unit'}}">{{part.text}}</text>
-        </view>
-      </view>
-    </view>
-
-    <view wx:if="{{signal.program.show}}" class="prog">
-      <view class="prog-head" bindtap="onToggleProgram" role="button" aria-expanded="{{programOpen}}">
-        <view class="program-icon"><text>{{signal.program.days}}</text></view>
-        <view class="program-copy">
-          <text class="prog-tag">每日重置窗口</text>
-          <text class="prog-left">共 {{signal.program.days}} 天 · 还剩 {{signal.program.daysLeft}} 天</text>
-        </view>
-        <view class="prog-toggle {{programOpen ? 'is-open' : ''}}" aria-hidden="true"><view class="prog-chevron"></view></view>
-      </view>
-      <view class="prog-reveal {{programOpen ? 'is-open' : ''}}" style="height:{{programHeight}}px" aria-hidden="{{!programOpen}}">
-        <view class="prog-body">
-          <view class="prog-intro">
-            <text class="prog-rule">每天发布一项改进，或进行完整重置。</text>
-            <text class="prog-rule-note">期间任何一天都可能重置</text>
-          </view>
-          <view wx:if="{{signal.program.window}}" class="prog-zones">
-            <view class="prog-zone prog-zone-primary">
-              <view class="prog-zone-head"><text>北京时间</text><text class="prog-offset">{{signal.program.window.usrOffset}}</text></view>
-              <view class="prog-time-row" wx:for="{{signal.program.beijingRange}}" wx:key="label">
-                <text class="prog-time-label">{{item.label}}</text>
-                <view class="prog-time-value"><text>{{item.date}}</text><text class="prog-time-clock">{{item.time}}</text><text class="prog-weekday">{{item.weekday}}</text></view>
-              </view>
-            </view>
-            <view class="prog-zone prog-zone-local">
-              <view class="prog-zone-head"><text>Tibo 当地时间</text><text class="prog-offset">{{signal.program.window.srcOffset}}</text></view>
-              <view class="prog-local-range">
+            <view class="tr-view prog-zone prog-zone-local">
+              <view class="tr-view prog-zone-head"><text class="tr-text">Tibo 当地时间</text><text class="tr-text prog-offset">{{signal.program.window.srcOffset}}</text></view>
+              <view class="tr-view prog-local-range">
                 <block wx:for="{{signal.program.localRange}}" wx:key="key">
-                  <text wx:if="{{index}}" class="prog-range-dash">—</text>
-                  <view class="prog-local-date"><text>{{item.date}}</text><text class="prog-weekday">{{item.weekday}}</text></view>
+                  <text wx:if="{{index}}" class="tr-text prog-range-dash">—</text>
+                  <view class="tr-view prog-local-date"><text class="tr-text">{{item.date}}</text><text class="tr-text prog-weekday">{{item.weekday}}</text></view>
                 </block>
               </view>
             </view>
-            <text class="prog-zone-note">{{signal.program.window.diffText}}</text>
+            <text class="tr-text prog-zone-note">{{signal.program.window.diffText}}</text>
           </view>
-          <view class="prog-source">
-            <view class="prog-source-head">
-              <text>来源 · 发布于</text>
-              <text wx:if="{{signal.program.url && !singlePage}}" class="prog-source-link" data-url="{{signal.program.url}}" bindtap="onCopySource">复制原推链接 ↗</text>
+          <view class="tr-view prog-source">
+            <view class="tr-view prog-source-head">
+              <text class="tr-text">来源 · 发布于</text>
+              <text wx:if="{{signal.program.url && !singlePage}}" class="tr-text prog-source-link" data-url="{{signal.program.url}}" bindtap="onCopySource">复制原推链接 ↗</text>
             </view>
-            <text wx:if="{{signal.program.announcedBeijing}}" class="prog-published">北京 {{signal.program.announcedBeijing}}</text>
-            <text wx:if="{{signal.program.announcedLocal}}" class="prog-published">当地 {{signal.program.announcedLocal}}</text>
+            <text wx:if="{{signal.program.announcedBeijing}}" class="tr-text prog-published">北京 {{signal.program.announcedBeijing}}</text>
+            <text wx:if="{{signal.program.announcedLocal}}" class="tr-text prog-published">当地 {{signal.program.announcedLocal}}</text>
           </view>
         </view>
       </view>
     </view>
-
-
-    <!-- 最近七段已完成间隔，当前未完成的等待不混进历史样本。 -->
-    <view class="trend-panel card">
-      <view class="section-head">
-        <text class="section-title">历史节奏</text>
-        <text class="section-sub">最近 {{trendCount}} 次完整间隔</text>
-      </view>
-      <canvas type="2d" id="trend" class="trend-chart"></canvas>
-      <view wx:if="{{trendCount}}" class="trend-caption">
-        <text>{{trendFirst}}</text>
-        <text>间隔天数</text>
-        <text>{{trendLast}}</text>
-      </view>
-    </view>
-
-    <view class="records card">
-      <view class="section-head">
-        <text class="section-title">最近记录</text>
-        <text class="section-sub">{{survivalN}} 次历史间隔</text>
-      </view>
-      <view class="record-row" wx:for="{{recentRecords}}" wx:key="key">
-        <view class="record-top">
-          <text class="record-date">{{item.date}}</text>
-          <text class="record-type {{item.type === '发券型' ? 'credit' : ''}}">{{item.type}}</text>
-        </view>
-        <text class="record-text">{{item.text}}</text>
-        <text wx:if="{{item.url && !singlePage}}" class="record-link" data-url="{{item.url}}" bindtap="onCopySource">复制原推链接</text>
-      </view>
-      <view wx:if="{{moreRecordsCount}}" class="more-records-toggle" bindtap="onToggleMoreRecords">
-        <text>{{moreRecordsOpen ? '收起较早记录' : '再看 ' + moreRecordsCount + ' 条'}}</text>
-        <text>{{moreRecordsOpen ? '−' : '＋'}}</text>
-      </view>
-      <view wx:if="{{moreRecordsOpen}}" class="more-records">
-        <view class="record-row" wx:for="{{moreRecords}}" wx:key="key">
-          <view class="record-top">
-            <text class="record-date">{{item.date}}</text>
-            <text class="record-type {{item.type === '发券型' ? 'credit' : ''}}">{{item.type}}</text>
-          </view>
-          <text class="record-text">{{item.text}}</text>
-          <text wx:if="{{item.url && !singlePage}}" class="record-link" data-url="{{item.url}}" bindtap="onCopySource">复制原推链接</text>
-        </view>
-      </view>
-      <navigator wx:if="{{!singlePage}}" class="history-link" url="/pages/history/index" open-type="navigate">查看完整历史记录 →</navigator>
-    </view>
-
-    <view class="detail-toggle" bindtap="onToggleDetails">
-      <text>{{detailsOpen ? '收起详细观测数据' : '展开回测、历史图与统计'}}</text>
-      <text class="detail-arrow">{{detailsOpen ? '−' : '＋'}}</text>
-    </view>
-
-    <!-- 完整回测、概率分布、历史三图与样本统计保留在展开区。 -->
-    <view wx:if="{{detailsOpen}}" class="detail-area">
-      <view class="prediction-disclosure card">
-        <view class="section-head"><text class="section-title">预测说明</text></view>
-        <text class="disclosure-line">等待状态：{{verdict.text}} · {{verdict.tail}}</text>
-        <text class="disclosure-line">{{pred.statusLabel}} · {{pred.statusNote}}</text>
-        <text class="disclosure-line">预测算于 {{pred.updatedText}}</text>
-        <text class="disclosure-line">{{pred.brief}}</text>
-      </view>
-      <block wx:if="{{forecast}}">
-        <view class="section-head detail-heading">
-          <text class="section-title">模型侧辅助数据</text>
-          <text class="section-sub">{{forecast.hint}}</text>
-        </view>
-        <view class="bc-grid">
-          <view class="bc" data-bc="wait">
-            <view class="bc-h"><view class="ico ico-wait"></view><text class="bc-t">中位剩余等待</text></view>
-            <view class="bc-num"><text class="b">{{forecast.wait.num}}</text><text class="u">{{forecast.wait.unit}}</text></view>
-            <view class="bc-range">{{forecast.wait.range}}</view>
-            <view class="bc-bar" wx:for="{{forecast.wait.bars}}" wx:key="label">
-              <text class="lb">{{item.label}}</text>
-              <view class="track"><view class="fill" style="width:{{item.w}}%"></view></view>
-              <text class="pv">{{item.pv}}</text>
-            </view>
-            <view class="bc-note is-warn">{{forecast.wait.warn}}</view>
-          </view>
-          <view class="bc" data-bc="backtest">
-            <view class="bc-h"><view class="ico ico-bars"></view><text class="bc-t">样本外回测</text></view>
-            <view class="bc-sub">n = {{forecast.backtest.n}}（阈值 ≥ {{forecast.backtest.minN}}）</view>
-            <view class="bc-row" wx:for="{{forecast.backtest.rows}}" wx:key="k">
-              <text class="k">{{item.k}}</text><text class="v {{item.ok ? 'good' : 'bad'}}">{{item.v}}</text><text class="j">{{item.j}}</text>
-            </view>
-            <view class="bc-note" data-note="backtest">{{forecast.backtest.note}}</view>
-          </view>
-          <view class="bc" data-bc="pace">
-            <view class="bc-h"><view class="ico ico-trend"></view><text class="bc-t">节奏分段</text></view>
-            <view class="ph" wx:for="{{forecast.pace.phases}}" wx:key="i">
-              <text class="pi">第 {{item.i}} 段</text><text class="pt">{{item.from}} → {{item.to}}</text>
-              <text class="pm">{{item.mean}}<text class="u">{{item.unit}}</text></text>
-              <text class="pn">n={{item.n}} · 最大 {{item.max}}</text>
-            </view>
-            <view class="bc-note">{{forecast.pace.note}}</view>
-          </view>
-        </view>
-      </block>
-
-      <view class="section-head detail-heading">
-        <text class="section-title">历史分布</text>
-        <text class="section-sub">n = {{survivalN}} 次历史间隔</text>
-      </view>
-      <view class="lede">三张图看同一批已完成间隔：常见区间、等待生存曲线与每次间隔分布。</view>
-      <view class="hr-grid">
-        <view wx:if="{{histShow}}" class="hr">
-          <view class="hr-h"><text class="hr-t">重置通常发生在第几天</text><text class="hr-n">n = {{survivalN}}</text></view>
-          <canvas type="2d" id="hist" class="chart chart-hist"></canvas>
-        </view>
-        <view class="hr">
-          <view class="hr-h"><text class="hr-t">等待生存曲线</text><text class="hr-n">n = {{survivalN}}</text></view>
-          <canvas type="2d" id="survival" class="chart chart-survival"></canvas>
-        </view>
-        <view class="hr">
-          <view class="hr-h"><text class="hr-t">每次间隔的离散分布</text><text class="hr-n">n = {{survivalN}}</text></view>
-          <canvas type="2d" id="strip" class="chart chart-strip"></canvas>
-          <view class="legend">
-            <view class="lg"><text class="sw sw-lan"></text>常规间隔</view>
-            <view class="lg"><text class="sw sw-mist"></text>偏长间隔</view>
-            <view class="lg"><text class="sw sw-cin"></text>极端长等待</view>
-          </view>
-        </view>
-      </view>
-
-      <view class="section-head detail-heading"><text class="section-title">样本摘要</text></view>
-      <view class="metrics">
-        <view class="metric" wx:for="{{metrics}}" wx:key="k">
-          <view class="v {{item.hi ? 'hl' : ''}}">{{item.v}}<text wx:if="{{item.u}}" class="u">{{item.u}}</text></view>
-          <view class="k">{{item.k}}</view><view class="note">{{item.note}}</view>
-        </view>
-      </view>
-
-
-    </view>
-
-    <view class="foot">
-      <view>数据：公开推文记录 · 最近一次采集 {{genText}} 北京</view>
-      <view>观测账号 x.com/{{account}}</view>
-    </view>
+    <view class="tr-view tr-footer"><text class="tr-text">数据截至 {{dataText}} 北京</text><text class="tr-text">公开信息 · 非官方整理</text></view>
   </view>
+  <view wx:if="{{signal.show && signalDetailsOpen}}" class="tr-view tr-overlay" bindtap="onToggleSignalDetails"><view class="tr-view tr-sheet" catchtap="onStopTap" role="dialog" aria-label="信号依据"><view class="tr-view tr-row"><text class="tr-text tr-h3">信号依据</text><button class="tr-button tr-close" bindtap="onToggleSignalDetails" aria-label="关闭详情">×</button></view><scroll-view scroll-y="{{true}}" class="sheet-scroll"><view class="tr-view signal-detail">
+      <view wx:if="{{signal.window}}" class="tr-view win">
+        <view class="tr-view wrow"><text class="tr-text k">Tibo 当地时间</text><text class="tr-text v">{{signal.window.sourceZone}}</text><text class="tr-text z">{{signal.window.srcOffset}}</text></view>
+        <view class="tr-view wrow"><text class="tr-text k">北京时间</text><text class="tr-text v">{{signal.window.userZone}}</text><text class="tr-text z">{{signal.window.usrOffset}}</text></view>
+        <text class="tr-text wfoot">{{signal.window.diffText}}{{signal.window.rangeNote ? ' · ' + signal.window.rangeNote : ''}}</text>
+        <text wx:if="{{signal.precision}}" class="tr-text wprec">粒度：{{signal.precision}}</text>
+      </view>
+      <view wx:if="{{signal.evCount}}" class="tr-view ev">
+        <text wx:if="{{signal.evNote}}" class="tr-text ev-note">{{signal.evNote}}</text>
+        <view wx:for="{{signal.ev}}" wx:key="id" class="tr-view ev-item {{item.weight === 'hard' ? 'hard' : ''}}">
+          <view class="tr-view ev-top">
+            <text class="tr-text ev-when">{{item.when}} 北京</text>
+            <text class="tr-text ev-tag {{item.weight}}">{{item.tag}}</text>
+            <text wx:if="{{item.via}}" class="tr-text ev-via">{{item.via}}</text>
+            <text wx:if="{{item.word}}" class="tr-text ev-word">{{item.word}}</text>
+          </view>
+          <text class="tr-text ev-quote">{{item.text}}</text>
+          <text wx:if="{{item.url && !singlePage}}" class="tr-text ev-link" data-url="{{item.url}}" bindtap="onCopySource">复制原推链接</text>
+        </view>
+      </view>
+      <text wx:if="{{!signal.evCount}}" class="tr-text quote">{{signal.text}}</text>
+      <view class="tr-view meta">
+        <text wx:if="{{signal.createdText}}" class="tr-text">发布于 {{signal.createdText}}</text>
+        <text wx:if="{{signal.timeNote}}" class="tr-text note">{{signal.timeNote}}</text>
+        <text wx:if="{{signal.reason}}" class="tr-text">判定依据：{{signal.reason}}</text>
+        <text wx:if="{{signal.url && !signal.evCount && !singlePage}}" class="tr-text link" data-url="{{signal.url}}" bindtap="onCopySource">复制原推链接</text>
+      </view>
+    </view></scroll-view><button class="tr-button tr-sheet-done" bindtap="onToggleSignalDetails">知道了</button></view></view>
 </view>

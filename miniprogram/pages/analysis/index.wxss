@@ -1,0 +1,2 @@
+@import "../../styles/dashboard.wxss";
+@import "../../styles/design.wxss";

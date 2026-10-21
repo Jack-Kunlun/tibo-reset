@@ -26,6 +26,23 @@ function normalizeKind(value) {
   return value === undefined ? 'landed' : value;
 }
 
+function configuredTemplateIds(templateIds, legacyTemplateId) {
+  if (templateIds === undefined) {
+    const id = typeof legacyTemplateId === 'string' ? legacyTemplateId.trim() : '';
+    return { announcement: id, landed: id };
+  }
+  if (!templateIds || typeof templateIds !== 'object' || Array.isArray(templateIds)) {
+    return { announcement: '', landed: '' };
+  }
+  const normalize = (value) => typeof value === 'string' && value === value.trim() ? value : '';
+  const ids = {
+    announcement: normalize(templateIds.announcement),
+    landed: normalize(templateIds.landed),
+  };
+  if (ids.announcement && ids.announcement === ids.landed) ids.announcement = '';
+  return ids;
+}
+
 function itemKind(item) {
   // 老名单没有 kind，历史上的授权始终表示「确认落地后通知」。
   return item?.kind === 'announcement' ? 'announcement' : 'landed';
@@ -444,7 +461,7 @@ async function readBody(req) {
  *
  * 注意 code 是一次性的：小程序端每次调用前都要重新 wx.login。
  */
-export async function handleSubscribe(req, res, { store, client, templateId, send }) {
+export async function handleSubscribe(req, res, { store, client, templateId, templateIds, send }) {
   if (req.method !== 'POST') return send(res, 405, { error: 'method not allowed' });
   if (!client?.configured) {
     return send(res, 503, {
@@ -453,7 +470,7 @@ export async function handleSubscribe(req, res, { store, client, templateId, sen
     });
   }
 
-  const payload = await subscriptionPayload(req, res, { templateId, send });
+  const payload = await subscriptionPayload(req, res, { templateId, templateIds, send });
   if (!payload) return;
 
   let openid;
@@ -473,11 +490,11 @@ export async function handleSubscribe(req, res, { store, client, templateId, sen
     if (payload.kind === 'landed') {
       state.last_event_at ||= new Date(latestEventAt(records) ?? Date.parse(nowIso)).toISOString();
     }
-    const exists = state.items.some((x) => x.openid === openid && x.template_id === templateId && itemKind(x) === payload.kind &&
+    const exists = state.items.some((x) => x.openid === openid && x.template_id === payload.templateId && itemKind(x) === payload.kind &&
       (payload.grantId ? x.grant_id === payload.grantId : true));
     if (!exists && state.items.length >= MAX_ITEMS) return false;
     if (!exists) state.items.push({
-      id: randomUUID(), openid, template_id: templateId, kind: payload.kind, created_at: nowIso,
+      id: randomUUID(), openid, template_id: payload.templateId, kind: payload.kind, created_at: nowIso,
       ...(payload.grantId ? { grant_id: payload.grantId } : {}),
     });
     return true;
@@ -487,8 +504,7 @@ export async function handleSubscribe(req, res, { store, client, templateId, sen
     : send(res, 503, { error: '提醒人数已达上限，请稍后再试' });
 }
 
-async function subscriptionPayload(req, res, { templateId, send }) {
-  if (!templateId) { send(res, 503, { error: '重置通知尚未配置' }); return null; }
+async function subscriptionPayload(req, res, { templateId, templateIds, send }) {
   try {
     const body = JSON.parse(await readBody(req));
     if (!body || typeof body !== 'object' || Array.isArray(body) || typeof body.code !== 'string' || !body.code.trim() || body.code.length > 256) {
@@ -499,22 +515,37 @@ async function subscriptionPayload(req, res, { templateId, send }) {
     if (body.grantId !== undefined && (typeof body.grantId !== 'string' || !body.grantId.trim() || body.grantId !== body.grantId.trim() || body.grantId.length > 128)) {
       send(res, 400, { error: '授权标识无效' }); return null;
     }
-    if (body.templateId !== templateId) { send(res, 422, { code: 'template_changed', error: '通知模板已变化，请重新进入小程序' }); return null; }
-    return { ...body, kind, grantId: body.grantId || undefined };
+    const expectedTemplateId = configuredTemplateIds(templateIds, templateId)[kind];
+    if (!expectedTemplateId) { send(res, 503, { error: '该类型提醒尚未配置' }); return null; }
+    if (body.templateId !== expectedTemplateId) {
+      send(res, 422, { code: 'template_changed', error: '通知模板已变化，请重新进入小程序' });
+      return null;
+    }
+    return { ...body, kind, templateId: expectedTemplateId, grantId: body.grantId || undefined };
   } catch (err) { send(res, err.status ?? 400, { error: '订阅请求格式错误' }); return null; }
 }
 
 /** 模板是公开标识；凭据和字段映射不出服务端。 */
-export function handleSubscriptionConfig(req, res, { client, templateId, send }) {
+export function handleSubscriptionConfig(req, res, { client, templateId, templateIds, send }) {
   if (req.method !== 'GET') return send(res, 405, { error: 'method not allowed' });
-  const enabled = Boolean(client?.configured && templateId);
-  return send(res, 200, { enabled, templateId: enabled ? templateId : '', kinds: enabled ? SUBSCRIPTION_KINDS : [], scope: 'once' });
+  const ids = configuredTemplateIds(templateIds, templateId);
+  if (ids.announcement && ids.announcement === ids.landed) ids.announcement = '';
+  const kinds = client?.configured ? SUBSCRIPTION_KINDS.filter((kind) => ids[kind]) : [];
+  const enabled = kinds.length > 0;
+  return send(res, 200, {
+    enabled,
+    // 旧客户端把这一个 ID 当成落地通知模板；保留其语义与接口字段。
+    templateId: enabled && kinds.includes('landed') ? ids.landed : '',
+    templateIds: enabled ? ids : { announcement: '', landed: '' },
+    kinds,
+    scope: 'once',
+  });
 }
 
-export async function handleSubscriptionStatus(req, res, { store, client, templateId, send }) {
+export async function handleSubscriptionStatus(req, res, { store, client, templateId, templateIds, send }) {
   if (req.method !== 'POST') return send(res, 405, { error: 'method not allowed' });
   if (!client?.configured) return send(res, 503, { error: '重置通知尚未配置' });
-  const payload = await subscriptionPayload(req, res, { templateId, send });
+  const payload = await subscriptionPayload(req, res, { templateId, templateIds, send });
   if (!payload) return;
   let openid;
   try { openid = await client.codeToOpenid(payload.code); }
@@ -522,7 +553,7 @@ export async function handleSubscriptionStatus(req, res, { store, client, templa
   const state = await store.read();
   return send(res, 200, {
     ok: true,
-    active: state.items.some((x) => x.openid === openid && x.template_id === templateId && itemKind(x) === payload.kind &&
+    active: state.items.some((x) => x.openid === openid && x.template_id === payload.templateId && itemKind(x) === payload.kind &&
       (!payload.grantId || x.grant_id === payload.grantId)),
     kind: payload.kind,
     ...(payload.grantId ? { grantId: payload.grantId } : {}),

@@ -93,10 +93,11 @@ PORT=9000 COLLECT_INTERVAL_MIN=15 ADMIN_TOKEN=secret node server/index.mjs
 | `SOURCE_ACCOUNT` | `thsottiaux` | 被观测的 X 账号，换掉即可观测别的账号 |
 | `SITE_URL` | 空 | 对外访问地址（如 `https://reset.example.com`），用于页面里的 `og:url` / `og:image`。不配则不输出这两条 meta —— 宁可少两条，也不给分享平台一个抓不到的地址 |
 
-**F9 重置通知**（预告与落地分别开启，每类一次授权对应一次通知）
+**F9 重置通知**（预告与落地可一起申请授权，每类一次授权对应一次通知）
 
-已选用的「服务进度通知」模板及字段保存在 `server/subscribe-template.json`：
-`thing13` 业务标题、`time10` 更新时间、`thing5` 温馨提示。模板 ID 为公开标识，
+两类模板及字段保存在 `server/subscribe-template.json`：预告使用「信息发布提醒」的
+`thing12` 发布标题、`thing3` 信息类型、`thing4` 信息来源、`time8` 发布时间；落地沿用
+「服务进度通知」的 `thing13` 业务标题、`time10` 更新时间、`thing5` 温馨提示。模板 ID 为公开标识，
 AppSecret 仅放服务端环境变量。小程序通过 `/api/subscribe/config` 取得可用模板，
 无需在两端分别配置模板 ID。服务未就绪时显示不可用/重试状态，不申请授权。
 
@@ -104,13 +105,17 @@ AppSecret 仅放服务端环境变量。小程序通过 `/api/subscribe/config` 
 |---|---|---|
 | `WX_APPID` | 空 | 小程序 AppID，必须与模板所属小程序一致 |
 | `WX_SECRET` | 空 | 小程序 AppSecret，只存在部署环境里 |
-| `WX_TEMPLATE_ID` | 仓库已选模板 | 更换模板时必须同时提供 `WX_TEMPLATE_DATA` |
+| `WX_TEMPLATE_ID` | 仓库已选落地模板 | 更换落地模板时必须同时提供 `WX_TEMPLATE_DATA` |
+| `WX_ANNOUNCEMENT_TEMPLATE_ID` | 仓库已选预告模板 | 更换预告模板时必须同时提供 `WX_ANNOUNCEMENT_TEMPLATE_DATA` |
 | `WX_SUBSCRIBE_PAGE` | `pages/index/index` | 点通知后跳转的页面 |
-| `WX_TEMPLATE_DATA` | 仓库字段映射 | JSON；支持 `{event}` / `{time}` / `{eta}`，字段须与后台一致；格式无效会关闭订阅入口 |
+| `WX_TEMPLATE_DATA` | 仓库落地字段映射 | JSON；支持 `{event}` / `{time}` / `{eta}`，字段须与后台一致；格式无效会关闭落地入口 |
+| `WX_ANNOUNCEMENT_TEMPLATE_DATA` | 仓库预告字段映射 | 同上；格式无效只关闭预告入口 |
 
 预告通知明确说明「尚未确认落地」，时间取预告发布时间；落地通知以公开完成公告为依据，
 时间取首次确认公告的北京时间。两类通知分别登记、去重和消耗，模型概率不触发通知。
-开启按钮在主卡下方；授权拒绝不登记，授权成功但同步失败只重试登记，不重复申请授权。
+首页主卡下方两类默认选中，点击一次申请两个不同标题模板，按微信逐项授权结果独立登记。
+默认选中不代表已获授权；不在进入页面或刷新时弹授权。旧服务没有双模板配置时保留单项入口。
+授权拒绝不登记，授权成功但同步失败只重试登记，不重复申请授权。
 通知消耗后的状态由服务端查询恢复，客户端不把本地时间戳当作永久订阅状态。
 
 通知名单及待发送事件存入数据卷 `subscriptions.json`（不入库）。发送成功或授权失效即移除，

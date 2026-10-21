@@ -42,7 +42,7 @@ export function buildCalendarView(calendar) {
     weekdays: ['一', '二', '三', '四', '五', '六', '日'],
     gridCells: [
       ...Array.from({ length: calendar.startWeekday ?? 0 }, (_, i) => ({ key: `blank-${i}`, blank: true })),
-      ...calendar.cells.map((cell) => ({ ...cell, key: cell.date, displayLabel: cell.status === 'updated' ? '更新' : cell.status === 'elapsed-no-record' ? '无记录' : cell.statusLabel, awaitingCount: cell.pendingCount + (cell.datedCount ?? 0) })),
+      ...calendar.cells.map((cell) => ({ ...cell, key: cell.date, dayNumber: cell.date.slice(8), displayLabel: cell.status === 'updated' ? '更新' : cell.status === 'elapsed-no-record' ? '无记录' : cell.statusLabel, awaitingCount: cell.pendingCount + (cell.datedCount ?? 0) })),
     ],
   };
 }
@@ -124,6 +124,22 @@ export function buildSignal(sig) {
   };
 }
 
+// 首页只突出上次重置之后仍有效的线索，不能把旧发言重新包装成下一次承诺。
+export function buildObservationSignal(sig, lastAt, now = Date.now()) {
+  if (!sig) return buildSignal(sig);
+  const floor = Number.isFinite(lastAt) ? lastAt : toTs(sig.windowFrom);
+  const hints = (sig.hints || []).filter((hint) => {
+    const at = toTs(hint.createdAt);
+    if (!Number.isFinite(at) || at > now || Number.isFinite(floor) && at <= floor) return false;
+    return hint.window ? toTs(hint.window.to) >= now : hint.intent >= 3;
+  });
+  const base = buildSignal({ ...sig, hints });
+  if (base.show || !hints.length) return base;
+  const hint = [...hints].sort((a, b) => toTs(b.createdAt) - toTs(a.createdAt))[0];
+  return { ...signalView(hint, 'hint'), program: base.program,
+    badge: '线索 · 未确认', title: '有新的额度相关发言', timeNote: '尚未构成明确重置承诺' };
+}
+
 /**
  * 每日重置窗口视图：他宣布「未来 N 天里每天要么发一个改进、要么给一次完整重置」。
  *
@@ -183,6 +199,7 @@ function forecastView(f) {
   return {
     show: true,
     level: 'explicit',
+    createdAt: f.createdAt || f.evidence?.[0]?.createdAt || '',
     badge: '明确信号',
     title: f.timing === 'pending' ? 'Tibo 已预告重置，时间待公布' : 'Tibo 已预告下一次额度重置',
     timing: f.timing || '',
@@ -303,6 +320,7 @@ function signalView(top, level) {
   return {
     show: true,
     level,
+    createdAt: top.createdAt || '',
     badge: meta.badge,
     title: meta.title,
     precision: PRECISION_TEXT[top.precision] || top.precision || '',

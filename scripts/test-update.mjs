@@ -176,3 +176,39 @@ test('应用更新抛错时给出失败反馈，不自动循环重启', () => {
   f.controller.onShow();
   assert.equal(f.modals.length, 2);
 });
+
+test('失败监听注册抛错时仍保留已注册的下载完成提示', () => {
+  const events = {};
+  const modals = [];
+  let applies = 0;
+  const manager = {
+    onUpdateReady: (cb) => { events.ready = cb; },
+    onUpdateFailed: () => { throw new Error('listener unavailable'); },
+    applyUpdate: () => { applies++; },
+  };
+  const controller = createUpdatePrompt({ getUpdateManager: () => manager, showModal: (opts) => modals.push(opts) });
+
+  controller.onShow();
+  events.ready();
+  assert.equal(modals.length, 1);
+  modals[0].success({ confirm: true });
+  modals[0].complete();
+  assert.equal(applies, 1);
+});
+
+test('旧前台弹窗关闭后补发一次提示，并在本次前台停止重试', () => {
+  const f = fixture();
+  f.controller.onShow();
+  f.events.ready();
+  f.controller.onHide();
+  f.controller.onShow();
+
+  assert.equal(f.modals.length, 1);
+  f.modals[0].complete();
+  assert.equal(f.modals.length, 2);
+  f.answer(1, false);
+  f.events.ready();
+  f.controller.onShow();
+  assert.equal(f.modals.length, 2);
+  assert.equal(f.applies(), 0);
+});

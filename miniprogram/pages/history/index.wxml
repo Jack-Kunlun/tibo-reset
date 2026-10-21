@@ -1,44 +1,32 @@
-<!-- 历史记录：按时间倒序，每条可复制原推链接 -->
-
-<!-- `sp` = 单页模式（朋友圈点开）下的底部让位类，与首页同理，见 app.wxss 的 `.wrap.sp` -->
-<view class="wrap {{singlePage ? 'sp' : ''}}">
-
-  <view class="top">
-    <view class="brand">
-      <text class="h1">重置历史</text>
-      <text class="sub">{{count}} RECORDS</text>
-    </view>
-    <view class="pulse {{degraded ? 'warn' : ''}}">
-      <text class="dot"></text>
-      <text>{{updText}}</text>
+<!-- 记录页：紧凑日历、选中日期明细、完整重置历史。 -->
+<view class="tr-view wrap design {{singlePage ? 'sp' : ''}} {{motionEnabled && pageVisible ? 'motion-on' : 'motion-off'}}">
+  <view class="tr-view tr-sky"></view>
+  <view class="tr-view tr-header" style="padding-top:{{nav.statusBarHeight}}px">
+    <view class="tr-view tr-brand-row" style="min-height:{{nav.brandHeight}}px;padding-right:{{nav.capsuleReserve}}px">
+      <view class="tr-view tr-mark"><view class="tr-view tr-mark-core"></view></view>
+      <view class="tr-view tr-brand"><text class="tr-text tr-strong">等 TIBO 按按钮</text><view class="tr-view tr-brand-status"><view class="tr-view tr-status-dot {{degraded ? 'warn' : ''}}"></view><text class="tr-text">{{updText}}</text></view></view>
     </view>
   </view>
-
-  <view wx:if="{{notice}}" class="notice">{{notice}}</view>
-
-  <view class="sum">
-    <text>共 {{count}} 次 · 平均间隔 {{mean}} 天 · 中位 {{median}} 天</text>
-  </view>
-
-  <view wx:if="{{!rows.length}}" class="empty">暂无记录</view>
-
-  <view class="list">
-    <view class="row" wx:for="{{rows}}" wx:key="at">
-      <view class="head">
-        <text class="when">{{item.date}} {{item.time}}</text>
-        <text class="day">{{item.weekday}}</text>
-        <text class="tag {{item.type === 'credit' ? 'c' : 'r'}}">{{item.typeName}}</text>
-        <text wx:if="{{item.gapText}}" class="gap">{{item.gapText}}</text>
-      </view>
-      <view class="txt">{{item.text}}</view>
-      <!-- 单页模式下剪贴板被禁（点了只会弹「请前往小程序使用完整服务」） -->
-      <view wx:if="{{item.url && !singlePage}}" class="lnk" data-url="{{item.url}}" bindtap="onCopy">复制原推链接</view>
+  <view class="tr-view tr-main">
+    <view wx:if="{{notice}}" class="tr-view notice">{{notice}}</view>
+    <view class="tr-view tr-page-heading"><view class="tr-view"><text class="tr-text tr-eyebrow">{{pageEyebrow}}</text><text class="tr-text tr-h2">{{pageTitle}}</text></view><text class="tr-text tr-day">{{view === 'records' ? 'UTC 日期' : view === 'analysis' ? '仅供参考' : todayLabel}}</text></view>
+    <view wx:if="{{calendar}}" class="tr-view tr-calendar-card">
+      <view class="tr-view tr-row"><text class="tr-text tr-h3">重置月日历</text><text class="tr-text tr-secondary">{{calendarRange}}</text></view>
+      <view class="tr-view tr-calendar-summary"><text class="tr-text"><text class="tr-text tr-b">{{calendar.confirmedCount}}</text> 次已确认</text><text class="tr-text"><text class="tr-text tr-b">{{calendar.awaitingCount}}</text> 条待落地</text><text class="tr-text">第 <text class="tr-text tr-b">{{calendar.progressDay}}</text> / {{calendar.days}} 天</text></view>
+      <view class="tr-view tr-weekdays"><text wx:for="{{calendar.weekdays}}" wx:key="*this" class="tr-text">{{item}}</text></view>
+      <view class="tr-view tr-calendar-grid"><block wx:for="{{calendar.gridCells}}" wx:key="key"><view wx:if="{{item.blank}}" class="tr-view"></view><view wx:else class="tr-view tr-calendar-day {{item.confirmedCount ? 'tr-complete' : item.awaitingCount ? 'tr-pending' : item.status === 'updated' ? 'tr-updated' : item.status === 'future' ? 'tr-future' : ''}} {{selectedDate === item.date ? 'is-selected' : ''}}" data-date="{{item.date}}" bindtap="onSelectCalendarDay" role="button" aria-label="{{item.date + ' ' + item.statusLabel}}"><text class="tr-text tr-day-number">{{item.dayNumber}}</text><text class="tr-text tr-small">{{item.confirmedCount ? '到账' : item.awaitingCount ? '预告' : item.status === 'updated' ? '更新' : item.status === 'future' ? '·' : '—'}}</text></view></block></view>
+      <view class="tr-view tr-calendar-legend"><view class="tr-view"><view class="tr-view tr-legend-dot tr-dot-complete"></view><text class="tr-text">已到账</text></view><view class="tr-view"><view class="tr-view tr-legend-dot tr-dot-update"></view><text class="tr-text">日程更新</text></view><view class="tr-view"><view class="tr-view tr-legend-dot tr-dot-pending"></view><text class="tr-text">待落地</text></view></view>
+      <text wx:if="{{calendar.snapshot}}" class="tr-text tr-date-note">{{calendar.freshnessText}}</text>
     </view>
+    <view wx:if="{{selectedDay}}" class="tr-view tr-selected-date"><view class="tr-view tr-row"><text class="tr-text tr-strong">{{selectedDay.label}}</text><view class="tr-view tr-chip {{selectedDay.status === 'confirmed' ? 'tr-chip-complete' : ''}}"><view class="tr-view tr-chip-dot"></view><text class="tr-text">{{selectedDay.statusLabel}}</text></view></view>
+      <view wx:for="{{selectedDay.details}}" wx:key="key" class="tr-view tr-event-row"><text class="tr-text tr-event-time">{{item.time}}</text><view class="tr-view tr-event-body"><text class="tr-text tr-strong">{{item.title}}</text><text class="tr-text tr-p">{{item.text}}</text><view wx:if="{{item.url && !singlePage}}" class="tr-view tr-text-button" data-url="{{item.url}}" bindtap="onCopyCalendarSource" role="button"><text class="tr-text">复制原推</text><text class="tr-text tr-arrow">↗</text></view></view></view>
+      <view wx:if="{{!selectedDay.details.length}}" class="tr-view tr-event-row"><text class="tr-text tr-event-time">—</text><view class="tr-view tr-event-body"><text class="tr-text tr-strong">暂无已确认重置</text><text class="tr-text tr-p">保留当天状态，后续确认到达后再更新。</text></view></view>
+    </view>
+    <view class="tr-view tr-history-heading"><text class="tr-text tr-h3">重置历史</text><text class="tr-text tr-secondary">{{recordCount}} 次记录</text></view>
+    <view class="tr-view tr-history-list"><block wx:for="{{allRecords}}" wx:key="key">
+      <view class="tr-view tr-history-row" data-key="{{item.key}}" bindtap="onToggleRecord" role="button" aria-expanded="{{expandedRecord === item.key}}"><view class="tr-view tr-history-month"><text class="tr-text">{{item.monthDay}}</text><text class="tr-text tr-small">{{item.year}}</text></view><view class="tr-view tr-history-copy"><text class="tr-text tr-strong">{{item.type}}</text><text class="tr-text tr-secondary">{{item.time}} 北京 · {{item.summary}}</text></view><text class="tr-text tr-history-tag">已确认</text></view>
+      <view wx:if="{{expandedRecord === item.key}}" class="tr-view tr-record-detail"><text class="tr-text">{{item.text}}</text><view wx:if="{{item.url && !singlePage}}" class="tr-view tr-text-button" data-url="{{item.url}}" bindtap="onCopySource" role="button"><text class="tr-text">复制原推链接</text><text class="tr-text tr-arrow">↗</text></view></view>
+    </block></view>
+    <view class="tr-view tr-footer"><text class="tr-text">数据截至 {{dataText}} 北京</text><text class="tr-text">公开信息 · 非官方整理</text></view>
   </view>
-
-  <view class="foot">
-    <!-- 单页模式下 navigator 被禁；且官方运营须知不允许在单页模式里诱导跳转 -->
-    <navigator wx:if="{{!singlePage}}" class="nav" url="/pages/index/index" open-type="navigate">← 回到观测台</navigator>
-  </view>
-
 </view>

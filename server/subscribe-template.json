@@ -1,8 +1,19 @@
 {
+  "title": "服务进度通知",
   "templateId": "yEl8YZEajgP4SVPJoXwV1D9YWnHkGNu5Zu50K9N7-4M",
   "data": {
     "thing13": "{event}",
     "time10": "{time}",
     "thing5": "{eta}"
+  },
+  "announcement": {
+    "title": "信息发布提醒",
+    "templateId": "zGRyHGCRVq9ZqNFeDj7EO98YZ7cK4dAjzDbB7RMxm2g",
+    "data": {
+      "thing12": "{event}",
+      "thing3": "重置预告",
+      "thing4": "Tibo",
+      "time8": "{time}"
+    }
   }
 }

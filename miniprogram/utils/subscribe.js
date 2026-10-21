@@ -19,7 +19,7 @@ import config from '../config.js';
 import { postJson, request } from './api.js';
 
 /** 入口文案：一次性限制写进按钮旁的说明，不靠用户猜 */
-export const SCOPE_HINT = '一次授权只能收到一次通知，用完需要重新开启';
+export const SCOPE_HINT = '可一次选择两类提醒；每类授权对应一次通知';
 export const ACTION_LABELS = Object.freeze({ announcement: '开启预告提醒', landed: '开启落地提醒' });
 export const DONE_LABELS = Object.freeze({ announcement: '已开启预告', landed: '已开启落地' });
 export const ACTION_LABEL = ACTION_LABELS.landed;
@@ -31,10 +31,14 @@ const PENDING_KEYS = Object.freeze({
 const LEGACY_PENDING_KEY = 'tibo_remind_sync_pending_v1';
 const VALID_KINDS = ['announcement', 'landed'];
 let serverTemplateId = '';
+let serverTemplateIds = null;
+let serverTemplateIdsPresent = false;
 let supportedKinds = new Set(['landed']);
 let serverConfigEnabled = false;
 let grantSequence = 0;
-const template = () => serverTemplateId;
+const template = (kind = 'landed') => serverTemplateIdsPresent
+  ? serverTemplateIds?.[kind] || ''
+  : serverTemplateId;
 
 function kindOrThrow(kind = 'landed') {
   if (!VALID_KINDS.includes(kind)) throw new Error('通知类型无效');
@@ -42,27 +46,42 @@ function kindOrThrow(kind = 'landed') {
 }
 
 export async function loadSubscriptionConfig() {
-  if (!config.enabled) { serverTemplateId = ''; supportedKinds = new Set(); serverConfigEnabled = false; return false; }
+  if (!config.enabled) { serverTemplateId = ''; serverTemplateIds = null; serverTemplateIdsPresent = false; supportedKinds = new Set(); serverConfigEnabled = false; return false; }
   let result;
   try { result = await request('/api/subscribe/config'); }
   catch (err) {
     serverTemplateId = '';
+    serverTemplateIds = null;
+    serverTemplateIdsPresent = false;
     supportedKinds = new Set();
     serverConfigEnabled = false;
     throw err;
   }
   serverConfigEnabled = result.enabled === true;
   serverTemplateId = result.enabled === true && typeof result.templateId === 'string' ? result.templateId.trim() : '';
+  // 新字段只要出现，就必须按类型逐项读取；格式错误或缺 key 时不能借旧 scalar
+  // 冒充新模板，否则通知文案与实际授权会错配。
+  serverTemplateIdsPresent = Object.prototype.hasOwnProperty.call(result, 'templateIds');
+  serverTemplateIds = serverTemplateIdsPresent && result.templateIds && typeof result.templateIds === 'object' && !Array.isArray(result.templateIds)
+    ? Object.fromEntries(VALID_KINDS.map((kind) => [kind,
+      Object.prototype.hasOwnProperty.call(result.templateIds, kind) && typeof result.templateIds[kind] === 'string'
+        ? result.templateIds[kind].trim()
+        : '']))
+    : null;
   // 旧服务不返回 kinds：完成通知沿用旧接口，预告通知明确显示服务待升级。
   const kinds = Array.isArray(result.kinds) ? result.kinds.filter((kind) => VALID_KINDS.includes(kind)) : ['landed'];
   supportedKinds = result.enabled === true ? new Set(kinds) : new Set();
+  // 同一个模板不能代表两种独立的一次性通知；遇到重复配置时仅保留落地类型。
+  if (serverTemplateIds?.announcement && serverTemplateIds.announcement === serverTemplateIds.landed) {
+    supportedKinds.delete('announcement');
+  }
   return subscribeAvailable();
 }
 
 export function hasPendingSync(kind = 'landed') {
   kindOrThrow(kind);
   try {
-    return pendingRecord(kind)?.templateId === template() && Boolean(template());
+    return pendingRecord(kind)?.templateId === template(kind) && Boolean(template(kind));
   }
   catch { return false; }
 }
@@ -83,7 +102,7 @@ function pendingSync(on, kind = 'landed', record = {}) {
   kindOrThrow(kind);
   try {
     if (on) {
-      const templateId = typeof record.templateId === 'string' ? record.templateId : template();
+      const templateId = typeof record.templateId === 'string' ? record.templateId : template(kind);
       wx.setStorageSync(PENDING_KEYS[kind], {
         templateId,
         grantId: typeof record.grantId === 'string' ? record.grantId : '',
@@ -104,8 +123,8 @@ export async function subscriptionStatus(kind = 'landed') {
   const pending = pendingRecord(kind);
   const code = await login();
   const result = await postJson('/api/subscribe/status', {
-    code, templateId: template(), kind,
-    ...(pending?.templateId === template() && pending.grantId ? { grantId: pending.grantId } : {}),
+    code, templateId: template(kind), kind,
+    ...(pending?.templateId === template(kind) && pending.grantId ? { grantId: pending.grantId } : {}),
   });
   if (result.ok !== true || typeof result.active !== 'boolean') throw new Error('提醒状态暂时无法确认');
   // 旧服务可能只回答「该类是否有任一授权」；它不能确认新 grant 已登记。
@@ -118,12 +137,20 @@ export async function subscriptionStatus(kind = 'landed') {
 /** 只有服务端确认模板可用后才允许申请授权；不可用时由页面显示状态。 */
 export function subscribeAvailable(kind = 'landed') {
   kindOrThrow(kind);
-  return Boolean(template()) && Boolean(config.enabled) && supportedKinds.has(kind);
+  return Boolean(template(kind)) && Boolean(config.enabled) && supportedKinds.has(kind);
 }
 
 export function supportsNotificationKind(kind = 'landed') {
   kindOrThrow(kind);
-  return serverConfigEnabled && supportedKinds.has(kind);
+  return serverConfigEnabled && Boolean(template(kind)) && supportedKinds.has(kind);
+}
+
+/** 只有服务端明确给出两个不同模板时，才能合并成同一次授权。 */
+export function supportsBatchSubscription() {
+  const announcement = template('announcement');
+  const landed = template('landed');
+  return Boolean(serverConfigEnabled && serverTemplateIds && announcement && landed && announcement !== landed &&
+    supportedKinds.has('announcement') && supportedKinds.has('landed'));
 }
 
 /**
@@ -155,10 +182,10 @@ function login() {
   });
 }
 
-function requestSubscribe(templateId) {
+function requestSubscribe(templateIds) {
   return new Promise((resolve, reject) => {
     wx.requestSubscribeMessage({
-      tmplIds: [templateId],
+      tmplIds: templateIds,
       success: resolve,
       fail: (e) => reject(new Error((e && e.errMsg) || 'requestSubscribeMessage 失败')),
     });
@@ -171,17 +198,87 @@ function requestSubscribe(templateId) {
  */
 export async function subscribeOnce(kind = 'landed') {
   kindOrThrow(kind);
-  const authorizedTemplateId = template();
+  const authorizedTemplateId = template(kind);
   if (!authorizedTemplateId) throw new Error('未配置订阅模板 ID');
   if (!config.enabled) throw new Error('联网已关闭，无法开启提醒');
   if (!subscribeAvailable(kind)) throw new Error('此类通知尚未就绪');
 
-  const verdict = classifySubscribeResult(await requestSubscribe(authorizedTemplateId), authorizedTemplateId);
+  const verdict = classifySubscribeResult(await requestSubscribe([authorizedTemplateId]), authorizedTemplateId);
   if (!verdict.ok) return verdict;
   const grantId = newGrantId();
   const authorization = { templateId: authorizedTemplateId, grantId };
   pendingSync(true, kind, authorization);
   return syncSubscription(kind, authorization);
+}
+
+/** 一次点击申请用户选择的不同模板，并分别登记各自同意的类型。 */
+export async function subscribeKinds(kinds) {
+  const requested = [...new Set((Array.isArray(kinds) ? kinds : []).map((kind) => kindOrThrow(kind)))];
+  const results = Object.create(null);
+  const templateIds = new Map();
+  const toAuthorize = [];
+  const toSync = [];
+
+  for (const kind of requested) {
+    if (!subscribeAvailable(kind)) {
+      results[kind] = { ok: false, status: 'unavailable', reason: '此类通知尚未就绪' };
+      continue;
+    }
+    const templateId = template(kind);
+    const otherKind = templateIds.get(templateId);
+    if (otherKind) {
+      return Object.fromEntries(requested.map((entry) => [entry, {
+        ok: false, status: 'duplicate-template', reason: '两类提醒需要不同模板才能分别授权。',
+      }]));
+    }
+    templateIds.set(templateId, kind);
+
+    const pending = pendingRecord(kind);
+    if (pending?.templateId === templateId) {
+      toSync.push({ kind, authorization: { templateId, grantId: pending.grantId } });
+    } else {
+      toAuthorize.push({ kind, templateId });
+    }
+  }
+
+  if (toAuthorize.length) {
+    const uniqueIds = [...new Set(toAuthorize.map((item) => item.templateId))];
+    if (uniqueIds.length !== toAuthorize.length) {
+      return Object.fromEntries(requested.map((kind) => [kind, {
+        ok: false, status: 'duplicate-template', reason: '两类提醒需要不同模板才能分别授权。',
+      }]));
+    }
+    let response;
+    let requestError = null;
+    try { response = await requestSubscribe(uniqueIds); }
+    catch (err) { requestError = err; }
+    if (requestError) {
+      for (const item of toAuthorize) {
+        results[item.kind] = { ok: false, status: 'unknown', reason: requestError.message || '授权没有生效，请重试' };
+      }
+    } else {
+      const accepted = [];
+      for (const item of toAuthorize) {
+        const verdict = classifySubscribeResult(response, item.templateId);
+        if (!verdict.ok) {
+          results[item.kind] = verdict;
+          continue;
+        }
+        const authorization = { templateId: item.templateId, grantId: newGrantId() };
+        results[item.kind] = { ok: true, status: 'accepted', synced: false };
+        accepted.push({ kind: item.kind, authorization });
+      }
+      // 一次弹窗中所有已同意的模板都先落待同步标记，之后网络失败可逐项重试。
+      for (const item of accepted) pendingSync(true, item.kind, item.authorization);
+      toSync.push(...accepted);
+    }
+  }
+
+  await Promise.all(toSync.map(async ({ kind, authorization }) => {
+    const result = await syncSubscription(kind, authorization);
+    results[kind] = result;
+  }));
+  return results;
 }
 
 function newGrantId() {
@@ -193,21 +290,21 @@ function newGrantId() {
 export async function syncSubscription(kind = 'landed', authorization) {
   kindOrThrow(kind);
   const pending = pendingRecord(kind);
-  const targetTemplateId = authorization?.templateId || pending?.templateId || template();
+  const targetTemplateId = authorization?.templateId || pending?.templateId || template(kind);
   const grantId = authorization?.grantId || pending?.grantId || '';
   if (!targetTemplateId) throw new Error('未配置订阅模板 ID');
-  if (!authorization && pending && targetTemplateId !== template()) {
+  if (!authorization && pending && targetTemplateId !== template(kind)) {
     pendingSync(false, kind, { templateId: pending.templateId, grantId: pending.grantId });
     return { ok: false, status: 'template-changed', reason: '通知模板已更新，请重新开启并授权。' };
   }
-  if (targetTemplateId !== template() || !subscribeAvailable(kind)) {
+  if (targetTemplateId !== template(kind) || !subscribeAvailable(kind)) {
     if (authorization && pending?.grantId === grantId) pendingSync(false, kind, { templateId: targetTemplateId, grantId });
     return { ok: false, status: 'template-changed', reason: '通知模板已更新，请重新开启并授权。' };
   }
   try {
     const code = await login();
     // 授权所用模板与登记模板必须相同；另一个通知类型的并发配置刷新不能替换它。
-    if (targetTemplateId !== template()) {
+    if (targetTemplateId !== template(kind)) {
       pendingSync(false, kind, { templateId: targetTemplateId, grantId });
       return { ok: false, status: 'template-changed', reason: '通知模板已更新，请重新开启并授权。' };
     }
@@ -223,6 +320,8 @@ export async function syncSubscription(kind = 'landed', authorization) {
       pendingSync(false, kind, { templateId: targetTemplateId, grantId });
       try { await loadSubscriptionConfig(); } catch {
         serverTemplateId = '';
+      serverTemplateIds = null;
+      serverTemplateIdsPresent = false;
         supportedKinds = new Set();
         serverConfigEnabled = false;
       }

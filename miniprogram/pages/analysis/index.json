@@ -1,0 +1,12 @@
+{
+  "usingComponents": {},
+  "navigationStyle": "custom",
+  "singlePage": {
+    "navigationBarFit": "squeezed"
+  },
+  "navigationBarTitleText": "预测分析",
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "light",
+  "backgroundColor": "#090D19"
+}

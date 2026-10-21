@@ -1,0 +1,79 @@
+<!-- 分析页与设计稿对应：概要、12 次间隔、三个展开分组。 -->
+<view class="tr-view wrap design {{singlePage ? 'sp' : ''}} {{motionEnabled && pageVisible ? 'motion-on' : 'motion-off'}}">
+  <view class="tr-view tr-sky"></view>
+  <view class="tr-view tr-header" style="padding-top:{{nav.statusBarHeight}}px">
+    <view class="tr-view tr-brand-row" style="min-height:{{nav.brandHeight}}px;padding-right:{{nav.capsuleReserve}}px">
+      <view class="tr-view tr-mark"><view class="tr-view tr-mark-core"></view></view>
+      <view class="tr-view tr-brand"><text class="tr-text tr-strong">等 TIBO 按按钮</text><view class="tr-view tr-brand-status"><view class="tr-view tr-status-dot {{degraded ? 'warn' : ''}}"></view><text class="tr-text">{{updText}}</text></view></view>
+    </view>
+  </view>
+  <view class="tr-view tr-main">
+    <view wx:if="{{notice}}" class="tr-view notice">{{notice}}</view>
+    <view class="tr-view tr-page-heading"><view class="tr-view"><text class="tr-text tr-eyebrow">{{pageEyebrow}}</text><text class="tr-text tr-h2">{{pageTitle}}</text></view><text class="tr-text tr-day">{{view === 'records' ? 'UTC 日期' : view === 'analysis' ? '仅供参考' : todayLabel}}</text></view>
+    <view class="tr-view tr-analysis-summary"><text class="tr-text tr-label">当前依据</text><text class="tr-text tr-h3">{{analysisTitle}}</text><text class="tr-text tr-p">有明确预告时，展示公告时间；没有官方时间时，分别标明历史估计与样本范围。</text><view class="tr-view tr-analysis-stats"><view class="tr-view tr-stat"><text class="tr-text tr-strong">{{recordCount}}<text class="tr-text tr-small">次</text></text><text class="tr-text">历史重置</text></view><view class="tr-view tr-stat"><text class="tr-text tr-strong">{{medianDays}}<text class="tr-text tr-small">天</text></text><text class="tr-text">中位间隔</text></view><view class="tr-view tr-stat"><text class="tr-text tr-strong">{{arrival ? arrival.count : 0}}<text class="tr-text tr-small">组</text></text><text class="tr-text">预告到账配对</text></view></view></view>
+    <view class="tr-view tr-chart-card"><view class="tr-view tr-row"><text class="tr-text tr-h3">历史重置节奏</text><text class="tr-text tr-secondary">最近 {{trendBars.length}} 次间隔</text></view><view class="tr-view tr-bars" aria-label="历史间隔天数"><view wx:for="{{trendBars}}" wx:key="key" class="tr-view tr-bar {{item.latest ? 'is-latest' : ''}}" style="height:{{item.height}}%" aria-label="{{item.value + ' 天'}}"></view></view><view class="tr-view tr-chart-axis"><text class="tr-text">较早</text><text class="tr-text">最近</text></view></view>
+    <view class="tr-view tr-analysis-detail"><view class="tr-view tr-summary" data-section="arrival" bindtap="onToggleAnalysis" role="button" aria-expanded="{{analysisOpen.arrival}}"><view class="tr-view tr-summary-title"><image class="tr-image tr-icon" src="/assets/design-hourglass.png"></image><text class="tr-text">预告到到账耗时</text></view><view class="tr-view tr-summary-tail"><text class="tr-text">{{arrival ? arrival.count : 0}} 次配对</text><text class="tr-text tr-chevron {{analysisOpen.arrival ? 'open' : ''}}">⌄</text></view></view><view wx:if="{{analysisOpen.arrival}}" class="tr-view tr-expanded detail-area"><text class="tr-text tr-p">从首条明确预告到已有确认公告逐次配对。少于 3 组不提供到账时间估计。</text><view wx:if="{{arrival}}" class="tr-view"><view class="tr-view tr-reading"><text class="tr-text">中位耗时</text><text class="tr-text tr-strong">{{arrival.median}}</text></view><view class="tr-view tr-reading"><text class="tr-text">历史范围</text><text class="tr-text tr-strong">{{arrival.range}}</text></view></view><text wx:else class="tr-text tr-p">暂无可用配对样本</text><text class="tr-text tr-p">历史范围不表示 80% 概率区间。</text></view></view>
+    <view class="tr-view tr-analysis-detail"><view class="tr-view tr-summary" data-section="backtest" bindtap="onToggleAnalysis" role="button" aria-expanded="{{analysisOpen.backtest}}"><view class="tr-view tr-summary-title"><image class="tr-image tr-icon" src="/assets/design-chart.png"></image><text class="tr-text">概率与样本外回测</text></view><view class="tr-view tr-summary-tail"><text class="tr-text tr-chevron {{analysisOpen.backtest ? 'open' : ''}}">⌄</text></view></view><view wx:if="{{analysisOpen.backtest}}" class="tr-view tr-expanded detail-area"><view wx:if="{{forecast && forecast.wait}}" class="tr-view bc" data-bc="wait">
+            <view class="tr-view bc-h"><view class="tr-view ico ico-wait"></view><text class="tr-text bc-t">中位剩余等待</text></view>
+            <view class="tr-view bc-num"><text class="tr-text b">{{forecast.wait.num}}</text><text class="tr-text u">{{forecast.wait.unit}}</text></view>
+            <view class="tr-view bc-range">{{forecast.wait.range}}</view>
+            <view class="tr-view bc-bar" wx:for="{{forecast.wait.bars}}" wx:key="label">
+              <text class="tr-text lb">{{item.label}}</text>
+              <view class="tr-view track"><view class="tr-view fill" style="width:{{item.w}}%"></view></view>
+              <text class="tr-text pv">{{item.pv}}</text>
+            </view>
+            <view class="tr-view bc-note is-warn">{{forecast.wait.warn}}</view>
+          </view><view wx:if="{{forecast && forecast.backtest}}" class="tr-view bc" data-bc="backtest">
+            <view class="tr-view bc-h"><view class="tr-view ico ico-bars"></view><text class="tr-text bc-t">样本外回测</text></view>
+            <view class="tr-view bc-sub">n = {{forecast.backtest.n}}（阈值 ≥ {{forecast.backtest.minN}}）</view>
+            <view class="tr-view bc-row" wx:for="{{forecast.backtest.rows}}" wx:key="k">
+              <text class="tr-text k">{{item.k}}</text><text class="tr-text v {{item.ok ? 'good' : 'bad'}}">{{item.v}}</text><text class="tr-text j">{{item.j}}</text>
+            </view>
+            <view class="tr-view bc-note" data-note="backtest">{{forecast.backtest.note}}</view>
+          </view><text wx:if="{{!forecast}}" class="tr-text tr-p">暂无可用分析数据</text></view></view>
+    <view class="tr-view tr-analysis-detail"><view class="tr-view tr-summary" data-section="history" bindtap="onToggleAnalysis" role="button" aria-expanded="{{analysisOpen.history}}"><view class="tr-view tr-summary-title"><image class="tr-image tr-icon" src="/assets/design-layers.png"></image><text class="tr-text">历史分布与样本摘要</text></view><view class="tr-view tr-summary-tail"><text class="tr-text tr-chevron {{analysisOpen.history ? 'open' : ''}}">⌄</text></view></view><view wx:if="{{analysisOpen.history}}" class="tr-view tr-expanded detail-area"><view wx:if="{{basisRows.length}}" class="tr-view basis card">
+      <view class="tr-view section-head">
+        <text class="tr-text section-title">预测依据</text>
+      </view>
+      <view class="tr-view basis-row" wx:for="{{basisRows}}" wx:key="key">
+        <text class="tr-text basis-key">{{item.label}}</text>
+        <view class="tr-view basis-value" aria-label="{{item.value}}">
+          <text wx:for="{{item.parts}}" wx:for-item="part" wx:key="key" class="tr-text {{part.numeric ? 'basis-number' : 'basis-unit'}}">{{part.text}}</text>
+        </view>
+      </view>
+    </view><view wx:if="{{forecast && forecast.pace}}" class="tr-view bc" data-bc="pace">
+            <view class="tr-view bc-h"><view class="tr-view ico ico-trend"></view><text class="tr-text bc-t">节奏分段</text></view>
+            <view class="tr-view ph" wx:for="{{forecast.pace.phases}}" wx:key="i">
+              <text class="tr-text pi">第 {{item.i}} 段</text><text class="tr-text pt">{{item.from}} → {{item.to}}</text>
+              <text class="tr-text pm">{{item.mean}}<text class="tr-text u">{{item.unit}}</text></text>
+              <text class="tr-text pn">n={{item.n}} · 最大 {{item.max}}</text>
+            </view>
+            <view class="tr-view bc-note">{{forecast.pace.note}}</view>
+          </view><view class="tr-view hr-grid">
+        <view wx:if="{{histShow}}" class="tr-view hr">
+          <view class="tr-view hr-h"><text class="tr-text hr-t">重置通常发生在第几天</text><text class="tr-text hr-n">n = {{survivalN}}</text></view>
+          <canvas type="2d" id="hist" class="chart chart-hist"></canvas>
+        </view>
+        <view class="tr-view hr">
+          <view class="tr-view hr-h"><text class="tr-text hr-t">等待生存曲线</text><text class="tr-text hr-n">n = {{survivalN}}</text></view>
+          <canvas type="2d" id="survival" class="chart chart-survival"></canvas>
+        </view>
+        <view class="tr-view hr">
+          <view class="tr-view hr-h"><text class="tr-text hr-t">每次间隔的离散分布</text><text class="tr-text hr-n">n = {{survivalN}}</text></view>
+          <canvas type="2d" id="strip" class="chart chart-strip"></canvas>
+          <view class="tr-view legend">
+            <view class="tr-view lg"><text class="tr-text sw sw-lan"></text>常规间隔</view>
+            <view class="tr-view lg"><text class="tr-text sw sw-mist"></text>偏长间隔</view>
+            <view class="tr-view lg"><text class="tr-text sw sw-cin"></text>极端长等待</view>
+          </view>
+        </view>
+      </view><view class="tr-view metrics">
+        <view class="tr-view metric" wx:for="{{metrics}}" wx:key="k">
+          <view class="tr-view v {{item.hi ? 'hl' : ''}}">{{item.v}}<text wx:if="{{item.u}}" class="tr-text u">{{item.u}}</text></view>
+          <view class="tr-view k">{{item.k}}</view><view class="tr-view note">{{item.note}}</view>
+        </view>
+      </view></view></view>
+    <view class="tr-view tr-analysis-note"><image class="tr-image tr-icon" src="/assets/design-info.png"></image><text class="tr-text tr-note-text">模型估计与官方承诺分开呈现，已落地事件只进入记录。</text></view>
+    <view class="tr-view tr-footer"><text class="tr-text">数据截至 {{dataText}} 北京</text><text class="tr-text">公开信息 · 非官方整理</text></view>
+  </view>
+</view>

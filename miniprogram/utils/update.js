@@ -4,15 +4,18 @@ export function createUpdatePrompt(host = typeof wx === 'undefined' ? null : wx)
   let foreground = false;
   let allowed = true;
   let pending = null;
-  let prompted = false;
+  let foregroundEpoch = 0;
+  let promptedEpoch = -1;
   let modalOpen = false;
   let applying = false;
 
   function prompt() {
-    if (!manager || !foreground || !allowed || !pending || prompted || modalOpen || applying) return;
+    if (!manager || !foreground || !allowed || !pending
+      || promptedEpoch === foregroundEpoch || modalOpen || applying) return;
     const kind = pending;
+    const promptEpoch = foregroundEpoch;
     let applyFailed = false;
-    prompted = true;
+    promptedEpoch = foregroundEpoch;
     modalOpen = true;
     try {
       host.showModal({
@@ -41,7 +44,11 @@ export function createUpdatePrompt(host = typeof wx === 'undefined' ? null : wx)
         complete() {
           modalOpen = false;
           if (applyFailed) {
-            prompted = false;
+            // applyUpdate 失败后只补一条失败说明，不在同一前台周期循环弹窗。
+            promptedEpoch = -1;
+            prompt();
+          } else if (foreground && foregroundEpoch !== promptEpoch) {
+            // 旧弹窗可能跨越后台周期；关闭后补发新前台尚未看到的提示。
             prompt();
           }
         },
@@ -55,26 +62,39 @@ export function createUpdatePrompt(host = typeof wx === 'undefined' ? null : wx)
   try {
     if (host && typeof host.getUpdateManager === 'function' && typeof host.showModal === 'function') {
       const candidate = host.getUpdateManager();
-      if (candidate && ['onUpdateReady', 'onUpdateFailed', 'applyUpdate'].every((key) => typeof candidate[key] === 'function')) {
+      if (candidate && typeof candidate.onUpdateReady === 'function' && typeof candidate.applyUpdate === 'function') {
         manager = candidate;
-        manager.onUpdateReady(() => {
-          pending = 'ready';
-          prompt();
-        });
-        manager.onUpdateFailed(() => {
-          // 已经下载好的包不被重复的失败通知覆盖。
-          if (pending !== 'ready') pending = 'failed';
-          prompt();
-        });
+        try {
+          candidate.onUpdateReady(() => {
+            pending = 'ready';
+            prompt();
+          });
+        } catch {
+          // 一个监听注册异常时保留 manager，避免丢掉已注册或部分注册的就绪回调。
+        }
+        if (typeof candidate.onUpdateFailed === 'function') {
+          try {
+            candidate.onUpdateFailed(() => {
+              // 已经下载好的包不被重复的失败通知覆盖。
+              if (pending !== 'ready') pending = 'failed';
+              prompt();
+            });
+          } catch {
+            // 失败监听不可用时仍保留就绪监听，避免正常更新提示一起失效。
+          }
+        }
       }
     }
   } catch {
-    manager = null;
+    // 宿主更新接口异常时保留页面；若 manager 已取得，保留其它已注册的能力。
   }
 
   return {
     onShow(allowPrompt = true) {
-      if (!foreground) prompted = false;
+      if (!foreground) {
+        foregroundEpoch++;
+        promptedEpoch = -1;
+      }
       foreground = true;
       allowed = allowPrompt;
       prompt();
