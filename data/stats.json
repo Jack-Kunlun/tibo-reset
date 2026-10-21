@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-20T06:33:48.000Z",
     "last_text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
-    "days_since_last": 0.14645245370370372,
+    "days_since_last": 0.7814822569444444,
     "avg_interval_days": 6.2203877314814795,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.437522122081761,
@@ -14,51 +14,53 @@
     "reset_count": 58,
     "hit_within_avg": 0.71875
   },
-  "generated_at": "2026-10-20T10:04:41.492Z",
+  "generated_at": "2026-10-21T01:19:08.163Z",
   "collect": {
-    "mode": "incremental",
+    "mode": "full",
     "source": "browser",
-    "stoppedBy": "known",
-    "newTweets": 0,
+    "stoppedBy": "floor",
+    "newTweets": 2,
     "knownCount": 429,
     "reply": {
-      "mode": "incremental",
-      "stoppedBy": "known",
+      "mode": "full",
+      "stoppedBy": "floor",
       "steps": 1,
-      "harvested": 2,
+      "harvested": 1,
       "withContext": 1,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 1,
-      "attempted": 1,
-      "fetched": 1,
+      "candidates": 2,
+      "attempted": 2,
+      "fetched": 2,
       "skipped": 0,
       "scanned": [
         {
-          "id": "2112034063934742720",
-          "length": 331,
+          "id": "2112712984644784534",
+          "length": 251,
+          "showMore": false
+        },
+        {
+          "id": "2112592264686149749",
+          "length": 442,
           "showMore": false
         }
       ]
-    },
-    "carriedOver": true,
-    "offlineReplay": true,
-    "replayedAt": "2026-10-20T10:04:41.492Z"
+    }
   },
   "history": {
     "added": 0,
-    "updated": 2,
+    "updated": 0,
     "removed": 0,
-    "upstreamCount": 65,
-    "refreshedAt": "2026-10-20T10:04:41.492Z",
+    "upstreamCount": 64,
+    "refreshedAt": "2026-10-21T01:18:45.125Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
     "changed": false,
     "patchedTexts": 0
   },
-  "last_full_at": "2026-10-17T16:02:03.312Z",
+  "last_full_at": "2026-10-21T01:19:08.163Z",
   "errors": []
 }
