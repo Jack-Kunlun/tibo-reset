@@ -37,22 +37,37 @@ export function snapshotState() {
   });
 }
 
-// 旧服务成功返回时也不能擦掉新包里的日历；局部降级必须保留自己的数据时刻。
+// 旧服务成功返回时也不能擦掉新包里的日历/28 天计划；局部降级必须保留各自的数据时刻。
 function withCalendar(state) {
   const hasCalendar = Object.prototype.hasOwnProperty.call(state.signals ?? {}, 'calendar');
-  const sameAccount = !state.account || state.account.toLowerCase() === snapshot.account?.toLowerCase();
+  const sameAccount = typeof state.account === 'string' && typeof snapshot.account === 'string' &&
+    state.account.toLowerCase() === snapshot.account.toLowerCase();
   const fallback = !hasCalendar && sameAccount ? snapshot.signals?.calendar : null;
   const calendar = hasCalendar ? state.signals.calendar : fallback;
   // 显式 null 表示服务端主动不提供日历，不能拿包内旧活动覆盖它。
   if (!calendar) return state;
+  const hasPlan = Object.prototype.hasOwnProperty.call(calendar, 'plan');
+  const snapshotPlan = snapshot.signals?.calendar?.plan;
+  const fallbackPlan = !hasPlan && sameAccount ? snapshotPlan : null;
+  const plan = hasPlan ? calendar.plan : fallbackPlan;
   const source = fallback || calendar.source === 'snapshot' || state.source === 'snapshot'
     ? 'snapshot' : state.source;
+  const planSource = fallback || fallbackPlan || state.source === 'snapshot' || calendar.source === 'snapshot' || plan?.source === 'snapshot'
+    ? 'snapshot' : state.source === 'cache' ? 'cache' : plan?.source || 'api';
   return {
     ...state,
     signals: {
       ...state.signals,
       calendar: {
         ...calendar,
+        ...(hasPlan || fallbackPlan ? {
+          plan: plan && typeof plan === 'object' ? {
+            ...plan,
+            source: planSource,
+            // 用采集成功时刻标注计划快照，不拿请求时刻或采集运行时刻冒充数据新鲜度。
+            dataAsOf: plan.dataAsOf ?? (planSource === 'snapshot' ? snapshot.dataUpdatedAt : state.dataUpdatedAt),
+          } : plan,
+        } : {}),
         source,
         dataAsOf: calendar.dataAsOf ?? (fallback ? snapshot.dataUpdatedAt ?? snapshot.generatedAt : state.dataUpdatedAt ?? state.generatedAt),
       },

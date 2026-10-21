@@ -9,6 +9,13 @@ page {
   line-height: 1.7;
 }
 
+/* 只隐藏滚动指示条，页面和详情仍可正常滑动。 */
+::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 .wrap {
   padding: 0 32rpx 80rpx;
 }

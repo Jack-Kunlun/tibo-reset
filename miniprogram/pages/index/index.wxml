@@ -1,3 +1,4 @@
+<page-meta page-style="{{signal.show && signalDetailsOpen ? 'overflow: hidden;' : ''}}"></page-meta>
 <!-- 观测页与三 Tab 设计稿逐项对应，完整信号保留在详情中。 -->
 <view class="tr-view wrap design {{singlePage ? 'sp' : ''}} {{motionEnabled && pageVisible ? 'motion-on' : 'motion-off'}}">
   <view class="tr-view tr-sky"></view>
@@ -27,70 +28,84 @@
     <view wx:if="{{announcementRemind.show || landedRemind.show}}" class="tr-view tr-reminders">
       <block wx:if="{{reminderBatch}}">
         <view wx:if="{{announcementRemind.show}}" class="tr-view tr-reminder tr-reminder-select {{announcementRemind.selected ? 'is-selected' : ''}} {{announcementRemind.state === 'on' ? 'is-on' : ''}}" data-kind="announcement" bindtap="onSelectReminder" role="checkbox" aria-checked="{{announcementRemind.selected}}">
-          <image class="tr-image tr-icon" src="/assets/design-bell.png"></image><view class="tr-view tr-reminder-copy"><text class="tr-text tr-strong">预告通知</text><text class="tr-text">明确预告时提醒</text></view>
-          <text class="tr-text tr-choice-state">{{announcementRemind.state === 'on' ? '已开启' : announcementRemind.selected ? '已选' : '未选'}}</text>
+          <view class="tr-view tr-icon-slot"><image class="tr-image tr-icon" src="/assets/design-bell.png"></image></view><view class="tr-view tr-reminder-copy"><text class="tr-text tr-strong">预告通知</text><text class="tr-text">明确预告时提醒</text></view>
+          <view class="tr-view tr-choice-state">{{announcementRemind.state === 'on' ? '已开启' : announcementRemind.selected ? '已选' : '未选'}}</view>
         </view><text wx:if="{{announcementRemind.feedback}}" class="tr-text tr-feedback {{announcementRemind.tone}}">{{announcementRemind.feedback}}</text>
         <view wx:if="{{landedRemind.show}}" class="tr-view tr-reminder tr-reminder-select {{landedRemind.selected ? 'is-selected' : ''}} {{landedRemind.state === 'on' ? 'is-on' : ''}}" data-kind="landed" bindtap="onSelectReminder" role="checkbox" aria-checked="{{landedRemind.selected}}">
-          <image class="tr-image tr-icon" src="/assets/design-check.png"></image><view class="tr-view tr-reminder-copy"><text class="tr-text tr-strong">落地通知</text><text class="tr-text">确认落地后提醒</text></view>
-          <text class="tr-text tr-choice-state">{{landedRemind.state === 'on' ? '已开启' : landedRemind.selected ? '已选' : '未选'}}</text>
+          <view class="tr-view tr-icon-slot"><image class="tr-image tr-icon" src="/assets/design-check.png"></image></view><view class="tr-view tr-reminder-copy"><text class="tr-text tr-strong">落地通知</text><text class="tr-text">确认落地后提醒</text></view>
+          <view class="tr-view tr-choice-state">{{landedRemind.state === 'on' ? '已开启' : landedRemind.selected ? '已选' : '未选'}}</view>
         </view><text wx:if="{{landedRemind.feedback}}" class="tr-text tr-feedback {{landedRemind.tone}}">{{landedRemind.feedback}}</text>
         <button class="tr-button tr-enable tr-enable-all {{reminderAction.disabled ? 'is-disabled' : 'is-idle'}}" bindtap="onEnableReminders" disabled="{{reminderAction.disabled}}" loading="{{reminderAction.loading}}">{{reminderAction.label}}</button>
         <text class="tr-text tr-p">可一次选择两类提醒 · 每类授权仅发送一次</text>
       </block>
       <block wx:else>
         <view wx:if="{{announcementRemind.show}}" class="tr-view tr-reminder">
-          <image class="tr-image tr-icon" src="/assets/design-bell.png"></image><view class="tr-view tr-reminder-copy"><text class="tr-text tr-strong">预告通知</text><text class="tr-text">明确预告时提醒</text></view>
+          <view class="tr-view tr-icon-slot"><image class="tr-image tr-icon" src="/assets/design-bell.png"></image></view><view class="tr-view tr-reminder-copy"><text class="tr-text tr-strong">预告通知</text><text class="tr-text">明确预告时提醒</text></view>
           <button class="tr-button tr-enable {{announcementRemind.state === 'idle' ? 'is-idle' : ''}} {{announcementRemind.state === 'on' || announcementRemind.state === 'unavailable' ? 'is-disabled' : ''}}" data-kind="announcement" bindtap="onToggleReminder" disabled="{{announcementRemind.state === 'on' || announcementRemind.state === 'busy' || announcementRemind.state === 'checking' || announcementRemind.state === 'unavailable'}}" loading="{{announcementRemind.state === 'busy' || announcementRemind.state === 'checking'}}">{{announcementRemind.state === 'idle' ? '开启' : announcementRemind.label}}</button>
         </view><text wx:if="{{announcementRemind.feedback}}" class="tr-text tr-feedback {{announcementRemind.tone}}">{{announcementRemind.feedback}}</text>
         <view wx:if="{{landedRemind.show}}" class="tr-view tr-reminder">
-          <image class="tr-image tr-icon" src="/assets/design-check.png"></image><view class="tr-view tr-reminder-copy"><text class="tr-text tr-strong">落地通知</text><text class="tr-text">确认落地后提醒</text></view>
+          <view class="tr-view tr-icon-slot"><image class="tr-image tr-icon" src="/assets/design-check.png"></image></view><view class="tr-view tr-reminder-copy"><text class="tr-text tr-strong">落地通知</text><text class="tr-text">确认落地后提醒</text></view>
           <button class="tr-button tr-enable {{landedRemind.state === 'idle' ? 'is-idle' : ''}} {{landedRemind.state === 'on' || landedRemind.state === 'unavailable' ? 'is-disabled' : ''}}" data-kind="landed" bindtap="onToggleReminder" disabled="{{landedRemind.state === 'on' || landedRemind.state === 'busy' || landedRemind.state === 'checking' || landedRemind.state === 'unavailable'}}" loading="{{landedRemind.state === 'busy' || landedRemind.state === 'checking'}}">{{landedRemind.state === 'idle' ? '开启' : landedRemind.label}}</button>
         </view><text wx:if="{{landedRemind.feedback}}" class="tr-text tr-feedback {{landedRemind.tone}}">{{landedRemind.feedback}}</text>
         <text class="tr-text tr-p">每类单独授权 · 一次授权对应一次通知</text>
       </block>
     </view>
     <view class="tr-view tr-elapsed" id="elapsed"><view class="tr-view tr-elapsed-copy"><text class="tr-text tr-label">距上次重置</text><text class="tr-text tr-secondary">{{lastResetText}}</text></view><view class="tr-view tr-numbers"><block wx:for="{{elapsedGroups}}" wx:key="unit"><text class="tr-text">{{item.value}}</text><text class="tr-text tr-small">{{item.unit}}</text></block></view></view>
-    <view wx:if="{{signal.program.show}}" class="tr-view tr-window">
-      <view class="tr-view tr-summary" bindtap="onToggleProgram" role="button" aria-expanded="{{programOpen}}"><view class="tr-view tr-summary-title"><image class="tr-image tr-icon" src="/assets/design-clock.png"></image><text class="tr-text">每日重置窗口</text></view><view class="tr-view tr-summary-tail"><text class="tr-text">{{signal.program.daysLeft > 0 ? '活动进行中' : '活动已结束'}}</text><text class="tr-text tr-chevron {{programOpen ? 'open' : ''}}">⌄</text></view></view>
-<view class="tr-view prog-reveal {{programOpen ? 'is-open' : ''}}" style="height:{{programHeight}}px" aria-hidden="{{!programOpen}}">
-        <view class="tr-view prog-body">
-          <view class="tr-view prog-intro">
-            <text class="tr-text prog-rule">每天发布一项改进，或进行完整重置。</text>
-            <text class="tr-text prog-rule-note">期间任何一天都可能重置</text>
+    <view wx:if="{{planView.show}}" class="tr-view tr-window tr-plan">
+      <view class="tr-view tr-plan-heading">
+        <view class="tr-view tr-plan-title-row"><view class="tr-view tr-icon-slot"><image class="tr-image tr-icon" src="/assets/design-clock.png"></image></view><text class="tr-text tr-plan-title">{{planView.title}}</text></view>
+        <text class="tr-text tr-plan-latest">{{planView.latestLabel}}</text>
+        <text class="tr-text tr-plan-summary">{{planView.summary}}</text>
+        <text class="tr-text tr-plan-freshness">{{planView.freshnessText}}</text>
+      </view>
+      <view class="tr-view tr-plan-rule"><text class="tr-text tr-plan-rule-label">28 天规则</text><text class="tr-text">{{planView.rule}}</text></view>
+      <view class="tr-view tr-plan-grid" aria-label="28 天原帖计划">
+        <view wx:for="{{planView.days}}" wx:key="key" class="tr-view tr-plan-day {{item.statusClass}} {{selectedPlanDay === item.day ? 'is-selected' : ''}}" data-day="{{item.day}}" bindtap="onSelectPlanDay" role="button" aria-label="{{item.accessibleLabel}}">
+          <view class="tr-view tr-plan-day-name"><text class="tr-text">Day</text><text class="tr-text tr-plan-day-number">{{item.day}}</text></view>
+          <text class="tr-text tr-plan-marker">{{item.marker}}</text>
+        </view>
+      </view>
+      <view class="tr-view tr-plan-legend">
+        <view class="tr-view tr-plan-legend-primary"><view class="tr-view tr-plan-legend-item"><view class="tr-view tr-plan-legend-mark updated">更</view><text class="tr-text">更新</text></view><view class="tr-view tr-plan-legend-item"><view class="tr-view tr-plan-legend-mark confirmed">重</view><text class="tr-text">重置确认</text></view><view class="tr-view tr-plan-legend-item"><view class="tr-view tr-plan-legend-mark mixed">双</view><text class="tr-text">更新+重置</text></view></view>
+        <text class="tr-text tr-plan-legend-note">其他状态：重置预告、当日动态、未见公告；浅色标记表示后续日期。</text>
+      </view>
+      <view wx:if="{{selectedPlan}}" class="tr-view tr-plan-detail">
+        <view class="tr-view tr-plan-detail-head"><text class="tr-text tr-plan-detail-title">Day {{selectedPlan.day}}</text><view class="tr-view tr-plan-status {{selectedPlan.statusClass}}">{{selectedPlan.statusLabel}}</view></view>
+        <view wx:if="{{selectedPlan.entries.length}}" class="tr-view tr-plan-entries">
+          <view wx:for="{{selectedPlan.entries}}" wx:key="key" class="tr-view tr-plan-entry">
+            <view wx:if="{{item.labels.length}}" class="tr-view tr-plan-badges"><view wx:for="{{item.labels}}" wx:key="text" class="tr-view tr-plan-badge {{item.cls}}">{{item.text}}</view></view>
+            <text class="tr-text tr-plan-entry-title">{{item.title}}</text>
+            <view class="tr-view tr-plan-entry-meta"><text class="tr-text">{{item.when}}</text><text wx:if="{{item.confirmedWhen}}" class="tr-text">{{item.confirmedWhen}}</text></view>
+            <view class="tr-view tr-plan-entry-actions">
+              <view wx:if="{{item.hasText}}" class="tr-view tr-plan-action" data-key="{{item.key}}" bindtap="onTogglePlanEntry" role="button">{{expandedPlanEntry === item.key ? '收起原文' : '展开原文'}}</view>
+              <view wx:if="{{item.url && !singlePage}}" class="tr-view tr-plan-action" data-url="{{item.url}}" bindtap="onCopySource" role="button">复制原推链接 ↗</view>
+            </view>
+            <text wx:if="{{expandedPlanEntry === item.key}}" class="tr-text tr-plan-entry-text">{{item.text}}</text>
           </view>
-          <view wx:if="{{signal.program.window}}" class="tr-view prog-zones">
-            <view class="tr-view prog-zone prog-zone-primary">
-              <view class="tr-view prog-zone-head"><text class="tr-text">北京时间</text><text class="tr-text prog-offset">{{signal.program.window.usrOffset}}</text></view>
-              <view class="tr-view prog-time-row" wx:for="{{signal.program.beijingRange}}" wx:key="label">
-                <text class="tr-text prog-time-label">{{item.label}}</text>
-                <view class="tr-view prog-time-value"><text class="tr-text">{{item.date}}</text><text class="tr-text prog-time-clock">{{item.time}}</text><text class="tr-text prog-weekday">{{item.weekday}}</text></view>
+        </view>
+        <text wx:else class="tr-text tr-plan-empty">{{selectedPlan.statusLabel}} · 暂无可展示的原帖条目</text>
+      </view>
+      <view class="tr-view tr-plan-explain">
+        <view class="tr-view tr-plan-explain-head" bindtap="onToggleProgram" role="button" aria-expanded="{{programOpen}}"><text class="tr-text">活动时段与原始规则</text><view class="tr-view tr-chevron {{programOpen ? 'open' : ''}}"></view></view>
+        <view class="tr-view prog-reveal {{programOpen ? 'is-open' : ''}}" style="height:{{programHeight}}px" aria-hidden="{{!programOpen}}">
+          <view class="tr-view prog-body">
+            <text class="tr-text prog-rule">原计划说明每天发布改进，或重置额度；编号按原帖中的 Day 标记对应。</text>
+            <view wx:if="{{signal.program.window}}" class="tr-view prog-zones">
+              <view class="tr-view prog-zone prog-zone-primary">
+                <view class="tr-view prog-zone-head"><text class="tr-text">北京时间</text><text class="tr-text prog-offset">{{signal.program.window.usrOffset}}</text></view>
+                <view class="tr-view prog-time-row" wx:for="{{signal.program.beijingRange}}" wx:key="label"><text class="tr-text prog-time-label">{{item.label}}</text><view class="tr-view prog-time-value"><text class="tr-text">{{item.date}}</text><text class="tr-text prog-time-clock">{{item.time}}</text><text class="tr-text prog-weekday">{{item.weekday}}</text></view></view>
               </view>
+              <view class="tr-view prog-zone prog-zone-local"><view class="tr-view prog-zone-head"><text class="tr-text">Tibo 当地时间</text><text class="tr-text prog-offset">{{signal.program.window.srcOffset}}</text></view><view class="tr-view prog-local-range"><block wx:for="{{signal.program.localRange}}" wx:key="key"><text wx:if="{{index}}" class="tr-text prog-range-dash">—</text><view class="tr-view prog-local-date"><text class="tr-text">{{item.date}}</text><text class="tr-text prog-weekday">{{item.weekday}}</text></view></block></view></view>
+              <text class="tr-text prog-zone-note">{{signal.program.window.diffText}}</text>
             </view>
-            <view class="tr-view prog-zone prog-zone-local">
-              <view class="tr-view prog-zone-head"><text class="tr-text">Tibo 当地时间</text><text class="tr-text prog-offset">{{signal.program.window.srcOffset}}</text></view>
-              <view class="tr-view prog-local-range">
-                <block wx:for="{{signal.program.localRange}}" wx:key="key">
-                  <text wx:if="{{index}}" class="tr-text prog-range-dash">—</text>
-                  <view class="tr-view prog-local-date"><text class="tr-text">{{item.date}}</text><text class="tr-text prog-weekday">{{item.weekday}}</text></view>
-                </block>
-              </view>
-            </view>
-            <text class="tr-text prog-zone-note">{{signal.program.window.diffText}}</text>
-          </view>
-          <view class="tr-view prog-source">
-            <view class="tr-view prog-source-head">
-              <text class="tr-text">来源 · 发布于</text>
-              <text wx:if="{{signal.program.url && !singlePage}}" class="tr-text prog-source-link" data-url="{{signal.program.url}}" bindtap="onCopySource">复制原推链接 ↗</text>
-            </view>
-            <text wx:if="{{signal.program.announcedBeijing}}" class="tr-text prog-published">北京 {{signal.program.announcedBeijing}}</text>
-            <text wx:if="{{signal.program.announcedLocal}}" class="tr-text prog-published">当地 {{signal.program.announcedLocal}}</text>
+            <view class="tr-view prog-source"><view class="tr-view prog-source-head"><text class="tr-text">原始规则来源</text><text wx:if="{{planView.sourceUrl && !singlePage}}" class="tr-text prog-source-link" data-url="{{planView.sourceUrl}}" bindtap="onCopySource">复制原推链接 ↗</text></view><text wx:if="{{signal.program.announcedBeijing}}" class="tr-text prog-published">北京 {{signal.program.announcedBeijing}}</text><text wx:if="{{signal.program.announcedLocal}}" class="tr-text prog-published">当地 {{signal.program.announcedLocal}}</text></view>
           </view>
         </view>
       </view>
     </view>
     <view class="tr-view tr-footer"><text class="tr-text">数据截至 {{dataText}} 北京</text><text class="tr-text">公开信息 · 非官方整理</text></view>
   </view>
-  <view wx:if="{{signal.show && signalDetailsOpen}}" class="tr-view tr-overlay" bindtap="onToggleSignalDetails"><view class="tr-view tr-sheet" catchtap="onStopTap" role="dialog" aria-label="信号依据"><view class="tr-view tr-row"><text class="tr-text tr-h3">信号依据</text><button class="tr-button tr-close" bindtap="onToggleSignalDetails" aria-label="关闭详情">×</button></view><scroll-view scroll-y="{{true}}" class="sheet-scroll"><view class="tr-view signal-detail">
+  <view wx:if="{{signal.show && signalDetailsOpen}}" class="tr-view tr-overlay" bindtap="onToggleSignalDetails"><view class="tr-view tr-overlay-mask" catchtouchmove="onStopTouchMove"></view><view class="tr-view tr-sheet" catchtap="onStopTap" role="dialog" aria-label="信号依据"><view class="tr-view tr-sheet-head"><text class="tr-text tr-h3">信号依据</text><button class="tr-button tr-close" bindtap="onToggleSignalDetails" aria-label="关闭详情">×</button></view><scroll-view scroll-y="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}" class="sheet-scroll"><view class="tr-view signal-detail">
       <view wx:if="{{signal.window}}" class="tr-view win">
         <view class="tr-view wrow"><text class="tr-text k">Tibo 当地时间</text><text class="tr-text v">{{signal.window.sourceZone}}</text><text class="tr-text z">{{signal.window.srcOffset}}</text></view>
         <view class="tr-view wrow"><text class="tr-text k">北京时间</text><text class="tr-text v">{{signal.window.userZone}}</text><text class="tr-text z">{{signal.window.usrOffset}}</text></view>

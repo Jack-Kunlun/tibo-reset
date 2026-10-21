@@ -11,7 +11,7 @@ import config from '../config.js';
 import { loadState, snapshotState } from './api.js';
 import { copyText } from './clipboard.js';
 import { indexShareTitle, historyShareTitle, isSinglePage } from './share.js';
-import { buildGauge, buildSignal, buildMetrics, buildForecast, buildOutlookView, buildCalendarView, buildObservationSignal, predCountdown, readoutParts } from './view.js';
+import { buildGauge, buildSignal, buildMetrics, buildForecast, buildOutlookView, buildCalendarView, buildProgramPlanView, buildObservationSignal, predCountdown, readoutParts } from './view.js';
 import { survivalScene, stripScene, histogramScene, rhythmScene } from './scene.js';
 import { drawScene, setupCanvas } from './draw.js';
 import { elapsed, reelGroups, verdict as makeVerdict, fmtDateTime, fmtClock, fmtClockSec, fmtSpan, toTs, beijingParts } from './format.js';
@@ -151,6 +151,11 @@ function calendarSelection(calendar, date) {
   };
 }
 
+function planSelection(planView, day) {
+  if (!planView?.show || !Number.isInteger(Number(day))) return null;
+  return planView.days.find((row) => row.day === Number(day)) || null;
+}
+
 export function createDashboardPage(view = 'observe') {
   return {
   data: {
@@ -186,6 +191,10 @@ export function createDashboardPage(view = 'observe') {
     survivalN: 0,
     basisRows: [],
     calendar: null,
+    planView: { show: false, days: [] },
+    selectedPlanDay: 0,
+    selectedPlan: null,
+    expandedPlanEntry: '',
     calendarRange: '',
     trend: [],
     trendCount: 0,
@@ -275,7 +284,7 @@ export function createDashboardPage(view = 'observe') {
   onHide() {
     this.stopTicker();
     this.clearRippleTimer();
-    this.setData({ pageVisible: false, entering: false, ripple: { show: false, x: 0, y: 0 } });
+    this.setData({ pageVisible: false, signalDetailsOpen: false, entering: false, ripple: { show: false, x: 0, y: 0 } });
   },
 
   onUnload() {
@@ -330,6 +339,19 @@ export function createDashboardPage(view = 'observe') {
     const forecast = buildForecast(state.prediction, outlook);
     const records = recordRows(chart);
     const calendar = buildCalendarView(state.signals?.calendar);
+    const rawPlan = state.signals?.calendar?.plan;
+    const planView = buildProgramPlanView(rawPlan && {
+      ...rawPlan,
+      source: rawPlan.source || (state.source === 'snapshot' || calendar?.source === 'snapshot'
+        ? 'snapshot' : state.source === 'cache' ? 'cache' : 'api'),
+      // preview-miniprogram 也有真实成功采集时刻；不回退到生成/请求时间。
+      dataAsOf: rawPlan.dataAsOf ?? state.dataUpdatedAt,
+    });
+    const selectedPlanDay = preserveUi && planView?.days?.some((row) => row.day === this.data.selectedPlanDay)
+      ? this.data.selectedPlanDay : planView?.latestDay > 0 ? planView.latestDay : 0;
+    const selectedPlan = planSelection(planView, selectedPlanDay);
+    const expandedPlanEntry = preserveUi && selectedPlan?.entries.some((entry) => entry.key === this.data.expandedPlanEntry)
+      ? this.data.expandedPlanEntry : '';
     const selectedDate = preserveUi && calendar?.cells.some((cell) => cell.date === this.data.selectedDate)
       ? this.data.selectedDate : calendar?.cells.filter((cell) => cell.confirmedCount).slice(-1)[0]?.date || calendar?.cells.find((cell) => cell.isToday)?.date || '';
     const delay = state.prediction?.announcementDelay;
@@ -362,6 +384,10 @@ export function createDashboardPage(view = 'observe') {
         survivalN: chart ? chart.gapDays.length : 0,
         basisRows: basisRows(outlook, forecast),
         calendar,
+        planView,
+        selectedPlanDay,
+        selectedPlan,
+        expandedPlanEntry,
         calendarRange: calendar ? `${calendar.fromDate.slice(5).replace('-', '.')} — ${calendar.toDate.slice(5).replace('-', '.')}` : '',
         selectedDate,
         selectedDay: calendarSelection(calendar, selectedDate),
@@ -381,7 +407,7 @@ export function createDashboardPage(view = 'observe') {
         detailsOpen: preserveUi && this.data.detailsOpen,
         programOpen: preserveUi && this.data.programOpen,
         programHeight: preserveUi ? this.data.programHeight : 0,
-        signalDetailsOpen: preserveUi && this.data.signalDetailsOpen,
+        signalDetailsOpen: !!(preserveUi && signal.show && this.data.signalDetailsOpen),
         genText: fmtDateTime(genTs),
         dataText: Number.isFinite(toTs(state.dataUpdatedAt)) ? fmtDateTime(toTs(state.dataUpdatedAt)).slice(5) : '未知',
         // 「观测中」后面是**当前北京时间**，由 tick 每秒推进（见 tick）。
@@ -809,6 +835,9 @@ export function createDashboardPage(view = 'observe') {
 
   onStopTap() {},
 
+  // 只拦截遮罩手势；正文不挂此监听，交给独立 scroll-view 滚动。
+  onStopTouchMove() {},
+
   onToggleMoreRecords() {
     this.setData({ moreRecordsOpen: !this.data.moreRecordsOpen });
   },
@@ -817,6 +846,19 @@ export function createDashboardPage(view = 'observe') {
     const date = e?.currentTarget?.dataset?.date;
     if (!this.data.calendar?.cells.some((cell) => cell.date === date)) return;
     this.setData({ selectedDate: date, selectedDay: calendarSelection(this.data.calendar, date) });
+  },
+
+  onSelectPlanDay(e) {
+    const day = Number(e?.currentTarget?.dataset?.day);
+    const selectedPlan = planSelection(this.data.planView, day);
+    if (!selectedPlan) return;
+    this.setData({ selectedPlanDay: day, selectedPlan, expandedPlanEntry: '' });
+  },
+
+  onTogglePlanEntry(e) {
+    const key = String(e?.currentTarget?.dataset?.key || '');
+    if (!key || !this.data.selectedPlan?.entries.some((entry) => entry.key === key && entry.hasText)) return;
+    this.setData({ expandedPlanEntry: this.data.expandedPlanEntry === key ? '' : key });
   },
 
   onToggleRecord(e) {

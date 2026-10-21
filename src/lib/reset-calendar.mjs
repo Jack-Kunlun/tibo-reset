@@ -1,4 +1,5 @@
 import { analyzeTweet, detectProgram, contradictsConfirmedHistory } from './signals.mjs';
+import { programPostCopy, programFollowup } from './program-copy.mjs';
 
 const DAY_MS = 86_400_000;
 const TRUSTED_SOURCES = new Set(['timeline-browser', 'with-replies']);
@@ -137,6 +138,112 @@ function sourceTweetForEvent(event, tweets, account, context) {
     !contradictsConfirmedHistory(tweet, { account, tweets: context })) ?? null;
 }
 
+function linkedProgramPost(tweet, posts, trusted, account) {
+  const seen = new Set([String(tweet.id)]);
+  let node = tweet;
+  for (let depth = 0; depth < 4; depth++) {
+    if (node.author_verified !== true) return null;
+    const ref = node.quotedTweet ?? (node.inReplyTo?.verified === true ? node.inReplyTo : null);
+    if (!ref || String(ref.account ?? '').replace(/^@/, '').toLowerCase() !== account) return null;
+    const clean = (text) => String(text ?? '').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
+    const matches = trusted.filter((parent) => parent.author_verified === true &&
+      (ref.id ? String(parent.id) === String(ref.id) :
+        parent.created_at === ref.created_at && clean(parent.text) === clean(ref.text)));
+    if (matches.length !== 1) return null;
+    const parent = matches[0];
+    const age = timestamp(node.created_at) - timestamp(parent.created_at);
+    if (seen.has(String(parent.id)) || age <= 0 || age > DAY_MS ||
+        ref.created_at && timestamp(ref.created_at) !== timestamp(parent.created_at) ||
+        ref.text && clean(ref.text) !== clean(parent.text)) return null;
+    seen.add(String(parent.id));
+    const post = posts.find((item) => String(item.tweet.id) === String(parent.id));
+    if (post) return post;
+    node = parent;
+  }
+  return null;
+}
+
+function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne }) {
+  // 原帖编号是活动日序；补发、跨 UTC 日与子编号都不能被日期运算挪到另一天。
+  const posts = [];
+  const seen = new Set();
+  for (const tweet of [...trusted].sort((a, b) => timestamp(a.created_at) - timestamp(b.created_at))) {
+    const match = String(tweet.text ?? '').match(/\bDay\s*(\d+)(?:\.\d+|\s*\([^)]*\))?\s*\//i);
+    const followup = match ? null : programFollowup(tweet, trusted);
+    const day = Number(match?.[1] ?? followup?.day);
+    if ((!match && !followup) || day < 1 || day > program.days || timestamp(tweet.created_at) < timestamp(dayOne.created_at) || seen.has(String(tweet.id))) continue;
+    seen.add(String(tweet.id));
+    posts.push({ tweet, day, followup, sources: sourceIdentities(tweet, account), events: [] });
+  }
+  // 新的完成帖可沿已核验引用/自我回复链归日，不要求继续人工维护历史编号映射。
+  for (const tweet of trusted) {
+    if (seen.has(String(tweet.id)) || !events.some((event) => sameSource(event.sources, sourceIdentities(tweet, account)))) continue;
+    const anchor = linkedProgramPost(tweet, posts, trusted, account);
+    if (!anchor) continue;
+    seen.add(String(tweet.id));
+    posts.push({ tweet, day: anchor.day, followup: { title: '后续确认额度重置已完成', anchorId: String(anchor.tweet.id) },
+      sources: sourceIdentities(tweet, account), events: [] });
+  }
+  posts.sort((a, b) => timestamp(a.tweet.created_at) - timestamp(b.tweet.created_at));
+  for (const event of events) {
+    const matches = posts.filter((post) => sameSource(post.sources, event.sources) &&
+      !contradictsConfirmedHistory(post.tweet, { account, tweets: allTweets }));
+    const direct = sourceIdentities({ id: event.record.id, url: event.record.url }, account);
+    const directMatches = matches.filter((post) => sameSource(post.sources, direct));
+    const candidates = directMatches.length ? directMatches : matches;
+    const primary = new Set(candidates.map((post) => post.day)).size === 1 ? candidates[0] : null;
+    // 确认记录只按原帖身份关联，不把同一天的无关重置拼到活动日上。
+    if (primary) primary.events.push(event);
+  }
+  const settledPosts = new Set(posts.filter((post) => post.events.length && post.followup?.anchorId)
+    .map((post) => post.followup.anchorId));
+  const assignedEvents = posts.flatMap((post) => post.events);
+  for (const post of posts) if (assignedEvents.some((event) => sameSource(event.sources, post.sources))) settledPosts.add(String(post.tweet.id));
+  const latestDay = Math.max(0, ...posts.map((post) => post.day));
+  const rows = Array.from({ length: Number(program.days) }, (_, index) => {
+    const day = index + 1;
+    const entries = posts.filter((post) => post.day === day).map(({ tweet, followup, events: confirmed }) => {
+      const copy = programPostCopy(tweet);
+      const analysis = analyzeTweet(tweet, { account, tweets: allTweets });
+      let kind = copy.kind;
+      if (confirmed.length) kind = confirmed.some((event) => event.record.type === 'reset') ? 'reset' : 'credit';
+      else if (analysis.level === 'explicit') kind = 'announcement';
+      else if (analysis.level === 'occurred') kind = 'reset-unconfirmed';
+      // 只撤下同一来源/会话已兑现的等待标记，保留当天其他尚未兑现的承诺。
+      if (settledPosts.has(String(tweet.id)) && ['announcement', 'reset-unconfirmed'].includes(kind)) kind = 'note';
+      return {
+        id: String(tweet.id), url: tweet.url ?? null, text: tweet.text ?? '',
+        createdAt: tweet.created_at, day, kind, title: confirmed.length && followup ? followup.title : copy.title,
+        isUpdate: copy.kind === 'update',
+        confirmedAt: confirmed.length ? new Date(Math.min(...confirmed.map((event) => event.at))).toISOString() : null,
+        resetCount: confirmed.filter((event) => event.record.type === 'reset').length,
+        creditCount: confirmed.filter((event) => event.record.type === 'credit').length,
+      };
+    });
+    const updateCount = entries.filter((entry) => entry.isUpdate).length;
+    const resetCount = entries.reduce((total, entry) => total + entry.resetCount, 0);
+    const creditCount = entries.reduce((total, entry) => total + entry.creditCount, 0);
+    const confirmedCount = resetCount + creditCount;
+    let status, statusLabel;
+    if (confirmedCount && updateCount) { status = 'mixed'; statusLabel = '更新与重置'; }
+    else if (confirmedCount) { status = 'confirmed'; statusLabel = '确认重置'; }
+    else if (updateCount) { status = 'updated'; statusLabel = '发布更新'; }
+    else if (entries.some((entry) => entry.kind === 'announcement')) { status = 'pending'; statusLabel = '重置预告'; }
+    else if (entries.length) { status = 'noted'; statusLabel = entries.some((entry) => entry.kind === 'reset-unconfirmed') ? '提及重置' : '当日动态'; }
+    else if (day <= latestDay) { status = 'missing'; statusLabel = '未见公告'; }
+    else { status = 'future'; statusLabel = '待更新'; }
+    return { day, status, statusLabel, updateCount, resetCount, creditCount, confirmedCount,
+      date: entries[0]?.createdAt ?? null, sourceUrl: entries.at(-1)?.url ?? null, entries };
+  });
+  return {
+    title: `Tibo ${program.days} 天计划`, days: Number(program.days), latestDay,
+    reportedDays: rows.filter((row) => row.entries.length).length,
+    updatedDays: rows.filter((row) => row.updateCount).length,
+    resetDays: rows.filter((row) => row.confirmedCount).length,
+    sourceUrl: program.url ?? null, rows,
+  };
+}
+
 /**
  * 预告、完成与日程帖常跨日发布，按真实 UTC 日期落格，不凭 Day N 猜完成归属。
  */
@@ -184,9 +291,11 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
   let confirmedCount = 0;
   let resetCount = 0;
   let creditCount = 0;
-  for (const event of uniqueEvents(records, normalizedAccount, currentTime)) {
+  const events = uniqueEvents(records, normalizedAccount, currentTime).filter((event) => {
     const matched = trusted.filter((tweet) => sameSource(event.sources, sourceIdentities(tweet, normalizedAccount)));
-    if (matched.length && matched.every((tweet) => contradictsConfirmedHistory(tweet, { account: normalizedAccount, tweets: allTweets }))) continue;
+    return !matched.length || !matched.every((tweet) => contradictsConfirmedHistory(tweet, { account: normalizedAccount, tweets: allTweets }));
+  });
+  for (const event of events) {
     const index = dateToIndex.get(utcDate(event.at));
     if (index == null) continue;
     const cell = builders[index];
@@ -311,5 +420,6 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     cells,
     sourceUrl: dayOne.url ?? null,
     programUrl: program.url ?? null,
+    plan: buildProgramPlan({ trusted, allTweets, events, account: normalizedAccount, program, dayOne }),
   };
 }

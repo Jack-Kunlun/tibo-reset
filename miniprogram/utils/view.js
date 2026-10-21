@@ -47,6 +47,93 @@ export function buildCalendarView(calendar) {
   };
 }
 
+const PLAN_STATUS_VIEW = {
+  updated: { cls: 'updated', marker: '更', fallback: '功能更新' },
+  confirmed: { cls: 'confirmed', marker: '重', fallback: '重置已确认' },
+  mixed: { cls: 'mixed', marker: '双', fallback: '更新与重置' },
+  pending: { cls: 'pending', marker: '待', fallback: '提及重置·待核实' },
+  noted: { cls: 'noted', marker: '提', fallback: '当日动态' },
+  missing: { cls: 'missing', marker: '—', fallback: '未见公告' },
+  future: { cls: 'future', marker: '·', fallback: '尚未到此日' },
+};
+
+const PLAN_ENTRY_LABELS = {
+  update: { text: '功能更新', cls: 'update' },
+  roundup: { text: '当日汇总', cls: 'roundup' },
+  note: { text: '当日动态', cls: 'note' },
+  reset: { text: '重置确认', cls: 'reset' },
+  credit: { text: '发券确认', cls: 'credit' },
+  announcement: { text: '重置预告', cls: 'announcement' },
+  'reset-unconfirmed': { text: '提及重置·待核实', cls: 'pending' },
+};
+
+function planEntryView(entry, day, index) {
+  const createdAt = toTs(entry.createdAt);
+  const confirmedAt = toTs(entry.confirmedAt);
+  const body = String(entry.text || '').replace(/\s+/g, ' ').trim();
+  const suppliedTitle = String(entry.title || '').trim();
+  const title = suppliedTitle || (body.length > 120 ? `${body.slice(0, 117)}…` : body) || '原帖摘要暂不可用';
+  const labels = [];
+  if (entry.isUpdate) labels.push({ text: '功能更新', cls: 'update' });
+  const kindLabel = PLAN_ENTRY_LABELS[entry.kind];
+  if (kindLabel && !(entry.isUpdate && entry.kind === 'update')) labels.push(kindLabel);
+  return {
+    key: String(entry.id || entry.url || `day-${day}-entry-${index}`),
+    title,
+    text: String(entry.text || ''),
+    url: entry.url || '',
+    when: Number.isFinite(createdAt) ? `${fmtDateTime(createdAt)} 北京` : '发布时间未知',
+    confirmedWhen: Number.isFinite(confirmedAt) ? `确认时刻 ${fmtDateTime(confirmedAt)} 北京` : '',
+    labels,
+    hasText: Boolean(entry.text),
+  };
+}
+
+/**
+ * Tibo 28 天计划视图。Day 是原帖中的业务编号，日期只用于逐条来源时间，
+ * 不从本地/UTC 日历推导计划进度，也不重判服务端给出的状态。
+ */
+export function buildProgramPlanView(plan) {
+  if (!plan || !Array.isArray(plan.rows)) return { show: false };
+  const count = Number.isInteger(Number(plan.days)) ? Math.max(1, Math.min(28, Number(plan.days))) : 28;
+  const latestDay = Number.isInteger(Number(plan.latestDay)) ? Number(plan.latestDay) : 0;
+  const rowsByDay = new Map(plan.rows.map((row) => [Number(row.day), row]));
+  const days = Array.from({ length: 28 }, (_, index) => {
+    const day = index + 1;
+    const row = rowsByDay.get(day) || null;
+    const status = PLAN_STATUS_VIEW[row?.status] ? row.status : day > latestDay ? 'future' : 'missing';
+    const statusView = PLAN_STATUS_VIEW[status];
+    return {
+      ...(row || {}),
+      day,
+      key: `plan-day-${day}`,
+      status,
+      statusClass: statusView.cls,
+      marker: statusView.marker,
+      statusLabel: row?.statusLabel || statusView.fallback,
+      accessibleLabel: `Day ${day} · ${row?.statusLabel || statusView.fallback}`,
+      entries: (row?.entries || []).map((entry, entryIndex) => planEntryView(entry, day, entryIndex)),
+    };
+  });
+  const dataAt = toTs(plan.dataAsOf);
+  const freshness = plan.source === 'snapshot' ? '计划快照' : plan.source === 'cache' ? '计划缓存' : '计划数据';
+  return {
+    show: true,
+    title: plan.title || 'Tibo 28 天计划',
+    dayCount: count,
+    latestDay,
+    latestLabel: latestDay > 0 ? `最新原帖 Day ${latestDay} / ${count}` : '尚未见官方 Day 编号原帖',
+    reportedDays: Number(plan.reportedDays) || 0,
+    updatedDays: Number(plan.updatedDays) || 0,
+    resetDays: Number(plan.resetDays) || 0,
+    summary: `${Number(plan.reportedDays) || 0} 天有原帖 · ${Number(plan.updatedDays) || 0} 天有功能更新 · ${Number(plan.resetDays) || 0} 天确认重置`,
+    rule: '每天发布改进，或重置额度',
+    sourceUrl: plan.sourceUrl || '',
+    freshnessText: `${freshness} · ${Number.isFinite(dataAt) ? `数据截至 ${fmtDateTime(dataAt)} 北京` : '数据时间未知'}`,
+    days,
+  };
+}
+
 /* ------------------------------ 信号 ------------------------------ */
 
 /**

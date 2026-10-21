@@ -322,7 +322,7 @@ function createWxmlRuntime() {
     const events = [];
     for (const [name, rawValue] of Object.entries(attrs)) {
       if (name.startsWith('wx:') || name === 'key' || name === 'for') continue;
-      if (/^(?:bind|catch)(?:tap|touchstart|touchend|longpress)$/.test(name)) {
+      if (/^(?:bind|catch)(?:tap|touchstart|touchmove|touchend|longpress)$/.test(name)) {
         events.push({
           name,
           handler: String(interpolate(rawValue, scope) ?? ''),
@@ -488,7 +488,15 @@ function createPreviewPage(view) {
   }
   if (initialDate) page.onSelectCalendarDay({ currentTarget: { dataset: { date: initialDate } } });
 
-  return { data: page.data, calendarSelections };
+  const planSelections = {};
+  const initialPlanDay = page.data.selectedPlanDay;
+  for (const row of page.data.planView?.days || []) {
+    page.onSelectPlanDay({ currentTarget: { dataset: { day: row.day } } });
+    planSelections[row.day] = clone(page.data.selectedPlan);
+  }
+  if (initialPlanDay) page.onSelectPlanDay({ currentTarget: { dataset: { day: initialPlanDay } } });
+
+  return { data: page.data, calendarSelections, planSelections };
 }
 
 const viewSpecs = [
@@ -574,14 +582,16 @@ for (const [view, page] of Object.entries(pages)) {
 }
 
 const extraCss = [
-  'html,body{margin:0;min-height:100%;background:#070A12}',
+  'html,body{margin:0;min-height:100%;background:#070A12;scrollbar-width:none}',
   'body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft Yahei",sans-serif;padding:24px 0 0}',
-  '.preview-design-scope{width:375px;max-width:100vw;margin:0 auto;padding:0!important}',
-  '.preview-phone{width:100%;max-width:100%;min-height:100vh;margin:0;padding:0;border:0;border-radius:0;overflow:visible;box-shadow:none;position:relative}',
+  '.preview-design-scope{width:375px;max-width:100%;margin:0 auto;padding:0!important}',
+  '.design .preview-phone{box-sizing:border-box;width:100%;max-width:100%;min-height:100vh;margin:0;padding:0;border:0;border-radius:0;overflow:visible;box-shadow:none;position:relative}',
   '.preview-page{display:block;min-height:100vh;padding-bottom:66px;background:#090D19;color:#F2F0FC}',
   '.preview-capsule{position:absolute;z-index:20;top:26px;right:10px}',
-  '.preview-page [data-scroll="y"]{overflow-y:auto;-webkit-overflow-scrolling:touch}',
-  '.preview-tabbar{position:fixed!important;z-index:30;left:50%;bottom:0;transform:translateX(-50%);width:min(100vw,375px);box-sizing:border-box;background:#101728}',
+  '.preview-page page-meta{display:none}',
+  '.preview-page [data-scroll="y"]{overflow-y:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}',
+  '.preview-page .tr-overlay{bottom:72px;left:50%;right:auto;transform:translateX(-50%);width:min(100%,375px);box-sizing:border-box}',
+  '.preview-tabbar{position:fixed!important;z-index:30;left:50%;bottom:0;transform:translateX(-50%);width:min(100%,375px);box-sizing:border-box;background:#101728}',
   '.preview-tab{cursor:pointer}',
   '.preview-tab img{display:block;object-fit:contain}',
   '.preview-page image{object-fit:contain}',
@@ -623,8 +633,8 @@ const browserScript = [
   'let currentView = "observe";',
   'function applyPatch(target, patch) { for (const [path, value] of Object.entries(patch || {})) { const parts = path.split("."); let cursor = target; for (const part of parts.slice(0, -1)) { if (!cursor[part] || typeof cursor[part] !== "object") cursor[part] = {}; cursor = cursor[part]; } cursor[parts[parts.length - 1]] = value; } }',
   'function esc(value) { return String(value ?? "").replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;"}[c])); }',
-  'function renderCurrent() { const bundle = bundles[currentView], page = instances[currentView]; root.innerHTML = "<page class=\\"preview-page\\">" + runtime.render(bundle.template, page.data, { assets: bundle.assets }) + "</page>"; requestAnimationFrame(paintCurrent); }',
-  'function selectView(view) { if (!instances[view]) return; currentView = view; tabs.forEach((tab) => { const selected = tab.dataset.previewView === view; tab.setAttribute("aria-selected", String(selected)); tab.classList.toggle("is-selected", selected); const image = tab.querySelector("img"); image.src = selected ? image.dataset.selectedIcon : image.dataset.icon; }); renderCurrent(); }',
+  'function renderCurrent() { const bundle = bundles[currentView], page = instances[currentView]; root.innerHTML = "<page class=\\"preview-page\\">" + runtime.render(bundle.template, page.data, { assets: bundle.assets }) + "</page>"; const pageStyle = document.createElement("div").style; pageStyle.cssText = root.querySelector("page-meta")?.getAttribute("page-style") || ""; document.body.style.overflow = document.documentElement.style.overflow = pageStyle.overflow; requestAnimationFrame(paintCurrent); }',
+  'function selectView(view) { if (!instances[view]) return; if (view !== currentView) instances[currentView].data.signalDetailsOpen = false; currentView = view; tabs.forEach((tab) => { const selected = tab.dataset.previewView === view; tab.setAttribute("aria-selected", String(selected)); tab.classList.toggle("is-selected", selected); const image = tab.querySelector("img"); image.src = selected ? image.dataset.selectedIcon : image.dataset.icon; }); renderCurrent(); }',
   'function eventFor(node) { const dataset = {}; for (const [key, value] of Object.entries(node.dataset)) if (!key.startsWith("preview")) dataset[key] = value; return { currentTarget: { dataset } }; }',
   'function setData(patch) { instances[currentView].setData(patch); }',
   'function handle(name, event) { const data = instances[currentView].data, dataset = event.currentTarget.dataset;',
@@ -632,6 +642,8 @@ const browserScript = [
   '  if (name === "onToggleSignalDetails") { if (data.signal && data.signal.show) setData({ signalDetailsOpen: !data.signalDetailsOpen }); return; }',
   '  if (name === "onToggleProgram") { const opening = !data.programOpen; setData({ programOpen: opening, ...(opening ? {} : { programHeight: 0 }) }); if (opening) requestAnimationFrame(() => { const reveal = root.querySelector(".prog-reveal"); if (reveal && reveal.scrollHeight) setData({ programHeight: Math.ceil(reveal.scrollHeight) }); }); return; }',
   '  if (name === "onSelectCalendarDay") { const date = dataset.date, selected = bundles[currentView].calendarSelections[date]; if (selected) setData({ selectedDate: date, selectedDay: selected }); return; }',
+  '  if (name === "onSelectPlanDay") { const day = Number(dataset.day), selected = bundles[currentView].planSelections[day]; if (selected) setData({ selectedPlanDay: day, selectedPlan: selected, expandedPlanEntry: "" }); return; }',
+  '  if (name === "onTogglePlanEntry") { const key = dataset.key; if ((data.selectedPlan?.entries || []).some((entry) => entry.key === key && entry.hasText)) setData({ expandedPlanEntry: data.expandedPlanEntry === key ? "" : key }); return; }',
   '  if (name === "onToggleRecord") { const key = dataset.key; if ((data.allRecords || []).some((row) => row.key === key)) setData({ expandedRecord: data.expandedRecord === key ? "" : key }); return; }',
   '  if (name === "onToggleDetails") { setData({ detailsOpen: !data.detailsOpen }); return; }',
   '  if (name === "onToggleMoreRecords") { setData({ moreRecordsOpen: !data.moreRecordsOpen }); return; }',

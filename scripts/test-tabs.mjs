@@ -89,6 +89,58 @@ test('日历日期可选择，静默刷新保留选择，消失日期回退到�
   assert.equal(page.data.selectedDate, '2026-10-20');
 });
 
+test('28天计划按原帖Day编号选择，显示逐日摘要且与记录日历选择隔离', () => {
+  const input = state();
+  const rows = Array.from({ length: 28 }, (_, index) => ({
+    day: index + 1,
+    status: index + 1 > 16 ? 'future' : 'missing',
+    statusLabel: index + 1 > 16 ? '后续日期' : '未见公告',
+    updateCount: 0,
+    resetCount: 0,
+    creditCount: 0,
+    confirmedCount: 0,
+    entries: [],
+  }));
+  rows[1] = {
+    ...rows[1], status: 'updated', statusLabel: '发布更新', updateCount: 1,
+    entries: [
+      { id: 'day2-update', kind: 'update', isUpdate: true, title: 'Auto-review 向免费用户开放', text: 'Auto-review is now free for all users.', createdAt: '2026-10-06T04:00:00.000Z', url: 'https://x.com/tibo/status/day2-update' },
+      { id: 'day2-roundup', kind: 'roundup', title: 'Day 2 当日汇总', text: 'Roundup of Day 2.', createdAt: '2026-10-06T05:00:00.000Z', url: 'https://x.com/tibo/status/day2-roundup' },
+    ],
+  };
+  rows[15] = { ...rows[15], status: 'updated', statusLabel: '发布更新', updateCount: 1,
+    entries: [{ id: 'day16-update', kind: 'update', isUpdate: true, title: 'API 缓存改进', text: 'API caching changes.', createdAt: '2026-10-21T01:00:00.000Z', url: 'https://x.com/tibo/status/day16-update' }] };
+  input.signals = {
+    ...input.signals,
+    calendar: {
+      ...input.signals.calendar,
+      cells: [
+        { date: '2026-10-19', status: 'confirmed', statusLabel: '已到账', confirmedCount: 1, pendingCount: 0, details: [] },
+        { date: '2026-10-20', status: 'confirmed', statusLabel: '已到账', confirmedCount: 1, pendingCount: 0, details: [] },
+      ],
+      plan: { title: 'Tibo 28 天计划', days: 28, latestDay: 16, reportedDays: 16, updatedDays: 12, resetDays: 6, sourceUrl: 'https://x.com/tibo/status/program', rows },
+    },
+  };
+  const page = host('observe');
+  page.apply({ state: input, degraded: false });
+  assert.equal(page.data.planView.days.length, 28);
+  assert.equal(page.data.planView.latestLabel, '最新原帖 Day 16 / 28');
+  assert.equal(page.data.selectedPlanDay, 16);
+  assert.equal(page.data.selectedPlan.day, 16);
+  page.onSelectCalendarDay({ currentTarget: { dataset: { date: '2026-10-19' } } });
+  page.onSelectPlanDay({ currentTarget: { dataset: { day: '2' } } });
+  assert.equal(page.data.selectedDate, '2026-10-19');
+  assert.equal(page.data.selectedPlan.day, 2);
+  assert.equal(page.data.selectedPlan.entries.length, 2);
+  assert.equal(page.data.selectedPlan.entries[0].when, '2026.10.06 12:00 北京');
+  assert.equal(page.data.selectedPlan.entries[1].labels[0].text, '当日汇总');
+  page.onTogglePlanEntry({ currentTarget: { dataset: { key: 'day2-update' } } });
+  assert.equal(page.data.expandedPlanEntry, 'day2-update');
+  page.apply({ state: input, degraded: false, preserveUi: true });
+  assert.equal(page.data.selectedPlanDay, 2);
+  assert.equal(page.data.expandedPlanEntry, 'day2-update');
+});
+
 test('切回页面读取共享缓存，隐藏后停止计时且记录和分析不查询提醒', () => {
   for (const view of ['records', 'analysis']) {
     const page = host(view), calls = [];
@@ -103,6 +155,38 @@ test('切回页面读取共享缓存，隐藏后停止计时且记录和分析�
     assert.equal(page.data.pageVisible, false);
     assert.equal(page.stopped, true);
   }
+});
+
+test('线索详情仅在有内容时打开，再次点击关闭', () => {
+  const page = host('observe');
+  page.data.signal = { show: false };
+  page.onToggleSignalDetails();
+  assert.equal(page.data.signalDetailsOpen, false, '没有详情时不能留下滚动锁');
+  page.data.signal = { show: true };
+  page.onToggleSignalDetails();
+  assert.equal(page.data.signalDetailsOpen, true, '有效线索能打开详情');
+  page.onToggleSignalDetails();
+  assert.equal(page.data.signalDetailsOpen, false, '关闭后释放滚动锁');
+});
+
+test('线索消失或页面隐藏时关闭详情，静默刷新有效线索时保留', () => {
+  const input = state();
+  input.prediction = { ...input.prediction, asOf: new Date(now).toISOString() };
+  input.signals = { ...input.signals, forecasts: [], hints: [{ id: 'modal-hint', intent: 3,
+    createdAt: new Date(now - 600000).toISOString(), text: 'reset soon' }] };
+  const page = host('observe');
+  page.apply({ state: input, degraded: false });
+  page.onToggleSignalDetails();
+  page.apply({ state: input, degraded: false, preserveUi: true });
+  assert.equal(page.data.signalDetailsOpen, true, '后台刷新不打断正在查看的有效详情');
+  input.signals = {};
+  page.apply({ state: input, degraded: false, preserveUi: true });
+  assert.equal(page.data.signalDetailsOpen, false, '线索失效后不能保留不可见浮层');
+  page.data.signal = { show: true };
+  page.onToggleSignalDetails();
+  page.stopTicker = () => {};
+  page.onHide();
+  assert.equal(page.data.signalDetailsOpen, false, '切走页面后不能遗留浮层');
 });
 
 test('查看预测依据走原生 Tab，单页模式不发起跳转', () => {

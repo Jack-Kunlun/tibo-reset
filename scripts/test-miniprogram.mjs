@@ -630,6 +630,9 @@ check(
   const calendar=d.calendar;
   check('日历接入首页且格子保留实际日期与状态',calendar?.zone==='UTC' && calendar.cells.length===calendar.days && calendar.cells.every(c=>/^\d{2}\/\d{2}$/.test(c.label) && c.statusLabel));
   check('日历确认数与预告条数分别保留，格内合计不混淆',calendar.confirmedCount===calendar.cells.reduce((n,c)=>n+c.confirmedCount,0) && calendar.awaitingCount===calendar.cells.reduce((n,c)=>n+c.pendingCount+c.datedCount,0));
+  const plan=d.planView;
+  check('首页显示28格业务Day计划，最新进度取原帖编号而非日历日期',plan?.show && plan.days.length===28 && plan.days.every((row,index)=>row.day===index+1) && plan.latestLabel===`最新原帖 Day ${plan.latestDay} / ${plan.dayCount}` && d.selectedPlanDay===plan.latestDay);
+  check('计划明细保留人工摘要、来源与北京时间，不展开长原文',d.selectedPlan?.entries.every(entry=>entry.title && entry.when && typeof entry.text==='string' && typeof entry.url==='string') && d.expandedPlanEntry==='');
 }
 check(
   '总览里没有 undefined / NaN',
@@ -2192,17 +2195,35 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
     app.tabBar.list.map(t => t.pagePath).join(',') === 'pages/index/index,pages/history/index,pages/analysis/index');
   check('三Tab图标均为存在的本地PNG', app.tabBar.list.every(t =>
     existsSync(resolve(ROOT, 'miniprogram', t.iconPath)) && existsSync(resolve(ROOT, 'miniprogram', t.selectedIconPath))));
-  check('首页信号置顶，预测之后是提醒、紧凑经过时间与每日窗口',
+  check('首页信号置顶，预测之后是提醒、紧凑经过时间与28天计划',
     h.indexOf('class="tr-signal ') >= 0 && h.indexOf('class="tr-signal ') < h.indexOf('class="tr-outlook"') &&
     h.indexOf('class="tr-outlook"') < h.indexOf('class="tr-reminders"') &&
     h.indexOf('class="tr-reminders"') < h.indexOf('class="tr-elapsed"') &&
-    h.indexOf('class="tr-elapsed"') < h.indexOf('class="tr-window"'));
+    h.indexOf('class="tr-elapsed"') < h.indexOf('class="tr-window tr-plan"') && h.includes('planView.latestLabel') && h.includes('bindtap="onSelectPlanDay"'));
+  check('计划默认按官方Day编号展示，原规则与来源收在折叠说明内',
+    h.includes('28 天规则') && h.includes('planView.summary') && h.includes('selectedPlan.entries') && h.includes('bindtap="onToggleProgram"') && h.includes('bindtap="onCopySource"'));
+  const planDisplayContract = (markup) => {
+    const freshness = markup.indexOf('planView.freshnessText');
+    return freshness >= 0 && freshness < markup.indexOf('class="tr-view tr-plan-grid"') &&
+      freshness < markup.indexOf('class="tr-view tr-plan-explain"') &&
+      (markup.match(/class="tr-view tr-plan-legend-item"/g) || []).length === 3 &&
+      markup.includes('更新+重置') && markup.includes('tr-plan-legend-note') &&
+      markup.includes('<view wx:if="{{item.hasText}}" class="tr-view tr-plan-action"') &&
+      markup.includes('<view wx:if="{{item.url && !singlePage}}" class="tr-view tr-plan-action"');
+  };
+  check('计划保留三类主图例、其他状态说明、常驻快照时刻和可用操作', planDisplayContract(home));
+  check('计划快照时刻移出首屏摘要会被断言拦截', !planDisplayContract(home.replace('        <text class="tr-text tr-plan-freshness">{{planView.freshnessText}}</text>\n', '')));
+  check('移除更新+重置主图例会被断言拦截', !planDisplayContract(home.replace('更新+重置', '更新')));
+  check('移除计划其他状态说明会被断言拦截', !planDisplayContract(home.replace('tr-plan-legend-note', 'tr-plan-legend-detail')));
+  check('计划操作不再承载于不可控基线的文本节点', !planDisplayContract(home.replace('<view wx:if="{{item.hasText}}" class="tr-view tr-plan-action"', '<text wx:if="{{item.hasText}}" class="tr-text tr-plan-action"')));
   check('首页不再堆叠日历、历史记录和完整图表', !/reset-calendar|id="trend"|id="hist"|id="survival"|id="strip"/.test(h));
   check('两类提醒仍在首页且未增加提醒Tab', /data-kind="announcement"/.test(h) && /data-kind="landed"/.test(h) && !/onToggleReminder/.test(r+a));
   check('新模板按选择状态共用一个批量入口，旧服务仍有逐项回退入口',
     home.includes('{{reminderBatch}}') && home.includes('bindtap="onSelectReminder"') &&
     home.includes('bindtap="onEnableReminders"') && home.includes('{{reminderAction.label}}') &&
-    home.includes('bindtap="onToggleReminder"') && home.includes('aria-checked="{{announcementRemind.selected}}"'));
+    home.includes('loading="{{reminderAction.loading}}"') && home.includes('bindtap="onToggleReminder"') &&
+    home.includes('loading="{{announcementRemind.state === \'busy\' || announcementRemind.state === \'checking\'}}"') &&
+    home.includes('aria-checked="{{announcementRemind.selected}}"'));
   check('记录页日历可点选明细，之后展示完整记录',
     r.includes('bindtap="onSelectCalendarDay"') && r.includes('selectedDay.details') && r.includes('allRecords') &&
     r.indexOf('tr-calendar-card') < r.indexOf('tr-selected-date') && r.indexOf('tr-selected-date') < r.indexOf('tr-history-list'));
@@ -2246,6 +2267,18 @@ console.log('\n【14】状态刷新不是重复返回旧内存缓存');
     check('旧后端缺日历时只对日历降级，保留当前接口数据',!legacy.degraded && legacy.state.source==='api' && legacy.state.generatedAt===legacyRemote.generatedAt && legacy.state.signals.calendar?.source==='snapshot');
     const legacyCalendar = buildCalendarView(legacy.state.signals.calendar);
     check('局部日历快照明确标注原始数据时间，不冒充接口刚更新时间',legacyCalendar.snapshot && legacyCalendar.freshnessText.includes('日历快照') && legacy.state.signals.calendar.dataAsOf===state.signals.calendar.dataAsOf);
+    const {buildProgramPlanView} = await import('../miniprogram/utils/view.js');
+    const {plan:ignoredPlan,...legacyCalendarWithoutPlan}=state.signals.calendar;
+    const oldPlanRemote={...legacyRemote,signals:{...legacySignals,calendar:{...legacyCalendarWithoutPlan,title:'旧服务日历'}}};
+    globalThis.wx.request = o=>o.success({statusCode:200,data:oldPlanRemote});
+    const oldPlanFallback=await api.loadState({force:true});
+    const planFallbackView=buildProgramPlanView(oldPlanFallback.state.signals.calendar.plan);
+    check('旧服务有日历但缺计划时只回补同账号计划快照并标原始数据时刻',
+      oldPlanFallback.state.signals.calendar.title==='旧服务日历' && oldPlanFallback.state.signals.calendar.plan?.source==='snapshot' &&
+      oldPlanFallback.state.signals.calendar.plan.dataAsOf===state.dataUpdatedAt && planFallbackView.freshnessText.includes('计划快照'));
+    globalThis.wx.request = o=>o.success({statusCode:200,data:{...oldPlanRemote,signals:{...legacySignals,calendar:{...legacyCalendarWithoutPlan,plan:null}}}});
+    check('服务端显式 plan:null 时不回补旧计划',
+      (await api.loadState({force:true})).state.signals.calendar.plan===null);
     const legacyHost={...captured,data:{...page.data},setData(patch){Object.assign(this.data,patch);},tick(){},paint(){}};
     legacyHost.apply({state:legacy.state,degraded:false});
     check('接口覆盖首屏后，日历仍能进入首页可见数据',legacyHost.data.calendar?.cells.length===state.signals.calendar.cells.length && legacyHost.data.calendar.freshnessText.includes('日历快照'));
