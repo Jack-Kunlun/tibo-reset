@@ -107,7 +107,7 @@
   </view>
   <view wx:if="{{signal.show && signalDetailsOpen}}" class="tr-view tr-overlay" bindtap="onToggleSignalDetails"><view class="tr-view tr-overlay-mask" catchtouchmove="onStopTouchMove"></view><view class="tr-view tr-sheet" catchtap="onStopTap" role="dialog" aria-label="信号依据"><view class="tr-view tr-sheet-head"><text class="tr-text tr-h3">信号依据</text><button class="tr-button tr-close" bindtap="onToggleSignalDetails" aria-label="关闭详情">×</button></view><scroll-view scroll-y="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}" class="sheet-scroll"><view class="tr-view signal-detail">
       <view wx:if="{{signal.window}}" class="tr-view win">
-        <view class="tr-view wrow"><text class="tr-text k">Tibo 当地时间</text><text class="tr-text v">{{signal.window.sourceZone}}</text><text class="tr-text z">{{signal.window.srcOffset}}</text></view>
+        <view class="tr-view wrow"><text class="tr-text k">{{signal.window.sourceLabel}}</text><text class="tr-text v">{{signal.window.sourceZone}}</text><text class="tr-text z">{{signal.window.srcOffset}}</text></view>
         <view class="tr-view wrow"><text class="tr-text k">北京时间</text><text class="tr-text v">{{signal.window.userZone}}</text><text class="tr-text z">{{signal.window.usrOffset}}</text></view>
         <text class="tr-text wfoot">{{signal.window.diffText}}{{signal.window.rangeNote ? ' · ' + signal.window.rangeNote : ''}}</text>
         <text wx:if="{{signal.precision}}" class="tr-text wprec">粒度：{{signal.precision}}</text>

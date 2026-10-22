@@ -42,7 +42,7 @@ export function buildCalendarView(calendar) {
     weekdays: ['一', '二', '三', '四', '五', '六', '日'],
     gridCells: [
       ...Array.from({ length: calendar.startWeekday ?? 0 }, (_, i) => ({ key: `blank-${i}`, blank: true })),
-      ...calendar.cells.map((cell) => ({ ...cell, key: cell.date, dayNumber: cell.date.slice(8), displayLabel: cell.status === 'updated' ? '更新' : cell.status === 'elapsed-no-record' ? '无记录' : cell.statusLabel, awaitingCount: cell.pendingCount + (cell.datedCount ?? 0) })),
+      ...calendar.cells.map((cell) => ({ ...cell, key: cell.date, dayNumber: cell.date.slice(8), displayLabel: cell.status === 'pending' ? '预' : cell.status === 'updated' ? '更新' : cell.status === 'elapsed-no-record' ? '无记录' : cell.statusLabel, awaitingCount: cell.pendingCount + (cell.datedCount ?? 0) })),
     ],
   };
 }
@@ -51,7 +51,7 @@ const PLAN_STATUS_VIEW = {
   updated: { cls: 'updated', marker: '更', fallback: '功能更新' },
   confirmed: { cls: 'confirmed', marker: '重', fallback: '重置已确认' },
   mixed: { cls: 'mixed', marker: '双', fallback: '更新与重置' },
-  pending: { cls: 'pending', marker: '待', fallback: '提及重置·待核实' },
+  pending: { cls: 'pending', marker: '预', fallback: '重置预告' },
   noted: { cls: 'noted', marker: '提', fallback: '当日动态' },
   missing: { cls: 'missing', marker: '—', fallback: '未见公告' },
   future: { cls: 'future', marker: '·', fallback: '尚未到此日' },
@@ -144,7 +144,7 @@ export function buildProgramPlanView(plan) {
  * 原样铺在最显眼的位置，等于把数据当排版用。
  */
 function headlineOf(top, w) {
-  const uf = w && w.userFrom;
+  const uf = w && (w.deadline ? w.userDeadline : w.userFrom);
   if (!uf) return null;
 
   const md = `${Number(uf.m)}.${Number(uf.d)}`;
@@ -156,7 +156,7 @@ function headlineOf(top, w) {
     return { big: '本周', sub: `${md} 起 · ${pText}` };
   }
 
-  const tail = p === 'evening' ? '当晚' : p === 'instant' ? `${hhmm} 前后` : '全天';
+  const tail = w.deadline ? `${hhmm} 前` : p === 'evening' ? '当晚' : p === 'instant' ? `${hhmm} 前后` : '全天';
   return { big: uf.weekdayCN || md, sub: `${md} · ${tail}` };
 }
 
@@ -290,7 +290,7 @@ function forecastView(f) {
     badge: '明确信号',
     title: f.timing === 'pending' ? 'Tibo 已预告重置，时间待公布' : 'Tibo 已预告下一次额度重置',
     timing: f.timing || '',
-    precision: PRECISION_TEXT[f.precision] || f.precision || '',
+    precision: w?.deadline ? '最晚时间' : PRECISION_TEXT[f.precision] || f.precision || '',
     headline: headlineOf(f, w),
     window: windowView(w),
     ev,
@@ -374,6 +374,7 @@ function windowView(w) {
     // 两行都过一遍：窄屏上整串放不下时，把断点放到「日期 / 时间」之间，
     // 而不是让它落在唯一的那个空格上、把尾词挤成孤字（`全天` 那行没有时间，不受影响）。
     sourceZone: breakBeforeTime(w.sourceZone),
+    sourceLabel: w.sourceLabel || 'Tibo 当地时间',
     userZone: breakBeforeTime(w.userZone),
     srcOffset: (w.zones && w.zones.b && w.zones.b.offset) || '',
     usrOffset: (w.zones && w.zones.a && w.zones.a.offset) || '',
@@ -519,7 +520,7 @@ export function buildOutlookView(chart, pred, sig, now) {
     const bits = [];
     if (b.announcedHard) bits.push(`${b.announcedHard} 条承诺`);
     if (b.announcedSoft) bits.push(`${b.announcedSoft} 条同日提及`);
-    brief = `Tibo 已给出公告${bits.length ? `（${bits.join(' · ')}）` : ''}，预计时间取窗口开启时刻。`;
+    brief = `Tibo 已给出公告${bits.length ? `（${bits.join(' · ')}）` : ''}，${o.etaDeadline ? '该时间为公告截止点，此前可能到账；尚未确认落地' : '预计时间取窗口开启时刻'}。`;
   } else if (b.pendingAnnouncement) {
     brief = b.arrivalMedianMs == null
       ? `已预告重置，具体时间待公布。预告到落地的可配对样本 ${b.arrivalSamples} 次，到账耗时样本不足。`
@@ -545,6 +546,7 @@ export function buildOutlookView(chart, pred, sig, now) {
     /** `announced` = 有公告（ETA 是窗口开启时刻）/ `model` = 无公告（ETA 是中位推算）。
      *  两档的**措辞必须能分开**，所以给它一个自己的字段，别让页面从 status 反推。 */
     etaKind: o.etaKind,
+    etaDeadline: o.etaDeadline,
     etaBasis: o.etaBasis,
     hasEstimate: o.hasEstimate,
     announcement: o.announcement ? {
@@ -581,7 +583,7 @@ export function buildOutlookView(chart, pred, sig, now) {
     wd: eta.wd,
     hm: eta.hm,
     etaDetail: !o.hasEstimate ? '到账耗时样本不足' : o.announcement?.pending ? `${eta.wd} · 北京时间 · 约 ${eta.hm} · 预告后历史推算` : o.etaKind === 'announced'
-      ? `${eta.wd} · 北京时间 · 公告日期`
+      ? o.etaDeadline ? `${eta.wd} · 北京时间 · ${eta.hm} 前 · 公告截止` : `${eta.wd} · 北京时间 · 公告日期`
       : `${eta.wd} · 北京时间 · 历史中位推算`,
     /** 倒计时锚点（时间戳直通，页面每秒据此重算，不做字符串反解析） */
     etaAt: o.etaAt,
@@ -626,11 +628,11 @@ export function predCountdown(pred, now) {
   // 「时 / 分」，更短则为「分 / 秒」。完整精度仍由锚点计算，展示不再铺四列。
   const groups = cd.d >= 1 ? allGroups.slice(0, 2) : cd.h >= 1 ? allGroups.slice(1, 3) : allGroups.slice(2, 4);
   const over =
-    pred.etaKind === 'announced' ? '公告窗口已开启 · 等待重置确认' : pending ? '已到模型预计时刻 · 仍待落地确认' : '已到中位预测时刻 · 随时可能重置';
+    pred.etaDeadline ? '公告截止已过 · 仍待落地确认' : pred.etaKind === 'announced' ? '公告窗口已开启 · 等待重置确认' : pending ? '已到模型预计时刻 · 仍待落地确认' : '已到中位预测时刻 · 随时可能重置';
   return {
     over: cd.over,
     groups,
-    label: cd.over ? over : pending ? '距模型预计到账' : '预计还需等待',
+    label: cd.over ? over : pred.etaDeadline ? '距公告截止' : pending ? '距模型预计到账' : '预计还需等待',
   };
 }
 

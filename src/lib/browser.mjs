@@ -287,7 +287,7 @@ export function harvestExpression(handle) {
  * 只是一堆散条目，配不出谁回了谁。
  *
  * 配对规则：`with_replies` 流里「被回复的推文」紧邻在「他的回复」之前。
- * 所以往前找最近一条**不属于他**且有内容的条目。
+ * 所以只检查紧挨当前条目的上一篇；任何中间 article 都会切断这条弱关系。
  *
  * 两条防呆，都是为了不生出**假的**上下文（假上下文比没有上下文更糟：
  * 它会把一条无关推文的内容当成他的回复语境，直接污染识别结果）：
@@ -300,7 +300,7 @@ export function harvestExpression(handle) {
 export function pairReplyContext(items, handle) {
   const h = String(handle ?? '').toLowerCase();
   const out = [];
-  let lastOther = null;
+  let previous = null;
 
   for (const raw of items ?? []) {
     const it = { ...raw };
@@ -309,22 +309,23 @@ export function pairReplyContext(items, handle) {
     const isOther = !isMine && !!author && author !== h && !!it.text && !!it.time;
 
     if (isMine) {
-      // 自我回复（上一条也是他的）时不更新 lastOther，继续往前找真正被回复的那条
-      if (lastOther && String(lastOther.time) < String(it.time)) {
+      // 只有紧邻的外部 article 才可能是回复对象；不跨过自己的帖子或未知节点猜关系。
+      if (previous && String(previous.time) < String(it.time)) {
         it.inReplyTo = {
-          account: lastOther.author,
-          id: lastOther.id ?? null,
-          text: lastOther.text,
-          created_at: lastOther.time,
-          url: lastOther.url ?? null,
+          account: previous.author,
+          id: previous.id ?? null,
+          text: previous.text,
+          created_at: previous.time,
+          url: previous.url ?? null,
         };
       } else {
         it.inReplyTo = null;
       }
     } else {
       it.inReplyTo = null;
-      if (isOther) lastOther = it;
     }
+    // 处理每个 article 后都推进邻接状态；未知 article 也必须清掉旧外帖。
+    previous = isOther ? it : null;
     out.push(it);
   }
 
@@ -837,24 +838,41 @@ export function contextParentId(ref, tweets = []) {
   return matches.length === 1 ? matches[0].id : null;
 }
 
+function isFullTextContextCandidate(text) {
+  return /^(?:landing\s+within|done\s+and\s+dusted)\b/i.test(text) ||
+    /\breset\s+day\b/i.test(text) ||
+    /\b(?:land|lands|landing)\b[\s\S]{0,100}\b(?:today|tomorrow|before|by)\b/i.test(text);
+}
+
 export function pickFullTextCandidates(streams, opts = {}) {
   const minLength = Number(opts.minLength ?? TRUNCATED_MIN_LENGTH);
   const max = Number(opts.max ?? 12);
   const candidates = [];
   const seen = new Set();
+  const prioritized = new Set();
 
   for (const s of streams ?? []) {
     const flagged = new Set(s?.truncatedIds ?? []);
     for (const t of s?.tweets ?? []) {
-      if (!t?.id || seen.has(t.id)) continue;
-      const needsContext = /^(?:landing\s+within|done\s+and\s+dusted)\b/i.test(String(t.text ?? ''));
-      if (!flagged.has(t.id) && String(t.text ?? '').length < minLength && !needsContext) continue;
+      if (!t?.id) continue;
+      const text = String(t.text ?? '');
+      const needsContext = isFullTextContextCandidate(text);
+      if (!flagged.has(t.id) && text.length < minLength && !needsContext) continue;
+      if (seen.has(t.id)) {
+        if (needsContext) prioritized.add(t.id);
+        continue;
+      }
       seen.add(t.id);
       candidates.push(t.id);
+      if (needsContext) prioritized.add(t.id);
     }
   }
 
-  return { candidates, picked: candidates.slice(0, max), skipped: Math.max(0, candidates.length - max) };
+  const ordered = [
+    ...candidates.filter((id) => prioritized.has(id)),
+    ...candidates.filter((id) => !prioritized.has(id)),
+  ];
+  return { candidates: ordered, picked: ordered.slice(0, max), skipped: Math.max(0, ordered.length - max) };
 }
 
 /**

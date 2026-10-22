@@ -256,6 +256,13 @@ const RE_ALTERNATIVE = /\b(?:or|either)\b(?:\s+\w+){0,3}\s+reset/i;
 const RE_SCHEDULE_RESET = /\bday\s+\d+\s*\/\s*(?:[a-z’'’]{1,20}\s+){0,3}reset\s*[.!]*$/i;
 /** 日程前缀本身 —— 用来识别「`Day N/ <发布说明>`」这一整类，不能只认 reset 收尾的形态。 */
 const RE_SCHEDULE_PREFIX = /\bday\s+\d+\s*\//i;
+// 活动日正文可直接宣布 reset day，不能因它不是短标题而降成发布说明。
+function hasResetDayAnnouncement(text) {
+  return splitSentences(text).some((s) =>
+    /\b(?:it[’']s|it is|today is)\s+(?:a\s+)?reset\s+day(?:\s+today)?[.!]?$/i.test(s.trim()) &&
+    !blockedResetSentence(s) && !RE_HYPOTHETICAL.test(s) &&
+    !/\b(?:maybe|hope|wish|yesterday|previously)\b/i.test(s));
+}
 const withoutUrls = (text) => String(text ?? '').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
 const RE_OWN_RESET_DONE = /^what would you like with your side of reset\?\s*it[’']s done[.!]?$/i;
 // 10/20 已核实为随帖落地：cooking 讲功能开发，不能据此推断 reset 仍未完成。
@@ -279,6 +286,7 @@ function blockedResetSentence(text) {
 // 「是否会重置」与「何时重置」分开判断；单独的 soon 及疑问、愿望不构成承诺。
 function hasUntimedAnnouncement(text, viaContext) {
   const whole = withoutUrls(text);
+  if (hasResetDayAnnouncement(whole)) return true;
   // 日程标题按完整正文检查，否定、假设、疑问和回顾仍不能构成预告。
   if (RE_SCHEDULE_RESET.test(whole) && !blockedResetSentence(whole) &&
     !RE_HYPOTHETICAL.test(whole) && !whole.trim().endsWith('?') &&
@@ -483,6 +491,13 @@ const TZ_ALIAS = {
   ct: 'America/Chicago', cst: 'America/Chicago', cdt: 'America/Chicago',
   et: 'America/New_York', est: 'America/New_York', edt: 'America/New_York',
   utc: 'UTC', gmt: 'UTC',
+};
+
+// 明确写出的钟点缩写按字面偏移；PT 等泛称才随当地夏令时变化。
+// EOD 的既有日期解释不在本次钟点修复范围内。
+const CLOCK_TZ_ALIAS = { ...TZ_ALIAS,
+  pst: 'Etc/GMT+8', pdt: 'Etc/GMT+7', mst: 'Etc/GMT+7', mdt: 'Etc/GMT+6',
+  cst: 'Etc/GMT+6', cdt: 'Etc/GMT+5', est: 'Etc/GMT+5', edt: 'Etc/GMT+4',
 };
 
 /**
@@ -771,7 +786,10 @@ function parseTimes(text, refTs, zone) {
     if (hh < 1 || hh > 12 || mm > 59) continue;
     if (cm[3] === 'pm' && hh !== 12) hh += 12;
     if (cm[3] === 'am' && hh === 12) hh = 0;
-    clocks.push({ hh, mm, word: cm[0].replace(/\s+/g, ' ').trim() });
+    const before = /\b(?:before|by)\s*$/.test(t.slice(0, cm.index));
+    const tz = t.slice(cm.index + cm[0].length).match(/^\s*(pt|pst|pdt|mt|mst|mdt|ct|cst|cdt|et|est|edt|utc|gmt)\b/);
+    clocks.push({ hh, mm, word: cm[0].replace(/\s+/g, ' ').trim(), before,
+      zone: tz ? CLOCK_TZ_ALIAS[tz[1]] : zone, abbreviation: tz?.[1] });
   }
   // midnight / noon 是钟点的命名形式。只在没有数字钟点时兜底，
   // 免得 "midnight" 与 "12am" 同时出现时产出两个一模一样的窗口。
@@ -787,12 +805,26 @@ function parseTimes(text, refTs, zone) {
       .filter((w) => Number.isFinite(w.dayNum))
       .sort((a, b) => b.spec - a.spec)[0];
     for (const c of clocks) {
-      if (dated) {
-        push(atClock(dated.dayNum, c.hh, c.mm, zone), c.word, null, SPEC.clockInDay);
+      const z = c.zone ?? zone;
+      // tomorrow/today 仍跟随发推者的日历；缩写只约束钟点，不能倒回前一天重算日期。
+      const date = dated;
+      const timezoneNote = c.abbreviation === 'pst' && offsetHours(new Date(refTs).toISOString(), SOURCE_ZONE) !== -8
+        ? '原文 PST 按 UTC-8 换算；若泛指洛杉矶当地夏令时（UTC-7），则比此时间早 1 小时。'
+        : null;
+      if (c.before) {
+        const dn = date?.dayNum ?? lp.dayNum;
+        if (dated && out.includes(dated)) out.splice(out.indexOf(dated), 1);
+        // before/by 是截止点，不能变成「该钟点起的一小时」。
+        push({ from: Math.max(refTs, at(dn, 0, 0, z)), to: at(dn, c.hh, c.mm, z),
+          precision: 'instant', dayNum: dn, deadline: true,
+          ...(c.abbreviation ? { clockZone: z, clockAbbreviation: c.abbreviation.toUpperCase() } : {}) },
+        c.word, timezoneNote, Math.max(SPEC.clockInDay, dated?.spec ?? 0) + 1);
+      } else if (date) {
+        push(atClock(date.dayNum, c.hh, c.mm, z), c.word, timezoneNote, SPEC.clockInDay);
       } else {
-        let dn = lp.dayNum;
-        if (at(dn, c.hh, c.mm, zone) < refTs) dn += 1;
-        push(atClock(dn, c.hh, c.mm, zone), c.word, null, SPEC.clockInDay);
+        let dn = localParts(refTs, z).dayNum;
+        if (at(dn, c.hh, c.mm, z) < refTs) dn += 1;
+        push(atClock(dn, c.hh, c.mm, z), c.word, timezoneNote, SPEC.clockInDay);
       }
     }
   }
@@ -848,8 +880,10 @@ const fmt = (isoStr, zone) => partsIn(isoStr, zone);
 function describeWindow(w, sourceZone, userZone) {
   const f = fmt(new Date(w.from).toISOString(), userZone);
   const t2 = fmt(new Date(w.to).toISOString(), userZone);
-  const sf = fmt(new Date(w.from).toISOString(), sourceZone);
-  const st = fmt(new Date(w.to).toISOString(), sourceZone);
+  const displaySourceZone = w.clockZone ?? sourceZone;
+  const sourceLabel = w.clockAbbreviation ? `原文 ${w.clockAbbreviation}` : 'Tibo 当地时间';
+  const sf = fmt(new Date(w.from).toISOString(), displaySourceZone);
+  const st = fmt(new Date(w.to).toISOString(), displaySourceZone);
 
   const sameUserDay = f.year === t2.year && f.month === t2.month && f.day === t2.day;
   const sameSourceDay = sf.year === st.year && sf.month === st.month && sf.day === st.day;
@@ -872,7 +906,11 @@ function describeWindow(w, sourceZone, userZone) {
   let userText;
   let rangeNote = '';
 
-  if (instant) {
+  if (w.deadline) {
+    sourceText = `${datetime(st)} 前`;
+    userText = `${datetime(t2)} 前`;
+    rangeNote = '公告给出最晚时间，尚未确认落地';
+  } else if (instant) {
     sourceText = datetime(sf);
     userText = datetime(f);
   } else if (span) {
@@ -899,15 +937,21 @@ function describeWindow(w, sourceZone, userZone) {
       : `${datetime(f)} → ${datetime(t2)}`;
   }
 
+  const zones = dualZone(new Date(w.from).toISOString(), userZone, displaySourceZone, '北京时间', sourceLabel);
+  if (w.clockAbbreviation) zones.diffText = `北京时间比${sourceLabel}快 ${zones.diffHours} 小时`;
+
   return {
     // 时间戳以**数字**形式再带一份：window.from 是 ISO 字符串，而小程序端
     // 解析 ISO 在个别机型上有兼容差异（format.js 顶部刻意绕开 Intl 也是同一考虑）。
     // 倒计时每秒都在跑，这里不给它留解析歧义的余地。
     fromTs: w.from,
     toTs: w.to,
+    ...(w.deadline ? { deadline: true, deadlineText: datetime(t2),
+      userDeadline: { y: t2.year, m: t2.month, d: t2.day, hh: t2.hour, mm: t2.minute, weekdayCN: t2.weekdayCN } } : {}),
     // 起始日的结构化日期（北京时间视角），供大字公告直接拼装
     userFrom: { y: f.year, m: f.month, d: f.day, hh: f.hour, mm: f.minute, weekdayCN: f.weekdayCN },
     sourceZone: sourceText,
+    ...(w.clockAbbreviation ? { sourceLabel } : {}),
     userZone: userText,
     // 窗口开启那一刻（北京时间视角，单点）。倒计时的锚点要写在标签里 ——
     // 页面上只给一个跳动的数字、不说它数到哪一刻，读的人没法核对，
@@ -917,7 +961,7 @@ function describeWindow(w, sourceZone, userZone) {
     // 让读者知道还有一段范围，但不把它摆在主位上。
     rangeNote,
     crossesUserDay: !sameUserDay,
-    zones: dualZone(new Date(w.from).toISOString(), userZone, sourceZone, '北京时间', 'Tibo 当地时间'),
+    zones,
   };
 }
 
@@ -1093,7 +1137,7 @@ export function analyzeTweet(tweet, opts = {}) {
     ctxText && RE_RESET.test(ctxText) && (RE_SCOPE.test(ctxText) || linked)
       ? 3 + (RE_GENEROUS.test(ctxText) ? 1 : 0)
       : 0;
-  const hasContinue = RE_CONTINUE.test(text);
+  const hasContinue = RE_CONTINUE.test(text) || Boolean(linked && /^lands?\s+(?:tomorrow|today|before|by)\b/i.test(text));
   const viaContext = ownIntent < 2 && ctxIntent >= 2 && (hasContinue || linkedDone);
   const intent = viaContext ? Math.max(ownIntent, 3) : ownIntent;
 
@@ -1182,7 +1226,8 @@ export function analyzeTweet(tweet, opts = {}) {
     url: tweet.id ? `https://x.com/${tweet.account ?? opts.account ?? 'thsottiaux'}/status/${tweet.id}` : null,
     reasons,
     ...(linked ? { contextEvidence: linked.chain.map((p) => ({ id: p.id, createdAt: p.created_at,
-      text: p.text, url: p.url })), linkedCompletion: linkedDone } : {}),
+      text: p.text, url: p.url })), linkedCompletion: linkedDone,
+      contextRelation: tweet.quotedTweet ? 'quote' : 'reply' } : {}),
     // 是否靠上下文推断出来的。页面对这两类可以显示不同徽标 ——
     // 直接命中是「他自己说 reset」，上下文推断是「他在回应额度话题并承诺时间」，
     // 后者的可信度同样高，但依据不同，不该混为一谈。
@@ -1286,7 +1331,8 @@ export function analyzeTweet(tweet, opts = {}) {
   // 不是「我要重置」。KI-013 早就把这条列为红线，实现却一直没兑现：
   // 真正的日程式宣告必须命中 RE_SCHEDULE_RESET（斜杠后是短名词短语或
   // nevermind 句式），否则一律按发布说明降级为线索。
-  const scheduleOnly = RE_SCHEDULE_PREFIX.test(text) && !RE_SCHEDULE_RESET.test(withoutUrls(text));
+  const scheduleOnly = RE_SCHEDULE_PREFIX.test(text) && !RE_SCHEDULE_RESET.test(withoutUrls(text)) &&
+    !hasResetDayAnnouncement(text);
   const level = intent >= 3 && !scheduleOnly ? 'explicit' : 'hint';
   const win = describeWindow(w, sourceZone, userZone);
 
@@ -1494,8 +1540,17 @@ export function buildHypothesis(analyzed, opts = {}) {
  * @returns {Array} 按窗口开始时间升序的预告列表
  */
 export function buildForecasts(signals = [], hypothesis = null) {
+  // 直接自回复为 reset-day 主帖补上新时间时，只呈现修订后的那一次承诺。
+  // 父帖仍留在 signals 和子帖依据里；不合并没有会话关系的不同日预告。
+  const refinedParents = new Set();
+  for (const child of signals ?? []) {
+    if (!child.window || child.viaContext !== true || child.contextRelation !== 'reply' || child.contextEvidence?.length !== 1) continue;
+    const parent = (signals ?? []).find((s) => s.id === child.contextEvidence[0].id);
+    if (parent?.level === 'explicit' && hasResetDayAnnouncement(parent.text)) refinedParents.add(parent.id);
+  }
   const groups = new Map();
   for (const s of signals ?? []) {
+    if (refinedParents.has(s.id)) continue;
     const w = s?.window;
     if (!w) continue; // 未定时间的明确预告在下方独立归组，不替它虚构日期。
     const key = Number.isFinite(w.dayNum)
@@ -1520,9 +1575,13 @@ export function buildForecasts(signals = [], hypothesis = null) {
     // 证据 = 指向这个窗口的推文。正常情况下来自综合假设（同一天的硬承诺 + 同日提及）；
     // 假设只锚定一个日子，所以当另一个窗口存在时它自己撑起证据链 —— 退化为单条，
     // 但**结构保持一致**，渲染层不需要写两套。
-    const evidence = matched && hypothesis.evidence.length
+    const evidence = [...(matched && hypothesis.evidence.length
       ? hypothesis.evidence
-      : [asEvidence(lead, 'hard', '承诺了这一天')];
+      : [asEvidence(lead, 'hard', '承诺了这一天')])];
+    // 自回复的父帖提供「重置」主语，不把父帖旧的日期当成新窗口。
+    for (const parent of lead.contextEvidence ?? []) {
+      if (!evidence.some((e) => e.id === parent.id)) evidence.push(asEvidence(parent, 'hard', '自回复所指的重置预告'));
+    }
 
     return {
       level: 'explicit',
@@ -1550,7 +1609,7 @@ export function buildForecasts(signals = [], hypothesis = null) {
 
   // 有日期的预告优先；未定时间的承诺保留全部依据，但不擅自归到某个日期。
   list.sort((a, b) => (a.window.fromTs ?? 0) - (b.window.fromTs ?? 0));
-  const pending = (signals ?? []).filter((s) => s.timing === 'pending' && !s.window);
+  const pending = (signals ?? []).filter((s) => s.timing === 'pending' && !s.window && !refinedParents.has(s.id));
   if (pending.length) {
     const lead = [...pending].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
     list.push({ level: 'explicit', timing: 'pending', window: null, precision: null,

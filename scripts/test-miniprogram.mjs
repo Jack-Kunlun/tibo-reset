@@ -721,10 +721,12 @@ let overAnnLabel = '';
   const realEta = page.data.pred.etaAt;
   const realKind = page.data.pred.etaKind;
   const realAnnouncement = page.data.pred.announcement;
+  const realDeadline = page.data.pred.etaDeadline;
   const nowMs = Date.now();
   page.data.pred.etaAt = nowMs - 60_000;
   // 这组测已给出时间的过点行为，与当前快照是否恰好处于未定时预告无关。
   page.data.pred.announcement = null;
+  page.data.pred.etaDeadline = false;
 
   page.data.pred.etaKind = 'model';
   page._pcdKey = null;
@@ -749,6 +751,7 @@ let overAnnLabel = '';
   page.data.pred.etaAt = realEta;
   page.data.pred.etaKind = realKind;
   page.data.pred.announcement = realAnnouncement;
+  page.data.pred.etaDeadline = realDeadline;
   page._pcdKey = null;
   page.tickPredCountdown(nowMs);
 }

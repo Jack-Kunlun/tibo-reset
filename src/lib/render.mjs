@@ -412,7 +412,7 @@ function windowBlock(w) {
   const foot = [w.zones?.diffText ?? '', w.rangeNote ?? ''].filter(Boolean).join(' · ');
   return `<div class="sig-win">
         <div class="sw">
-          <span class="sw-k">Tibo 当地时间</span>
+          <span class="sw-k">${esc(w.sourceLabel ?? 'Tibo 当地时间')}</span>
           <span class="sw-v">${esc(w.sourceZone)}</span>
           <span class="sw-z">${esc(src?.offset ?? '')}</span>
         </div>
@@ -442,22 +442,23 @@ function windowBlock(w) {
  */
 function windowCountdown(w, now) {
   if (!w || !Number.isFinite(w.fromTs)) return '';
-  const left = Math.max(0, w.fromTs - now);
+  const anchor = w.deadline ? w.toTs : w.fromTs;
+  const left = Math.max(0, anchor - now);
   const d = Math.floor(left / DAY);
   const h = Math.floor((left % DAY) / 3_600_000);
   const mi = Math.floor((left % 3_600_000) / 60_000);
   const s = Math.floor((left % 60_000) / 1000);
   const over = left <= 0;
   return `
-    <div class="sig-cd" data-from="${w.fromTs}" data-over="${over ? 1 : 0}">
-      <span class="cd-cap">距窗口开启</span>
-      <span class="cd-anchor">北京时间 ${esc(w.openText ?? '')}</span>
+    <div class="sig-cd" data-from="${anchor}" data-over="${over ? 1 : 0}">
+      <span class="cd-cap">${w.deadline ? '距公告截止' : '距窗口开启'}</span>
+      <span class="cd-anchor">北京时间 ${esc((w.deadline ? w.deadlineText : w.openText) ?? '')}</span>
       <span class="cd-row">${group('d', String(d), '天')}${group('h', pad(h), '时')}${group(
         'm',
         pad(mi),
         '分'
       )}${group('s', pad(s), '秒')}</span>
-      <span class="cd-over">窗口已开启 · 随时可能重置</span>
+      <span class="cd-over">${w.deadline ? '公告截止已过 · 仍待落地确认' : '窗口已开启 · 随时可能重置'}</span>
     </div>`;
 }
 
@@ -515,7 +516,7 @@ function forecastBlock(f, sig, now) {
     <div class="sig-head">
       <span class="sig-badge">${t.label}</span>
       <span class="sig-title">${t.title}</span>
-      ${f.precision ? `<span class="sig-precision">粒度：${esc(PRECISION_TEXT[f.precision] ?? f.precision)}</span>` : ''}
+      ${f.precision ? `<span class="sig-precision">粒度：${esc(f.window?.deadline ? '最晚时间' : PRECISION_TEXT[f.precision] ?? f.precision)}</span>` : ''}
     </div>
     ${windowCountdown(f.window, now)}
     ${windowBlock(f.window)}
@@ -637,7 +638,7 @@ function briefLine(o) {
     const bits = [];
     if (b.announcedHard) bits.push(`${b.announcedHard} 条承诺`);
     if (b.announcedSoft) bits.push(`${b.announcedSoft} 条同日提及`);
-    return `Tibo 已给出公告${bits.length ? `（${bits.join(' · ')}）` : ''}，预计时间取窗口开启时刻。`;
+    return `Tibo 已给出公告${bits.length ? `（${bits.join(' · ')}）` : ''}，${o.etaDeadline ? '该时间为公告截止点，此前可能到账；尚未确认落地' : '预计时间取窗口开启时刻'}。`;
   }
   const n = b.intervals ? `按 ${b.intervals} 次历史间隔的节奏推算` : '按历史间隔的节奏推算';
   const scan = scanClause(o);
@@ -733,7 +734,7 @@ export function renderOutlook(o, m, prediction, signals, collect) {
 
   return `
   <section class="pred">
-    <div class="pcard${announcement ? ' is-announced' : ''}" id="pred" data-announcement="${!!announcement}" data-eta-kind="${esc(o.etaKind)}" data-status="${esc(o.status)}" ${hasEstimate ? `data-eta="${o.etaAt}"` : ''} data-over="${
+    <div class="pcard${announcement ? ' is-announced' : ''}" id="pred" data-announcement="${!!announcement}" data-eta-kind="${esc(o.etaKind)}" data-eta-deadline="${!!o.etaDeadline}" data-status="${esc(o.status)}" ${hasEstimate ? `data-eta="${o.etaAt}"` : ''} data-over="${
       over ? 1 : 0
     }">
       <div class="pcard-top">
@@ -748,7 +749,7 @@ export function renderOutlook(o, m, prediction, signals, collect) {
         <span class="am-small">${esc(eta.wd)} · 北京时间 · ${pending ? `约 ${esc(eta.hm)} · 预告后历史推算` : o.etaKind === 'model' ? '历史中位推算' : `${esc(eta.hm)} ${esc(o.etaNote)}`}</span>` : '<span class="announcement-pending">到账耗时样本不足</span>'}
         <span class="pc-badge" data-status="${esc(o.status)}">${esc(o.statusLabel)}</span>
         ${hasEstimate ? `<div class="pc-wait" data-over="${over ? 1 : 0}">
-          <span class="pc-wait-cap" id="pcd-cap">${o.etaKind === 'announced' ? (over ? '公告窗口已开启' : '距公告窗口开启') : pending ? (over ? '已到模型预计时刻' : '距模型预计到账') : (over ? '已到预测时刻' : '预计还需等待')}</span>
+          <span class="pc-wait-cap" id="pcd-cap">${o.etaDeadline ? (over ? '公告截止已过' : '距公告截止') : o.etaKind === 'announced' ? (over ? '公告窗口已开启' : '距公告窗口开启') : pending ? (over ? '已到模型预计时刻' : '距模型预计到账') : (over ? '已到预测时刻' : '预计还需等待')}</span>
           <div class="counter" id="pcd" data-scale="${scale}" role="timer" aria-label="${attr(fmtSpan(left / DAY))}">${renderEtaCounter(o)}</div>
           <span class="pc-wait-over">${pending ? '仍待落地确认' : announcement ? '等待重置确认' : '随时可能重置'}</span>
         </div>` : ''}
@@ -1203,6 +1204,7 @@ export function renderDigest(m, prediction, outlook) {
         ? {
             etaAt: outlook.etaAt,
             etaKind: outlook.etaKind,
+            etaDeadline: outlook.etaDeadline,
             etaBasis: outlook.etaBasis,
             sampleCount: outlook.arrival?.sampleCount ?? null,
             bandFromAt: outlook.band?.fromAt ?? null,
@@ -1346,7 +1348,7 @@ export function renderFreshness(info, nowMs) {
 export function renderProgramPlan(plan, program) {
   if (!plan?.rows?.length) return renderProgram(program);
   const selected = plan.rows.find((row) => row.day === plan.latestDay) ?? plan.rows[0];
-  const markers = { updated: '更', mixed: '双', confirmed: '重', pending: '告', noted: '提', missing: '—', future: '·' };
+  const markers = { updated: '更', mixed: '双', confirmed: '重', pending: '预', noted: '提', missing: '—', future: '·' };
   const entryLabels = { update: '功能更新', roundup: '当日汇总', note: '当日动态', reset: '重置确认',
     credit: '发券确认', announcement: '重置预告', 'reset-unconfirmed': '提及重置·待核实' };
   const cells = plan.rows.map((row) => `<a class="plan-cell plan-${attr(row.status)}${row === selected ? ' is-selected' : ''}" href="#program-day-${row.day}" data-plan-select="${row.day}"${row === selected ? ' aria-current="true"' : ''} aria-label="Day ${row.day} · ${attr(row.statusLabel)}"><span>Day <b>${row.day}</b></span><small>${esc(row.statusLabel)}</small><i aria-hidden="true">${markers[row.status] || '·'}</i></a>`).join('');
@@ -1369,7 +1371,7 @@ export function renderProgramPlan(plan, program) {
     <div class="plan-heading"><div><span class="plan-kicker">每天发布改进，或重置额度</span><h2>${esc(plan.title)}</h2></div><span class="plan-latest">最新原帖 <b>Day ${plan.latestDay} / ${plan.days}</b></span></div>
     <p class="plan-stats"><span><b>${plan.reportedDays}</b> 天有原帖</span><span><b>${plan.updatedDays}</b> 天有功能更新</span><span><b>${plan.resetDays}</b> 天确认重置</span></p>
     <nav class="plan-grid" aria-label="按活动日查看">${cells}</nav>
-    <p class="plan-legend"><span>● 功能更新</span><span>● 重置确认</span><span>● 预告待落地</span><span>日序取原帖 Day 编号</span></p>
+    <p class="plan-legend"><span>● 功能更新</span><span>● 重置确认</span><span>预 · 重置预告 · 待落地</span><span>日序取原帖 Day 编号</span></p>
     <div class="plan-days">${rows}</div>
     ${renderProgram(program, { title: '活动时段与原始规则' })}
   </section>`;
@@ -1390,9 +1392,9 @@ export function renderResetCalendar(c) {
       <div class="rc-grid">${blanks}${c.cells.map((cell) => {
         const tag = cell.sourceUrl ? 'a' : 'div';
         const title = [cell.date, cell.statusLabel, cell.confirmedCount ? `已到账 ${cell.confirmedCount} 次` : '', cell.pendingCount + cell.datedCount ? `待落地 ${cell.pendingCount + cell.datedCount} 条` : ''].filter(Boolean).join(' · ');
-        return `<${tag} class="rc-cell rc-${esc(cell.status)}${cell.isToday ? ' is-today' : ''}"${cell.sourceUrl ? ` href="${attr(cell.sourceUrl)}" target="_blank" rel="noopener noreferrer"` : ''} title="${attr(title)}"><b>${esc(cell.label)}</b><span>${esc(cell.status === 'updated' ? '更新' : cell.status === 'elapsed-no-record' ? '无记录' : cell.statusLabel)}</span>${cell.confirmedCount && cell.pendingCount + cell.datedCount ? '<i>另有预告</i>' : ''}</${tag}>`;
+        return `<${tag} class="rc-cell rc-${esc(cell.status)}${cell.isToday ? ' is-today' : ''}"${cell.sourceUrl ? ` href="${attr(cell.sourceUrl)}" target="_blank" rel="noopener noreferrer"` : ''} title="${attr(title)}"><b>${esc(cell.label)}</b><span>${esc(cell.status === 'pending' ? '预' : cell.status === 'updated' ? '更新' : cell.status === 'elapsed-no-record' ? '无记录' : cell.statusLabel)}</span>${cell.confirmedCount && cell.pendingCount + cell.datedCount ? '<i>另有预告</i>' : ''}</${tag}>`;
       }).join('')}</div>
-      <p class="rc-legend"><span>● 已确认到账</span><span>● 预告待落地</span><span>● 日程更新</span><span>暂无记录 ≠ 当日没有重置</span></p>
+      <p class="rc-legend"><span>● 已确认到账</span><span>预 · 重置预告 · 待落地</span><span>● 日程更新</span><span>暂无记录 ≠ 当日没有重置</span></p>
     </div></div>
   </section>`;
 }

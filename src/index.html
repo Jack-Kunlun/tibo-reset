@@ -522,9 +522,10 @@
   #observatory .rc-summary{padding:8px 20px 0 0;border-right:1px solid var(--am-line)}
   #observatory .rc-progress{display:block;font-family:var(--mono);font-size:44px;color:#ded5ff;line-height:1.4;margin:2px 0 18px}
   #observatory .rc-progress small{font-size:18px;color:#8793b3;font-weight:400}
-  #observatory .rc-stat{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:#a6edce}
-  #observatory .rc-stat b{font-family:var(--mono);font-size:25px;font-weight:500}
-  #observatory .rc-stat small{font-family:var(--sans);font-size:11px;font-weight:400}
+  #observatory .rc-stat{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;color:#a6edce}
+  #observatory .rc-stat>span{line-height:1}
+  #observatory .rc-stat b{display:inline-flex;align-items:baseline;gap:4px;line-height:1;font-family:var(--mono);font-size:25px;font-weight:500}
+  #observatory .rc-stat small{font-family:var(--sans);font-size:11px;line-height:1;font-weight:400}
   #observatory .rc-stat.rc-pending{margin-top:19px;color:#edc28a}
   #observatory .rc-source{display:block;margin-top:23px;font-size:11px;color:#b7a6ff}
   #observatory .rc-week,#observatory .rc-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
@@ -555,6 +556,7 @@
   #observatory .am-main>.reset-calendar .rc-summary>.rc-muted:first-child{grid-column:1;grid-row:1}
   #observatory .am-main>.reset-calendar .rc-stat{grid-column:2;grid-row:1/3;font-size:10px}
   #observatory .am-main>.reset-calendar .rc-stat b{font-size:25px}
+  #observatory .am-main>.reset-calendar .rc-stat small{font-size:10px}
   #observatory .am-main>.reset-calendar .rc-summary>.rc-muted:nth-of-type(2){grid-column:2;grid-row:3;font-size:9px}
   #observatory .am-main>.reset-calendar .rc-stat.rc-pending{grid-column:1;grid-row:4;margin:0;justify-content:flex-start;gap:6px}
   #observatory .am-main>.reset-calendar .rc-source{grid-column:2;grid-row:4;margin:0;align-self:center;font-size:9px}
@@ -846,7 +848,8 @@
       var over = left <= 0;
       if (pcdWait && pcdWait.dataset.over !== (over ? '1' : '0')) {
         pcdWait.dataset.over = over ? '1' : '0';
-        if (pcdCap) pcdCap.textContent = pred.dataset.etaKind === 'announced'
+        if (pcdCap) pcdCap.textContent = pred.dataset.etaDeadline === 'true'
+          ? (over ? '公告截止已过' : '距公告截止') : pred.dataset.etaKind === 'announced'
           ? (over ? '公告窗口已开启' : '距公告窗口开启')
           : pred.dataset.announcement === 'true'
             ? (over ? '已到模型预计时刻' : '距模型预计到账')

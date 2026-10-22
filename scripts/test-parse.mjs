@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 /**
  * 采集链路的纯函数回归。
  *
@@ -26,7 +29,13 @@ import {
   rankRadarCandidates,
   resetFloorMs,
 } from '../src/lib/collect.mjs';
-import { normalizeTimelineItems, isKnownScreen, pairReplyContext, harvestExpression } from '../src/lib/browser.mjs';
+import {
+  normalizeTimelineItems,
+  isKnownScreen,
+  pairReplyContext,
+  harvestExpression,
+  pickFullTextCandidates,
+} from '../src/lib/browser.mjs';
 import { runInNewContext } from 'node:vm';
 
 let pass = 0;
@@ -43,6 +52,18 @@ function check(name, ok, detail = '') {
 }
 
 const section = (t) => console.log(`\n【${t}】`);
+const sha256 = (value) => createHash('sha256').update(value).digest('hex');
+const browserSource = await readFile(new URL('../src/lib/browser.mjs', import.meta.url), 'utf8');
+let isolatedMutants = 0;
+
+async function rejectBrowserMutation(name, source, verify) {
+  const mutant = `${source}\n// isolated test mutant: ${name}`;
+  const url = `data:text/javascript;base64,${Buffer.from(mutant).toString('base64')}`;
+  const module = await import(url);
+  assert.equal(verify(module), false, `隔离源码反例必须被行为断言拦截：${name}`);
+  isolatedMutants++;
+  console.log(`  ✓ 隔离源码反例被拦截：${name}`);
+}
 
 /* ------------------- 复刻真实 payload 的构造方式 ------------------- */
 
@@ -544,7 +565,7 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
   );
   check('作者未知的条目不当作上下文', s3[1].inReplyTo === null, JSON.stringify(s3[1].inReplyTo));
 
-  // 自我回复：连续两条都是他的 → 都指向同一个被回复者（跨过自己往前找）
+  // 第一条紧邻真实外帖，可以挂上下文；第二条自我回复必须被前一条 Tibo 帖切断。
   const s4 = pairReplyContext(
     [
       other('udiWertheimer', '2026-09-21T01:00:00.000Z', 'original'),
@@ -553,14 +574,194 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
     ],
     H
   );
-  check('连续两条他的回复都指向同一个被回复者', s4[1].inReplyTo?.account === 'udiWertheimer' && s4[2].inReplyTo?.account === 'udiWertheimer', JSON.stringify([s4[1].inReplyTo?.account, s4[2].inReplyTo?.account]));
+  check(
+    '紧邻外帖的回复保留上下文，后续自我回复不复用它',
+    s4[1].inReplyTo?.account === 'udiWertheimer' && s4[2].inReplyTo === null,
+    JSON.stringify([s4[1].inReplyTo?.account, s4[2].inReplyTo])
+  );
+
+  const strictAdjacencySource = browserSource.replace(
+    'previous = isOther ? it : null;',
+    'if (isOther) previous = it;'
+  );
+  assert.notEqual(strictAdjacencySource, browserSource, '自我回复反例的变异点存在');
+  await rejectBrowserMutation(
+    '连续自我回复不得继承外帖',
+    strictAdjacencySource,
+    (module) => module.pairReplyContext(
+      [
+        other('udiWertheimer', '2026-09-21T01:00:00.000Z', 'original'),
+        mine('reply-1', '2026-09-21T02:00:00.000Z', 'first'),
+        mine('reply-2', '2026-09-21T02:05:00.000Z', 'second'),
+      ],
+      H
+    )[2].inReplyTo === null
+  );
+
+  // 外部 article 紧邻 Tibo 帖时只配给这一条；后续自我回复不能再次借用它。
+  const s5 = pairReplyContext(
+    [
+      other('someone', '2026-09-21T01:00:00.000Z', 'unrelated post'),
+      mine('original', '2026-09-21T02:00:00.000Z', 'Day 17 update'),
+      mine('self-reply', '2026-09-21T02:05:00.000Z', 'Lands tomorrow before 10am PST.'),
+    ],
+    H
+  );
+  const unrelatedChainIsClear = s5[1].inReplyTo?.account === 'someone' && s5[2].inReplyTo === null;
+  check('外帖只配给紧邻的 Tibo 帖，后续自我回复不再继承', unrelatedChainIsClear, JSON.stringify([s5[1].inReplyTo, s5[2].inReplyTo]));
+  await rejectBrowserMutation(
+    '外帖不得跨过 Tibo 原创继续配对',
+    strictAdjacencySource,
+    (module) => {
+      const result = module.pairReplyContext(
+        [
+          other('someone', '2026-09-21T01:00:00.000Z', 'unrelated post'),
+          mine('original', '2026-09-21T02:00:00.000Z', 'Day 17 update'),
+          mine('self-reply', '2026-09-21T02:05:00.000Z', 'Lands tomorrow before 10am PST.'),
+        ],
+        H
+      );
+      return result[1].inReplyTo?.account === 'someone' && result[2].inReplyTo === null;
+    }
+  );
+
+  // 未知 article 也会切断旧外帖，不能因为解析不到作者就跨节点继承。
+  const s6 = pairReplyContext(
+    [
+      other('someone', '2026-09-21T01:00:00.000Z', 'unrelated post'),
+      { id: '', time: '2026-09-21T01:30:00.000Z', text: 'unknown article', author: '' },
+      mine('after-unknown', '2026-09-21T02:00:00.000Z', 'reply'),
+    ],
+    H
+  );
+  check('未知 article 会切断旧外帖上下文', s6[2].inReplyTo === null, JSON.stringify(s6[2].inReplyTo));
+  await rejectBrowserMutation(
+    '未知 article 必须清空前一外帖',
+    strictAdjacencySource,
+    (module) => module.pairReplyContext(
+      [
+        other('someone', '2026-09-21T01:00:00.000Z', 'unrelated post'),
+        { id: '', time: '2026-09-21T01:30:00.000Z', text: 'unknown article', author: '' },
+        mine('after-unknown', '2026-09-21T02:00:00.000Z', 'reply'),
+      ],
+      H
+    )[2].inReplyTo === null
+  );
 
   // 流的开头就是他的（原推文在上面一屏，已被卸载）→ 不配，而不是硬配一个错的
-  const s5 = pairReplyContext([mine('2101354419829010901', '2026-09-21T03:00:00.000Z', 'lonely')], H);
-  check('前面没有非他条目 → 不配对（原推文可能在上一步被卸载）', s5[0].inReplyTo === null, JSON.stringify(s5[0].inReplyTo));
+  const s7 = pairReplyContext([mine('2101354419829010901', '2026-09-21T03:00:00.000Z', 'lonely')], H);
+  check('前面没有非他条目 → 不配对（原推文可能在上一步被卸载）', s7[0].inReplyTo === null, JSON.stringify(s7[0].inReplyTo));
 
   check('空输入不抛错', pairReplyContext(undefined, H).length === 0);
   check('undefined 也不抛错', pairReplyContext([null, undefined], H).length === 2, '应原样透传');
+}
+
+/* ==================== 关键短句优先补全文 ==================== */
+
+section('全文候选：短重置与落地承诺优先于长推文');
+
+{
+  const shortReset = { id: 'reset-day', text: "Day 17/ Bet you thought we forgot, but no, it's reset day today." };
+  const shortLands = { id: 'lands-tomorrow', text: 'Lands tomorrow before 10am PST.' };
+  const legacyLanding = { id: 'landing-within', text: 'Landing within the next 2 hours.' };
+  const legacyDone = { id: 'done-and-dusted', text: 'Done and dusted.' };
+  const long = Array.from({ length: 12 }, (_, i) => ({ id: `long-${i}`, text: 'x'.repeat(240) }));
+  const flagged = { id: 'short-truncated', text: 'short but still has a show-more marker' };
+  const streams = [
+    { tweets: [...long, flagged], truncatedIds: [flagged.id] },
+    { tweets: [shortReset, shortLands, legacyLanding, legacyDone] },
+    // 两条流重叠时仍只开一次详情页；此前已排在普通队列里的 id 不重复。
+    { tweets: [shortReset, shortLands, legacyLanding, legacyDone, flagged, long[0]], truncatedIds: [flagged.id] },
+  ];
+  const result = pickFullTextCandidates(streams, { minLength: 240, max: 12 });
+  const shortOnly = (tweet) => pickFullTextCandidates([{ tweets: [tweet] }], { minLength: 240 }).candidates;
+
+  check('短 reset day 公告进入全文候选', shortOnly(shortReset).includes(shortReset.id));
+  const resetRule = '/\\breset\\s+day\\b/i.test(text) ||';
+  assert.ok(browserSource.includes(resetRule), 'reset day 候选规则的变异点存在');
+  await rejectBrowserMutation(
+    '移除 reset day 短句规则',
+    browserSource.replace(resetRule, 'false ||'),
+    (module) => module.pickFullTextCandidates([{ tweets: [shortReset] }], { minLength: 240 }).candidates.includes(shortReset.id)
+  );
+
+  check('短 lands tomorrow before 时间承诺进入全文候选', shortOnly(shortLands).includes(shortLands.id));
+  const landingRule = '/\\b(?:land|lands|landing)\\b[\\s\\S]{0,100}\\b(?:today|tomorrow|before|by)\\b/i.test(text)';
+  assert.ok(browserSource.includes(landingRule), 'land 到达时间候选规则的变异点存在');
+  await rejectBrowserMutation(
+    '移除 lands tomorrow 时间规则',
+    browserSource.replace(landingRule, 'false'),
+    (module) => module.pickFullTextCandidates([{ tweets: [shortLands] }], { minLength: 240 }).candidates.includes(shortLands.id)
+  );
+
+  check(
+    '既有 landing within 与 done and dusted 短句继续进入候选',
+    shortOnly(legacyLanding).includes(legacyLanding.id) && shortOnly(legacyDone).includes(legacyDone.id)
+  );
+  const oldContextRule = '/^(?:landing\\s+within|done\\s+and\\s+dusted)\\b/i.test(text)';
+  assert.ok(browserSource.includes(oldContextRule), '既有短落地规则的变异点存在');
+  await rejectBrowserMutation(
+    '移除既有短落地句型规则',
+    browserSource.replace(oldContextRule, 'false'),
+    (module) => {
+      const candidates = module.pickFullTextCandidates([{ tweets: [legacyLanding, legacyDone] }], { minLength: 240 }).candidates;
+      return candidates.includes(legacyLanding.id) && candidates.includes(legacyDone.id);
+    }
+  );
+
+  check('带展开标记的短文仍进入全文候选', result.candidates.includes(flagged.id));
+  const truncationRule = 'if (!flagged.has(t.id) && text.length < minLength && !needsContext) continue;';
+  assert.ok(browserSource.includes(truncationRule), '展开标记候选判据的变异点存在');
+  await rejectBrowserMutation(
+    '忽略 DOM 展开标记',
+    browserSource.replace(truncationRule, 'if (text.length < minLength && !needsContext) continue;'),
+    (module) => module.pickFullTextCandidates([{ tweets: [flagged], truncatedIds: [flagged.id] }], { minLength: 240 }).candidates.includes(flagged.id)
+  );
+
+  const urgentIds = [shortReset.id, shortLands.id, legacyLanding.id, legacyDone.id];
+  check(
+    '关键短句排在 12 条上限之前',
+    result.picked.slice(0, urgentIds.length).join(',') === urgentIds.join(','),
+    result.picked.join(',')
+  );
+  const priorityRule = 'candidates.filter((id) => prioritized.has(id))';
+  assert.ok(browserSource.includes(priorityRule), '优先级排序规则的变异点存在');
+  await rejectBrowserMutation(
+    '关闭关键短句优先排序',
+    browserSource.replace(priorityRule, 'candidates.filter(() => false)'),
+    (module) => {
+      const picked = module.pickFullTextCandidates(streams, { minLength: 240, max: 12 }).picked;
+      return picked.slice(0, urgentIds.length).join(',') === urgentIds.join(',');
+    }
+  );
+
+  check(
+    '原创流与回复流的重叠 id 去重，含 12 条长文共 17 个候选',
+    result.candidates.length === 17 && result.candidates.filter((id) => id === shortReset.id).length === 1,
+    `实际 ${result.candidates.length}`
+  );
+  const dedupeRule = 'if (seen.has(t.id)) {';
+  assert.ok(browserSource.includes(dedupeRule), '跨流去重规则的变异点存在');
+  await rejectBrowserMutation(
+    '关闭跨流 id 去重',
+    browserSource.replace(dedupeRule, 'if (false) {'),
+    (module) => {
+      const candidates = module.pickFullTextCandidates(streams, { minLength: 240, max: 12 }).candidates;
+      return candidates.length === 17 && candidates.filter((id) => id === shortReset.id).length === 1;
+    }
+  );
+
+  check('12 条上限外的候选通过 skipped 明确报告', result.picked.length === 12 && result.skipped === 5, JSON.stringify({ picked: result.picked.length, skipped: result.skipped }));
+  const skippedRule = 'Math.max(0, ordered.length - max)';
+  assert.ok(browserSource.includes(skippedRule), '超上限报告规则的变异点存在');
+  await rejectBrowserMutation(
+    '将 skipped 错误归零',
+    browserSource.replace(skippedRule, '0'),
+    (module) => {
+      const capped = module.pickFullTextCandidates(streams, { minLength: 240, max: 12 });
+      return capped.picked.length === 12 && capped.skipped === 5;
+    }
+  );
 }
 
 /* ==================== 出口代理的发现规则 ==================== */
@@ -610,4 +811,9 @@ if (failures.length) {
   for (const f of failures) console.log(`   · ${f}`);
   process.exit(1);
 }
-console.log(`✓ 全部 ${pass} 项通过`);
+assert.equal(
+  sha256(await readFile(new URL('../src/lib/browser.mjs', import.meta.url), 'utf8')),
+  sha256(browserSource),
+  '隔离源码变异不得修改工作区文件'
+);
+console.log(`✓ 全部 ${pass} 项通过；${isolatedMutants} 个隔离源码反例被拦截，browser.mjs SHA256 未变`);

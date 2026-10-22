@@ -110,7 +110,7 @@ export function buildOutlook({ chart, prediction, signals, now }) {
   let reason;
 
   if (f) {
-    etaAt = f.window.fromTs;
+    etaAt = f.window.deadline ? f.window.toTs : f.window.fromTs;
     etaKind = 'announced';
     etaBasis = 'official-window';
     bandKind = 'official-window';
@@ -190,7 +190,7 @@ export function buildOutlook({ chart, prediction, signals, now }) {
   checks.note =
     etaKind === 'announced'
       ? {
-          'hard-date': '依据来自公告本身，与上面这些模型统计无关 —— 他把时间说死到了具体时刻。',
+          'hard-date': f?.window.deadline ? '依据来自公告本身，给出的是最晚时间；尚未确认落地。' : '依据来自公告本身，与上面这些模型统计无关 —— 他把时间说死到了具体时刻。',
           'hard-vague': '依据来自公告本身，与上面这些模型统计无关 —— 但他只给到「一周内」这种粒度。',
           'soft-only': '公告里只有模糊提及、没有把话说死，窗口是推定出来的，依据弱于前两档。',
         }[reason] ?? '依据来自公告本身，与上面这些模型统计无关。'
@@ -212,7 +212,8 @@ export function buildOutlook({ chart, prediction, signals, now }) {
     etaBasis,
     hasEstimate: finite(etaAt),
     etaDate: finite(etaAt) ? new Date(etaAt).toISOString() : null,
-    etaNote: etaKind === 'announced' ? '公告窗口开启时刻' : pendingAnnouncement ? '预告后历史耗时中位数' : '历史节奏的中位推算',
+    etaNote: etaKind === 'announced' ? f.window.deadline ? '前 · 公告截止时间' : '公告窗口开启时刻' : pendingAnnouncement ? '预告后历史耗时中位数' : '历史节奏的中位推算',
+    etaDeadline: Boolean(f?.window.deadline),
     band,
     bandKind,
     bandLabel: bandKind === 'official-window' ? '公告窗口' : bandKind === 'sample-range' ? '历史到账范围' : '80% 预测区间',
@@ -227,7 +228,7 @@ export function buildOutlook({ chart, prediction, signals, now }) {
 
     status,
     statusLabel: pendingAnnouncement ? '等待落地确认' : STATUS_LABEL[status],
-    statusNote: pendingAnnouncement ? '已预告重置，具体时间待公布；尚未确认落地' : STATUS_NOTE[status],
+    statusNote: pendingAnnouncement ? '已预告重置，具体时间待公布；尚未确认落地' : f?.window.deadline ? 'Tibo 已给出最晚时间，尚未确认落地' : STATUS_NOTE[status],
 
     confidence: level,
     confidenceLabel: CONFIDENCE_LABEL[level],
