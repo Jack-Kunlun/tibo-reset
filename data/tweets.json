@@ -1,6 +1,49 @@
 {
   "tweets": [
     {
+      "id": "2113029854417600834",
+      "text": "Fully included in the Pro plan, doesn't draw on your weekly usage.",
+      "created_at": "2026-10-21T22:09:10.000Z",
+      "url": "https://x.com/thsottiaux/status/2113029854417600834",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-22T00:02:04.473Z"
+    },
+    {
+      "id": "2113029655095836957",
+      "text": "Dot, Dotter, Dottest",
+      "created_at": "2026-10-21T22:08:22.000Z",
+      "url": "https://x.com/thsottiaux/status/2113029655095836957",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-22T00:02:04.473Z"
+    },
+    {
+      "id": "2113009945134379213",
+      "text": "Congrats",
+      "created_at": "2026-10-21T20:50:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2113009945134379213",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "T3 Code users processed ~36.5 trillion tokens in the same window, 1.5x that of all Gemini 4 Argon demand globally 🤷",
+        "created_at": "2026-10-21T13:00:28.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-22T00:02:04.473Z"
+    },
+    {
       "id": "2112992042465009736",
       "text": "Dot, meet Duet. Duet, meet Dot. Be nice to each other.",
       "created_at": "2026-10-21T19:38:55.000Z",
@@ -7242,7 +7285,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-21T20:01:45.578Z",
+  "updated_at": "2026-10-22T00:02:04.475Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }
