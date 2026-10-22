@@ -147,7 +147,7 @@ const getCachedSignals = runInNewContext(`let sigCache={key:null,value:null}; ${
 const beforeCache=await getCachedSignals();cacheRecords[0].type='credit';const correctedCache=await getCachedSignals();cacheRecords.shift();const removedCache=await getCachedSignals();
 check('同小时、同推文、同最新事件时，旧记录修正和删除立即刷新日历缓存',beforeCache.calendar.creditCount===0 && correctedCache.calendar.creditCount===1 && removedCache.calendar.confirmedCount===1);
 const template = await readFile(resolve(ROOT,'src/index.html'),'utf8');
-check('网页日历位于侧栏依据之前，每日窗口移到主区之后',template.indexOf('<!--__RESET_CALENDAR__-->')<template.indexOf('<!--__BASIS_SUMMARY__-->') && template.indexOf('<!--__BASIS_SUMMARY__-->')<template.indexOf('<!--__PROGRAM__-->'));
+check('网页计划与预测位于主栏，实际日期日历位于侧栏依据之前',template.indexOf('<!--__OUTLOOK__-->')<template.indexOf('<!--__PROGRAM__-->') && template.indexOf('<!--__PROGRAM__-->')<template.indexOf('<!--__RESET_CALENDAR__-->') && template.indexOf('<!--__RESET_CALENDAR__-->')<template.indexOf('<!--__BASIS_SUMMARY__-->'));
 
 
 /* -------------------- 活动原帖日序与隔离反例 -------------------- */

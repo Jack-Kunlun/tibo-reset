@@ -390,19 +390,22 @@
   #observatory .am-context-left{align-items:center;gap:12px}
   #observatory .hero-v{font-size:13px;letter-spacing:.015em}
   #observatory .hero-v .unit{color:var(--am-muted);font-size:10px}
-  #observatory .am-main{grid-template-columns:minmax(0,1.85fr) minmax(280px,1fr);gap:0 22px;margin-top:0;align-items:stretch}
-  /* 提示行独占下一行，右栏与预测卡共用底线。 */
-  #observatory .am-focus{display:contents}
-  #observatory .am-focus>.pred{grid-column:1;grid-row:1;display:flex;flex-direction:column}
-  #observatory .am-focus>.pred>.pcard{flex:1}
-  #observatory .am-focus>:not(.pred){grid-column:1;grid-row:2}
-  #observatory .am-signal-details{margin-top:14px;color:#929ab7;font-size:11px}
-  #observatory .am-signal-details>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;padding:3px 2px;gap:14px}
-  #observatory .am-signal-details>summary span{color:#b4a3ff}
-  #observatory .am-signal-details[open]>summary{margin-bottom:12px}
-  #observatory .am-signal-details .sig{margin-top:0}
-  #observatory .am-main>.am-side{grid-column:2;grid-row:1;gap:16px}
-  #observatory .am-lower{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:22px;margin-top:24px;align-items:stretch}
+  #observatory .am-main{grid-template-columns:minmax(0,1.85fr) minmax(320px,1fr);gap:22px;margin-top:0;align-items:start}
+  /* 两列分别按内容排布，侧栏不能撑高预测舞台或占走线索所在的整行。 */
+  #observatory .am-focus{display:flex;flex-direction:column;gap:20px;min-width:0}
+  #observatory .am-focus>.pred{display:block}
+  #observatory .am-signal-details{margin:0;padding:16px 18px;border-radius:16px;background:#161c30;color:#a4adc8;font-size:12px}
+  #observatory .am-signal-details>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:14px;min-height:28px}
+  #observatory .signal-summary{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px}
+  #observatory .signal-summary b{color:#c6b7ff;background:#b4a3ff12;padding:4px 8px;border-radius:8px;font-size:11px;font-weight:500}
+  #observatory .signal-disclosure{display:flex;align-items:center;gap:9px;white-space:nowrap;color:#b4a3ff;font-size:11px}
+  #observatory .signal-disclosure:after{content:'';width:6px;height:6px;border-right:1.5px solid;border-bottom:1.5px solid;transform:translateY(-2px) rotate(45deg)}
+  #observatory .am-signal-details[open] .signal-disclosure:after{transform:translateY(2px) rotate(225deg)}
+  #observatory .am-signal-details .sig{margin:16px 0 0;padding:16px 0 0;border-radius:0;border-top:1px solid var(--am-line);background:transparent}
+  #observatory .am-main>.am-side{grid-column:2;grid-row:1;gap:20px}
+  #observatory .am-side>.am-basis{flex:none}
+  #observatory .am-lower{display:block;margin-top:24px}
+  #observatory .am-lower .am-trends{max-width:720px;margin:16px auto}
   #observatory .pcard,#observatory .pcard.is-announced{padding:23px 25px 0;border:0;border-radius:24px;background:radial-gradient(ellipse at 85% 25%,#59428938,transparent 60%),radial-gradient(ellipse at 15% 90%,#23776c25,transparent 60%),linear-gradient(145deg,#171d33,#141a2c);box-shadow:0 20px 60px -25px #0008,inset 0 1px #cfc1ff20;color:var(--am-ink);overflow:hidden;transform-style:flat}
   #observatory .pcard:before{background:radial-gradient(350px circle at var(--am-mx) var(--am-my),#b4a3ff0c,transparent 70%)}
   #observatory .pcard.is-announced{background:radial-gradient(ellipse at 85% 25%,#7950b347,transparent 60%),radial-gradient(ellipse at 15% 90%,#23776c35,transparent 60%),linear-gradient(145deg,#201e3a,#141c30)}
@@ -504,19 +507,6 @@
   @media(max-width:700px){#observatory{padding:0 18px 28px}#observatory .am-header{padding:22px 0 18px}#observatory .am-brand h1{font-size:14px}#observatory .am-logo{width:32px;height:32px}#observatory .am-pause{background:transparent;border:0;padding-right:0}#observatory .am-context{padding:0 1px 17px;align-items:center}#observatory .am-context-left{width:auto;gap:8px}#observatory .am-context>span:last-child{width:auto;font-size:10px}#observatory .am-context>span:last-child a{display:block;max-width:128px;text-align:right}#observatory .hero-v{font-size:11px}#observatory .am-main,#observatory .am-lower{display:block}#observatory .am-main>.am-side{gap:14px;margin-top:16px}#observatory .pcard,#observatory .pcard.is-announced{padding:20px 20px 0;border-radius:22px}#observatory .am-stage,#observatory .is-announced .am-stage{min-height:242px;padding:23px 0 20px}#observatory .is-announced .am-stage h2{font-size:26px}#observatory .am-date{font-size:76px;gap:2px;margin:12px 0 6px}#observatory .am-stage>.am-small{font-size:10px}#observatory .pc-wait{margin-top:20px}#observatory .pc-wait-cap,#observatory .pc-wait-over{font-size:11px}#observatory .pc-band{padding:13px 0}#observatory .pc-announcement{padding-bottom:17px}#observatory .am-lower{margin-top:16px}#observatory .am-panel{padding:20px;border-radius:18px}#observatory .am-records{margin-top:16px}#observatory .sig-idle{padding:13px 3px 0}#observatory .idle-sub{width:100%;margin-left:24px}#observatory .am-more{padding:0;margin-top:20px}#observatory .am-footer{display:block;line-height:1.9}#observatory .am-footer>span{display:block}}
   @media(max-width:370px){#observatory{padding-left:14px;padding-right:14px}#observatory .am-brand h1{font-size:13px}#observatory .am-stage,#observatory .is-announced .am-stage{min-height:230px}#observatory .am-date{font-size:66px}#observatory .pc-conf{font-size:9px;padding:4px 6px}#observatory .am-context{flex-direction:column;align-items:stretch;gap:6px}#observatory .am-context-left{justify-content:space-between}#observatory .am-context>span:last-child a{max-width:none;text-align:left}#observatory .pc-band{font-size:10px}#observatory .pcard,#observatory .pcard.is-announced{padding-left:17px;padding-right:17px}}
 
-  /* 桌面详情脱离行高计算，不能让辅助窗口把预测下方撑成空白。 */
-  #observatory .program-enhanced>.am-detail{animation:program-reveal .2s ease-out}
-  #observatory .program-enhanced.is-closing>.am-detail{animation:program-dismiss .16s ease-in both;pointer-events:none}
-  @keyframes program-reveal{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes program-dismiss{to{opacity:0;transform:translateY(-6px)}}
-  @media(min-width:701px){
-    #observatory .program-enhanced{z-index:10}
-    #observatory .program-enhanced>.am-detail{position:absolute;top:calc(100% + 10px);left:0;right:0;margin:0;padding:22px;box-sizing:border-box;max-height:var(--program-panel-height,60vh);overflow-y:auto;overscroll-behavior:contain;border:1px solid #b4a3ff24;border-radius:20px;background:#171c2e;box-shadow:0 20px 55px #0008;scrollbar-width:thin;scrollbar-color:#5c537c transparent}
-    #observatory .program-enhanced[data-placement="above"]>.am-detail{top:auto;bottom:calc(100% + 10px)}
-  }
-  #observatory[data-running="false"] .program-enhanced>.am-detail{animation:none}
-  @media(prefers-reduced-motion:reduce){#observatory .program-enhanced>.am-detail{animation:none}}
-
   #observatory .reset-calendar{margin-top:24px}
   #observatory .rc-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px}
   #observatory .rc-heading h2{font-size:17px;margin:0 0 7px;color:#eeeafa;font-weight:500}
@@ -580,6 +570,66 @@
   #observatory .am-side .is-arrival .am-basis-row{padding:9px 0;font-size:11px}
   #observatory .am-side .is-arrival .am-basis-row strong{font-size:14px}
   #observatory .am-side .is-arrival .am-basis-note{margin-top:10px;font-size:10px;line-height:1.7}
+
+  #observatory .am-side .am-records{margin:0}
+  #observatory .am-side .rc-heading p,#observatory .am-side .rc-caption{font-size:10px}
+  #observatory .am-side .rc-cell{min-height:46px}
+  #observatory .am-side .rc-cell b{font-size:11px}
+  #observatory .am-side .rc-cell span{font-size:10px}
+  #observatory .am-side .rc-legend{font-size:10px;gap:8px 12px}
+  #observatory .program-plan{padding:24px;min-width:0}
+  #observatory .plan-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  #observatory .plan-heading h2{font-size:18px;letter-spacing:0;margin:5px 0 0;color:#eeeafa}
+  #observatory .plan-kicker{font-size:11px;color:#a2acc5}
+  #observatory .plan-latest{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:10px;color:#8e9ab8;white-space:nowrap}
+  #observatory .plan-latest b{font-size:13px;font-weight:500;color:#c5b7ff}
+  #observatory .plan-stats{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:11px;color:#9ba7c2;margin:18px 0}
+  #observatory .plan-stats b{color:#d8dcec;font-weight:500}
+  #observatory .plan-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+  #observatory .plan-cell{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:65px;gap:7px;border:1px solid #ffffff0a;border-radius:10px;background:#ffffff03;text-decoration:none;color:#7885a2;transition:background .15s,border-color .15s}
+  #observatory .plan-cell>span{font-size:10px;white-space:nowrap}
+  #observatory .plan-cell b{font-family:var(--mono);font-size:13px;font-weight:500}
+  #observatory .plan-cell small{font-size:10px;white-space:nowrap}
+  #observatory .plan-cell i{display:none;font-style:normal;font-size:10px}
+  #observatory .plan-updated,#observatory .plan-noted{color:#c4b6ee;background:#b4a3ff0a;border-color:#b4a3ff1c}
+  #observatory .plan-mixed,#observatory .plan-confirmed{color:#a6edce;background:#83e6c70b;border-color:#83e6c722}
+  #observatory .plan-pending{color:#e7c28a;background:#e7c28a0b;border-color:#e7c28a22}
+  #observatory .plan-cell:hover{background:#b4a3ff1c}
+  #observatory .plan-cell.is-selected{border-color:#baa8ff;background:#b4a3ff1a;box-shadow:0 0 0 1px #baa8ff}
+  #observatory .plan-cell:focus-visible{outline:2px solid #eee5ff;outline-offset:3px}
+  #observatory .plan-legend{display:flex;flex-wrap:wrap;gap:6px 14px;color:#8391ad;font-size:10px;margin:14px 0 20px}
+  #observatory .plan-legend span:first-child{color:#c4b6ee}
+  #observatory .plan-legend span:nth-child(2){color:#a6edce}
+  #observatory .plan-legend span:nth-child(3){color:#e7c28a}
+  #observatory .plan-day{border-top:1px solid var(--am-line);padding-top:18px;scroll-margin-top:24px}
+  #observatory .plan-day+.plan-day{margin-top:16px}
+  #observatory .plan-day>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;list-style:none;font-size:12px;color:#b4a3ce}
+  #observatory .plan-day>summary b{font-size:15px;color:#ece6ff;font-weight:500}
+  #observatory .plan-enhanced .plan-day:not(.is-selected){display:none}
+  #observatory .plan-enhanced .plan-day{margin-top:0}
+  #observatory .plan-entry{padding:16px 0}
+  #observatory .plan-entry+.plan-entry{border-top:1px solid var(--am-line)}
+  #observatory .plan-entry-meta{display:flex;align-items:center;flex-wrap:wrap;gap:7px;font-size:10px;color:#8694b0}
+  #observatory .plan-entry-meta time{margin-left:auto}
+  #observatory .plan-label{padding:3px 7px;border-radius:6px;color:#bfb0ed;background:#b4a3ff0c}
+  #observatory .plan-label.is-confirmed{color:#a6edce;background:#83e6c70b}
+  #observatory .plan-entry h3{font-size:14px;font-weight:500;color:#dce1f3;line-height:1.7;margin:10px 0;overflow-wrap:anywhere}
+  #observatory .plan-entry .plan-confirmed{font-size:10px;margin:6px 0 10px}
+  #observatory .plan-entry-actions{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px 18px;font-size:11px;color:#b4a3ff}
+  #observatory .plan-entry-actions a{color:inherit}
+  #observatory .plan-original{min-width:0}
+  #observatory .plan-original>summary{list-style:none}
+  #observatory .plan-original>summary:after{content:' ＋';color:#8f9ab2}
+  #observatory .plan-original[open]>summary:after{content:' −'}
+  #observatory .plan-original[open]{flex-basis:100%;order:1}
+  #observatory .plan-original blockquote{margin:12px 0 0;border-left:2px solid #6d6394;padding-left:14px;white-space:pre-wrap;overflow-wrap:anywhere;color:#aab5ce;font-size:12px;line-height:1.8}
+  #observatory .plan-empty{font-size:12px;color:#8e9bb6;padding:22px 0;margin:0}
+  #observatory .program-plan .sig-prog{margin:6px 0 0;padding:14px 0 0;border-top:1px solid var(--am-line);border-radius:0;background:transparent;box-shadow:none}
+  #observatory .program-plan .sig-prog summary{font-size:11px;color:#99a5c0;min-height:32px}
+  #observatory .program-plan .sig-prog .am-icon{width:26px;height:26px;border-radius:8px}
+  @media(max-width:1000px){#observatory .am-main{grid-template-columns:minmax(0,1.6fr) minmax(300px,1fr)}#observatory .plan-cell small{display:none}#observatory .plan-cell i{display:block}}
+  @media(max-width:850px){#observatory .am-main{grid-template-columns:1fr}#observatory .am-main>.am-side{grid-column:1;grid-row:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;margin-top:4px}#observatory .am-side .reset-calendar{grid-row:span 2}#observatory .plan-cell small{display:block}#observatory .plan-cell i{display:none}}
+  @media(max-width:700px){#observatory .am-main{display:flex;flex-direction:column;gap:18px}#observatory .am-focus{width:100%;gap:18px}#observatory .am-main>.am-side{display:flex;width:100%;margin-top:0;gap:18px}#observatory .program-plan{padding:20px 16px}#observatory .plan-heading h2{font-size:16px}#observatory .plan-grid{gap:6px}#observatory .plan-cell{min-height:55px;border-radius:8px;gap:5px}#observatory .plan-cell small{display:none}#observatory .plan-cell i{display:block}#observatory .plan-cell b{font-size:12px}#observatory .plan-cell>span{font-size:9px}#observatory .plan-stats{gap:6px 12px;font-size:10px}#observatory .plan-entry-meta time{margin-left:0}#observatory .signal-summary{gap:7px}#observatory .signal-summary>span{font-size:11px}#observatory .signal-disclosure{font-size:10px}#observatory .am-signal-details{padding:14px}#observatory .am-lower .am-trends{margin:16px 0}}
 </style>
 
 </head>
@@ -599,25 +649,25 @@
   <main>
     <div class="am-main">
       <div class="am-focus">
-        <!--__OUTLOOK__-->
         <!--__SIGNAL__-->
+        <!--__OUTLOOK__-->
+        <!--__PROGRAM__-->
       </div>
       <div class="am-side">
         <!--__RESET_CALENDAR__-->
         <!--__BASIS_SUMMARY__-->
+        <section class="am-panel am-records" id="records">
+          <div class="am-panel-head"><h2>最近记录</h2><span class="am-tiny am-muted">原文可追溯 ↗</span></div>
+          <div class="am-record-grid"><!--__RECENT_RECORDS__--></div>
+        </section>
       </div>
     </div>
-    <!--__PROGRAM__-->
     <div class="am-lower">
       <section class="am-panel am-history">
         <div class="am-panel-head"><h2>历史重置节奏</h2><span class="am-tiny am-muted">最近 7 次间隔 · 天</span></div>
         <div class="am-trends"><!--__RHYTHM__--></div>
         <details class="am-disclosure"><summary>回测与预测边界</summary><div class="am-detail basis-detail"><!--__BASIS__--></div></details>
       </section>
-    <section class="am-panel am-records" id="records">
-      <div class="am-panel-head"><h2>最近记录</h2><span class="am-tiny am-muted">原文可追溯 ↗</span></div>
-      <div class="am-record-grid"><!--__RECENT_RECORDS__--></div>
-    </section>
     </div>
     <details class="am-panel am-more">
       <summary>历史规律与更多记录</summary>
@@ -874,54 +924,34 @@
 </script>
 <script>
 (function () {
-  var box = document.querySelector('.sig-prog');
-  if (!box) return;
-  var summary = box.querySelector('summary');
-  var panel = box.querySelector('.am-detail');
-  var root = document.getElementById('observatory');
-  var desktop = window.matchMedia('(min-width: 701px)');
-  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-  var closing = 0;
-  box.classList.add('program-enhanced');
-  function position() {
-    if (!box.open || !desktop.matches) return;
-    var rect = box.getBoundingClientRect();
-    var below = window.innerHeight - rect.bottom;
-    var above = rect.top;
-    var upwards = below < Math.min(panel.scrollHeight, 300) && above > below;
-    box.dataset.placement = upwards ? 'above' : 'below';
-    box.style.setProperty('--program-panel-height', Math.max(0, (upwards ? above : below) - 22) + 'px');
+  var plan = document.querySelector('.program-plan');
+  if (!plan) return;
+  var days = Array.from(plan.querySelectorAll('[data-plan-day]'));
+  var links = Array.from(plan.querySelectorAll('[data-plan-select]'));
+  function select(day) {
+    if (!days.some(function (box) { return box.dataset.planDay === day; })) return;
+    days.forEach(function (box) {
+      var active = box.dataset.planDay === day;
+      box.classList.toggle('is-selected', active);
+      box.open = active;
+    });
+    links.forEach(function (link) {
+      var active = link.dataset.planSelect === day;
+      link.classList.toggle('is-selected', active);
+      if (active) link.setAttribute('aria-current', 'true');
+      else link.removeAttribute('aria-current');
+    });
   }
-  function close(returnFocus) {
-    if (!box.open || closing) return;
-    if (returnFocus) summary.focus({ preventScroll: true });
-    box.classList.add('is-closing');
-    closing = setTimeout(function () {
-      box.open = false;
-      box.classList.remove('is-closing');
-      closing = 0;
-    }, reduced.matches || root.dataset.running === 'false' ? 0 : 160);
-  }
-  summary.addEventListener('click', function (event) {
-    event.preventDefault();
-    if (box.open && !closing) return close(false);
-    clearTimeout(closing);
-    closing = 0;
-    box.classList.remove('is-closing');
-    box.open = true;
-    position();
-  });
-  document.addEventListener('pointerdown', function (event) {
-    if (desktop.matches && !box.contains(event.target)) close(false);
-  });
-  document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape' && box.open && desktop.matches) {
+  plan.classList.add('plan-enhanced');
+  links.forEach(function (link) {
+    link.addEventListener('click', function (event) {
       event.preventDefault();
-      close(true);
-    }
+      select(link.dataset.planSelect);
+      history.replaceState(null, '', link.getAttribute('href'));
+    });
   });
-  window.addEventListener('resize', position);
-  window.addEventListener('scroll', position, { passive: true });
+  var requested = location.hash.match(/^#program-day-(\d+)$/);
+  if (requested) select(requested[1]);
 })();
 </script>
 <script>

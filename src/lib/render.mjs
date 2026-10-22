@@ -298,7 +298,7 @@ const PRECISION_TEXT = {
  * `windowBlock` —— 同一种形状（当地 + 北京两行）只该有一个渲染器，页面任何一处
  * 时间都同时给两个时区（见 PRD F2）。
  */
-export function renderProgram(p) {
+export function renderProgram(p, { title = '每日重置窗口' } = {}) {
   if (!p || !p.window) return '';
   // 宣布时刻的**双时区**文本由数据层算好（`buildProgram` 里的 `createdZones`），
   // 渲染层只读不自算 —— 与线索块（`hintBlock`）同一口径。
@@ -312,7 +312,7 @@ export function renderProgram(p) {
   // 时间与原文可展开核对；链接与 summary 分开，避免一次触摸同时展开和跳走。
   return `
   <details class="sig-prog">
-    <summary><span class="am-icon">${ICON.cal}</span><b>每日重置窗口</b></summary>
+    <summary><span class="am-icon">${ICON.cal}</span><b>${esc(title)}</b></summary>
     <div class="am-detail">
         ${days ? `<p class="sp-left">${days}</p>` : ''}
         <p class="sp-rule">每天要么发一个改进、要么给一次完整重置 —— 期间任何一天都可能重置</p>
@@ -1337,6 +1337,39 @@ export function renderFreshness(info, nowMs) {
 
 /* ------------------------------ 汇总 ------------------------------ */
 
+/** 逐日内容直接渲染到 HTML；浏览器只切换可见日，不另算活动状态。 */
+export function renderProgramPlan(plan, program) {
+  if (!plan?.rows?.length) return renderProgram(program);
+  const selected = plan.rows.find((row) => row.day === plan.latestDay) ?? plan.rows[0];
+  const markers = { updated: '更', mixed: '双', confirmed: '重', pending: '告', noted: '提', missing: '—', future: '·' };
+  const entryLabels = { update: '功能更新', roundup: '当日汇总', note: '当日动态', reset: '重置确认',
+    credit: '发券确认', announcement: '重置预告', 'reset-unconfirmed': '提及重置·待核实' };
+  const cells = plan.rows.map((row) => `<a class="plan-cell plan-${attr(row.status)}${row === selected ? ' is-selected' : ''}" href="#program-day-${row.day}" data-plan-select="${row.day}"${row === selected ? ' aria-current="true"' : ''} aria-label="Day ${row.day} · ${attr(row.statusLabel)}"><span>Day <b>${row.day}</b></span><small>${esc(row.statusLabel)}</small><i aria-hidden="true">${markers[row.status] || '·'}</i></a>`).join('');
+  const rows = plan.rows.map((row) => {
+    const entries = row.entries.map((entry) => {
+      const labels = [...new Set([entry.isUpdate ? '功能更新' : '', entryLabels[entry.kind]].filter(Boolean))];
+      return `<article class="plan-entry">
+        <div class="plan-entry-meta">${labels.map((label) => `<span class="plan-label${entry.kind === 'reset' || entry.kind === 'credit' ? ' is-confirmed' : ''}">${esc(label)}</span>`).join('')}<time>${entry.createdAt ? `${esc(fmtDateTime(entry.createdAt))} 北京` : '发布时间未知'}</time></div>
+        <h3>${esc(entry.title || entry.text || '原帖摘要暂不可用')}</h3>
+        ${entry.confirmedAt ? `<p class="plan-confirmed">确认时刻 ${esc(fmtDateTime(entry.confirmedAt))} 北京</p>` : ''}
+        <div class="plan-entry-actions">${entry.text ? `<details class="plan-original"><summary>查看原文</summary><blockquote>${esc(entry.text)}</blockquote></details>` : ''}${entry.url ? `<a href="${attr(entry.url)}" target="_blank" rel="noopener noreferrer">原推链接 ↗</a>` : ''}</div>
+      </article>`;
+    }).join('');
+    return `<details class="plan-day${row === selected ? ' is-selected' : ''}" id="program-day-${row.day}" data-plan-day="${row.day}"${row === selected ? ' open' : ''}>
+      <summary><b>Day ${row.day}</b><span>${esc(row.statusLabel)}</span></summary>
+      <div class="plan-day-body">${entries || `<p class="plan-empty">${row.status === 'future' ? '原帖尚未更新到这一天。' : '尚未采集到这一天的原帖。'}</p>`}</div>
+    </details>`;
+  }).join('');
+  return `<section class="am-panel program-plan" aria-label="Tibo 28 天计划">
+    <div class="plan-heading"><div><span class="plan-kicker">每天发布改进，或重置额度</span><h2>${esc(plan.title)}</h2></div><span class="plan-latest">最新原帖 <b>Day ${plan.latestDay} / ${plan.days}</b></span></div>
+    <p class="plan-stats"><span><b>${plan.reportedDays}</b> 天有原帖</span><span><b>${plan.updatedDays}</b> 天有功能更新</span><span><b>${plan.resetDays}</b> 天确认重置</span></p>
+    <nav class="plan-grid" aria-label="按活动日查看">${cells}</nav>
+    <p class="plan-legend"><span>● 功能更新</span><span>● 重置确认</span><span>● 预告待落地</span><span>日序取原帖 Day 编号</span></p>
+    <div class="plan-days">${rows}</div>
+    ${renderProgram(program, { title: '活动时段与原始规则' })}
+  </section>`;
+}
+
 export function renderResetCalendar(c) {
   if (!c) return '';
   const blanks = Array.from({ length: c.startWeekday ?? 0 }, () => '<span class="rc-empty" aria-hidden="true"></span>').join('');
@@ -1377,16 +1410,14 @@ export function renderAll(m, prediction, signals, opts = {}) {
 
     // 第一层：预测结论。首屏只有它是「结论」，其余都是支撑材料。
     OUTLOOK: renderOutlook(outlook, m, prediction, signals, opts.collect),
-    // 信号区（`.sig-idle` 提示条 / 预告横幅）。紧贴主卡 —— 读者看完结论的下一问
-    // 就是「有没有公告」。`inlineProgram:false`：每日重置窗口由下面那个独立的
-    // PROGRAM 占位符渲染，同一条事实在页面上只出现一次。
+    // 线索置顶但保持未确认身份；原文和时区按需展开，不挤占预测舞台。
     SIGNAL: outlook?.announcement && signalHtml
-      ? `<details class="am-signal-details"><summary>公告依据与时间说明<span aria-hidden="true">＋</span></summary>${signalHtml}</details>`
-      : signalHtml,
-    // 每日重置窗口：一条**规则**，排在**信号区之后、预测依据之前**。没有它时
-    // renderProgram 返回空串，占位符位置什么都不留（不会出现一个空壳卡片）。
-    // （键的顺序与页面顺序保持一致 —— 模板里 PROGRAM 确实在 BASIS 之前。）
-    PROGRAM: renderProgram(signals?.program),
+      ? `<details class="am-signal-details"><summary><span>公告依据与时间说明</span><span class="signal-disclosure">展开依据</span></summary>${signalHtml}</details>`
+      : signals?.hints?.some((hint) => hint.window) && signalHtml
+        ? `<details class="am-signal-details is-hint"><summary><span class="signal-summary"><b>线索 · 未确认</b><span>有新的额度相关时间线索</span></span><span class="signal-disclosure">查看详情</span></summary>${signalHtml}</details>`
+        : signalHtml,
+    // 与小程序读取同一份原帖日序投影，旧数据缺投影时仍可核对活动规则。
+    PROGRAM: renderProgramPlan(signals?.calendar?.plan, signals?.program),
     RESET_CALENDAR: renderResetCalendar(signals?.calendar),
     // 第二层：预测依据（三张卡）。
     BASIS: outlook ? renderBasis(outlook, m, prediction, signals) : '',
