@@ -242,10 +242,11 @@
   #observatory .am-history{container-type:inline-size}
   #observatory .am-trends{margin-top:12px}
   #observatory .am-trend{display:block;width:100%;height:auto}
-  #observatory .am-trend text{font:11px var(--sans)}
+  #observatory .am-trend text{font-family:var(--sans)}
   #observatory .am-trend .am-value-label{fill:var(--am-accent)}
-  #observatory .am-trend-mobile,#observatory .am-trend-narrow{display:none}
-  @container(max-width:430px){#observatory .am-trend-wide{display:none}#observatory .am-trend-mobile{display:block}}
+  #observatory .am-trend-tablet,#observatory .am-trend-mobile,#observatory .am-trend-narrow,#observatory .rhythm-caption-small{display:none}
+  @container(max-width:699px){#observatory .am-trend-wide,#observatory .rhythm-caption-wide{display:none}#observatory .am-trend-tablet,#observatory .rhythm-caption-small{display:block}}
+  @container(max-width:430px){#observatory .am-trend-tablet{display:none}#observatory .am-trend-mobile{display:block}}
   @container(max-width:275px){#observatory .am-trend-mobile{display:none}#observatory .am-trend-narrow{display:block}}
   #observatory .am-disclosure>summary{min-height:28px}
   #observatory .am-disclosure[open]>summary{margin-bottom:14px}
@@ -390,10 +391,14 @@
   #observatory .am-context-left{align-items:center;gap:12px}
   #observatory .hero-v{font-size:13px;letter-spacing:.015em}
   #observatory .hero-v .unit{color:var(--am-muted);font-size:10px}
-  #observatory .am-main{grid-template-columns:minmax(0,1.85fr) minmax(320px,1fr);gap:22px;margin-top:0;align-items:start}
-  /* 两列分别按内容排布，侧栏不能撑高预测舞台或占走线索所在的整行。 */
-  #observatory .am-focus{display:flex;flex-direction:column;gap:20px;min-width:0}
-  #observatory .am-focus>.pred{display:block}
+  #observatory .am-main{grid-template-columns:minmax(0,1.85fr) minmax(320px,1fr);gap:22px;margin-top:0;align-items:stretch}
+  /* 同一行共享上下边缘；预测只对齐月日历，不再被整列辅助内容撑高。 */
+  #observatory .am-signal-slot{grid-column:1/-1;grid-row:1;min-width:0}
+  #observatory .am-focus{display:contents}
+  #observatory .am-focus>.pred{display:flex;flex-direction:column;grid-column:1;grid-row:2;min-width:0}
+  #observatory .am-focus>.pred>.pcard{flex:1}
+  #observatory .am-focus>:not(.pred){grid-column:1;grid-row:3;min-width:0}
+  #observatory .am-main>.reset-calendar{grid-column:2;grid-row:2}
   #observatory .am-signal-details{margin:0;padding:16px 18px;border-radius:16px;background:#161c30;color:#a4adc8;font-size:12px}
   #observatory .am-signal-details>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:14px;min-height:28px}
   #observatory .signal-summary{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px}
@@ -402,10 +407,11 @@
   #observatory .signal-disclosure:after{content:'';width:6px;height:6px;border-right:1.5px solid;border-bottom:1.5px solid;transform:translateY(-2px) rotate(45deg)}
   #observatory .am-signal-details[open] .signal-disclosure:after{transform:translateY(2px) rotate(225deg)}
   #observatory .am-signal-details .sig{margin:16px 0 0;padding:16px 0 0;border-radius:0;border-top:1px solid var(--am-line);background:transparent}
-  #observatory .am-main>.am-side{grid-column:2;grid-row:1;gap:20px}
+  #observatory .am-main>.am-side{grid-column:2;grid-row:3;gap:20px}
   #observatory .am-side>.am-basis{flex:none}
+  #observatory .am-main .pcard,#observatory[data-running="true"] .am-main .am-panel:hover{transform:none}
   #observatory .am-lower{display:block;margin-top:24px}
-  #observatory .am-lower .am-trends{max-width:720px;margin:16px auto}
+  #observatory .am-lower .am-trends{width:100%;margin:16px 0}
   #observatory .pcard,#observatory .pcard.is-announced{padding:23px 25px 0;border:0;border-radius:24px;background:radial-gradient(ellipse at 85% 25%,#59428938,transparent 60%),radial-gradient(ellipse at 15% 90%,#23776c25,transparent 60%),linear-gradient(145deg,#171d33,#141a2c);box-shadow:0 20px 60px -25px #0008,inset 0 1px #cfc1ff20;color:var(--am-ink);overflow:hidden;transform-style:flat}
   #observatory .pcard:before{background:radial-gradient(350px circle at var(--am-mx) var(--am-my),#b4a3ff0c,transparent 70%)}
   #observatory .pcard.is-announced{background:radial-gradient(ellipse at 85% 25%,#7950b347,transparent 60%),radial-gradient(ellipse at 15% 90%,#23776c35,transparent 60%),linear-gradient(145deg,#201e3a,#141c30)}
@@ -537,46 +543,50 @@
   #observatory .rc-legend span:first-child{color:#a6edce}#observatory .rc-legend span:nth-child(2){color:#edc28a}#observatory .rc-legend span:nth-child(3){color:#bcb2e0}
   @media(max-width:700px){#observatory .reset-calendar{margin-top:18px}#observatory .rc-layout{display:block}#observatory .rc-summary{border:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:20px}#observatory .rc-progress{grid-column:1;grid-row:2/4;margin:0;font-size:36px}#observatory .rc-summary>.rc-muted:first-child{grid-column:1;grid-row:1}#observatory .rc-stat{grid-column:2;grid-row:1/3}#observatory .rc-summary>.rc-muted:nth-of-type(2){grid-column:2;grid-row:3}#observatory .rc-stat.rc-pending{grid-column:1;grid-row:4;margin:0;justify-content:flex-start;gap:10px}#observatory .rc-source{grid-column:2;grid-row:4;margin:0;align-self:center}#observatory .rc-grid,#observatory .rc-week{gap:5px}#observatory .rc-cell{min-height:60px;border-radius:8px}#observatory .rc-cell b{font-size:11px}#observatory .rc-cell span{font-size:8px}#observatory .rc-heading p{font-size:10px}#observatory .rc-caption{font-size:10px}#observatory .rc-legend{gap:8px;font-size:9px}}
 
-  #observatory .am-side .reset-calendar{margin:0;padding:19px 16px}
-  #observatory .am-side .rc-heading{margin-bottom:14px;gap:7px;flex-wrap:wrap}
-  #observatory .am-side .rc-heading h2{font-size:15px}
-  #observatory .am-side .rc-heading p{font-size:9px}
-  #observatory .am-side .rc-caption{font-size:9px}
-  #observatory .am-side .rc-layout{display:block}
-  #observatory .am-side .rc-summary{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;border:0;padding:0;margin-bottom:17px}
-  #observatory .am-side .rc-progress{grid-column:1;grid-row:2/4;margin:0;font-size:32px}
-  #observatory .am-side .rc-progress small{font-size:14px}
-  #observatory .am-side .rc-summary>.rc-muted:first-child{grid-column:1;grid-row:1}
-  #observatory .am-side .rc-stat{grid-column:2;grid-row:1/3;font-size:10px}
-  #observatory .am-side .rc-stat b{font-size:25px}
-  #observatory .am-side .rc-summary>.rc-muted:nth-of-type(2){grid-column:2;grid-row:3;font-size:9px}
-  #observatory .am-side .rc-stat.rc-pending{grid-column:1;grid-row:4;margin:0;justify-content:flex-start;gap:6px}
-  #observatory .am-side .rc-source{grid-column:2;grid-row:4;margin:0;align-self:center;font-size:9px}
-  #observatory .am-side .rc-grid,#observatory .am-side .rc-week{gap:4px}
-  #observatory .am-side .rc-cell{min-height:47px;gap:5px;border-radius:7px}
-  #observatory .am-side .rc-cell b{font-size:9px}
-  #observatory .am-side .rc-cell span{font-size:8px}
-  #observatory .am-side .rc-legend{gap:7px;font-size:8px;line-height:1.7;margin-top:13px}
+  #observatory .am-main>.reset-calendar{margin:0;padding:19px 16px}
+  #observatory .am-main>.reset-calendar .rc-heading{margin-bottom:14px;gap:7px;flex-wrap:wrap}
+  #observatory .am-main>.reset-calendar .rc-heading h2{font-size:15px}
+  #observatory .am-main>.reset-calendar .rc-heading p{font-size:9px}
+  #observatory .am-main>.reset-calendar .rc-caption{font-size:9px}
+  #observatory .am-main>.reset-calendar .rc-layout{display:block}
+  #observatory .am-main>.reset-calendar .rc-summary{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;border:0;padding:0;margin-bottom:17px}
+  #observatory .am-main>.reset-calendar .rc-progress{grid-column:1;grid-row:2/4;margin:0;font-size:32px}
+  #observatory .am-main>.reset-calendar .rc-progress small{font-size:14px}
+  #observatory .am-main>.reset-calendar .rc-summary>.rc-muted:first-child{grid-column:1;grid-row:1}
+  #observatory .am-main>.reset-calendar .rc-stat{grid-column:2;grid-row:1/3;font-size:10px}
+  #observatory .am-main>.reset-calendar .rc-stat b{font-size:25px}
+  #observatory .am-main>.reset-calendar .rc-summary>.rc-muted:nth-of-type(2){grid-column:2;grid-row:3;font-size:9px}
+  #observatory .am-main>.reset-calendar .rc-stat.rc-pending{grid-column:1;grid-row:4;margin:0;justify-content:flex-start;gap:6px}
+  #observatory .am-main>.reset-calendar .rc-source{grid-column:2;grid-row:4;margin:0;align-self:center;font-size:9px}
+  #observatory .am-main>.reset-calendar .rc-grid,#observatory .am-main>.reset-calendar .rc-week{gap:4px}
+  #observatory .am-main>.reset-calendar .rc-cell{min-height:47px;gap:5px;border-radius:7px}
+  #observatory .am-main>.reset-calendar .rc-cell b{font-size:9px}
+  #observatory .am-main>.reset-calendar .rc-cell span{font-size:8px}
+  #observatory .am-main>.reset-calendar .rc-legend{gap:7px;font-size:8px;line-height:1.7;margin-top:13px}
   #observatory .am-focus>.pred>.pcard{display:flex;flex-direction:column}
   #observatory .am-stage{flex:1}
   #observatory>.sig-prog{margin-top:22px}
 
-  #observatory .am-side .reset-calendar{padding:16px}
-  #observatory .am-side .rc-heading{margin-bottom:10px}
-  #observatory .am-side .rc-summary{margin-bottom:12px}
-  #observatory .am-side .rc-cell{min-height:42px}
+  #observatory .am-main>.reset-calendar{padding:16px}
+  #observatory .am-main>.reset-calendar .rc-heading{margin-bottom:10px}
+  #observatory .am-main>.reset-calendar .rc-summary{margin-bottom:12px}
+  #observatory .am-main>.reset-calendar .rc-cell{min-height:42px}
   #observatory .am-side .is-arrival{padding:17px}
   #observatory .am-side .is-arrival h2{margin-bottom:9px;font-size:14px}
   #observatory .am-side .is-arrival .am-basis-row{padding:9px 0;font-size:11px}
   #observatory .am-side .is-arrival .am-basis-row strong{font-size:14px}
   #observatory .am-side .is-arrival .am-basis-note{margin-top:10px;font-size:10px;line-height:1.7}
 
-  #observatory .am-side .am-records{margin:0}
-  #observatory .am-side .rc-heading p,#observatory .am-side .rc-caption{font-size:10px}
-  #observatory .am-side .rc-cell{min-height:46px}
-  #observatory .am-side .rc-cell b{font-size:11px}
-  #observatory .am-side .rc-cell span{font-size:10px}
-  #observatory .am-side .rc-legend{font-size:10px;gap:8px 12px}
+  #observatory .am-side .am-records{margin:0;display:flex;flex-direction:column;flex:1}
+  #observatory .am-side .am-record-grid{flex:1;grid-auto-rows:1fr;gap:0}
+  #observatory .am-side .am-record{display:flex;flex-direction:column;justify-content:center;padding:16px 0}
+  #observatory .am-side .am-record:first-child{padding-top:8px}
+  #observatory .am-side .am-record:last-child{padding-bottom:0}
+  #observatory .am-main>.reset-calendar .rc-heading p,#observatory .am-main>.reset-calendar .rc-caption{font-size:10px}
+  #observatory .am-main>.reset-calendar .rc-cell{min-height:46px}
+  #observatory .am-main>.reset-calendar .rc-cell b{font-size:11px}
+  #observatory .am-main>.reset-calendar .rc-cell span{font-size:10px}
+  #observatory .am-main>.reset-calendar .rc-legend{font-size:10px;gap:8px 12px}
   #observatory .program-plan{padding:24px;min-width:0}
   #observatory .plan-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
   #observatory .plan-heading h2{font-size:18px;letter-spacing:0;margin:5px 0 0;color:#eeeafa}
@@ -628,7 +638,7 @@
   #observatory .program-plan .sig-prog summary{font-size:11px;color:#99a5c0;min-height:32px}
   #observatory .program-plan .sig-prog .am-icon{width:26px;height:26px;border-radius:8px}
   @media(max-width:1000px){#observatory .am-main{grid-template-columns:minmax(0,1.6fr) minmax(300px,1fr)}#observatory .plan-cell small{display:none}#observatory .plan-cell i{display:block}}
-  @media(max-width:850px){#observatory .am-main{grid-template-columns:1fr}#observatory .am-main>.am-side{grid-column:1;grid-row:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;margin-top:4px}#observatory .am-side .reset-calendar{grid-row:span 2}#observatory .plan-cell small{display:block}#observatory .plan-cell i{display:none}}
+  @media(max-width:850px){#observatory .am-main{grid-template-columns:1fr}#observatory .am-signal-slot,#observatory .am-focus>.pred,#observatory .am-focus>:not(.pred),#observatory .am-main>.reset-calendar,#observatory .am-main>.am-side{grid-column:1;grid-row:auto}#observatory .am-main>.am-side{display:flex;align-items:stretch;margin-top:0}#observatory .plan-cell small{display:block}#observatory .plan-cell i{display:none}}
   @media(max-width:700px){#observatory .am-main{display:flex;flex-direction:column;gap:18px}#observatory .am-focus{width:100%;gap:18px}#observatory .am-main>.am-side{display:flex;width:100%;margin-top:0;gap:18px}#observatory .program-plan{padding:20px 16px}#observatory .plan-heading h2{font-size:16px}#observatory .plan-grid{gap:6px}#observatory .plan-cell{min-height:55px;border-radius:8px;gap:5px}#observatory .plan-cell small{display:none}#observatory .plan-cell i{display:block}#observatory .plan-cell b{font-size:12px}#observatory .plan-cell>span{font-size:9px}#observatory .plan-stats{gap:6px 12px;font-size:10px}#observatory .plan-entry-meta time{margin-left:0}#observatory .signal-summary{gap:7px}#observatory .signal-summary>span{font-size:11px}#observatory .signal-disclosure{font-size:10px}#observatory .am-signal-details{padding:14px}#observatory .am-lower .am-trends{margin:16px 0}}
 </style>
 
@@ -648,13 +658,13 @@
   </section>
   <main>
     <div class="am-main">
+      <div class="am-signal-slot"><!--__SIGNAL__--></div>
       <div class="am-focus">
-        <!--__SIGNAL__-->
         <!--__OUTLOOK__-->
         <!--__PROGRAM__-->
       </div>
+      <!--__RESET_CALENDAR__-->
       <div class="am-side">
-        <!--__RESET_CALENDAR__-->
         <!--__BASIS_SUMMARY__-->
         <section class="am-panel am-records" id="records">
           <div class="am-panel-head"><h2>最近记录</h2><span class="am-tiny am-muted">原文可追溯 ↗</span></div>
@@ -664,7 +674,7 @@
     </div>
     <div class="am-lower">
       <section class="am-panel am-history">
-        <div class="am-panel-head"><h2>历史重置节奏</h2><span class="am-tiny am-muted">最近 7 次间隔 · 天</span></div>
+        <div class="am-panel-head"><h2>历史重置节奏</h2><span class="am-tiny am-muted"><!--__RHYTHM_CAPTION__--></span></div>
         <div class="am-trends"><!--__RHYTHM__--></div>
         <details class="am-disclosure"><summary>回测与预测边界</summary><div class="am-detail basis-detail"><!--__BASIS__--></div></details>
       </section>

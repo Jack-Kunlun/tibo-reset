@@ -533,14 +533,15 @@ export function histogramScene(data, opts = {}) {
   return { width: W, height: H, elements: el };
 }
 
-/** 最近七次已完成间隔；日期统一用北京日历，网页和小程序共用同一套坐标。 */
+/** 已完成间隔；默认七次，宽屏可指定条数，日期统一用北京日历。 */
 export function rhythmScene(data, opts = {}) {
   const W = Math.max(200, Math.round(opts.width ?? 310));
   const H = Math.max(150, Math.round(opts.height ?? 196));
   const size = 11 * (opts.fontScale ?? 1);
   const accent = opts.accent ?? '#6150d4';
   const muted = '#73708a';
-  const values = (data?.gapDays ?? []).slice(-7);
+  const count = Number.isInteger(opts.count) && opts.count > 0 ? Math.min(28, opts.count) : 7;
+  const values = (data?.gapDays ?? []).slice(-count);
   const records = (data?.records ?? []).slice(-values.length);
   const dateLabel = (record) => {
     const date = new Date(Date.parse(record?.at ?? '') + 8 * 3_600_000);
@@ -551,10 +552,10 @@ export function rhythmScene(data, opts = {}) {
   const base = 10 ** Math.floor(Math.log10(max / 2));
   const step = [1, 2, 5, 10].map((n) => n * base).find((n) => n >= max / 2);
   const ceiling = max * 1.1;
-  const L = 64, R = 18, T = 22, B = 45;
+  const L = 48, R = L, T = 22, B = 45;
   const X = (i) => L + (W - L - R) * (values.length === 1 ? .5 : i / (values.length - 1));
   const Y = (v) => H - B - v / ceiling * (H - T - B);
-  const el = [text(10, 12, '天', { fill: muted, size })];
+  const el = [text(10, Math.max(12, size), '天', { fill: muted, size })];
   for (let t = 0; t <= ceiling; t += step) {
     el.push(line(L, Y(t), W - R, Y(t), { stroke: '#e4e1ee', w: 1 }));
     el.push(text(L - 12, Y(t) + 4, Number(t.toFixed(2)), { anchor: 'end', fill: muted, size }));

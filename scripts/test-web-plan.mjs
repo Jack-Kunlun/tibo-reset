@@ -1,15 +1,18 @@
 #!/usr/bin/env node
-/** 网页只呈现服务端计划投影；日序切换不能重判、丢来源或直出机器时间。 */
+/** 网页计划与近期节奏呈现；切换不能重判、丢来源或直出机器时间。 */
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import vm from 'node:vm';
-import { renderProgramPlan, renderAll } from '../src/lib/render.mjs';
+import { renderProgramPlan, renderAll, renderRecentRhythm } from '../src/lib/render.mjs';
+import { rhythmScene, sceneBounds } from '../src/lib/scene.js';
 import { derive } from '../src/lib/page.mjs';
 
 const template = await readFile(new URL('../src/index.html', import.meta.url), 'utf8');
 const rendererSource = await readFile(new URL('../src/lib/render.mjs', import.meta.url), 'utf8');
 const rendererUrl = new URL('../src/lib/render.mjs', import.meta.url);
+const sceneUrl = new URL('../src/lib/scene.js', import.meta.url);
+const sceneSource = await readFile(sceneUrl, 'utf8');
 const program = { days: 28, window: {}, url: 'https://x.com/thsottiaux/status/program' };
 const statuses = ['updated', 'mixed', 'pending', 'missing', 'future'];
 const rows = Array.from({ length: 28 }, (_, i) => ({ day: i + 1,
@@ -114,6 +117,53 @@ for (const [from, to] of [
 const verifyPlacement = source => assert.ok(source.indexOf('<!--__SIGNAL__-->') < source.indexOf('<!--__OUTLOOK__-->') && source.indexOf('<!--__OUTLOOK__-->') < source.indexOf('<!--__PROGRAM__-->') && source.indexOf('<!--__PROGRAM__-->') < source.indexOf('<!--__RESET_CALENDAR__-->'));
 check('线索置顶且计划留在主栏', () => verifyPlacement(template));
 assert.throws(() => verifyPlacement(template.replace('        <!--__PROGRAM__-->\n', '').replace('<!--__BASIS_SUMMARY__-->', '<!--__BASIS_SUMMARY__--><!--__PROGRAM__-->')));
+
+const rhythmData = { gapDays: Array.from({ length: 20 }, (_, i) => i / 2),
+  records: Array.from({ length: 21 }, (_, i) => ({ at: new Date(Date.UTC(2026, 9, i + 1)).toISOString() })) };
+const pointCount = scene => scene.elements.filter(e => e.k === 'circle' && e.r < 4).length;
+const sceneCases = [
+  ['宽屏可显示最近14次真实间隔', fn => {
+    assert.equal(pointCount(fn(rhythmData, { width: 1096, height: 280, count: 14 })), 14);
+  }, '.slice(-count)', '.slice(-7)'],
+  ['未传条数仍保留小程序的最近7次', fn => {
+    assert.equal(pointCount(fn(rhythmData)), 7);
+  }, 'Math.min(28, opts.count) : 7', 'Math.min(28, opts.count) : 14'],
+  ['各尺寸绘图区的左右留白一致', fn => {
+    for (const width of [200, 246, 310, 490, 1096]) {
+      const scene = fn(rhythmData, { width, count: width > 699 ? 14 : 7 });
+      const points = scene.elements.filter(e => e.k === 'circle' && e.r < 4);
+      assert.equal(points[0].cx, width - points.at(-1).cx);
+    }
+  }, 'R = L, T = 22', 'R = 18, T = 22'],
+  ['宽图较大字号、零值与空数据都不越界', fn => {
+    for (const input of [rhythmData, { gapDays: [0], records: rhythmData.records.slice(-1) }, { gapDays: [], records: [] }]) {
+      const b = sceneBounds(fn(input, { width: 1096, height: 280, fontScale: 1.5, count: 14 }));
+      assert.ok(b.minX >= 0 && b.minY >= 0 && b.maxX <= 1096 && b.maxY <= 280);
+    }
+  }, 'Math.max(12, size)', '12'],
+];
+for (const [name, run, from, to] of sceneCases) {
+  check(name, () => run(rhythmScene));
+  const mutant = await import('data:text/javascript;base64,' + Buffer.from(sceneSource.replace(from, to)).toString('base64'));
+  assert.throws(() => run(mutant.rhythmScene), undefined, '反例未被拦截: ' + name);
+}
+const rhythmRenderCase = fn => {
+  const html = fn(rhythmData);
+  const wide = html.match(/<svg class="am-trend am-trend-wide"[\s\S]*?<\/svg>/)[0];
+  assert.equal([...wide.matchAll(/<circle[^>]+r="(?:2\.5|3\.5)"/g)].length, 14);
+};
+check('网页宽图实际接入14次范围', () => rhythmRenderCase(renderRecentRhythm));
+const rhythmRenderMutant = rendererSource.replace('height: 280, count: 14', 'height: 280, count: 7')
+  .replace(/from (['"])(\.[^'"]+)\1/g, (_, q, path) => `from ${q}${new URL(path, rendererUrl).href}${q}`);
+const brokenRhythm = await import('data:text/javascript;base64,' + Buffer.from(rhythmRenderMutant).toString('base64'));
+assert.throws(() => rhythmRenderCase(brokenRhythm.renderRecentRhythm));
+const verifyCaption = fn => assert.ok(fn(derived.model, derived.prediction, signal).RHYTHM_CAPTION.includes('最近 14 次间隔'));
+check('宽图标题与实际条数一致', () => verifyCaption(renderAll));
+const captionMutant = rendererSource.replace('Math.min(14, m.gapDays.length)', 'Math.min(7, m.gapDays.length)')
+  .replace(/from (['"])(\.[^'"]+)\1/g, (_, q, path) => `from ${q}${new URL(path, rendererUrl).href}${q}`);
+const brokenCaption = await import('data:text/javascript;base64,' + Buffer.from(captionMutant).toString('base64'));
+assert.throws(() => verifyCaption(brokenCaption.renderAll));
 assert.equal(digest(await readFile(rendererUrl, 'utf8')), digest(rendererSource));
+assert.equal(digest(await readFile(sceneUrl, 'utf8')), digest(sceneSource));
 assert.equal(digest(await readFile(new URL('../src/index.html', import.meta.url), 'utf8')), digest(template));
-console.log(`\n${checks} 项通过；${cases.length + selectionCases.length + 3} 个隔离反例被拦截，源码哈希未变`);
+console.log(`\n${checks} 项通过；${cases.length + selectionCases.length + 3 + sceneCases.length + 2} 个隔离反例被拦截，源码哈希未变`);

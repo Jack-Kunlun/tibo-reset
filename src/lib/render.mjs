@@ -852,13 +852,18 @@ export function renderBasisSummary(o, prediction) {
   </section>`;
 }
 
-/** 按三个实际显示宽度在服务端排版，浏览器只选择图形，不另算一份图表。 */
+/** 按实际内容宽度排版；桌面延长历史范围，窄屏保留七次以保证日期可读。 */
 export function renderRecentRhythm(m) {
-  const values = m.gapDays.slice(-7);
-  const dates = m.records.slice(-values.length).map((r) => fmtDate(r.at).slice(5));
-  const labels = values.map((v, i) => `${dates[i]}：${v.toFixed(2)} 天`).join('，');
-  return ['wide', 'mobile', 'narrow'].map((size, i) => {
-    const svg = sceneToSvgTag(rhythmScene(m, { width: [490, 310, 246][i], height: 196, fontScale: 1 }), { role: 'img', label: labels });
+  return [
+    { size: 'wide', width: 1096, height: 280, count: 14, fontScale: 1.5 },
+    { size: 'tablet', width: 490, height: 196, count: 7, fontScale: 1 },
+    { size: 'mobile', width: 310, height: 196, count: 7, fontScale: 1 },
+    { size: 'narrow', width: 246, height: 196, count: 7, fontScale: 1 },
+  ].map(({ size, ...options }) => {
+    const values = m.gapDays.slice(-options.count);
+    const dates = m.records.slice(-values.length).map((r) => fmtDate(r.at).slice(5));
+    const labels = values.map((v, i) => `${dates[i]}：${v.toFixed(2)} 天`).join('，');
+    const svg = sceneToSvgTag(rhythmScene(m, options), { role: 'img', label: labels });
     return svg.replace('<svg ', `<svg class="am-trend am-trend-${size}" `)
       .replace(/id="g(\d+)"/g, `id="rhythm-${size}-$1"`)
       .replace(/url\(#g(\d+)\)/g, `url(#rhythm-${size}-$1)`);
@@ -1423,6 +1428,7 @@ export function renderAll(m, prediction, signals, opts = {}) {
     BASIS: outlook ? renderBasis(outlook, m, prediction, signals) : '',
     BASIS_SUMMARY: renderBasisSummary(outlook, prediction),
     RHYTHM: renderRecentRhythm(m),
+    RHYTHM_CAPTION: `<span class="rhythm-caption-wide">最近 ${Math.min(14, m.gapDays.length)} 次间隔 · 天</span><span class="rhythm-caption-small">最近 ${Math.min(7, m.gapDays.length)} 次间隔 · 天</span>`,
     RECENT_RECORDS: renderRecentRecords(m),
     PREDICTED_AT: fmtMDHM(m.now),
 
