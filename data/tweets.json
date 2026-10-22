@@ -1,6 +1,63 @@
 {
   "tweets": [
     {
+      "id": "2113163458867032238",
+      "text": "Hefty",
+      "created_at": "2026-10-22T07:00:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2113163458867032238",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ebloch",
+        "id": "",
+        "text": "Insane. My dot found an $8,300 mistake in my tax return. The return was prepared by a tax firm that is best in class! People, if you’re not using ChatGPT for your Finances, you are definitely leaving money on the table.",
+        "created_at": "2026-10-21T15:48:13.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-22T07:02:11.409Z"
+    },
+    {
+      "id": "2113162413008884099",
+      "text": "Lands tomorrow before 10am PST.",
+      "created_at": "2026-10-22T06:55:54.000Z",
+      "url": "https://x.com/thsottiaux/status/2113162413008884099",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ebloch",
+        "id": "",
+        "text": "Insane. My dot found an $8,300 mistake in my tax return. The return was prepared by a tax firm that is best in class! People, if you’re not using ChatGPT for your Finances, you are definitely leaving money on the table.",
+        "created_at": "2026-10-21T15:48:13.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-22T07:02:11.409Z"
+    },
+    {
+      "id": "2113162277688070445",
+      "text": "Day 17/ Bet you thought we forgot, but no, it’s reset day today. Also good time to remind you to get Daybreak Blue access, it only takes 15 mins and you don’t want to have to do it in the middle of an incident.",
+      "created_at": "2026-10-22T06:55:22.000Z",
+      "url": "https://x.com/thsottiaux/status/2113162277688070445",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ebloch",
+        "id": "",
+        "text": "Insane. My dot found an $8,300 mistake in my tax return. The return was prepared by a tax firm that is best in class! People, if you’re not using ChatGPT for your Finances, you are definitely leaving money on the table.",
+        "created_at": "2026-10-21T15:48:13.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-22T07:02:11.409Z"
+    },
+    {
       "id": "2113029854417600834",
       "text": "Fully included in the Pro plan, doesn't draw on your weekly usage.",
       "created_at": "2026-10-21T22:09:10.000Z",
@@ -8,9 +65,16 @@
       "author_verified": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
-      "first_seen": "2026-10-22T00:02:04.473Z"
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-22T00:02:04.473Z",
+      "inReplyTo": {
+        "account": "ebloch",
+        "id": "",
+        "text": "Insane. My dot found an $8,300 mistake in my tax return. The return was prepared by a tax firm that is best in class! People, if you’re not using ChatGPT for your Finances, you are definitely leaving money on the table.",
+        "created_at": "2026-10-21T15:48:13.000Z",
+        "url": ""
+      }
     },
     {
       "id": "2113029655095836957",
@@ -20,9 +84,16 @@
       "author_verified": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
-      "first_seen": "2026-10-22T00:02:04.473Z"
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-22T00:02:04.473Z",
+      "inReplyTo": {
+        "account": "ebloch",
+        "id": "",
+        "text": "Insane. My dot found an $8,300 mistake in my tax return. The return was prepared by a tax firm that is best in class! People, if you’re not using ChatGPT for your Finances, you are definitely leaving money on the table.",
+        "created_at": "2026-10-21T15:48:13.000Z",
+        "url": ""
+      }
     },
     {
       "id": "2113009945134379213",
@@ -7285,7 +7356,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-22T03:03:11.953Z",
+  "updated_at": "2026-10-22T07:02:11.410Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }
