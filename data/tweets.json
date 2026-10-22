@@ -36,8 +36,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-22T07:02:11.409Z"
     },
     {
@@ -50,7 +50,7 @@
       "kind": "reset",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "with-replies",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-22T07:02:11.409Z"
     },
     {
@@ -61,8 +61,8 @@
       "author_verified": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-22T00:02:04.473Z",
       "inReplyTo": {
         "account": "ebloch",
@@ -80,8 +80,8 @@
       "author_verified": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "reply",
-      "foundVia": "with-replies",
+      "role": "post",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-22T00:02:04.473Z",
       "inReplyTo": {
         "account": "ebloch",
@@ -7352,7 +7352,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-22T07:02:11.410Z",
+  "updated_at": "2026-10-22T08:02:06.673Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }

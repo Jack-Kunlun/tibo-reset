@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-20T06:33:48.000Z",
     "last_text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
-    "days_since_last": 2.019716574074074,
+    "days_since_last": 2.0613283333333334,
     "avg_interval_days": 6.2203877314814795,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.437522122081761,
@@ -14,28 +14,38 @@
     "reset_count": 58,
     "hit_within_avg": 0.71875
   },
-  "generated_at": "2026-10-22T07:02:11.644Z",
+  "generated_at": "2026-10-22T08:02:06.906Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
-    "stoppedBy": "floor",
-    "newTweets": 3,
-    "knownCount": 437,
+    "stoppedBy": "known",
+    "newTweets": 0,
+    "knownCount": 440,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 8,
-      "harvested": 10,
-      "withContext": 10,
+      "steps": 1,
+      "harvested": 5,
+      "withContext": 1,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 2,
-      "attempted": 2,
-      "fetched": 2,
+      "candidates": 4,
+      "attempted": 4,
+      "fetched": 4,
       "skipped": 0,
       "scanned": [
+        {
+          "id": "2113162413008884099",
+          "length": 31,
+          "showMore": false
+        },
+        {
+          "id": "2113162277688070445",
+          "length": 210,
+          "showMore": false
+        },
         {
           "id": "2112712984644784534",
           "length": 251,
@@ -54,7 +64,7 @@
     "updated": 0,
     "removed": 0,
     "upstreamCount": 64,
-    "refreshedAt": "2026-10-22T07:01:49.555Z",
+    "refreshedAt": "2026-10-22T08:01:43.180Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
