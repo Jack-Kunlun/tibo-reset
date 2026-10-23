@@ -1,6 +1,30 @@
 {
   "tweets": [
     {
+      "id": "2113492502355562875",
+      "text": "Landing tomorrow before 10am PST together with a small ship.",
+      "created_at": "2026-10-23T04:47:34.000Z",
+      "url": "https://x.com/thsottiaux/status/2113492502355562875",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-23T05:00:53.551Z"
+    },
+    {
+      "id": "2113492187770175603",
+      "text": "Day 18/ Decisions API is GA, OpenResponses joined the Linux Foundation, we shipped some performance improvements and Uber is going all-in on codex & work. But yes… that’s a reset!",
+      "created_at": "2026-10-23T04:46:19.000Z",
+      "url": "https://x.com/thsottiaux/status/2113492187770175603",
+      "author_verified": true,
+      "kind": "reset",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-23T05:00:53.551Z"
+    },
+    {
       "id": "2113404560853397516",
       "text": "Very baguette of you",
       "created_at": "2026-10-22T22:58:07.000Z",
@@ -7371,7 +7395,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-23T01:20:19.065Z",
+  "updated_at": "2026-10-23T05:00:53.553Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }

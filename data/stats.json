@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-20T06:33:48.000Z",
     "last_text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
-    "days_since_last": 2.7823047569444443,
+    "days_since_last": 2.9354819791666666,
     "avg_interval_days": 6.2203877314814795,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.437522122081761,
@@ -14,28 +14,33 @@
     "reset_count": 58,
     "hit_within_avg": 0.71875
   },
-  "generated_at": "2026-10-23T01:20:19.257Z",
+  "generated_at": "2026-10-23T05:00:53.756Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
-    "stoppedBy": "known",
-    "newTweets": 0,
+    "stoppedBy": "floor",
+    "newTweets": 2,
     "knownCount": 441,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 1,
-      "harvested": 1,
-      "withContext": 1,
+      "steps": 6,
+      "harvested": 9,
+      "withContext": 3,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 4,
-      "attempted": 4,
-      "fetched": 4,
+      "candidates": 5,
+      "attempted": 5,
+      "fetched": 5,
       "skipped": 0,
       "scanned": [
+        {
+          "id": "2113492502355562875",
+          "length": 60,
+          "showMore": false
+        },
         {
           "id": "2113162413008884099",
           "length": 31,
@@ -63,8 +68,8 @@
     "added": 0,
     "updated": 0,
     "removed": 0,
-    "upstreamCount": 64,
-    "refreshedAt": "2026-10-23T01:20:00.904Z",
+    "upstreamCount": 65,
+    "refreshedAt": "2026-10-23T05:00:26.294Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
