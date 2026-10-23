@@ -8,9 +8,18 @@
       "author_verified": true,
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
-      "first_seen": "2026-10-23T05:00:53.551Z"
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-23T05:00:53.551Z",
+      "inReplyTo": {
+        "id": "2113492187770175603",
+        "account": "thsottiaux",
+        "text": "Day 18/ Decisions API is GA, OpenResponses joined the Linux Foundation, we shipped some performance improvements and Uber is going all-in on codex & work. But yes… that’s a reset!",
+        "created_at": "2026-10-23T04:46:19.000Z",
+        "url": "https://x.com/thsottiaux/status/2113492187770175603",
+        "relation": "reply",
+        "verified": true
+      }
     },
     {
       "id": "2113492187770175603",
@@ -79,8 +88,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-22T07:02:11.409Z"
     },
     {
@@ -7395,7 +7404,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-23T05:00:53.553Z",
+  "updated_at": "2026-10-23T06:01:51.538Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }

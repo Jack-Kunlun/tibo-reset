@@ -1,5 +1,5 @@
 {
-  "level": "occurred",
+  "level": "explicit",
   "program": {
     "id": "2106845241357824205",
     "url": "https://x.com/thsottiaux/status/2106845241357824205",
@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-23T05:00:53.592Z",
+  "generatedAt": "2026-10-23T06:01:51.571Z",
   "checkedTweets": 443,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-24T05:00:53.592Z",
-  "windowTo": "2026-10-23T05:00:53.592Z",
+  "windowFrom": "2026-08-24T06:01:51.571Z",
+  "windowTo": "2026-10-23T06:01:51.571Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.23",
       "weekday": "周五",
-      "time": "13:00",
-      "text": "2026.10.23（周五）13:00",
+      "time": "14:01",
+      "text": "2026.10.23（周五）14:01",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,8 +98,8 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.22",
       "weekday": "周四",
-      "time": "22:00",
-      "text": "2026.10.22（周四）22:00",
+      "time": "23:01",
+      "text": "2026.10.22（周四）23:01",
       "offset": "UTC-7"
     },
     "diffHours": 15,
@@ -113,10 +113,26 @@
     "url": "https://x.com/thsottiaux/status/2113492502355562875",
     "reasons": [
       "含未来语气",
-      "含发布/宣传语境（下调置信度）"
+      "含发布/宣传语境（下调置信度）",
+      "上下文：回复 @thsottiaux「Day 18/ Decisions API is GA, OpenRes…」",
+      "本条不含额度词，额度语境借自上下文 + 延续语气 → 判为预告"
     ],
-    "viaContext": false,
-    "inReplyTo": null,
+    "contextEvidence": [
+      {
+        "id": "2113492187770175603",
+        "createdAt": "2026-10-23T04:46:19.000Z",
+        "text": "Day 18/ Decisions API is GA, OpenResponses joined the Linux Foundation, we shipped some performance improvements and Uber is going all-in on codex & work. But yes… that’s a reset!",
+        "url": "https://x.com/thsottiaux/status/2113492187770175603"
+      }
+    ],
+    "linkedCompletion": false,
+    "contextRelation": "reply",
+    "viaContext": true,
+    "inReplyTo": {
+      "account": "thsottiaux",
+      "id": "2113492187770175603",
+      "text": "Day 18/ Decisions API is GA, OpenResponses joined the Linux Foundation, we shipped some performance improvements and Uber is going all-in on codex & work. But yes… that’s a reset!"
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
@@ -138,22 +154,180 @@
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "hint",
-    "rejected": "含时间表达「10am」但没有额度相关词，不作为重置信号",
-    "intent": 0,
-    "window": null,
-    "candidateWindow": {
-      "word": "10am",
-      "precision": "instant",
+    "level": "explicit",
+    "rejected": null,
+    "intent": 3,
+    "timeWord": "10am",
+    "timeNote": "原文 PST 按 UTC-8 换算；若泛指洛杉矶当地夏令时（UTC-7），则比此时间早 1 小时。",
+    "precision": "instant",
+    "candidateWindow": null,
+    "window": {
       "from": "2026-10-23T08:00:00.000Z",
       "to": "2026-10-23T18:00:00.000Z",
       "dayNum": 20749,
-      "spec": 97,
-      "note": "原文 PST 按 UTC-8 换算；若泛指洛杉矶当地夏令时（UTC-7），则比此时间早 1 小时。"
-    }
+      "fromTs": 1792742400000,
+      "toTs": 1792778400000,
+      "deadline": true,
+      "deadlineText": "2026.10.24（周六）02:00",
+      "userDeadline": {
+        "y": "2026",
+        "m": "10",
+        "d": "24",
+        "hh": "02",
+        "mm": "00",
+        "weekdayCN": "周六"
+      },
+      "userFrom": {
+        "y": "2026",
+        "m": "10",
+        "d": "23",
+        "hh": "16",
+        "mm": "00",
+        "weekdayCN": "周五"
+      },
+      "sourceZone": "2026.10.23（周五）10:00 前",
+      "sourceLabel": "原文 PST",
+      "userZone": "2026.10.24（周六）02:00 前",
+      "openText": "2026.10.23（周五）16:00",
+      "rangeNote": "公告给出最晚时间，尚未确认落地",
+      "crossesUserDay": true,
+      "zones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.23",
+          "weekday": "周五",
+          "time": "16:00",
+          "text": "2026.10.23（周五）16:00",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "原文 PST",
+          "zone": "Etc/GMT+8",
+          "date": "2026.10.23",
+          "weekday": "周五",
+          "time": "00:00",
+          "text": "2026.10.23（周五）00:00",
+          "offset": "UTC-8"
+        },
+        "diffHours": 16,
+        "diffText": "北京时间比原文 PST快 16 小时"
+      }
+    },
+    "confidence": 0.35999999999999993
   },
-  "signals": [],
-  "occurred": [
+  "signals": [
+    {
+      "id": "2113492502355562875",
+      "account": "thsottiaux",
+      "text": "Landing tomorrow before 10am PST together with a small ship.",
+      "createdAt": "2026-10-23T04:47:34.000Z",
+      "url": "https://x.com/thsottiaux/status/2113492502355562875",
+      "reasons": [
+        "含未来语气",
+        "含发布/宣传语境（下调置信度）",
+        "上下文：回复 @thsottiaux「Day 18/ Decisions API is GA, OpenRes…」",
+        "本条不含额度词，额度语境借自上下文 + 延续语气 → 判为预告"
+      ],
+      "contextEvidence": [
+        {
+          "id": "2113492187770175603",
+          "createdAt": "2026-10-23T04:46:19.000Z",
+          "text": "Day 18/ Decisions API is GA, OpenResponses joined the Linux Foundation, we shipped some performance improvements and Uber is going all-in on codex & work. But yes… that’s a reset!",
+          "url": "https://x.com/thsottiaux/status/2113492187770175603"
+        }
+      ],
+      "linkedCompletion": false,
+      "contextRelation": "reply",
+      "viaContext": true,
+      "inReplyTo": {
+        "account": "thsottiaux",
+        "id": "2113492187770175603",
+        "text": "Day 18/ Decisions API is GA, OpenResponses joined the Linux Foundation, we shipped some performance improvements and Uber is going all-in on codex & work. But yes… that’s a reset!"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.23",
+          "weekday": "周五",
+          "time": "12:47",
+          "text": "2026.10.23（周五）12:47",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.22",
+          "weekday": "周四",
+          "time": "21:47",
+          "text": "2026.10.22（周四）21:47",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "explicit",
+      "rejected": null,
+      "intent": 3,
+      "timeWord": "10am",
+      "timeNote": "原文 PST 按 UTC-8 换算；若泛指洛杉矶当地夏令时（UTC-7），则比此时间早 1 小时。",
+      "precision": "instant",
+      "candidateWindow": null,
+      "window": {
+        "from": "2026-10-23T08:00:00.000Z",
+        "to": "2026-10-23T18:00:00.000Z",
+        "dayNum": 20749,
+        "fromTs": 1792742400000,
+        "toTs": 1792778400000,
+        "deadline": true,
+        "deadlineText": "2026.10.24（周六）02:00",
+        "userDeadline": {
+          "y": "2026",
+          "m": "10",
+          "d": "24",
+          "hh": "02",
+          "mm": "00",
+          "weekdayCN": "周六"
+        },
+        "userFrom": {
+          "y": "2026",
+          "m": "10",
+          "d": "23",
+          "hh": "16",
+          "mm": "00",
+          "weekdayCN": "周五"
+        },
+        "sourceZone": "2026.10.23（周五）10:00 前",
+        "sourceLabel": "原文 PST",
+        "userZone": "2026.10.24（周六）02:00 前",
+        "openText": "2026.10.23（周五）16:00",
+        "rangeNote": "公告给出最晚时间，尚未确认落地",
+        "crossesUserDay": true,
+        "zones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.10.23",
+            "weekday": "周五",
+            "time": "16:00",
+            "text": "2026.10.23（周五）16:00",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "原文 PST",
+            "zone": "Etc/GMT+8",
+            "date": "2026.10.23",
+            "weekday": "周五",
+            "time": "00:00",
+            "text": "2026.10.23（周五）00:00",
+            "offset": "UTC-8"
+          },
+          "diffHours": 16,
+          "diffText": "北京时间比原文 PST快 16 小时"
+        }
+      },
+      "confidence": 0.35999999999999993
+    },
     {
       "id": "2113492187770175603",
       "account": "thsottiaux",
@@ -162,7 +336,9 @@
       "url": "https://x.com/thsottiaux/status/2113492187770175603",
       "reasons": [
         "命中重置词 reset",
-        "命中「A/the reset」名词化陈述"
+        "命中「A/the reset」名词化陈述",
+        "含发布/宣传语境（下调置信度）",
+        "明确预告重置，具体时间待公布"
       ],
       "viaContext": false,
       "inReplyTo": null,
@@ -187,58 +363,98 @@
         },
         "diffText": "北京时间比 Tibo 当地时间快 15 小时"
       },
-      "level": "occurred",
+      "level": "explicit",
+      "timing": "pending",
       "rejected": null,
       "intent": 3,
-      "occurredAt": "2026-10-23T04:46:19.000Z",
       "window": null,
-      "confidence": 0.6799999999999999
+      "candidateWindow": null
     },
     {
-      "id": "2112798407928713717",
+      "id": "2113162277688070445",
       "account": "thsottiaux",
-      "text": "I demand a reset",
-      "createdAt": "2026-10-21T06:49:29.000Z",
-      "url": "https://x.com/thsottiaux/status/2112798407928713717",
+      "text": "Day 17/ Bet you thought we forgot, but no, it’s reset day today. Also good time to remind you to get Daybreak Blue access, it only takes 15 mins and you don’t want to have to do it in the middle of an incident.",
+      "createdAt": "2026-10-22T06:55:22.000Z",
+      "url": "https://x.com/thsottiaux/status/2113162277688070445",
       "reasons": [
-        "命中重置词 reset",
-        "命中「A/the reset」名词化陈述",
-        "上下文：回复 @theo「T3 Connect has not been reliable tod…」"
+        "命中重置词 reset"
       ],
       "viaContext": false,
-      "inReplyTo": {
-        "account": "theo",
-        "id": "",
-        "text": "T3 Connect has not been reliable today. Super sorry about that. Should be recovered now 🤞 Nerdy deets below for those who care: T3 Connect is our built-in alternative to Tailscale for remote connections on T3 Code. Turns out there's so many T3 Connect users that we are"
-      },
+      "inReplyTo": null,
       "createdZones": {
         "a": {
           "label": "北京时间",
           "zone": "Asia/Shanghai",
-          "date": "2026.10.21",
-          "weekday": "周三",
-          "time": "14:49",
-          "text": "2026.10.21（周三）14:49",
+          "date": "2026.10.22",
+          "weekday": "周四",
+          "time": "14:55",
+          "text": "2026.10.22（周四）14:55",
           "offset": "UTC+8"
         },
         "b": {
           "label": "Tibo 当地时间",
           "zone": "America/Los_Angeles",
-          "date": "2026.10.20",
-          "weekday": "周二",
-          "time": "23:49",
-          "text": "2026.10.20（周二）23:49",
+          "date": "2026.10.21",
+          "weekday": "周三",
+          "time": "23:55",
+          "text": "2026.10.21（周三）23:55",
           "offset": "UTC-7"
         },
         "diffText": "北京时间比 Tibo 当地时间快 15 小时"
       },
-      "level": "occurred",
+      "level": "explicit",
       "rejected": null,
       "intent": 3,
-      "occurredAt": "2026-10-21T06:49:29.000Z",
-      "window": null,
-      "confidence": 0.6799999999999999
-    },
+      "timeWord": "today",
+      "timeNote": null,
+      "precision": "day",
+      "candidateWindow": null,
+      "window": {
+        "from": "2026-10-21T07:00:00.000Z",
+        "to": "2026-10-22T06:59:00.000Z",
+        "dayNum": 20747,
+        "fromTs": 1792566000000,
+        "toTs": 1792652340000,
+        "userFrom": {
+          "y": "2026",
+          "m": "10",
+          "d": "21",
+          "hh": "15",
+          "mm": "00",
+          "weekdayCN": "周三"
+        },
+        "sourceZone": "2026.10.21（周三） 全天",
+        "userZone": "2026.10.21（周三）15:00 起",
+        "openText": "2026.10.21（周三）15:00",
+        "rangeNote": "窗口到北京 2026.10.22（周四）14:59 为止",
+        "crossesUserDay": true,
+        "zones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.10.21",
+            "weekday": "周三",
+            "time": "15:00",
+            "text": "2026.10.21（周三）15:00",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "Tibo 当地时间",
+            "zone": "America/Los_Angeles",
+            "date": "2026.10.21",
+            "weekday": "周三",
+            "time": "00:00",
+            "text": "2026.10.21（周三）00:00",
+            "offset": "UTC-7"
+          },
+          "diffHours": 15,
+          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+        }
+      },
+      "confidence": 0.69
+    }
+  ],
+  "occurred": [
     {
       "id": "2112432076767289678",
       "account": "thsottiaux",
@@ -664,53 +880,6 @@
   ],
   "hints": [
     {
-      "id": "2113492502355562875",
-      "account": "thsottiaux",
-      "text": "Landing tomorrow before 10am PST together with a small ship.",
-      "createdAt": "2026-10-23T04:47:34.000Z",
-      "url": "https://x.com/thsottiaux/status/2113492502355562875",
-      "reasons": [
-        "含未来语气",
-        "含发布/宣传语境（下调置信度）"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.23",
-          "weekday": "周五",
-          "time": "12:47",
-          "text": "2026.10.23（周五）12:47",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.22",
-          "weekday": "周四",
-          "time": "21:47",
-          "text": "2026.10.22（周四）21:47",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "hint",
-      "rejected": "含时间表达「10am」但没有额度相关词，不作为重置信号",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": {
-        "word": "10am",
-        "precision": "instant",
-        "from": "2026-10-23T08:00:00.000Z",
-        "to": "2026-10-23T18:00:00.000Z",
-        "dayNum": 20749,
-        "spec": 97,
-        "note": "原文 PST 按 UTC-8 换算；若泛指洛杉矶当地夏令时（UTC-7），则比此时间早 1 小时。"
-      }
-    },
-    {
       "id": "2113029854417600834",
       "account": "thsottiaux",
       "text": "Fully included in the Pro plan, doesn't draw on your weekly usage.",
@@ -754,25 +923,30 @@
       "candidateWindow": null
     },
     {
-      "id": "2112592264686149749",
+      "id": "2112798407928713717",
       "account": "thsottiaux",
-      "text": "There were reports of usage draining faster than anticipated for some users over the weekend. We've identified approximately 40,000 accounts that had an inconsistency on which usage limits where the actual usage that was applied did not correspond to their actual selected plan. We are reaching out individually to all these users and have corrected the issue. If this affected you, we'll add credits to your account. Sorry we got this wrong.",
-      "createdAt": "2026-10-20T17:10:20.000Z",
-      "url": "https://x.com/thsottiaux/status/2112592264686149749",
+      "text": "I demand a reset",
+      "createdAt": "2026-10-21T06:49:29.000Z",
+      "url": "https://x.com/thsottiaux/status/2112798407928713717",
       "reasons": [
-        "命中额度词 limits/usage/credits",
-        "含未来语气"
+        "命中重置词 reset",
+        "命中「A/the reset」名词化陈述",
+        "上下文：回复 @theo「T3 Connect has not been reliable tod…」"
       ],
       "viaContext": false,
-      "inReplyTo": null,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "T3 Connect has not been reliable today. Super sorry about that. Should be recovered now 🤞 Nerdy deets below for those who care: T3 Connect is our built-in alternative to Tailscale for remote connections on T3 Code. Turns out there's so many T3 Connect users that we are"
+      },
       "createdZones": {
         "a": {
           "label": "北京时间",
           "zone": "Asia/Shanghai",
           "date": "2026.10.21",
           "weekday": "周三",
-          "time": "01:10",
-          "text": "2026.10.21（周三）01:10",
+          "time": "14:49",
+          "text": "2026.10.21（周三）14:49",
           "offset": "UTC+8"
         },
         "b": {
@@ -780,62 +954,17 @@
           "zone": "America/Los_Angeles",
           "date": "2026.10.20",
           "weekday": "周二",
-          "time": "10:10",
-          "text": "2026.10.20（周二）10:10",
+          "time": "23:49",
+          "text": "2026.10.20（周二）23:49",
           "offset": "UTC-7"
         },
         "diffText": "北京时间比 Tibo 当地时间快 15 小时"
       },
       "level": "hint",
-      "rejected": null,
-      "intent": 2,
-      "timeWord": "weekend",
-      "timeNote": null,
-      "precision": "week-part",
-      "candidateWindow": null,
-      "window": {
-        "from": "2026-10-24T07:00:00.000Z",
-        "to": "2026-10-26T06:59:00.000Z",
-        "dayNum": null,
-        "fromTs": 1792825200000,
-        "toTs": 1792997940000,
-        "userFrom": {
-          "y": "2026",
-          "m": "10",
-          "d": "24",
-          "hh": "15",
-          "mm": "00",
-          "weekdayCN": "周六"
-        },
-        "sourceZone": "2026.10.24（周六）00:00 → 2026.10.25（周日）23:59",
-        "userZone": "2026.10.24（周六）15:00 → 2026.10.26（周一）14:59",
-        "openText": "2026.10.24（周六）15:00",
-        "rangeNote": "",
-        "crossesUserDay": true,
-        "zones": {
-          "a": {
-            "label": "北京时间",
-            "zone": "Asia/Shanghai",
-            "date": "2026.10.24",
-            "weekday": "周六",
-            "time": "15:00",
-            "text": "2026.10.24（周六）15:00",
-            "offset": "UTC+8"
-          },
-          "b": {
-            "label": "Tibo 当地时间",
-            "zone": "America/Los_Angeles",
-            "date": "2026.10.24",
-            "weekday": "周六",
-            "time": "00:00",
-            "text": "2026.10.24（周六）00:00",
-            "offset": "UTC-7"
-          },
-          "diffHours": 15,
-          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-        }
-      },
-      "confidence": 0.51
+      "rejected": "有额度意图但没给出时间，只能作线索",
+      "intent": 3,
+      "window": null,
+      "candidateWindow": null
     },
     {
       "id": "2112034063934742720",
@@ -2823,7 +2952,7 @@
         "命中额度词 limits/usage/credits",
         "含未来语气",
         "含发布/宣传语境（下调置信度）",
-        "窗口已过去：撤回窗口（原文留档，不再作为未来线索展示）"
+        "窗口内已发生过重置：撤回窗口（原文留档，不再作为未来线索展示）"
       ],
       "viaContext": false,
       "inReplyTo": null,
@@ -2860,8 +2989,8 @@
       "windowExpired": {
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
-        "why": "past",
-        "checkedAt": "2026-10-23T05:00:53.592Z"
+        "why": "fulfilled",
+        "checkedAt": "2026-10-23T06:01:51.571Z"
       }
     },
     {
@@ -3615,6 +3744,138 @@
       }
     }
   ],
+  "activeHints": [],
+  "overdueForecasts": [
+    {
+      "level": "explicit",
+      "day": null,
+      "precision": "instant",
+      "window": {
+        "from": "2026-10-22T08:00:00.000Z",
+        "to": "2026-10-22T18:00:00.000Z",
+        "dayNum": 20748,
+        "fromTs": 1792656000000,
+        "toTs": 1792692000000,
+        "deadline": true,
+        "deadlineText": "2026.10.23（周五）02:00",
+        "userDeadline": {
+          "y": "2026",
+          "m": "10",
+          "d": "23",
+          "hh": "02",
+          "mm": "00",
+          "weekdayCN": "周五"
+        },
+        "userFrom": {
+          "y": "2026",
+          "m": "10",
+          "d": "22",
+          "hh": "16",
+          "mm": "00",
+          "weekdayCN": "周四"
+        },
+        "sourceZone": "2026.10.22（周四）10:00 前",
+        "sourceLabel": "原文 PST",
+        "userZone": "2026.10.23（周五）02:00 前",
+        "openText": "2026.10.22（周四）16:00",
+        "rangeNote": "公告给出最晚时间，尚未确认落地",
+        "crossesUserDay": true,
+        "zones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.10.22",
+            "weekday": "周四",
+            "time": "16:00",
+            "text": "2026.10.22（周四）16:00",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "原文 PST",
+            "zone": "Etc/GMT+8",
+            "date": "2026.10.22",
+            "weekday": "周四",
+            "time": "00:00",
+            "text": "2026.10.22（周四）00:00",
+            "offset": "UTC-8"
+          },
+          "diffHours": 16,
+          "diffText": "北京时间比原文 PST快 16 小时"
+        },
+        "precision": "instant"
+      },
+      "text": "Lands tomorrow before 10am PST.",
+      "url": "https://x.com/thsottiaux/status/2113162413008884099",
+      "reasons": [
+        "含未来语气",
+        "上下文：回复 @thsottiaux「Day 17/ Bet you thought we forgot, b…」",
+        "本条不含额度词，额度语境借自上下文 + 延续语气 → 判为预告"
+      ],
+      "timeNote": "原文 PST 按 UTC-8 换算；若泛指洛杉矶当地夏令时（UTC-7），则比此时间早 1 小时。",
+      "createdAt": "2026-10-22T06:55:54.000Z",
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.22",
+          "weekday": "周四",
+          "time": "14:55",
+          "text": "2026.10.22（周四）14:55",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.21",
+          "weekday": "周三",
+          "time": "23:55",
+          "text": "2026.10.21（周三）23:55",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "sources": 1,
+      "evidence": [
+        {
+          "id": "2113162413008884099",
+          "createdAt": "2026-10-22T06:55:54.000Z",
+          "text": "Lands tomorrow before 10am PST.",
+          "url": "https://x.com/thsottiaux/status/2113162413008884099",
+          "via": "回复 @thsottiaux",
+          "weight": "hard",
+          "contributes": "承诺了这一天",
+          "timeWord": "10am",
+          "precision": "instant",
+          "ambiguous": false,
+          "note": null,
+          "from": "2026-10-22T08:00:00.000Z",
+          "to": "2026-10-22T18:00:00.000Z"
+        },
+        {
+          "id": "2113162277688070445",
+          "createdAt": "2026-10-22T06:55:22.000Z",
+          "text": "Day 17/ Bet you thought we forgot, but no, it’s reset day today. Also good time to remind you to get Daybreak Blue access, it only takes 15 mins and you don’t want to have to do it in the middle of an incident.",
+          "url": "https://x.com/thsottiaux/status/2113162277688070445",
+          "via": "原创",
+          "weight": "hard",
+          "contributes": "自回复所指的重置预告",
+          "timeWord": null,
+          "precision": null,
+          "ambiguous": false,
+          "note": null,
+          "from": null,
+          "to": null
+        }
+      ],
+      "counts": {
+        "hard": 2,
+        "soft": 0
+      },
+      "clockHints": [],
+      "status": "overdue",
+      "statusLabel": "预告窗口已结束，落地待核实"
+    }
+  ],
   "rejected": [
     {
       "id": "2113404560853397516",
@@ -3903,6 +4164,45 @@
       },
       "level": "none",
       "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2112592264686149749",
+      "account": "thsottiaux",
+      "text": "There were reports of usage draining faster than anticipated for some users over the weekend. We've identified approximately 40,000 accounts that had an inconsistency on which usage limits where the actual usage that was applied did not correspond to their actual selected plan. We are reaching out individually to all these users and have corrected the issue. If this affected you, we'll add credits to your account. Sorry we got this wrong.",
+      "createdAt": "2026-10-20T17:10:20.000Z",
+      "url": "https://x.com/thsottiaux/status/2112592264686149749",
+      "reasons": [
+        "命中额度词 limits/usage/credits",
+        "含未来语气"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.21",
+          "weekday": "周三",
+          "time": "01:10",
+          "text": "2026.10.21（周三）01:10",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.20",
+          "weekday": "周二",
+          "time": "10:10",
+          "text": "2026.10.20（周二）10:10",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "部分账户的纠错补偿，不是公开额度重置预告",
       "intent": 0,
       "window": null,
       "candidateWindow": null
@@ -11811,60 +12111,250 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
+    }
+  ],
+  "hypothesis": {
+    "dayNum": 20749,
+    "day": "2026.10.23（周五）",
+    "precision": "instant",
+    "window": {
+      "from": "2026-10-23T08:00:00.000Z",
+      "to": "2026-10-23T18:00:00.000Z",
+      "dayNum": 20749,
+      "fromTs": 1792742400000,
+      "toTs": 1792778400000,
+      "deadline": true,
+      "deadlineText": "2026.10.24（周六）02:00",
+      "userDeadline": {
+        "y": "2026",
+        "m": "10",
+        "d": "24",
+        "hh": "02",
+        "mm": "00",
+        "weekdayCN": "周六"
+      },
+      "userFrom": {
+        "y": "2026",
+        "m": "10",
+        "d": "23",
+        "hh": "16",
+        "mm": "00",
+        "weekdayCN": "周五"
+      },
+      "sourceZone": "2026.10.23（周五）10:00 前",
+      "sourceLabel": "原文 PST",
+      "userZone": "2026.10.24（周六）02:00 前",
+      "openText": "2026.10.23（周五）16:00",
+      "rangeNote": "公告给出最晚时间，尚未确认落地",
+      "crossesUserDay": true,
+      "zones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.23",
+          "weekday": "周五",
+          "time": "16:00",
+          "text": "2026.10.23（周五）16:00",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "原文 PST",
+          "zone": "Etc/GMT+8",
+          "date": "2026.10.23",
+          "weekday": "周五",
+          "time": "00:00",
+          "text": "2026.10.23（周五）00:00",
+          "offset": "UTC-8"
+        },
+        "diffHours": 16,
+        "diffText": "北京时间比原文 PST快 16 小时"
+      },
+      "precision": "instant"
     },
+    "counts": {
+      "hard": 1,
+      "soft": 0,
+      "clockHints": 1,
+      "clockAdopted": 1
+    },
+    "evidence": [
+      {
+        "id": "2113492502355562875",
+        "createdAt": "2026-10-23T04:47:34.000Z",
+        "text": "Landing tomorrow before 10am PST together with a small ship.",
+        "url": "https://x.com/thsottiaux/status/2113492502355562875",
+        "via": "回复 @thsottiaux",
+        "weight": "hard",
+        "contributes": "承诺了这一天",
+        "timeWord": "10am",
+        "precision": "instant",
+        "ambiguous": false,
+        "note": null,
+        "from": "2026-10-23T08:00:00.000Z",
+        "to": "2026-10-23T18:00:00.000Z"
+      }
+    ],
+    "clockHints": [
+      {
+        "word": "10am",
+        "from": "2026-10-23T08:00:00.000Z",
+        "to": "2026-10-23T18:00:00.000Z",
+        "adopted": true,
+        "why": "本条含额度承诺",
+        "ambiguous": false,
+        "id": "2113492502355562875",
+        "via": "回复 @thsottiaux"
+      }
+    ]
+  },
+  "forecasts": [
     {
-      "id": "2105689875655897093",
-      "account": "thsottiaux",
-      "text": "We’re going to fix this but it’s a bit funny as your dot literally has to decide whether to pick up or not and sometimes it might just be busy with something else 👀",
-      "createdAt": "2026-10-01T16:02:42.000Z",
-      "url": "https://x.com/thsottiaux/status/2105689875655897093",
+      "level": "explicit",
+      "day": "2026.10.23（周五）",
+      "precision": "instant",
+      "window": {
+        "from": "2026-10-23T08:00:00.000Z",
+        "to": "2026-10-23T18:00:00.000Z",
+        "dayNum": 20749,
+        "fromTs": 1792742400000,
+        "toTs": 1792778400000,
+        "deadline": true,
+        "deadlineText": "2026.10.24（周六）02:00",
+        "userDeadline": {
+          "y": "2026",
+          "m": "10",
+          "d": "24",
+          "hh": "02",
+          "mm": "00",
+          "weekdayCN": "周六"
+        },
+        "userFrom": {
+          "y": "2026",
+          "m": "10",
+          "d": "23",
+          "hh": "16",
+          "mm": "00",
+          "weekdayCN": "周五"
+        },
+        "sourceZone": "2026.10.23（周五）10:00 前",
+        "sourceLabel": "原文 PST",
+        "userZone": "2026.10.24（周六）02:00 前",
+        "openText": "2026.10.23（周五）16:00",
+        "rangeNote": "公告给出最晚时间，尚未确认落地",
+        "crossesUserDay": true,
+        "zones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.10.23",
+            "weekday": "周五",
+            "time": "16:00",
+            "text": "2026.10.23（周五）16:00",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "原文 PST",
+            "zone": "Etc/GMT+8",
+            "date": "2026.10.23",
+            "weekday": "周五",
+            "time": "00:00",
+            "text": "2026.10.23（周五）00:00",
+            "offset": "UTC-8"
+          },
+          "diffHours": 16,
+          "diffText": "北京时间比原文 PST快 16 小时"
+        },
+        "precision": "instant"
+      },
+      "text": "Landing tomorrow before 10am PST together with a small ship.",
+      "url": "https://x.com/thsottiaux/status/2113492502355562875",
       "reasons": [
         "含未来语气",
-        "上下文：回复 @The_Alex「I called my dot tonight and HE DID N…」"
+        "含发布/宣传语境（下调置信度）",
+        "上下文：回复 @thsottiaux「Day 18/ Decisions API is GA, OpenRes…」",
+        "本条不含额度词，额度语境借自上下文 + 延续语气 → 判为预告"
       ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "The_Alex",
-        "id": "",
-        "text": "I called my dot tonight and HE DID NOT PICK UP what on earth could he possibly have been doing"
-      },
+      "timeNote": "原文 PST 按 UTC-8 换算；若泛指洛杉矶当地夏令时（UTC-7），则比此时间早 1 小时。",
+      "createdAt": "2026-10-23T04:47:34.000Z",
       "createdZones": {
         "a": {
           "label": "北京时间",
           "zone": "Asia/Shanghai",
-          "date": "2026.10.02",
+          "date": "2026.10.23",
           "weekday": "周五",
-          "time": "00:02",
-          "text": "2026.10.02（周五）00:02",
+          "time": "12:47",
+          "text": "2026.10.23（周五）12:47",
           "offset": "UTC+8"
         },
         "b": {
           "label": "Tibo 当地时间",
           "zone": "America/Los_Angeles",
-          "date": "2026.10.01",
+          "date": "2026.10.22",
           "weekday": "周四",
-          "time": "09:02",
-          "text": "2026.10.01（周四）09:02",
+          "time": "21:47",
+          "text": "2026.10.22（周四）21:47",
           "offset": "UTC-7"
         },
         "diffText": "北京时间比 Tibo 当地时间快 15 小时"
       },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
+      "sources": 1,
+      "evidence": [
+        {
+          "id": "2113492502355562875",
+          "createdAt": "2026-10-23T04:47:34.000Z",
+          "text": "Landing tomorrow before 10am PST together with a small ship.",
+          "url": "https://x.com/thsottiaux/status/2113492502355562875",
+          "via": "回复 @thsottiaux",
+          "weight": "hard",
+          "contributes": "承诺了这一天",
+          "timeWord": "10am",
+          "precision": "instant",
+          "ambiguous": false,
+          "note": null,
+          "from": "2026-10-23T08:00:00.000Z",
+          "to": "2026-10-23T18:00:00.000Z"
+        },
+        {
+          "id": "2113492187770175603",
+          "createdAt": "2026-10-23T04:46:19.000Z",
+          "text": "Day 18/ Decisions API is GA, OpenResponses joined the Linux Foundation, we shipped some performance improvements and Uber is going all-in on codex & work. But yes… that’s a reset!",
+          "url": "https://x.com/thsottiaux/status/2113492187770175603",
+          "via": "原创",
+          "weight": "hard",
+          "contributes": "自回复所指的重置预告",
+          "timeWord": null,
+          "precision": null,
+          "ambiguous": false,
+          "note": null,
+          "from": null,
+          "to": null
+        }
+      ],
+      "counts": {
+        "hard": 2,
+        "soft": 0
+      },
+      "clockHints": [
+        {
+          "word": "10am",
+          "from": "2026-10-23T08:00:00.000Z",
+          "to": "2026-10-23T18:00:00.000Z",
+          "adopted": true,
+          "why": "本条含额度承诺",
+          "ambiguous": false,
+          "id": "2113492502355562875",
+          "via": "回复 @thsottiaux"
+        }
+      ]
     }
   ],
-  "hypothesis": null,
-  "forecasts": [],
   "counts": {
     "scanned": 443,
-    "explicit": 0,
-    "occurred": 12,
-    "hint": 63,
-    "none": 352,
-    "rejected": 352
+    "explicit": 3,
+    "occurred": 10,
+    "hint": 62,
+    "none": 353,
+    "rejected": 353
   },
   "truncated": true
 }
