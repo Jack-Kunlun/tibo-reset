@@ -1,6 +1,25 @@
 {
   "tweets": [
     {
+      "id": "2113404560853397516",
+      "text": "Very baguette of you",
+      "created_at": "2026-10-22T22:58:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2113404560853397516",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "romainhuet",
+        "id": "",
+        "text": "The Decisions API is now generally available! To celebrate, I had Codex reimagine a very important app… 🌭",
+        "created_at": "2026-10-22T20:37:26.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-23T01:00:25.747Z"
+    },
+    {
       "id": "2113163458867032238",
       "text": "Hefty",
       "created_at": "2026-10-22T07:00:03.000Z",
@@ -7352,7 +7371,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-22T08:02:06.673Z",
+  "updated_at": "2026-10-23T01:00:25.748Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }
