@@ -103,7 +103,15 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-22T07:02:11.409Z"
+      "first_seen": "2026-10-22T07:02:11.409Z",
+      "accountObservation": {
+        "kind": "restored",
+        "source": "maintainer-account",
+        "observed_at": "2026-10-22T17:10:00.000Z",
+        "precision": "approximate-minute",
+        "recorded_at": "2026-10-23T06:57:52.805Z",
+        "announcement_text": "Day 17/ Bet you thought we forgot, but no, it’s reset day today. Also good time to remind you to get Daybreak Blue access, it only takes 15 mins and you don’t want to have to do it in the middle of an incident."
+      }
     },
     {
       "id": "2113029854417600834",
@@ -7404,7 +7412,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-23T06:01:51.538Z",
+  "updated_at": "2026-10-23T07:01:24.194Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }

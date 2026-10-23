@@ -10,7 +10,7 @@
     "to": "2026-11-01T06:59:00.000Z",
     "fromDayNum": 20730,
     "throughDayNum": 20757,
-    "daysLeft": 10,
+    "daysLeft": 9,
     "createdZones": {
       "a": {
         "label": "北京时间",
@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-23T06:01:51.571Z",
+  "generatedAt": "2026-10-23T07:01:24.307Z",
   "checkedTweets": 443,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-24T06:01:51.571Z",
-  "windowTo": "2026-10-23T06:01:51.571Z",
+  "windowFrom": "2026-08-24T07:01:24.307Z",
+  "windowTo": "2026-10-23T07:01:24.307Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,17 +89,17 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.23",
       "weekday": "周五",
-      "time": "14:01",
-      "text": "2026.10.23（周五）14:01",
+      "time": "15:01",
+      "text": "2026.10.23（周五）15:01",
       "offset": "UTC+8"
     },
     "b": {
       "label": "Tibo 当地时间",
       "zone": "America/Los_Angeles",
-      "date": "2026.10.22",
-      "weekday": "周四",
-      "time": "23:01",
-      "text": "2026.10.22（周四）23:01",
+      "date": "2026.10.23",
+      "weekday": "周五",
+      "time": "00:01",
+      "text": "2026.10.23（周五）00:01",
       "offset": "UTC-7"
     },
     "diffHours": 15,
@@ -2990,7 +2990,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-10-23T06:01:51.571Z"
+        "checkedAt": "2026-10-23T07:01:24.307Z"
       }
     },
     {
@@ -3745,7 +3745,17 @@
     }
   ],
   "activeHints": [],
-  "overdueForecasts": [
+  "overdueForecasts": [],
+  "accountObservations": [
+    {
+      "announcementId": "2113162277688070445",
+      "observedAt": "2026-10-22T17:10:00.000Z",
+      "recordedAt": "2026-10-23T06:57:52.805Z",
+      "precision": "approximate-minute",
+      "sourceLabel": "维护者账号实测"
+    }
+  ],
+  "observedForecasts": [
     {
       "level": "explicit",
       "day": null,
@@ -3872,10 +3882,24 @@
         "soft": 0
       },
       "clockHints": [],
-      "status": "overdue",
-      "statusLabel": "预告窗口已结束，落地待核实"
+      "status": "observed",
+      "statusLabel": "已有账号实测到账",
+      "accountObservation": {
+        "announcementId": "2113162277688070445",
+        "observedAt": "2026-10-22T17:10:00.000Z",
+        "recordedAt": "2026-10-23T06:57:52.805Z",
+        "precision": "approximate-minute",
+        "sourceLabel": "维护者账号实测"
+      }
     }
   ],
+  "latestAccountObservation": {
+    "announcementId": "2113162277688070445",
+    "observedAt": "2026-10-22T17:10:00.000Z",
+    "recordedAt": "2026-10-23T06:57:52.805Z",
+    "precision": "approximate-minute",
+    "sourceLabel": "维护者账号实测"
+  },
   "rejected": [
     {
       "id": "2113404560853397516",
