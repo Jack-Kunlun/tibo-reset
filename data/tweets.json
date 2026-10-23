@@ -55,8 +55,8 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
-      "foundVia": "timeline-browser",
+      "role": "reply",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-22T07:02:11.409Z"
     },
     {
@@ -7371,7 +7371,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-23T01:00:25.748Z",
+  "updated_at": "2026-10-23T01:09:27.429Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }
