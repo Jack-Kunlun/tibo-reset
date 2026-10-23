@@ -23,6 +23,7 @@ import { fileURLToPath } from 'node:url';
 import { derive, logoDataUri, renderPage } from '../src/lib/page.mjs';
 import { resolveBuildNow, snapshotFrom, writeSnapshot, SNAPSHOT_REL } from '../src/lib/snapshot.mjs';
 import { buildOgImage } from './og-image.mjs';
+import { createStore } from '../server/store.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = async (p) => JSON.parse(await readFile(resolve(ROOT, p), 'utf8'));
@@ -50,16 +51,11 @@ const sharedHeader = (name) =>
 
 /* ------------------------------ 读入 ------------------------------ */
 
-const [resets, tweets, statsFile, template] = await Promise.all([
-  read('data/resets.json'),
-  read('data/tweets.json'),
-  read('data/stats.json'),
+const now = resolveBuildNow(process.env.BUILD_NOW);
+const [{ resets, tweets, statsFile }, template] = await Promise.all([
+  createStore(resolve(ROOT, 'data'), { account: ACCOUNT }).getData({ now }),
   readFile(resolve(ROOT, 'src/index.html'), 'utf8'),
 ]);
-
-// 固定一个 now，让同一轮构建里所有派生结果共用同一时刻（解析逻辑在同名模块里，
-// `scripts/build-snapshot.mjs` 走的是同一个函数 —— 两条路必须锚在同一时刻上）。
-const now = resolveBuildNow(process.env.BUILD_NOW);
 
 if (process.env.BUILD_NOW) console.log(`▸ 构建时刻已固定为 ${new Date(now).toISOString()}（BUILD_NOW）`);
 

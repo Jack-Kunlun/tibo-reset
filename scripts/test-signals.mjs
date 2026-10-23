@@ -1114,7 +1114,7 @@ console.log('\n【10】带窗口的线索：窗口过去或被兑现后，撤回
   const html = renderSignal(sig);
   check('渲染层退回空态：不再出现窗口块（sig-win）', !html.includes('sig-win'), html.slice(0, 140));
   check('渲染层给出空态文案（不是空白）', html.includes('没有检测到重置预告'));
-  check('对照：窗口进行中时渲染层**有**窗口块', renderSignal(base).includes('sig-win'));
+  check('无重置意图的时间帖只留档，不占首页', !renderSignal(base).includes('sig-win'));
 
   /* 反例①：窗口还在未来、期间也没发生重置 → 必须保留。
    * 「过期就撤」极易做过头成「一律不展示」，那种错误在真实数据上**看不出来**

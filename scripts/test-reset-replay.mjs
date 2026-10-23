@@ -89,12 +89,16 @@ for (const [name, posts] of [
   ['别人引用', [day10, l, { ...d, quotedTweet: { ...d.quotedTweet, account: 'someone' } }]],
   ['父帖未经核验', [{ ...day10, author_verified: false }, l, d]],
   ['引用原文不匹配', [day10, l, { ...d, quotedTweet: { ...d.quotedTweet, text: 'Something else' } }]],
-  ['完成超出承诺窗口', [day10, l, { ...d, created_at: '2026-10-15T08:00:00.000Z' }]],
   ['父帖比子帖更晚', [{ ...day10, created_at: '2026-10-15T05:00:00.000Z' }, l, d]],
   ['伪造的自我回复', [day10, { ...l, inReplyTo: { ...l.inReplyTo, verified: false } }, d]],
 ]) {
   const result = mergeConfirmedResets([done8].map(t=>({id:t.id,announced_at:t.created_at,type:'reset'})), posts, { now: Date.parse('2026-10-15T09:00:00Z') });
   check(`${name}不自动入库`, result.added === 0);
+}
+{
+  const posts = [day10, l, { ...d, created_at: '2026-10-15T08:00:00.000Z' }];
+  const result = mergeConfirmedResets([done8].map(t => ({ id: t.id, announced_at: t.created_at, type: 'reset' })), posts, { now: Date.parse('2026-10-15T09:00:00Z') });
+  check('已核验完成晚于承诺窗口仍入库，时刻取实际完成帖', result.added === 1 && result.records[0].announced_at === '2026-10-15T08:00:00.000Z');
 }
 for (const text of ['Day 10/ Reset cancelled', 'Day 10/ Reset button now looks different', 'Day 10/ Reset of passwords', 'Day 10/ no reset today']) {
   check(`不把日程中的非重置承诺升级：${text}`, analyzeTweet({ ...day10, text }).level !== 'explicit');

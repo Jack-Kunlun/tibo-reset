@@ -36,13 +36,14 @@ export function buildCalendarView(calendar) {
   const freshness = snapshot ? '日历快照' : calendar.source === 'cache' ? '日历缓存' : '日历数据';
   return {
     ...calendar,
+    observedCount: calendar.observedCount ?? 0,
     awaitingCount: calendar.pendingCount + (calendar.datedCount ?? 0),
     snapshot,
     freshnessText: calendar.source ? `${freshness} · ${Number.isFinite(dataAt) ? `数据截至 ${fmtDateTime(dataAt).slice(5)} 北京` : '数据时间未知'}` : '',
     weekdays: ['一', '二', '三', '四', '五', '六', '日'],
     gridCells: [
       ...Array.from({ length: calendar.startWeekday ?? 0 }, (_, i) => ({ key: `blank-${i}`, blank: true })),
-      ...calendar.cells.map((cell) => ({ ...cell, key: cell.date, dayNumber: cell.date.slice(8), displayLabel: cell.status === 'pending' ? '预' : cell.status === 'updated' ? '更新' : cell.status === 'elapsed-no-record' ? '无记录' : cell.statusLabel, awaitingCount: cell.pendingCount + (cell.datedCount ?? 0) })),
+      ...calendar.cells.map((cell) => ({ ...cell, key: cell.date, dayNumber: cell.date.slice(8), displayLabel: cell.status === 'pending' ? '预' : cell.status === 'updated' ? '更新' : cell.status === 'observed' ? '实测' : cell.status === 'elapsed-no-record' ? '无记录' : cell.statusLabel, awaitingCount: cell.pendingCount + (cell.datedCount ?? 0) })),
     ],
   };
 }
@@ -50,6 +51,7 @@ export function buildCalendarView(calendar) {
 const PLAN_STATUS_VIEW = {
   updated: { cls: 'updated', marker: '更', fallback: '功能更新' },
   confirmed: { cls: 'confirmed', marker: '重', fallback: '重置已确认' },
+  observed: { cls: 'observed', marker: '实', fallback: '已有账号实测到账' },
   mixed: { cls: 'mixed', marker: '双', fallback: '更新与重置' },
   pending: { cls: 'pending', marker: '预', fallback: '重置预告' },
   noted: { cls: 'noted', marker: '提', fallback: '当日动态' },
@@ -70,12 +72,15 @@ const PLAN_ENTRY_LABELS = {
 function planEntryView(entry, day, index) {
   const createdAt = toTs(entry.createdAt);
   const confirmedAt = toTs(entry.confirmedAt);
+  const observedAt = toTs(entry.observedAt);
+  const isAccountObserved = entry.isAccountObserved === true;
   const body = String(entry.text || '').replace(/\s+/g, ' ').trim();
   const suppliedTitle = String(entry.title || '').trim();
   const title = suppliedTitle || (body.length > 120 ? `${body.slice(0, 117)}…` : body) || '原帖摘要暂不可用';
   const labels = [];
   if (entry.isUpdate) labels.push({ text: '功能更新', cls: 'update' });
-  const kindLabel = PLAN_ENTRY_LABELS[entry.kind];
+  const kindLabel = isAccountObserved ? { text: '已有账号实测到账', cls: 'observed' }
+    : entry.awaitingVerification ? { text: '落地待核实', cls: 'announcement' } : PLAN_ENTRY_LABELS[entry.kind];
   if (kindLabel && !(entry.isUpdate && entry.kind === 'update')) labels.push(kindLabel);
   return {
     key: String(entry.id || entry.url || `day-${day}-entry-${index}`),
@@ -84,6 +89,9 @@ function planEntryView(entry, day, index) {
     url: entry.url || '',
     when: Number.isFinite(createdAt) ? `${fmtDateTime(createdAt)} 北京` : '发布时间未知',
     confirmedWhen: Number.isFinite(confirmedAt) ? `确认时刻 ${fmtDateTime(confirmedAt)} 北京` : '',
+    observationText: isAccountObserved
+      ? `${entry.observationPrecision === 'approximate-minute' ? '约' : ''}${Number.isFinite(observedAt) ? `${fmtDateTime(observedAt)} 北京` : '时间未知'} · ${entry.sourceLabel || '账号实测'} · 仅代表单个账号`
+      : '',
     labels,
     hasText: Boolean(entry.text),
   };
@@ -122,6 +130,7 @@ export function buildProgramPlanView(plan) {
     title: plan.title || 'Tibo 28 天计划',
     dayCount: count,
     latestDay,
+    hasObserved: plan.rows.some((row) => row.observedCount > 0),
     latestLabel: latestDay > 0 ? `最新原帖 Day ${latestDay} / ${count}` : '尚未见官方 Day 编号原帖',
     reportedDays: Number(plan.reportedDays) || 0,
     updatedDays: Number(plan.updatedDays) || 0,
@@ -166,12 +175,10 @@ function headlineOf(top, w) {
  * 明确预告即展示；没有给出时间时标为待公布，不虚构窗口。
  * 只有情绪、未承诺重置的「soon」仍不足以支撑横幅。
  *
- * 这一区**只讲未来**：预告（可行动）> 线索（弱依据兜底）。
+ * 这一区优先回答未来：公开预告 > 账号实测 > 落地待核实 > 线索。
  *
- * ⚠ 已经发生过的重置**不在这里列举**。它是往回看的事实，而这块回答的是
- *   「下一次什么时候」。同一段事实已经有载体 —— 首页顶部的「距上次重置 N 天」
- *   与重置历史页 —— 再把它顶上横幅，只是复述，还挤掉真正可行动的信息。
- *   检测能力保留在数据层（`signals.occurred` 照常识别与计数），只是不参与呈现。
+ * ⚠ `occurred` 是公开确认事实，仍由最近记录和计数承载；单账号恢复观察是另一种证据，
+ *   只在没有更近的公开预告时作为次级状态展示，不能改写公开确认时间或重置计数。
  *
  * ── 预告是「一条预告 + 里面 N 条推文」，不再是「横幅 + 另一个折叠块」──
  * 老大的原话：「这些信息应该合并成一条预告，然后是一条预告里面 4 条推文。」
@@ -180,7 +187,7 @@ function headlineOf(top, w) {
  *
  * 旧实现是 `explicit ? signals : hint ? hints : []` 三选一 —— 只要没有预告就退到
  * 线索档，于是横幅上显示的是「11pm on a Tuesday」这类与额度无关的推文，
- * 而真正的重置根本不出现。现在预告优先，线索只在没有预告时兜底。
+ * 而真正的重置根本不出现。现在公开预告优先，账号实测与落地待核实先于线索兜底。
  */
 export function buildSignal(sig) {
   if (!sig) return { show: false, checked: 0, lookback: 60, windowFrom: '', program: { show: false } };
@@ -195,7 +202,13 @@ export function buildSignal(sig) {
   const f = (sig.forecasts || [])[0] || null;
   if (f) return { ...forecastView(f), program };
 
-  const hint = (sig.hints || []).find((s) => s.window) || null;
+  const observed = (sig.observedForecasts || []).slice(-1)[0] || null;
+  if (observed) return { ...observedForecastView(observed), program };
+
+  const overdue = (sig.overdueForecasts || []).slice(-1)[0];
+  if (overdue) return { ...forecastView(overdue), program, level: 'hint', status: 'overdue',
+    badge: '落地待核实', title: '预告窗口已结束，落地待核实', timeNote: '尚未取得公开完成确认' };
+  const hint = (sig.activeHints || []).find((s) => s.window) || null;
   if (hint) return { ...signalView(hint, 'hint'), program };
 
   return {
@@ -211,16 +224,47 @@ export function buildSignal(sig) {
   };
 }
 
+function observedForecastView(f) {
+  const observation = f.accountObservation || {};
+  const ts = toTs(observation.observedAt);
+  const when = Number.isFinite(ts) ? `${observation.precision === 'approximate-minute' ? '约' : ''}${fmtDateTime(ts)} 北京` : '时间未知';
+  const sourceLabel = observation.sourceLabel || '账号实测';
+  return {
+    show: true,
+    level: 'observed',
+    status: 'observed',
+    createdAt: observation.observedAt || '',
+    badge: observation.statusLabel || '已有账号实测到账',
+    title: '已有账号实测到账',
+    timing: 'observed',
+    headline: null,
+    // 账号观测只给实测时刻，不展示原预告倒计时，避免把个人恢复时间冒充公开完成时间。
+    window: null,
+    ev: [],
+    evCount: 0,
+    evOpen: false,
+    evMix: '',
+    evNote: '',
+    text: f.text || '',
+    observationText: `${when} · ${sourceLabel}`,
+    scopeNote: '仅代表单个账号；公开完成状态与其他账号到账情况仍待更新。',
+    timeNote: `${sourceLabel} · 仅代表单个账号`,
+    reason: '',
+    createdText: '',
+    url: f.url || '',
+  };
+}
+
 // 首页只突出上次重置之后仍有效的线索，不能把旧发言重新包装成下一次承诺。
 export function buildObservationSignal(sig, lastAt, now = Date.now()) {
   if (!sig) return buildSignal(sig);
   const floor = Number.isFinite(lastAt) ? lastAt : toTs(sig.windowFrom);
-  const hints = (sig.hints || []).filter((hint) => {
+  const hints = (sig.activeHints || []).filter((hint) => {
     const at = toTs(hint.createdAt);
-    if (!Number.isFinite(at) || at > now || Number.isFinite(floor) && at <= floor) return false;
+    if (!Number.isFinite(at) || at > now || Number.isFinite(floor) && at <= floor || toTs(hint.expiresAt) < now) return false;
     return hint.window ? toTs(hint.window.to) >= now : hint.intent >= 3;
   });
-  const base = buildSignal({ ...sig, hints });
+  const base = buildSignal({ ...sig, activeHints: hints });
   if (base.show || !hints.length) return base;
   const hint = [...hints].sort((a, b) => toTs(b.createdAt) - toTs(a.createdAt))[0];
   return { ...signalView(hint, 'hint'), program: base.program,
@@ -287,8 +331,9 @@ function forecastView(f) {
     show: true,
     level: 'explicit',
     createdAt: f.createdAt || f.evidence?.[0]?.createdAt || '',
-    badge: '明确信号',
-    title: f.timing === 'pending' ? 'Tibo 已预告重置，时间待公布' : 'Tibo 已预告下一次额度重置',
+    badge: f.manual ? '手动补录' : '明确信号',
+    manual: Boolean(f.manual),
+    title: f.manual ? '已补充重置预告' : f.timing === 'pending' ? 'Tibo 已预告重置，时间待公布' : 'Tibo 已预告下一次额度重置',
     timing: f.timing || '',
     precision: w?.deadline ? '最晚时间' : PRECISION_TEXT[f.precision] || f.precision || '',
     headline: headlineOf(f, w),
@@ -508,6 +553,7 @@ function etaStamp(ts) {
  */
 export function buildOutlookView(chart, pred, sig, now) {
   const o = buildOutlook({ chart, prediction: pred, signals: sig, now });
+  if (o?.announcement) o.announcement.manual = (sig?.forecasts ?? []).some((f) => f.manual && f.text === o.announcement.text && (f.url || '') === (o.announcement.url || ''));
   if (!o) return null;
 
   const eta = o.hasEstimate ? etaStamp(o.etaAt) : { md: '', wd: '', hm: '' };
@@ -520,7 +566,7 @@ export function buildOutlookView(chart, pred, sig, now) {
     const bits = [];
     if (b.announcedHard) bits.push(`${b.announcedHard} 条承诺`);
     if (b.announcedSoft) bits.push(`${b.announcedSoft} 条同日提及`);
-    brief = `Tibo 已给出公告${bits.length ? `（${bits.join(' · ')}）` : ''}，${o.etaDeadline ? '该时间为公告截止点，此前可能到账；尚未确认落地' : '预计时间取窗口开启时刻'}。`;
+    brief = `${o.announcement?.manual ? '已手动补充预告' : 'Tibo 已给出公告'}${bits.length ? `（${bits.join(' · ')}）` : ''}，${o.etaDeadline ? '该时间为公告截止点，此前可能到账；尚未确认落地' : '预计时间取窗口开启时刻'}。`;
   } else if (b.pendingAnnouncement) {
     brief = b.arrivalMedianMs == null
       ? `已预告重置，具体时间待公布。预告到落地的可配对样本 ${b.arrivalSamples} 次，到账耗时样本不足。`

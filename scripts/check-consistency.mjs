@@ -40,6 +40,7 @@ import { predictAll } from '../src/lib/predict.mjs';
 import { spanOf } from '../src/lib/render.mjs';
 import { buildOutlook } from '../src/lib/outlook.mjs';
 import { detectSignals } from '../src/lib/signals.mjs';
+import { createStore } from '../server/store.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DAY = 86_400_000;
@@ -96,13 +97,7 @@ if (process.argv.includes('--build')) {
   });
 }
 
-const read = async (p) => JSON.parse(await readFile(resolve(ROOT, p), 'utf8'));
-const [resets, html, tweetsFile] = await Promise.all([
-  read('data/resets.json'),
-  readFile(resolve(ROOT, 'dist/index.html'), 'utf8'),
-  read('data/tweets.json'),
-]);
-
+const html = await readFile(resolve(ROOT, 'dist/index.html'), 'utf8');
 /* ------------------------ 1. 取出页面 digest ------------------------ */
 
 const m = html.match(/<script type="application\/json" id="data-digest">([\s\S]*?)<\/script>/);
@@ -133,8 +128,10 @@ check(
 
 console.log('\n【① 页面是数据的忠实渲染】');
 
-const pageChart = buildChartData(resets.records, builtAtMs);
 const account = process.env.SOURCE_ACCOUNT ?? 'thsottiaux';
+const dataStore = createStore(resolve(ROOT, 'data'), { account });
+const { resets, tweets: tweetsFile } = await dataStore.getData({ now: builtAtMs });
+const pageChart = buildChartData(resets.records, builtAtMs);
 const pagePred = predictAll(resets.records, { now: builtAtMs, tweets: tweetsFile.tweets, account });
 const pageSignals = detectSignals(tweetsFile.tweets, { now: builtAtMs, account, lastResetAt: Date.parse(digest.lastResetAt) });
 const pageOutlook = buildOutlook({ chart: buildChartData(resets.records, builtAtMs), prediction: pagePred, signals: pageSignals, now: builtAtMs });
@@ -316,8 +313,9 @@ if (!api) {
   const apiChartNow = api.chart?.now;
   const apiAsOf = Date.parse(api.prediction.asOf);
 
-  const apiChart = buildChartData(resets.records, apiChartNow);
-  const apiPred = predictAll(resets.records, { now: apiAsOf, tweets: tweetsFile.tweets, account });
+  const apiData = await dataStore.getData({ now: apiAsOf });
+  const apiChart = buildChartData(apiData.resets.records, apiChartNow);
+  const apiPred = predictAll(apiData.resets.records, { now: apiAsOf, tweets: apiData.tweets.tweets, account });
   check('API预告到落地样本与同锚点重算一致', JSON.stringify(api.prediction.announcementDelay) === JSON.stringify(apiPred.announcementDelay));
 
   check('API 记录总数 == 重算', api.chart.count === apiChart.count, `${api.chart.count} vs ${apiChart.count}`);

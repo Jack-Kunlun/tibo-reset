@@ -1,0 +1,74 @@
+[
+  {
+    "id": "2113492187770175603",
+    "text": "Day 18/ Decisions API is GA, OpenResponses joined the Linux Foundation, we shipped some performance improvements and Uber is going all-in on codex & work. But yes… that’s a reset!",
+    "created_at": "2026-10-23T04:46:19.000Z",
+    "account": "thsottiaux",
+    "author_verified": true,
+    "foundVia": "timeline-browser",
+    "url": "https://x.com/thsottiaux/status/2113492187770175603"
+  },
+  {
+    "id": "2113492502355562875",
+    "text": "Landing tomorrow before 10am PST together with a small ship.",
+    "created_at": "2026-10-23T04:47:34.000Z",
+    "account": "thsottiaux",
+    "author_verified": true,
+    "foundVia": "with-replies",
+    "url": "https://x.com/thsottiaux/status/2113492502355562875",
+    "inReplyTo": {
+      "account": "thsottiaux",
+      "created_at": "2026-10-23T04:46:19.000Z",
+      "id": "2113492187770175603",
+      "relation": "reply",
+      "text": "Day 18/ Decisions API is GA, OpenResponses joined the Linux Foundation, we shipped some performance improvements and Uber is going all-in on codex & work. But yes… that’s a reset!",
+      "url": "https://x.com/thsottiaux/status/2113492187770175603",
+      "verified": true
+    }
+  },
+  {
+    "id": "2113162277688070445",
+    "text": "Day 17/ Bet you thought we forgot, but no, it’s reset day today. Also good time to remind you to get Daybreak Blue access, it only takes 15 mins and you don’t want to have to do it in the middle of an incident.",
+    "created_at": "2026-10-22T06:55:22.000Z",
+    "account": "thsottiaux",
+    "author_verified": true,
+    "foundVia": "timeline-browser",
+    "url": "https://x.com/thsottiaux/status/2113162277688070445"
+  },
+  {
+    "id": "2113162413008884099",
+    "text": "Lands tomorrow before 10am PST.",
+    "created_at": "2026-10-22T06:55:54.000Z",
+    "account": "thsottiaux",
+    "author_verified": true,
+    "foundVia": "with-replies",
+    "url": "https://x.com/thsottiaux/status/2113162413008884099",
+    "inReplyTo": {
+      "id": "2113162277688070445",
+      "account": "thsottiaux",
+      "text": "Day 17/ Bet you thought we forgot, but no, it’s reset day today. Also good time to remind you to get Daybreak Blue access, it only takes 15 mins and you don’t want to have to do it in the middle of an incident.",
+      "created_at": "2026-10-22T06:55:22.000Z",
+      "url": "https://x.com/thsottiaux/status/2113162277688070445",
+      "relation": "reply",
+      "verified": true
+    }
+  },
+  {
+    "id": "2112592264686149749",
+    "text": "There were reports of usage draining faster than anticipated for some users over the weekend. We've identified approximately 40,000 accounts that had an inconsistency on which usage limits where the actual usage that was applied did not correspond to their actual selected plan. We are reaching out individually to all these users and have corrected the issue. If this affected you, we'll add credits to your account. Sorry we got this wrong.",
+    "created_at": "2026-10-20T17:10:20.000Z",
+    "account": "thsottiaux",
+    "author_verified": true,
+    "foundVia": "timeline-browser",
+    "url": "https://x.com/thsottiaux/status/2112592264686149749"
+  },
+  {
+    "id": "2112432076767289678",
+    "text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
+    "created_at": "2026-10-20T06:33:48.000Z",
+    "account": "thsottiaux",
+    "author_verified": true,
+    "foundVia": "timeline-browser",
+    "url": "https://x.com/thsottiaux/status/2112432076767289678"
+  }
+]

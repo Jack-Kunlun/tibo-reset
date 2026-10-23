@@ -100,7 +100,7 @@ for (const [name, run, from, to] of selectionCases) {
 const now = Date.parse('2026-10-22T02:00:00Z');
 const records = Array.from({ length: 30 }, (_, i) => ({ announced_at: new Date(now - (70 - i * 2) * 86400000).toISOString(), type: 'reset', text: 'Done' }));
 const derived = derive({ resets: { records }, tweets: { tweets: [] }, statsFile: {}, now, account: 'thsottiaux' });
-const signal = { ...derived.signals, calendar: { plan, cells: [], fromDate: '2026-10-05', toDate: '2026-11-01', progressDay: 18, days: 28, confirmedCount: 0, resetCount: 0, creditCount: 0, pendingCount: 0 }, hints: [{ createdAt: '2026-10-22T01:00:00Z', text: 'Credit clue', window: {}, level: 'hint' }], forecasts: [], counts: { hint: 1 }, checkedTweets: 1 };
+const signal = { ...derived.signals, calendar: { plan, cells: [], fromDate: '2026-10-05', toDate: '2026-11-01', progressDay: 18, days: 28, confirmedCount: 0, resetCount: 0, creditCount: 0, pendingCount: 0 }, activeHints: [{ createdAt: '2026-10-22T01:00:00Z', text: 'Credit clue', window: {}, level: 'hint' }], forecasts: [], counts: { hint: 1 }, checkedTweets: 1 };
 const verifyIntegration = render => {
   const parts = render(derived.model, derived.prediction, signal);
   assert.ok(parts.PROGRAM.includes('data-plan-day="2"') && parts.SIGNAL.includes('class="am-signal-details is-hint"'));

@@ -45,7 +45,7 @@
  *                        本服务唯一合法的部署地是境内的云机房，而那里开着采集必被挑战
  *   ADMIN_TOKEN          若设置，则 POST /api/refresh 需要 Authorization: Bearer <token>
  *   INGEST_TOKEN         若设置，则 POST /api/ingest 需要 Authorization: Bearer <token>；
- *                        未设置时该入口直接返回 503 —— 这是唯一能从外部改写线上数据的入口，
+ *                        未设置时该入口直接返回 503 —— 采集写入口独立鉴权；管理页仅开放经过校验的状态修订，
  *                        宁可关掉也不能裸奔
  *   SOURCE_ACCOUNT       被观测的 X 账号，默认 thsottiaux
  *
@@ -71,6 +71,7 @@ import { buildChartData } from '../src/lib/chart-data.js';
 import { buildResetCalendar } from '../src/lib/reset-calendar.mjs';
 import { derive, logoDataUri, renderPage } from '../src/lib/page.mjs';
 import { createStore } from './store.mjs';
+import { handleManage } from './manage.mjs';
 import { createScheduler } from './scheduler.mjs';
 import { handleIngest } from './ingest.mjs';
 import { ogPaths, readOgMeta, resolveOgMeta } from './og.mjs';
@@ -134,7 +135,7 @@ if (announcementTemplate.error || (announcementTemplate.templateId && !WX_ANNOUN
   console.error(`[subscribe] 预告模板配置无效（${reason}），已关闭预告通知`);
 }
 
-const store = createStore(DATA_DIR);
+const store = createStore(DATA_DIR, { account: SOURCE_ACCOUNT });
 const subs = createSubscriptionStore(DATA_DIR);
 const wechat = createWeChatClient({ appId: WX_APPID, appSecret: WX_SECRET });
 
@@ -144,8 +145,9 @@ const wechat = createWeChatClient({ appId: WX_APPID, appSecret: WX_SECRET });
 
 let cache = { key: null, value: null };
 
-async function getPrediction() {
-  const [{ records }, tweets] = await Promise.all([store.getResets(), store.getTweets()]);
+async function getPrediction(data) {
+  data ??= await store.getData();
+  const { resets: { records }, tweets } = data;
   if (!records.length) return null;
   const key = `${await store.latestMtime()}|${DEFAULT_CONFIG.maxIntervals}|${DEFAULT_CONFIG.halfLifeDays}`;
   if (cache.key === key) return cache.value;
@@ -161,8 +163,9 @@ async function getPrediction() {
 
 let sigCache = { key: null, value: null };
 
-async function getSignals() {
-  const [file, resets] = await Promise.all([store.getTweets(), store.getResets()]);
+async function getSignals(data) {
+  data ??= await store.getData();
+  const { tweets: file, resets } = data;
   const tweets = file.tweets ?? [];
   const lastResetAt = latestEventMs(resets.records ?? []);
   // 缓存 key 里这两项都是**必需**的，少一个这次修复就等于没做：
@@ -172,9 +175,11 @@ async function getSignals() {
   //     而 signals 只是对几十条推文做正则，重算的开销可忽略。
   const now = Date.now();
   const hourBucket = Math.floor(now / 3_600_000);
-  const key = `${file.updated_at ?? ''}|${tweets.length}|${JSON.stringify(resets.records)}|${hourBucket}|${SOURCE_ACCOUNT}|${SOURCE_ZONE}|${USER_ZONE}`;
+  const observationKey = JSON.stringify(tweets.filter((t) => t.accountObservation).map((t) => [t.id, t.accountObservation]));
+  const key = `${file.updated_at ?? ''}|${tweets.length}|${file.manualRevision ?? 0}|${observationKey}|${JSON.stringify(resets.records)}|${hourBucket}|${SOURCE_ACCOUNT}|${SOURCE_ZONE}|${USER_ZONE}`;
   if (sigCache.key === key) return sigCache.value;
   const value = detectSignals(tweets, { now, account: SOURCE_ACCOUNT, lastResetAt });
+  value.manualRevision = file.manualRevision ?? 0;
   value.calendar = buildResetCalendar({ records: resets.records, tweets, signals: value, now, account: SOURCE_ACCOUNT });
   sigCache = { key, value };
   return value;
@@ -184,7 +189,7 @@ async function getSignals() {
 async function getTrustedAnnouncementForecasts() {
   const [file, resets] = await Promise.all([store.getTweets(), store.getResets()]);
   const account = SOURCE_ACCOUNT.toLowerCase();
-  const tweets = (file.tweets ?? []).filter((tweet) => tweet?.author_verified === true &&
+  const tweets = (file.tweets ?? []).filter((tweet) => !tweet.manualDecision && tweet?.author_verified === true &&
     String(tweet.account ?? '').toLowerCase() === account &&
     ['timeline-browser', 'with-replies'].includes(tweet.foundVia));
   return detectSignals(tweets, {
@@ -193,11 +198,11 @@ async function getTrustedAnnouncementForecasts() {
   }).forecasts;
 }
 
-async function getChart() {
+async function getChart(data) {
   // buildChartData 以传入时刻为基准算 sinceDays / pct，本身只有几十条记录的
   // 线性扫描，开销远小于 JSON 序列化 —— 所以不缓存，每次按当前时刻重算。
   // 缓存它会让页面上的「已过 N 天」停在服务启动那一刻。
-  const { records } = await store.getResets();
+  const { records } = (data ?? await store.getData()).resets;
   if (!records.length) return null;
   return buildChartData(records, Date.now());
 }
@@ -286,6 +291,8 @@ async function loadPageAssets() {
 // 卡片现在会随推送变新（server/og.mjs），缓存住就等于把「卡片永远是旧的」
 // 这个 bug 原样搬进新实现。缺卡片时整体不输出，避免给平台一个抓不到的地址。
 async function getOgMeta() {
+  // 预绘制分享图不含服务器上的人工修订，不能继续把旧数字作为最新状态下发。
+  if ((await store.getData()).resets.records.some((record) => record.manual)) return null;
   return resolveOgMeta({
     dataDir: DATA_DIR,
     siteUrl: SITE_URL,
@@ -294,12 +301,8 @@ async function getOgMeta() {
 }
 
 async function renderIndexHtml() {
-  const [resets, tweets, statsFile, assets, og] = await Promise.all([
-    store.getResets(),
-    store.getTweets(),
-    store.getStats(),
-    loadPageAssets(),
-    getOgMeta(),
+  const [{ resets, tweets, statsFile }, assets, og] = await Promise.all([
+    store.getData(), loadPageAssets(), getOgMeta(),
   ]);
   const derived = derive({
     resets,
@@ -390,12 +393,10 @@ const ROUTES = {
   },
 
   '/api/state': async (url) => {
-    const [statsFile, tweetsFile, prediction, signals, chart] = await Promise.all([
-      store.getStats(),
-      store.getTweets(),
-      getPrediction(),
-      getSignals(),
-      getChart(),
+    const data = await store.getData();
+    const { statsFile, tweets: tweetsFile } = data;
+    const [prediction, signals, chart] = await Promise.all([
+      getPrediction(data), getSignals(data), getChart(data),
     ]);
     const limit = Number(url.searchParams.get('tweets') ?? 12);
     return {
@@ -490,6 +491,11 @@ async function handleApi(req, res, url) {
     return res.end();
   }
 
+  if (url.pathname === '/api/manage') {
+    return handleManage(req, res, { store, send, account: SOURCE_ACCOUNT,
+      getState: async () => { const data = await store.getData(); return { signals: await getSignals(data) }; } });
+  }
+
   if (url.pathname === '/api/refresh') {
     if (req.method !== 'POST') return send(res, 405, { error: 'method not allowed' });
     if (ADMIN_TOKEN) {
@@ -521,6 +527,7 @@ async function handleApi(req, res, url) {
         };
         const landed = await notifyNewResets({
           ...common,
+          getRecords: async () => (await store.getResets()).records.filter((record) => !record.manual),
           templateId: WX_TEMPLATE_ID,
           templateSpec: WX_TEMPLATE_DATA,
         });
@@ -595,6 +602,14 @@ const server = createServer(async (req, res) => {
   }
   // 首屏走实时渲染（两个来源的取舍见 serveIndex 上方注释）；
   // 图标与渲染失败时的兜底产物仍从 dist/ 出。
+  if (url.pathname === '/manage' || url.pathname === '/manage.html') {
+    if (req.method !== 'GET') return send(res, 405, { error: 'method not allowed' });
+    const html = await readFile(resolve(ROOT, 'server/manage.html'));
+    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store',
+      'x-frame-options': 'DENY', 'x-content-type-options': 'nosniff',
+      'content-security-policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'" });
+    return res.end(html);
+  }
   if (url.pathname === '/' || url.pathname === '/index.html') return serveIndex(res);
   // OG 图是唯一一个「数据卷优先」的静态资源（见 serveOgImage）
   if (url.pathname === '/og-image.png') return serveOgImage(res);

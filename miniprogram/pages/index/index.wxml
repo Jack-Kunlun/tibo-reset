@@ -12,16 +12,16 @@
     <view wx:if="{{notice}}" class="tr-view notice">{{notice}}</view>
     <view class="tr-view tr-page-heading"><view class="tr-view"><text class="tr-text tr-eyebrow">{{pageEyebrow}}</text><text class="tr-text tr-h2">{{pageTitle}}</text></view><text class="tr-text tr-day">{{view === 'records' ? 'UTC 日期' : view === 'analysis' ? '仅供参考' : todayLabel}}</text></view>
     <view class="tr-view tr-signal {{signal.show ? signal.level : 'idle'}}" data-level="{{signal.level}}">
-      <view class="tr-view tr-row"><view class="tr-view tr-chip"><view class="tr-view tr-chip-dot"></view><text class="tr-text">{{signal.show ? signal.level === 'explicit' ? 'TIBO 已预告' : '线索 · 未确认' : '持续观测中'}}</text></view><text class="tr-text tr-secondary">{{signal.show ? signalAge : '持续检查'}}</text></view>
-      <text class="tr-text tr-title">{{signal.show ? signal.level === 'explicit' ? '明确预告额度重置' : '出现新的额度相关发言' : '暂无有效重置预告或线索'}}</text>
-      <text class="tr-text tr-p">{{signal.show ? signal.level === 'explicit' ? signal.timing === 'pending' ? '官方具体时间待公布，尚未确认落地。' : '具体时间以公告窗口为准，等待落地确认。' : '尚未构成明确重置承诺，继续关注后续公告。' : '新的有效信号出现后，会优先展示在这里。'}}</text>
-      <view wx:if="{{signal.show}}" class="tr-view tr-text-button" bindtap="onToggleSignalDetails" role="button"><text class="tr-text">{{signal.level === 'explicit' ? '查看公告依据' : '查看线索详情'}}</text><text class="tr-text tr-arrow">↗</text></view>
+      <view class="tr-view tr-row"><view class="tr-view tr-chip"><view class="tr-view tr-chip-dot"></view><text class="tr-text">{{signal.show ? signal.status === 'observed' ? '已有账号实测到账' : signal.status === 'overdue' ? '落地待核实' : signal.level === 'explicit' ? signal.manual ? '手动补录预告' : 'TIBO 已预告' : '线索 · 未确认' : '持续观测中'}}</text></view><text class="tr-text tr-secondary">{{signal.show ? signalAge : '持续检查'}}</text></view>
+      <text class="tr-text tr-title">{{signal.show ? signal.status === 'observed' ? '已有账号实测到账' : signal.status === 'overdue' ? signal.title : signal.level === 'explicit' ? '明确预告额度重置' : '出现新的额度相关发言' : '暂无有效重置预告或线索'}}</text>
+      <text class="tr-text tr-p">{{signal.show ? signal.status === 'observed' ? '单个账号已报告额度恢复；公开完成状态及其他账号到账情况仍待更新。' : signal.status === 'overdue' ? '原预告窗口已结束，尚未取得公开完成确认。' : signal.level === 'explicit' ? signal.timing === 'pending' ? '官方具体时间待公布，尚未确认落地。' : '具体时间以公告窗口为准，等待落地确认。' : '尚未构成明确重置承诺，继续关注后续公告。' : '新的有效信号出现后，会优先展示在这里。'}}</text>
+      <view wx:if="{{signal.show}}" class="tr-view tr-text-button" bindtap="onToggleSignalDetails" role="button"><text class="tr-text">{{signal.status === 'observed' ? '查看实测详情' : signal.level === 'explicit' || signal.status === 'overdue' ? '查看公告依据' : '查看线索详情'}}</text><text class="tr-text tr-arrow">↗</text></view>
     </view>
     <view wx:if="{{pred}}" class="tr-view tr-outlook" id="forecast">
       <view class="tr-view tr-orbit"></view>
       <view class="tr-view tr-row"><text class="tr-text tr-kicker">{{pred.announcement.pending ? '模型预计到账' : pred.etaKind === 'announced' ? '公告重置窗口' : '下一次重置预测'}}</text><text class="tr-text tr-confidence">{{pred.announcement.pending ? '已预告 · 时间待定' : '置信度 · ' + pred.confidenceLabel}}</text></view>
-      <view class="tr-view tr-eta"><text class="tr-text tr-eta-date">{{pred.hasEstimate ? pred.md : '待公布'}}</text><text wx:if="{{pred.hasEstimate}}" class="tr-text tr-eta-time">{{pred.wd}} · {{pred.hm}}</text></view>
-      <text class="tr-text tr-outlook-note">{{pred.announcement.pending ? pred.hasEstimate ? '官方时间未公布 · 历史配对估计，仅供参考' : '官方时间未公布 · 到账耗时样本不足' : pred.etaKind === 'announced' ? '以公告时间为准 · 等待落地确认' : '按历史节奏推算 · 仅供参考'}}</text>
+      <view class="tr-view tr-eta"><text class="tr-text tr-eta-date">{{pred.hasEstimate ? pred.md : '待公布'}}</text><text wx:if="{{pred.hasEstimate}}" class="tr-text tr-eta-time">{{pred.wd}} · {{pred.hm}}{{pred.etaDeadline ? ' 前' : ''}}</text></view>
+      <text class="tr-text tr-outlook-note">{{pred.announcement.pending ? pred.hasEstimate ? '官方时间未公布 · 历史配对估计，仅供参考' : '官方时间未公布 · 到账耗时样本不足' : pred.etaKind === 'announced' ? pred.etaDeadline ? '公告最晚时间 · 此前可能到账 · 尚未确认落地' : '以公告时间为准 · 等待落地确认' : '按历史节奏推算 · 仅供参考'}}</text>
       <view wx:if="{{pred.band}}" class="tr-view tr-range"><text class="tr-text">{{pred.etaKind === 'model' && !pred.announcement ? '80% 区间' : pred.bandLabel}}{{pred.bandNote ? ' · ' + pred.bandNote : ''}}</text><text class="tr-text tr-strong">{{pred.band}}</text></view>
       <view wx:if="{{!singlePage}}" class="tr-view tr-text-button tr-on-dark" bindtap="onOpenAnalysis" role="button"><text class="tr-text">查看预测依据</text><text class="tr-text tr-arrow">→</text></view>
     </view>
@@ -50,7 +50,7 @@
         <text class="tr-text tr-p">每类单独授权 · 一次授权对应一次通知</text>
       </block>
     </view>
-    <view class="tr-view tr-elapsed" id="elapsed"><view class="tr-view tr-elapsed-copy"><text class="tr-text tr-label">距上次重置</text><text class="tr-text tr-secondary">{{lastResetText}}</text></view><view class="tr-view tr-numbers"><block wx:for="{{elapsedGroups}}" wx:key="unit"><text class="tr-text">{{item.value}}</text><text class="tr-text tr-small">{{item.unit}}</text></block></view></view>
+    <view class="tr-view tr-elapsed" id="elapsed"><view class="tr-view tr-elapsed-copy"><text class="tr-text tr-label">{{elapsedLabel}}</text><text class="tr-text tr-secondary">{{lastResetText}}</text><text wx:if="{{accountObservationText}}" class="tr-text tr-account-observation">最近账号实测 · {{accountObservationText}}</text></view><view class="tr-view tr-numbers"><block wx:for="{{elapsedGroups}}" wx:key="unit"><text class="tr-text">{{item.value}}</text><text class="tr-text tr-small">{{item.unit}}</text></block></view></view>
     <view wx:if="{{planView.show}}" class="tr-view tr-window tr-plan">
       <view class="tr-view tr-plan-heading">
         <view class="tr-view tr-plan-title-row"><view class="tr-view tr-icon-slot"><image class="tr-image tr-icon" src="/assets/design-clock.png"></image></view><text class="tr-text tr-plan-title">{{planView.title}}</text></view>
@@ -67,7 +67,7 @@
       </view>
       <view class="tr-view tr-plan-legend">
         <view class="tr-view tr-plan-legend-primary"><view class="tr-view tr-plan-legend-item"><view class="tr-view tr-plan-legend-mark updated">更</view><text class="tr-text">更新</text></view><view class="tr-view tr-plan-legend-item"><view class="tr-view tr-plan-legend-mark confirmed">重</view><text class="tr-text">重置确认</text></view><view class="tr-view tr-plan-legend-item"><view class="tr-view tr-plan-legend-mark mixed">双</view><text class="tr-text">更新+重置</text></view></view>
-        <text class="tr-text tr-plan-legend-note">其他状态：重置预告、当日动态、未见公告；浅色标记表示后续日期。</text>
+        <text class="tr-text tr-plan-legend-note">{{planView.hasObserved ? '实 = 单账号实测（来源与时间见详情）；' : ''}}其他状态含预告、当日动态与未见公告，浅色标记表示后续日期。</text>
       </view>
       <view wx:if="{{selectedPlan}}" class="tr-view tr-plan-detail">
         <view class="tr-view tr-plan-detail-head"><text class="tr-text tr-plan-detail-title">Day {{selectedPlan.day}}</text><view class="tr-view tr-plan-status {{selectedPlan.statusClass}}">{{selectedPlan.statusLabel}}</view></view>
@@ -76,6 +76,7 @@
             <view wx:if="{{item.labels.length}}" class="tr-view tr-plan-badges"><view wx:for="{{item.labels}}" wx:key="text" class="tr-view tr-plan-badge {{item.cls}}">{{item.text}}</view></view>
             <text class="tr-text tr-plan-entry-title">{{item.title}}</text>
             <view class="tr-view tr-plan-entry-meta"><text class="tr-text">{{item.when}}</text><text wx:if="{{item.confirmedWhen}}" class="tr-text">{{item.confirmedWhen}}</text></view>
+            <text wx:if="{{item.observationText}}" class="tr-text tr-plan-entry-observation">{{item.observationText}}</text>
             <view class="tr-view tr-plan-entry-actions">
               <view wx:if="{{item.hasText}}" class="tr-view tr-plan-action" data-key="{{item.key}}" bindtap="onTogglePlanEntry" role="button">{{expandedPlanEntry === item.key ? '收起原文' : '展开原文'}}</view>
               <view wx:if="{{item.url && !singlePage}}" class="tr-view tr-plan-action" data-url="{{item.url}}" bindtap="onCopySource" role="button">复制原推链接 ↗</view>
@@ -111,6 +112,10 @@
         <view class="tr-view wrow"><text class="tr-text k">北京时间</text><text class="tr-text v">{{signal.window.userZone}}</text><text class="tr-text z">{{signal.window.usrOffset}}</text></view>
         <text class="tr-text wfoot">{{signal.window.diffText}}{{signal.window.rangeNote ? ' · ' + signal.window.rangeNote : ''}}</text>
         <text wx:if="{{signal.precision}}" class="tr-text wprec">粒度：{{signal.precision}}</text>
+      </view>
+      <view wx:if="{{signal.status === 'observed'}}" class="tr-view tr-observation-detail">
+        <text class="tr-text tr-observation-time">{{signal.observationText}}</text>
+        <text class="tr-text tr-observation-scope">{{signal.scopeNote}}</text>
       </view>
       <view wx:if="{{signal.evCount}}" class="tr-view ev">
         <text wx:if="{{signal.evNote}}" class="tr-text ev-note">{{signal.evNote}}</text>

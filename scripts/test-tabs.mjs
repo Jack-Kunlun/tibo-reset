@@ -2,6 +2,8 @@
 /** 原生三个 Tab 的数据、日期选择与前后台边界。 */
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { createDashboardPage } from '../miniprogram/utils/dashboard.js';
 import { buildObservationSignal } from '../miniprogram/utils/view.js';
 import { snapshotState } from '../miniprogram/utils/api.js';
@@ -172,7 +174,7 @@ test('线索详情仅在有内容时打开，再次点击关闭', () => {
 test('线索消失或页面隐藏时关闭详情，静默刷新有效线索时保留', () => {
   const input = state();
   input.prediction = { ...input.prediction, asOf: new Date(now).toISOString() };
-  input.signals = { ...input.signals, forecasts: [], hints: [{ id: 'modal-hint', intent: 3,
+  input.signals = { ...input.signals, forecasts: [], activeHints: [{ id: 'modal-hint', intent: 3,
     createdAt: new Date(now - 600000).toISOString(), text: 'reset soon' }] };
   const page = host('observe');
   page.apply({ state: input, degraded: false });
@@ -235,7 +237,7 @@ test('复用页面重返朋友圈单页时同步隐藏提醒和剪贴板，普�
 test('首页只置顶上次重置后仍有效的线索，线索不能升级为明确预告', () => {
   const floor = now - 3600000;
   const hint = { id: 'hint', intent: 3, createdAt: new Date(now - 600000).toISOString(), text: 'reset soon' };
-  const base = { forecasts: [], hints: [hint], windowFrom: new Date(floor - 3600000).toISOString() };
+  const base = { forecasts: [], activeHints: [hint], windowFrom: new Date(floor - 3600000).toISOString() };
   const result = buildObservationSignal(base, floor, now);
   assert.equal(result.show, true);
   assert.equal(result.level, 'hint');
@@ -245,7 +247,43 @@ test('首页只置顶上次重置后仍有效的线索，线索不能升级为�
     { createdAt: new Date(now + 1000).toISOString() },
     { intent: 0 },
     { window: { to: new Date(now - 1000).toISOString() } },
-  ]) assert.equal(buildObservationSignal({ ...base, hints: [{ ...hint, ...change }] }, floor, now).show, false);
+  ]) assert.equal(buildObservationSignal({ ...base, activeHints: [{ ...hint, ...change }] }, floor, now).show, false);
   const explicit = { id: 'forecast', text: 'We will reset', pending: true, evidence: [], createdAt: hint.createdAt };
   assert.equal(buildObservationSignal({ ...base, forecasts: [explicit] }, floor, now).level, 'explicit');
+});
+
+
+test('过期预告保留公告身份，日历详情不能断言尚未落地', async () => {
+  const input = state();
+  const date = '2026-10-20';
+  input.signals = { ...input.signals, calendar: { ...input.signals.calendar, cells: [{
+    date, status:'pending', statusLabel:'落地待核实', pendingCount:0, datedCount:1,
+    details:[{id:'late',roles:['forecast'],awaitingVerification:true,createdAt:date+'T12:00:00Z'}],
+  }] } };
+  const verify = (factory) => {
+    const page = host('records'); Object.assign(page, factory('records'));
+    page.setData = host('records').setData; page.tick=()=>{}; page.paint=()=>{};
+    page.apply({state:input,degraded:false});
+    page.onSelectCalendarDay({currentTarget:{dataset:{date}}});
+    assert.equal(page.data.selectedDay.details[0].title,'预告窗口已结束 · 落地待核实');
+  };
+  verify(createDashboardPage);
+  const url = new URL('../miniprogram/utils/dashboard.js',import.meta.url);
+  const source = await readFile(url,'utf8');
+  const hash = createHash('sha256').update(source).digest('hex');
+  const broken = source.replace("detail.awaitingVerification ? '预告窗口已结束 · 落地待核实'", "false ? '预告窗口已结束 · 落地待核实'")
+    .replace(/from (['"])(\.[^'"]+)\1/g,(_,q,p)=>`from ${q}${new URL(p,url).href}${q}`);
+  assert.notEqual(source,broken);
+  const module = await import('data:text/javascript;base64,'+Buffer.from(broken).toString('base64'));
+  assert.throws(()=>verify(module.createDashboardPage));
+  assert.equal(createHash('sha256').update(await readFile(url)).digest('hex'),hash);
+  const wxmlUrl = new URL('../miniprogram/pages/index/index.wxml',import.meta.url);
+  const wxml=await readFile(wxmlUrl,'utf8');
+  const expression=wxml.match(/\{\{([^{}]*'查看公告依据'[^{}]*)\}\}/)?.[1];
+  assert.ok(expression);
+  const label=new Function('signal',`return (${expression})`);
+  assert.equal(label({level:'hint',status:'overdue'}),'查看公告依据');
+  const mutant=new Function('signal',`return (${expression.replace(" || signal.status === 'overdue'",'')})`);
+  assert.notEqual(mutant({level:'hint',status:'overdue'}),'查看公告依据');
+  assert.equal(await readFile(wxmlUrl,'utf8'),wxml);
 });

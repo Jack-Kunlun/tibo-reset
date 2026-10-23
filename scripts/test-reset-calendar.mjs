@@ -137,10 +137,10 @@ const finalSignals = detectSignals(tweetsData.tweets,{now:finalDay,lastResetAt:l
 const lastCalendar = buildResetCalendar({records:recordsData.records,tweets:tweetsData.tweets,signals:finalSignals,now:finalDay});
 check('洛杉矶活动规则到期后，UTC末日日历仍保留',!finalSignals.program && lastCalendar?.toDate==='2026-11-01' && lastCalendar.progressDay===28);
 const serverSource = await readFile(resolve(ROOT,'server/index.mjs'),'utf8');
-const getSignalsSource = serverSource.match(/async function getSignals\(\) \{[\s\S]*?\n\}/)?.[0];
+const getSignalsSource = serverSource.match(/async function getSignals\(data\) \{[\s\S]*?\n\}/)?.[0];
 const cacheRecords=[{id:'700',type:'reset',announced_at:'2026-10-06T00:00:00Z'},{id:'701',type:'reset',announced_at:'2026-10-07T00:00:00Z'}];
 const getCachedSignals = runInNewContext(`let sigCache={key:null,value:null}; ${getSignalsSource}; getSignals`,{
-  store:{getTweets:async()=>({updated_at:'unchanged',tweets:[day1]}),getResets:async()=>({records:cacheRecords})},
+  store:{getData:async()=>({tweets:{updated_at:'unchanged',tweets:[day1]},resets:{records:cacheRecords}})},
   latestEventMs,buildResetCalendar,detectSignals:()=>({program,forecasts:[]}),
   SOURCE_ACCOUNT:ACCOUNT,SOURCE_ZONE:'America/Los_Angeles',USER_ZONE:'Asia/Shanghai',Date,
 });
@@ -205,7 +205,7 @@ const planCases = [
     input: planFixture([resetPost, tweet('880', '2026-10-06T06:00:00Z', 'Day 2.1/ Another reset is coming soon.')],
       [{ id: resetPost.id, type: 'reset', announced_at: resetPost.created_at }]),
     verify: c => c.plan.rows[1].confirmedCount === 1 && c.plan.rows[1].entries.some(e => e.id === '880' && e.kind === 'announcement'),
-    from: 'settledPosts.has(String(tweet.id))', to: 'true',
+    from: 'if (settledPosts.has(String(tweet.id)) &&', to: 'if (true &&',
   },
   {
     name: '新的确认帖沿核验引用和自我回复链归到原编号，无需硬编码 ID',
@@ -261,7 +261,7 @@ const planCases = [
     name: '后续完成的活动日不继续显示待落地，原始预告原文仍保留',
     input: realPlanInput,
     verify: c => c.plan.rows[5].status === 'confirmed' && !c.plan.rows[5].entries.some(e => e.kind === 'announcement') && c.plan.rows[5].entries.some(e => e.text.includes('Day 6/')),
-    from: "settledPosts.has(String(tweet.id))", to: 'false',
+    from: "if (settledPosts.has(String(tweet.id)) &&", to: 'if (false &&',
   },
   {
     name: '活动中缺失日标未见公告，最新日之后标待更新，不按日期补完成',

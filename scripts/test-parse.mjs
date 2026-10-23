@@ -698,11 +698,11 @@ section('全文候选：短重置与落地承诺优先于长推文');
     '既有 landing within 与 done and dusted 短句继续进入候选',
     shortOnly(legacyLanding).includes(legacyLanding.id) && shortOnly(legacyDone).includes(legacyDone.id)
   );
-  const oldContextRule = '/^(?:landing\\s+within|done\\s+and\\s+dusted)\\b/i.test(text)';
-  assert.ok(browserSource.includes(oldContextRule), '既有短落地规则的变异点存在');
+  const oldContextRule = '/^(?:landing\\s+within)\\b/i.test(text) || isLinkedCompletionText(text) ||';
+  assert.ok(browserSource.includes(oldContextRule), '既有短落地及锚定完成规则的变异点存在');
   await rejectBrowserMutation(
     '移除既有短落地句型规则',
-    browserSource.replace(oldContextRule, 'false'),
+    browserSource.replace(oldContextRule, 'false || false ||'),
     (module) => {
       const candidates = module.pickFullTextCandidates([{ tweets: [legacyLanding, legacyDone] }], { minLength: 240 }).candidates;
       return candidates.includes(legacyLanding.id) && candidates.includes(legacyDone.id);

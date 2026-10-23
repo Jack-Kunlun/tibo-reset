@@ -13,7 +13,7 @@ const script = template.match(/<script id="state-refresh">([\s\S]*?)<\/script>/)
 const at = '2026-10-15T06:00:00.000Z';
 const next = '2026-10-15T07:00:00.000Z';
 const settle = async () => { for (let i = 0; i < 8; i++) await Promise.resolve(); };
-function boot({ state = { dataUpdatedAt: at }, errors = [], stored = null, hidden = false, pending = false } = {}) {
+function boot({ state = { dataUpdatedAt: at }, errors = [], digestRevision = '', manualRevision = 0, scriptOverride = script, stored = null, hidden = false, pending = false } = {}) {
   const boxes = { '.sig-prog': { open: true }, '.am-more': { open: false } };
   const calls = [], timers = [], intervals = [], events = {}, removed = [];
   const store = new Map(stored ? [['reset-observatory-reading', JSON.stringify(stored)]] : []);
@@ -21,7 +21,7 @@ function boot({ state = { dataUpdatedAt: at }, errors = [], stored = null, hidde
   let outcome = state;
   const document = {
     hidden,
-    getElementById: () => ({ textContent: JSON.stringify({ dataUpdatedAt: at, builtAt: next, collectErrors: errors }) }),
+    getElementById: () => ({ textContent: JSON.stringify({ dataUpdatedAt: at, builtAt: next, accountObservationRevision: digestRevision, manualRevision, collectErrors: errors }) }),
     querySelector: selector => boxes[selector],
     addEventListener: (name, callback) => { events[name] = callback; },
   };
@@ -29,7 +29,7 @@ function boot({ state = { dataUpdatedAt: at }, errors = [], stored = null, hidde
     if (outcome instanceof Error) return Promise.reject(outcome);
     return Promise.resolve({ ok: outcome !== null, json: async () => outcome });
   };
-  runInNewContext(script, {
+  runInNewContext(scriptOverride, {
     document,
     location: { pathname: '/', reload: () => { reloaded++; } },
     window: { scrollY: 432, scrollTo: (x, y) => { scrolled = y; }, dispatchEvent: () => { resized++; } },
@@ -51,12 +51,29 @@ function boot({ state = { dataUpdatedAt: at }, errors = [], stored = null, hidde
     outcome: value => { outcome = value; },
   };
 }
-const digest = JSON.parse(renderDigest({ now: Date.parse(next), generatedAt: next, dataUpdatedAt: at, lastAt: at }, null, null));
-check('网页比较锚点取采集数据时刻而非渲染时刻', digest.dataUpdatedAt === at && digest.builtAt === next);
+const digest = JSON.parse(renderDigest({ now: Date.parse(next), generatedAt: next, dataUpdatedAt: at, accountObservationRevision: 'rev-1', lastAt: at }, null, null));
+check('网页摘要包含采集时刻和账号观察修订号', digest.dataUpdatedAt === at && digest.builtAt === next && digest.accountObservationRevision === 'rev-1');
 const same = boot({ state: { dataUpdatedAt: at, generatedAt: next } });
 await settle();
 check('网页初次与每分钟检查状态且不使用 HTTP 缓存', same.calls[0]?.url === '/api/state?tweets=0' && same.calls[0]?.options.cache === 'no-store' && same.intervals[0]?.ms === 60000);
 check('仅 API 请求时刻变化不重载网页', same.reloaded === 0);
+const sameDataObservation = boot({ digestRevision: 'rev-1', state: { dataUpdatedAt: at, signals: { accountObservationRevision: 'rev-1' } } });
+await settle();
+check('账号观察修订号未变化时不重载网页', sameDataObservation.reloaded === 0);
+sameDataObservation.outcome({ dataUpdatedAt: at, signals: { accountObservationRevision: 'rev-2' } });
+await sameDataObservation.intervals[0].fn();
+check('推文采集时刻不变但账号观察修订时仍重载', sameDataObservation.reloaded === 1);
+const sameManual = boot({ manualRevision: 3, state: { dataUpdatedAt: at, signals: { manualRevision: 3 } } });
+await settle();
+check('手动修订号未变化不重载', sameManual.reloaded === 0);
+sameManual.outcome({ dataUpdatedAt: at, signals: { manualRevision: 4 } });
+await sameManual.intervals[0].fn();
+check('采集时刻不变时手动保存或撤销也重载', sameManual.reloaded === 1);
+const disabledManual = script.replace(/var manualChanged = [^;]+;/, 'var manualChanged = false;');
+assert.notEqual(disabledManual, script, '手工修订刷新变异点存在');
+const missedManual = boot({ scriptOverride: disabledManual, manualRevision: 3, state: { dataUpdatedAt: at, signals: { manualRevision: 4 } } });
+await settle();
+check('关闭手工修订分支的隔离反例会漏刷新', missedManual.reloaded === 0);
 same.outcome({ dataUpdatedAt: next });
 await same.intervals[0].fn();
 check('新一轮数据到达会重载服务端页面', same.reloaded === 1);
@@ -115,7 +132,7 @@ check('页面模型成功数据时刻不随失败采集推进并保留错误状�
 const serverSource = await readFile(new URL('../server/index.mjs', import.meta.url), 'utf8');
 const route = serverSource.match(/'\/api\/state': async \(url\) => \{([\s\S]*?)\n  \},/)[1];
 const stateRoute = runInNewContext(`(async (url) => {${route}})`, {
-  store: { getStats: async () => statsFile, getTweets: async () => tweets },
+  store: { getData: async () => ({ statsFile, tweets }) },
   getPrediction: async () => null, getSignals: async () => null, getChart: async () => null, DEFAULT_CONFIG: {},
 });
 const api = await stateRoute(new URL('http://localhost/api/state?tweets=0'));

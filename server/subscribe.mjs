@@ -207,11 +207,11 @@ export function fmtWeChatTime(ts) {
  *
  * @returns {Promise<object>} 结果摘要，写进日志用
  */
-export async function notifyNewResets({ dataDir, store, client, templateId, page, templateSpec, log = console }) {
+export async function notifyNewResets({ dataDir, store, client, templateId, page, templateSpec, getRecords, log = console }) {
   if (!templateId) return { skipped: 'no-template-id' };
   if (!client?.configured) return { skipped: 'wechat-not-configured' };
   return store.notify(async () => {
-    const records = JSON.parse(await readFile(resolve(dataDir, 'resets.json'), 'utf8')).records ?? [];
+    const records = getRecords ? await getRecords() : JSON.parse(await readFile(resolve(dataDir, 'resets.json'), 'utf8')).records ?? [];
     const maxAt = latestEventAt(records);
     const confirmedTimes = new Set(detectNewResets(records, null).map((record) => eventTime(record)));
     const work = await store.update((state) => {
@@ -244,7 +244,7 @@ export async function notifyNewResets({ dataDir, store, client, templateId, page
       // 长批次等待期间，重置记录可能被修正；发送前重新确认硬事实仍在当前快照中。
       let currentTimes;
       try {
-        const currentRecords = JSON.parse(await readFile(resolve(dataDir, 'resets.json'), 'utf8')).records ?? [];
+        const currentRecords = getRecords ? await getRecords() : JSON.parse(await readFile(resolve(dataDir, 'resets.json'), 'utf8')).records ?? [];
         currentTimes = new Set(detectNewResets(currentRecords, null).map((record) => eventTime(record)));
       } catch (err) {
         failed++;
@@ -289,7 +289,7 @@ export async function notifyNewResets({ dataDir, store, client, templateId, page
 export function announcementEventsFromForecasts(forecasts, now = Date.now()) {
   const events = [];
   for (const forecast of forecasts ?? []) {
-    if (forecast?.level !== 'explicit') continue;
+    if (forecast?.level !== 'explicit' || forecast.status === 'observed' || forecast.status === 'overdue') continue;
     const hard = (forecast.evidence ?? [])
       .filter((e) => e?.weight === 'hard' && (typeof e.id === 'string' || typeof e.id === 'number') && String(e.id).trim() &&
         Number.isFinite(Date.parse(e.createdAt)) && Date.parse(e.createdAt) <= now);

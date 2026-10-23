@@ -858,6 +858,8 @@ export function mergeTweetContexts(tweets, contexts = new Map(), known = []) {
 
 export function mergeTweetBatch(base = [], incoming = [], nowIso = new Date().toISOString()) {
   const keyOf = (t) => t.id ?? String(t.text ?? '').slice(0, 40);
+  const isVerifiedReply = (context) => context?.verified === true && context.relation === 'reply' &&
+    Boolean(context.id && context.account && context.text && context.created_at);
   const merged = new Map((base ?? []).map((t) => [keyOf(t), t]));
 
   for (const t of incoming ?? []) {
@@ -869,12 +871,18 @@ export function mergeTweetBatch(base = [], incoming = [], nowIso = new Date().to
     }
     const keepPrevText =
       prev.text_full === true && String(t.text ?? '').length < String(prev.text ?? '').length;
-    merged.set(key, {
+    // 后续增量常从时间线再次采到同一条回复，但邻接上下文可能因虚拟列表边缘而缺失。
+    // 只有详情页核验过的关系受保护；新的已核验关系仍可纠正旧值。
+    const keepPrevContext = isVerifiedReply(prev.inReplyTo) && !isVerifiedReply(t.inReplyTo);
+    const next = {
       ...prev,
       ...t,
       ...(keepPrevText ? { text: prev.text, text_full: true } : null),
+      ...(keepPrevContext ? { inReplyTo: prev.inReplyTo } : null),
       first_seen: prev.first_seen ?? nowIso,
-    });
+    };
+    if (isVerifiedReply(next.inReplyTo)) next.role = 'reply';
+    merged.set(key, next);
   }
 
   return [...merged.values()].sort(

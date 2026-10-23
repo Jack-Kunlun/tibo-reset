@@ -777,7 +777,7 @@ const snapshotSignals = (await import(resolve(ROOT, 'miniprogram/data/snapshot.j
 // 横幅认的是「一个时间窗口一条预告」（见 decisions.md 的 D-018）。
 const hasForecast = (snapshotSignals.forecasts || []).length > 0;
 const hasOccurred = (snapshotSignals.occurred || []).length > 0;
-const hasHintWin = (snapshotSignals.hints || []).some((s) => s.window);
+const hasHintWin = (snapshotSignals.activeHints || []).some((s) => s.window);
 const expectShow = hasForecast || hasHintWin;
 
 check('信号对象存在', !!d.signal);
@@ -1083,7 +1083,7 @@ const hintWithWin = buildSignal({
   level: 'hint',
   checkedTweets: 5,
   lookbackDays: 60,
-  hints: [{ level: 'hint', window: W, text: 't', precision: 'day', reasons: ['含未来语气'] }],
+  activeHints: [{ level: 'hint', window: W, text: 't', precision: 'day', reasons: ['含未来语气'] }],
 });
 check('线索带窗口时展示，但标为「线索」而不是「明确信号」', hintWithWin.show && hintWithWin.badge === '线索', JSON.stringify(hintWithWin.badge));
 

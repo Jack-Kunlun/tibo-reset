@@ -39,6 +39,8 @@
   #observatory .am-dot{width:6px;height:6px;border-radius:50%;background:var(--am-accent);box-shadow:0 0 0 4px #eae5fa;display:inline-block;flex:none}
   #observatory .am-context{display:flex;justify-content:space-between;gap:8px 18px;align-items:center;flex-wrap:wrap;padding:17px 2px;color:var(--am-muted);font-size:12px}
   #observatory .am-context b{font-weight:500;color:var(--am-ink);margin-left:10px}
+  #observatory .am-context-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;text-align:right}
+  #observatory .am-account-observation{font-size:10px;color:#766ba0}
   #observatory .pred{perspective:1200px;position:relative}
   #observatory .pcard{--am-mx:50%;--am-my:35%;position:relative;isolation:isolate;border-radius:27px;background:linear-gradient(130deg,#fff 0%,#f6f3ff 47%,#f0fbf8 100%);border:1px solid #fff;padding:24px 27px 0;box-shadow:0 2px 3px #6150ac06,0 23px 50px -26px #7666b76b,inset 0 0 0 1px #e5ddf3;transform:rotateX(var(--am-rx,0deg)) rotateY(var(--am-ry,0deg));transition:transform .25s ease-out,box-shadow .3s;transform-style:preserve-3d}
   #observatory .pcard:before{content:"";position:absolute;inset:1px;border-radius:inherit;z-index:-1;background:radial-gradient(370px circle at var(--am-mx) var(--am-my),#fff9 0,#dcd0fb45 30%,transparent 70%);pointer-events:none}
@@ -150,7 +152,7 @@
     #observatory .am-live{display:none}
     #observatory .am-context{font-size:11px;padding:15px 0;gap:4px}
     #observatory .am-context b{margin-left:5px}
-    #observatory .am-context>span:last-child{width:100%}
+    #observatory .am-context-meta{width:100%;align-items:flex-start;text-align:left}
     #observatory .pcard{padding:21px 19px 0;border-radius:23px}
     #observatory .am-kicker{letter-spacing:.05em}
     #observatory .pc-conf{font-size:11px;padding:4px 8px}
@@ -355,7 +357,7 @@
   @media(max-width:700px){
     #observatory .am-brand h1{font-size:14px}#observatory .am-header{align-items:center}
     #observatory .am-tools{flex:none}#observatory .hero-v{font-size:11px;gap:4px}
-    #observatory .am-context-left{gap:6px}#observatory .am-context>span:last-child{width:100%}
+    #observatory .am-context-left{gap:6px}#observatory .am-context-meta{width:100%;align-items:flex-start;text-align:left}
     #observatory .am-stage h2{font-size:16px}#observatory .pc-wait{gap:8px;font-size:11px;margin-top:22px}
     #observatory .counter{font-size:24px;gap:7px}#observatory .counter .unit{margin-left:4px}
     #observatory .pc-band b{white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
@@ -510,8 +512,8 @@
   @media(prefers-reduced-motion:no-preference){#observatory .announcement-beacon{animation:announcement-pulse 3s ease-in-out infinite}#observatory .am-orbit-field:after{animation:am-scan 12s ease-in-out infinite}}
   #observatory[data-running="false"] .announcement-beacon,#observatory[data-visible="false"] .announcement-beacon,#observatory[data-running="false"] .am-orbit-field:after,#observatory[data-visible="false"] .am-orbit-field:after{animation-play-state:paused}
   @media(max-width:850px){#observatory{padding-left:24px;padding-right:24px}#observatory .am-main{grid-template-columns:minmax(0,1.5fr) minmax(240px,1fr);gap:16px}#observatory .am-lower{gap:16px}#observatory .am-date{font-size:78px}#observatory .pcard{padding-left:20px;padding-right:20px}#observatory .pc-band b{display:block;margin-left:0;margin-top:4px}}
-  @media(max-width:700px){#observatory{padding:0 18px 28px}#observatory .am-header{padding:22px 0 18px}#observatory .am-brand h1{font-size:14px}#observatory .am-logo{width:32px;height:32px}#observatory .am-pause{background:transparent;border:0;padding-right:0}#observatory .am-context{padding:0 1px 17px;align-items:center}#observatory .am-context-left{width:auto;gap:8px}#observatory .am-context>span:last-child{width:auto;font-size:10px}#observatory .am-context>span:last-child a{display:block;max-width:128px;text-align:right}#observatory .hero-v{font-size:11px}#observatory .am-main,#observatory .am-lower{display:block}#observatory .am-main>.am-side{gap:14px;margin-top:16px}#observatory .pcard,#observatory .pcard.is-announced{padding:20px 20px 0;border-radius:22px}#observatory .am-stage,#observatory .is-announced .am-stage{min-height:242px;padding:23px 0 20px}#observatory .is-announced .am-stage h2{font-size:26px}#observatory .am-date{font-size:76px;gap:2px;margin:12px 0 6px}#observatory .am-stage>.am-small{font-size:10px}#observatory .pc-wait{margin-top:20px}#observatory .pc-wait-cap,#observatory .pc-wait-over{font-size:11px}#observatory .pc-band{padding:13px 0}#observatory .pc-announcement{padding-bottom:17px}#observatory .am-lower{margin-top:16px}#observatory .am-panel{padding:20px;border-radius:18px}#observatory .am-records{margin-top:16px}#observatory .sig-idle{padding:13px 3px 0}#observatory .idle-sub{width:100%;margin-left:24px}#observatory .am-more{padding:0;margin-top:20px}#observatory .am-footer{display:block;line-height:1.9}#observatory .am-footer>span{display:block}}
-  @media(max-width:370px){#observatory{padding-left:14px;padding-right:14px}#observatory .am-brand h1{font-size:13px}#observatory .am-stage,#observatory .is-announced .am-stage{min-height:230px}#observatory .am-date{font-size:66px}#observatory .pc-conf{font-size:9px;padding:4px 6px}#observatory .am-context{flex-direction:column;align-items:stretch;gap:6px}#observatory .am-context-left{justify-content:space-between}#observatory .am-context>span:last-child a{max-width:none;text-align:left}#observatory .pc-band{font-size:10px}#observatory .pcard,#observatory .pcard.is-announced{padding-left:17px;padding-right:17px}}
+  @media(max-width:700px){#observatory{padding:0 18px 28px}#observatory .am-header{padding:22px 0 18px}#observatory .am-brand h1{font-size:14px}#observatory .am-logo{width:32px;height:32px}#observatory .am-pause{background:transparent;border:0;padding-right:0}#observatory .am-context{padding:0 1px 17px;align-items:center}#observatory .am-context-left{width:auto;gap:8px}#observatory .am-context-meta{width:auto;align-items:flex-end;font-size:10px}#observatory .am-context-meta a{display:block;max-width:128px;text-align:right}#observatory .hero-v{font-size:11px}#observatory .am-main,#observatory .am-lower{display:block}#observatory .am-main>.am-side{gap:14px;margin-top:16px}#observatory .pcard,#observatory .pcard.is-announced{padding:20px 20px 0;border-radius:22px}#observatory .am-stage,#observatory .is-announced .am-stage{min-height:242px;padding:23px 0 20px}#observatory .is-announced .am-stage h2{font-size:26px}#observatory .am-date{font-size:76px;gap:2px;margin:12px 0 6px}#observatory .am-stage>.am-small{font-size:10px}#observatory .pc-wait{margin-top:20px}#observatory .pc-wait-cap,#observatory .pc-wait-over{font-size:11px}#observatory .pc-band{padding:13px 0}#observatory .pc-announcement{padding-bottom:17px}#observatory .am-lower{margin-top:16px}#observatory .am-panel{padding:20px;border-radius:18px}#observatory .am-records{margin-top:16px}#observatory .sig-idle{padding:13px 3px 0}#observatory .idle-sub{width:100%;margin-left:24px}#observatory .am-more{padding:0;margin-top:20px}#observatory .am-footer{display:block;line-height:1.9}#observatory .am-footer>span{display:block}}
+  @media(max-width:370px){#observatory{padding-left:14px;padding-right:14px}#observatory .am-brand h1{font-size:13px}#observatory .am-stage,#observatory .is-announced .am-stage{min-height:230px}#observatory .am-date{font-size:66px}#observatory .pc-conf{font-size:9px;padding:4px 6px}#observatory .am-context{flex-direction:column;align-items:stretch;gap:6px}#observatory .am-context-left{justify-content:space-between}#observatory .am-context-meta{align-items:flex-start}#observatory .am-context-meta a{max-width:none;text-align:left}#observatory .pc-band{font-size:10px}#observatory .pcard,#observatory .pcard.is-announced{padding-left:17px;padding-right:17px}}
 
   #observatory .reset-calendar{margin-top:24px}
   #observatory .rc-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px}
@@ -527,6 +529,7 @@
   #observatory .rc-stat b{display:inline-flex;align-items:baseline;gap:4px;line-height:1;font-family:var(--mono);font-size:25px;font-weight:500}
   #observatory .rc-stat small{font-family:var(--sans);font-size:11px;line-height:1;font-weight:400}
   #observatory .rc-stat.rc-pending{margin-top:19px;color:#edc28a}
+  #observatory .rc-stat.rc-observed{margin-top:12px;color:#b7a4ff}
   #observatory .rc-source{display:block;margin-top:23px;font-size:11px;color:#b7a6ff}
   #observatory .rc-week,#observatory .rc-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
   #observatory .rc-week{margin-bottom:9px;font-size:11px;text-align:center;color:#929fba}
@@ -536,13 +539,14 @@
   #observatory .rc-cell i{font-size:8px;font-style:normal;color:#edc28a}
   #observatory .rc-confirmed{background:linear-gradient(145deg,#21443e,#182e32);border-color:#a6edce23;color:#b7f2db}
   #observatory .rc-pending,#observatory .rc-dated,#observatory .rc-announced{background:#3b3025;border-color:#edc28a40;color:#edc28a}
+  #observatory .rc-observed{background:#a99ae218;border-color:#a99ae240;color:#c9baff}
   #observatory .rc-stat.rc-pending{background:none;border:0}
   #observatory .rc-updated{background:#2c2946;border-color:#baabff20;color:#bcb2e0}
   #observatory .rc-cell.is-today{outline:2px solid #b7a6ff;outline-offset:2px}
   #observatory a.rc-cell:hover{filter:brightness(1.15)}
   #observatory .rc-legend{display:flex;gap:13px;flex-wrap:wrap;margin:15px 0 0;font-size:10px;color:#8996b2}
-  #observatory .rc-legend span:first-child{color:#a6edce}#observatory .rc-legend span:nth-child(2){color:#edc28a}#observatory .rc-legend span:nth-child(3){color:#bcb2e0}
-  @media(max-width:700px){#observatory .reset-calendar{margin-top:18px}#observatory .rc-layout{display:block}#observatory .rc-summary{border:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:20px}#observatory .rc-progress{grid-column:1;grid-row:2/4;margin:0;font-size:36px}#observatory .rc-summary>.rc-muted:first-child{grid-column:1;grid-row:1}#observatory .rc-stat{grid-column:2;grid-row:1/3}#observatory .rc-summary>.rc-muted:nth-of-type(2){grid-column:2;grid-row:3}#observatory .rc-stat.rc-pending{grid-column:1;grid-row:4;margin:0;justify-content:flex-start;gap:10px}#observatory .rc-source{grid-column:2;grid-row:4;margin:0;align-self:center}#observatory .rc-grid,#observatory .rc-week{gap:5px}#observatory .rc-cell{min-height:60px;border-radius:8px}#observatory .rc-cell b{font-size:11px}#observatory .rc-cell span{font-size:8px}#observatory .rc-heading p{font-size:10px}#observatory .rc-caption{font-size:10px}#observatory .rc-legend{gap:8px;font-size:9px}}
+  #observatory .rc-legend span:first-child{color:#a6edce}#observatory .rc-legend span:nth-child(2){color:#c9baff}#observatory .rc-legend span:nth-child(3){color:#bcb2e0}#observatory .rc-legend span:nth-child(4){color:#edc28a}
+  @media(max-width:700px){#observatory .reset-calendar{margin-top:18px}#observatory .rc-layout{display:block}#observatory .rc-summary{border:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:20px}#observatory .rc-progress{grid-column:1;grid-row:2/4;margin:0;font-size:36px}#observatory .rc-summary>.rc-muted:first-child{grid-column:1;grid-row:1}#observatory .rc-stat:not(.rc-pending):not(.rc-observed){grid-column:2;grid-row:1/3}#observatory .rc-summary>.rc-muted:nth-of-type(2){grid-column:2;grid-row:3}#observatory .rc-stat.rc-pending{grid-column:1;grid-row:4;margin:0;justify-content:flex-start;gap:10px}#observatory .rc-stat.rc-observed{grid-column:1;grid-row:5;margin:0;justify-content:flex-start;gap:10px}#observatory .rc-source{grid-column:2;grid-row:5;margin:0;align-self:center}#observatory .rc-grid,#observatory .rc-week{gap:5px}#observatory .rc-cell{min-height:60px;border-radius:8px}#observatory .rc-cell b{font-size:11px}#observatory .rc-cell span{font-size:8px}#observatory .rc-heading p{font-size:10px}#observatory .rc-caption{font-size:10px}#observatory .rc-legend{gap:8px;font-size:9px}}
 
   #observatory .am-main>.reset-calendar{margin:0;padding:19px 16px}
   #observatory .am-main>.reset-calendar .rc-heading{margin-bottom:14px;gap:7px;flex-wrap:wrap}
@@ -559,7 +563,8 @@
   #observatory .am-main>.reset-calendar .rc-stat small{font-size:10px}
   #observatory .am-main>.reset-calendar .rc-summary>.rc-muted:nth-of-type(2){grid-column:2;grid-row:3;font-size:9px}
   #observatory .am-main>.reset-calendar .rc-stat.rc-pending{grid-column:1;grid-row:4;margin:0;justify-content:flex-start;gap:6px}
-  #observatory .am-main>.reset-calendar .rc-source{grid-column:2;grid-row:4;margin:0;align-self:center;font-size:9px}
+  #observatory .am-main>.reset-calendar .rc-stat.rc-observed{grid-column:1;grid-row:5;margin:0;justify-content:flex-start;gap:6px}
+  #observatory .am-main>.reset-calendar .rc-source{grid-column:2;grid-row:5;margin:0;align-self:center;font-size:9px}
   #observatory .am-main>.reset-calendar .rc-grid,#observatory .am-main>.reset-calendar .rc-week{gap:4px}
   #observatory .am-main>.reset-calendar .rc-cell{min-height:47px;gap:5px;border-radius:7px}
   #observatory .am-main>.reset-calendar .rc-cell b{font-size:9px}
@@ -605,14 +610,16 @@
   #observatory .plan-cell i{display:none;font-style:normal;font-size:10px}
   #observatory .plan-updated,#observatory .plan-noted{color:#c4b6ee;background:#b4a3ff0a;border-color:#b4a3ff1c}
   #observatory .plan-mixed,#observatory .plan-confirmed{color:#a6edce;background:#83e6c70b;border-color:#83e6c722}
+  #observatory .plan-observed{color:#c9baff;background:#a99ae21b;border-color:#a99ae240}
   #observatory .plan-pending{color:#e7c28a;background:#e7c28a0b;border-color:#e7c28a22}
   #observatory .plan-cell:hover{background:#b4a3ff1c}
   #observatory .plan-cell.is-selected{border-color:#baa8ff;background:#b4a3ff1a;box-shadow:0 0 0 1px #baa8ff}
   #observatory .plan-cell:focus-visible{outline:2px solid #eee5ff;outline-offset:3px}
   #observatory .plan-legend{display:flex;flex-wrap:wrap;gap:6px 14px;color:#8391ad;font-size:10px;margin:14px 0 20px}
   #observatory .plan-legend span:first-child{color:#c4b6ee}
-  #observatory .plan-legend span:nth-child(2){color:#a6edce}
-  #observatory .plan-legend span:nth-child(3){color:#e7c28a}
+  #observatory .plan-legend span:nth-child(2){color:#c9baff}
+  #observatory .plan-legend span:nth-child(3){color:#a6edce}
+  #observatory .plan-legend span:nth-child(4){color:#e7c28a}
   #observatory .plan-day{border-top:1px solid var(--am-line);padding-top:18px;scroll-margin-top:24px}
   #observatory .plan-day+.plan-day{margin-top:16px}
   #observatory .plan-day>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;list-style:none;font-size:12px;color:#b4a3ce}
@@ -625,6 +632,8 @@
   #observatory .plan-entry-meta time{margin-left:auto}
   #observatory .plan-label{padding:3px 7px;border-radius:6px;color:#bfb0ed;background:#b4a3ff0c}
   #observatory .plan-label.is-confirmed{color:#a6edce;background:#83e6c70b}
+  #observatory .plan-label.is-observed{color:#c9baff;background:#a99ae21b}
+  #observatory .plan-observation{font-size:10px;color:#9c8bd8;margin:6px 0 10px}
   #observatory .plan-entry h3{font-size:14px;font-weight:500;color:#dce1f3;line-height:1.7;margin:10px 0;overflow-wrap:anywhere}
   #observatory .plan-entry .plan-confirmed{font-size:10px;margin:6px 0 10px}
   #observatory .plan-entry-actions{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px 18px;font-size:11px;color:#b4a3ff}
@@ -654,9 +663,9 @@
   </header>
   <!--__COLLECT_WARNING__-->
   <!--__FRESHNESS__-->
-  <section class="am-context" aria-label="距上次重置">
-    <div class="am-context-left"><span>距上次重置</span><div class="hero-v" id="elapsed" data-last="<!--__LAST_AT__-->" role="timer"><!--__ELAPSED__--></div></div>
-    <span><a href="#records">上次 <span class="am-mono"><!--__LAST_LABEL__--></span> · 北京时间</a></span>
+  <section class="am-context" aria-label="重置时间与账号实测">
+    <div class="am-context-left"><span><!--__ELAPSED_CAPTION__--></span><div class="hero-v" id="elapsed" data-last="<!--__LAST_AT__-->" role="timer"><!--__ELAPSED__--></div></div>
+    <span class="am-context-meta"><a href="#records"><!--__LAST_CAPTION__--> <span class="am-mono"><!--__LAST_LABEL__--></span> · 北京时间</a><!--__ACCOUNT_OBSERVATION__--></span>
   </section>
   <main>
     <div class="am-main">
@@ -1043,6 +1052,8 @@
   var digest;
   try { digest = JSON.parse(document.getElementById('data-digest').textContent); } catch (e) { return; }
   var renderedAt = Date.parse(digest.dataUpdatedAt) || 0;
+  var renderedObservationRevision = digest.accountObservationRevision || '';
+  var renderedManualRevision = digest.manualRevision || 0;
   var renderedErrors = JSON.stringify(digest.collectErrors || []);
   var key = 'reset-observatory-reading';
   var selectors = ['.sig-prog', '.am-signal-details', '.am-disclosure', '.am-more'];
@@ -1073,8 +1084,10 @@
       var state = await response.json();
       // 失败采集只更新错误状态，不得冒充数据更新或每轮重复重载。
       var newer = Date.parse(state.dataUpdatedAt) > renderedAt;
+      var observationChanged = (state.signals && state.signals.accountObservationRevision || '') !== renderedObservationRevision;
+      var manualChanged = (state.signals && state.signals.manualRevision || 0) !== renderedManualRevision;
       var errorsChanged = JSON.stringify(state.collectErrors || []) !== renderedErrors;
-      if ((!newer && !errorsChanged) || document.hidden) return;
+      if ((!newer && !observationChanged && !manualChanged && !errorsChanged) || document.hidden) return;
       var open = {};
       selectors.forEach(function (selector) {
         var box = document.querySelector(selector);

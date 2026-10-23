@@ -141,10 +141,13 @@ function calendarSelection(calendar, date) {
     statusLabel: cell.statusLabel,
     details: (cell.details || []).map((detail, index) => ({
       key: String(detail.id || `${date}-${index}`),
-      title: detail.roles.includes('confirmed') ? detail.type === 'credit' ? '发券型已确认' : '重置已确认'
-        : detail.roles.includes('forecast') ? '明确预告 · 尚未落地' : '日程更新',
-      when: fmtDateTime(toTs(detail.confirmedAt || detail.createdAt)) + ' 北京',
-      time: fmtClock(toTs(detail.confirmedAt || detail.createdAt)),
+      title: detail.roles.includes('observed') ? '已有账号实测到账'
+        : detail.roles.includes('confirmed') ? detail.type === 'credit' ? '发券型已确认' : '重置已确认'
+        : detail.roles.includes('forecast') ? detail.awaitingVerification ? '预告窗口已结束 · 落地待核实' : '明确预告 · 尚未确认落地' : '日程更新',
+      when: detail.roles.includes('observed')
+        ? `${detail.observationPrecision === 'approximate-minute' ? '约' : ''}${Number.isFinite(toTs(detail.observedAt)) ? fmtDateTime(toTs(detail.observedAt)) + ' 北京' : '时间未知'} · ${detail.sourceLabel || '账号实测'} · 仅代表单个账号`
+        : `${detail.timePrecision === 'approximate-minute' ? '约' : ''}${fmtDateTime(toTs(detail.confirmedAt || detail.createdAt))} 北京${detail.manual ? ' · 手动补录' : ''}`,
+      time: fmtClock(toTs(detail.roles.includes('observed') ? detail.observedAt : detail.confirmedAt || detail.createdAt)),
       text: detail.text || '',
       url: detail.url || '',
     })),
@@ -172,6 +175,8 @@ export function createDashboardPage(view = 'observe') {
     expandedRecord: '',
     todayLabel: '',
     signalAge: '',
+    elapsedLabel: '距上次重置',
+    accountObservationText: '',
     trendBars: [],
     medianDays: '',
     analysisTitle: '',
@@ -362,6 +367,12 @@ export function createDashboardPage(view = 'observe') {
     const signal = view === 'observe' ? buildObservationSignal(state.signals, lastAt, predNow) : buildSignal(state.signals);
     const published = toTs(signal.createdAt);
     const ageMinutes = Number.isFinite(published) ? Math.max(0, Math.floor((Date.now() - published) / 60000)) : null;
+    const latestObservation = state.signals?.latestAccountObservation;
+    const observedAt = toTs(latestObservation?.observedAt);
+    const hasNewerAccountObservation = Number.isFinite(observedAt) && (!Number.isFinite(lastAt) || observedAt > lastAt);
+    const accountObservationText = Number.isFinite(observedAt)
+      ? `${latestObservation.precision === 'approximate-minute' ? '约' : ''}${fmtDateTime(observedAt)} 北京 · ${latestObservation.sourceLabel || '账号实测'} · 仅代表单个账号`
+      : '';
     const today = beijingParts(Date.now());
     const gaps = (chart?.gapDays || []).slice(-12);
     const maxGap = Math.max(1, ...gaps);
@@ -372,6 +383,8 @@ export function createDashboardPage(view = 'observe') {
         signal,
         signalAge: ageMinutes === null ? '' : ageMinutes < 1 ? '刚刚' : ageMinutes < 60 ? `${ageMinutes} 分钟前` : ageMinutes < 1440 ? `${Math.floor(ageMinutes / 60)} 小时前` : `${Math.floor(ageMinutes / 1440)} 天前`,
         todayLabel: `${today.month}.${today.day} ${today.weekday}`,
+        elapsedLabel: hasNewerAccountObservation ? '距上次公开确认' : '距上次重置',
+        accountObservationText,
         trendBars: gaps.map((value, index) => ({ key: index, height: Math.max(4, value / maxGap * 100), latest: index === gaps.length - 1, value: value.toFixed(1) })),
         medianDays: chart?.median?.toFixed(1) ?? '—',
         analysisTitle: outlook?.announcement ? outlook.announcement.pending ? '已明确预告，等待落地确认' : '按公告窗口观察下一次重置' : '没有明确预告，按历史节奏推算',

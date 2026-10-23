@@ -14,6 +14,7 @@ import { buildChartData } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
 import { detectSignals, latestEventMs } from '../src/lib/signals.mjs';
 import { buildResetCalendar } from '../src/lib/reset-calendar.mjs';
+import { createStore } from '../server/store.mjs';
 import { createDashboardPage } from '../miniprogram/utils/dashboard.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -405,13 +406,11 @@ function createWxmlRuntime() {
 
 /* ------------------------------ 本地数据 ------------------------------ */
 
-const [resets, tweets, stats, appConfig] = await Promise.all([
-  readJson('data/resets.json'),
-  readJson('data/tweets.json'),
-  readJson('data/stats.json'),
+const now = Date.now();
+const [{ resets, tweets, statsFile: stats }, appConfig] = await Promise.all([
+  createStore(resolve(ROOT, 'data')).getData({ now }),
   readJson('miniprogram/app.json'),
 ]);
-const now = Date.now();
 const DEMO_SIGNAL = process.argv.includes('--demo-signal');
 const DEMO_REMINDER = process.argv.includes('--demo-reminder');
 const demoTweet = {
@@ -430,6 +429,7 @@ const signals = detectSignals(tweetPool, {
   account,
   lastResetAt: latestEventMs(resets.records),
 });
+signals.manualRevision = tweets.manualRevision ?? 0;
 signals.calendar = buildResetCalendar({ records: resets.records, tweets: tweetPool, signals, now, account });
 const state = {
   chart,

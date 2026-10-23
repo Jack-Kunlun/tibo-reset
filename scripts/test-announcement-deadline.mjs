@@ -39,13 +39,13 @@ for (const [name, path] of Object.entries({ signals: '../src/lib/signals.mjs', o
 const cases = [
   ['Day 17 正文中的 reset day 是明确预告', 'signals', m =>
     assert.equal(m.analyzeTweet(root).level, 'explicit'),
-  '!hasResetDayAnnouncement(text);', 'true;'],
+  '!hasResetDayAnnouncement(text) && !hasScheduledResetDeclaration(text);', 'true;'],
   ['愿望或猜测不能借 reset day 升格', 'signals', m =>
     assert.notEqual(m.analyzeTweet({ ...root, text: 'Day 17/ Maybe it’s reset day today.' }).level, 'explicit'),
   '!/\\b(?:maybe|hope|wish|yesterday|previously)\\b/i.test(s)', 'true'],
   ['已核验自回复可借父帖的重置主语', 'signals', m =>
     assert.equal(m.analyzeTweet(reply, { tweets: posts }).level, 'explicit'),
-  "Boolean(linked && /^lands?\\s+(?:tomorrow|today|before|by)\\b/i.test(text))", 'false'],
+  "Boolean(linked && /^(?:lands?|landing)\\s+(?:tomorrow|today|before|by)\\b/i.test(text))", 'false'],
   ['未经核验的父帖不能生成到达承诺', 'signals', m =>
     assert.notEqual(m.analyzeTweet({ ...reply, inReplyTo: { ...reply.inReplyTo, verified: false } }, { tweets: posts }).level, 'explicit'),
   'node.inReplyTo?.verified === true', 'node.inReplyTo'],

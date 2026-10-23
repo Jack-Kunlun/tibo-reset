@@ -733,6 +733,64 @@ export function detailProbeExpression(id, handle = 'thsottiaux') {
     return out;})()`;
 }
 
+function needsReplyContext(text) {
+  const value = String(text ?? '').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
+  const hasOwnResetScope = /\b(?:reset|quota|allowance|usage|credits?|limits?)\b/i.test(value);
+  const isFutureLanding = /\b(?:lands?|landing)\b[\s\S]{0,100}\b(?:today|tomorrow|before|by|within|next)\b/i.test(value);
+  const isCompletionFollowup = isLinkedCompletionText(value);
+  return !hasOwnResetScope && (isFutureLanding || isCompletionFollowup);
+}
+
+function isLinkedCompletionText(text) {
+  // 必须与 signals.mjs 的 RE_LINKED_DONE 保持同一锚定短句，避免把功能进度里的 done 当重置跟进。
+  const value = String(text ?? '').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
+  return /^(?:it[’']s\s+|it is\s+)?done(?:\s+and\s+dusted)?[.!]?$/i.test(value);
+}
+
+function verifiedReplyContext(context) {
+  return context?.verified === true && context.relation === 'reply' &&
+    Boolean(context.id && context.account && context.text && context.created_at);
+}
+
+/**
+ * 正文出现后仍给关键的短到达回复一点时间，让详情页把会话祖先挂进 DOM。
+ * 这里只等待证据，不按邻近时间或文字自行补造父帖。
+ */
+export async function waitForDetailProbe(readProbe, opts = {}) {
+  const settleMs = Number(opts.settleMs ?? 400);
+  const maxWaitMs = Number(opts.maxWaitMs ?? 12_000);
+  const contextWaitMs = Number(opts.contextWaitMs ?? 1_600);
+  const pause = opts.pause ?? sleep;
+  const now = opts.now ?? Date.now;
+  const deadline = now() + maxWaitMs;
+  let contextDeadline = null;
+  let latest = null;
+
+  while (now() < deadline) {
+    await pause(settleMs);
+    try {
+      const probe = await readProbe();
+      if (!probe?.dom) continue;
+
+      const contextExpected = needsReplyContext(probe.dom);
+      latest = {
+        ...probe,
+        needsReplyContext: contextExpected,
+        replyContextStatus: verifiedReplyContext(probe.inReplyTo)
+          ? 'verified'
+          : contextExpected ? 'missing' : 'not-required',
+      };
+      if (!contextExpected || latest.replyContextStatus === 'verified') return latest;
+
+      contextDeadline ??= Math.min(deadline, now() + contextWaitMs);
+      if (now() >= contextDeadline) return latest;
+    } catch {
+      /* 导航中求值会短暂失败，继续等 */
+    }
+  }
+  return latest;
+}
+
 /**
  * 在一个已连接的 CDP 会话里，逐条打开详情页取完整正文。
  *
@@ -742,7 +800,7 @@ export function detailProbeExpression(id, handle = 'thsottiaux') {
  * 单开的代价实测约 1–2 秒/条。
  */
 async function harvestFullTexts(cdp, ids, opts = {}) {
-  const { handle, gapMs = 900, settleMs = 400, maxWaitMs = 12_000, onProgress = null } = opts;
+  const { handle, gapMs = 900, settleMs = 400, maxWaitMs = 12_000, contextWaitMs = 1_600, onProgress = null } = opts;
   const fullTexts = new Map();
   const tweetContexts = new Map();
   const scanned = [];
@@ -762,22 +820,12 @@ async function harvestFullTexts(cdp, ids, opts = {}) {
       await cdp.send('Runtime.enable');
       await cdp.send('Page.navigate', { url: `https://x.com/${handle}/status/${id}` });
 
-      // 轮询而不是等 Page.loadEventFired：正文是客户端渲染的，load 之后还要一会儿才挂上来，
-      // 而导航中途求值会抛「执行上下文被销毁」——两种情况都用同一个循环兜住。
-      let probe = null;
-      const deadline = Date.now() + maxWaitMs;
-      while (Date.now() < deadline) {
-        await sleep(settleMs);
-        try {
-          const p = await cdp.evalJs(detailProbeExpression(id, handle));
-          if (p?.dom) {
-            probe = p;
-            break;
-          }
-        } catch {
-          /* 导航中求值会短暂失败，继续等 */
-        }
-      }
+      // 正文与会话祖先不是同一时刻渲染；关键短回复要等到已核验上下文出现，
+      // 或达到小的额外上限后显式报告缺失，不能把「正文已挂载」当成完整成功。
+      const probe = await waitForDetailProbe(
+        () => cdp.evalJs(detailProbeExpression(id, handle)),
+        { settleMs, maxWaitMs, contextWaitMs },
+      );
       if (!probe) throw new Error('详情页未渲染出正文');
 
       const text = String(probe.dom ?? '')
@@ -785,6 +833,8 @@ async function harvestFullTexts(cdp, ids, opts = {}) {
         .trim();
 
       rec.length = text.length;
+      rec.needsReplyContext = Boolean(probe.needsReplyContext);
+      rec.replyContextStatus = probe.replyContextStatus ?? 'not-required';
       // 详情页**还**挂着展开入口 —— 正常应当是 false（详情页的意义就是完整渲染）。
       // 记下来是因为它一旦为 true，就说明这个页面的正文也不是全文，
       // 而那时只看长度是看不出来的（长度照样比时间线上那半句长）。
@@ -795,7 +845,7 @@ async function harvestFullTexts(cdp, ids, opts = {}) {
         ...(probe.quotedTweet ? { quotedTweet: probe.quotedTweet } : {}),
       });
       const ref = probe.quotedTweet ?? probe.inReplyTo;
-      if (ref && /^(?:landing\s+within|done\s+and\s+dusted)\b/i.test(ref.text ?? '')) {
+      if (ref && isFullTextContextCandidate(ref.text ?? '')) {
         const parentId = contextParentId(ref, opts.knownTweets);
         if (parentId && !queued.has(parentId) && followed < 4) {
           queued.add(parentId); queue.push(parentId); followed++;
@@ -839,7 +889,7 @@ export function contextParentId(ref, tweets = []) {
 }
 
 function isFullTextContextCandidate(text) {
-  return /^(?:landing\s+within|done\s+and\s+dusted)\b/i.test(text) ||
+  return /^(?:landing\s+within)\b/i.test(text) || isLinkedCompletionText(text) ||
     /\breset\s+day\b/i.test(text) ||
     /\b(?:land|lands|landing)\b[\s\S]{0,100}\b(?:today|tomorrow|before|by)\b/i.test(text);
 }
@@ -875,6 +925,19 @@ export function pickFullTextCandidates(streams, opts = {}) {
   return { candidates: ordered, picked: ordered.slice(0, max), skipped: Math.max(0, ordered.length - max) };
 }
 
+export function makeFullTextReport(candidates, fetched, skipped, scanned = []) {
+  return {
+    candidates,
+    attempted: scanned.length,
+    fetched,
+    // 被上限截掉的条数。非 0 就意味着「有长推文这轮没补全」，要看得见。
+    skipped,
+    // 短承诺即使全文已取到，也可能缺少详情页里的自我回复祖先；单独列出供采集留档排查。
+    missingReplyContext: scanned.filter((item) => item.replyContextStatus === 'missing').map((item) => item.id),
+    scanned,
+  };
+}
+
 /**
  * 从各条流已收下的推文里挑出候选并去详情页取全文。
  *
@@ -888,7 +951,7 @@ async function collectFullTexts(cdp, streams, opts) {
     return {
       fullTexts: new Map(),
       tweetContexts: new Map(),
-      report: { candidates: 0, attempted: 0, fetched: 0, skipped: 0, scanned: [] },
+      report: makeFullTextReport(0, 0, 0),
     };
   }
 
@@ -898,14 +961,7 @@ async function collectFullTexts(cdp, streams, opts) {
   return {
     fullTexts,
     tweetContexts,
-    report: {
-      candidates: candidates.length,
-      attempted: scanned.length,
-      fetched: fullTexts.size,
-      // 被上限截掉的条数。非 0 就意味着「有长推文这轮没补全」，要看得见。
-      skipped,
-      scanned,
-    },
+    report: makeFullTextReport(candidates.length, fullTexts.size, skipped, scanned),
   };
 }
 

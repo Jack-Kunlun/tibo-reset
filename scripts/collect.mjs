@@ -164,6 +164,13 @@ if (!result.skippedFresh) {
     for (const s of f.scanned ?? []) {
       if (s.error) console.log(`            ⚠ ${s.id} 取全文失败：${s.error}`);
     }
+    if (f.missingReplyContext?.length) {
+      const ids = f.missingReplyContext;
+      console.log(
+        `            ⚠ 缺少核验回复上下文 ${ids.length} 条：${ids.slice(0, 4).join(', ')}` +
+          (ids.length > 4 ? '…' : '')
+      );
+    }
   } else if (result.source === 'html') {
     console.log('  正文补全  ⚠ 未执行（降级走免登录首屏，没有登录态可用于详情页）');
   }

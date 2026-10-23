@@ -30,6 +30,7 @@ import { spanOf, verdictOf } from '../src/lib/render.mjs';
 import { renderSceneSvg } from '../src/lib/svg.mjs';
 import { buildOutlook } from '../src/lib/outlook.mjs';
 import { derive } from '../src/lib/page.mjs';
+import { createStore } from '../server/store.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CJK = 'Asia/Shanghai';
@@ -355,10 +356,10 @@ export async function buildOgImage({ model, prediction, signals, siteUrl, fontDi
 const isMain = process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url));
 
 if (isMain) {
-  const read = async (p) => JSON.parse(await readFile(resolve(ROOT, p), 'utf8'));
-  const [resets, statsFile, tweets] = await Promise.all([read('data/resets.json'), read('data/stats.json'), read('data/tweets.json')]);
   const now = Date.now();
-  const {model,prediction,signals} = derive({resets,statsFile,tweets,now,account:process.env.SOURCE_ACCOUNT ?? 'thsottiaux'});
+  const account = process.env.SOURCE_ACCOUNT ?? 'thsottiaux';
+  const { resets, statsFile, tweets } = await createStore(resolve(ROOT, 'data'), { account }).getData({ now });
+  const {model,prediction,signals} = derive({resets,statsFile,tweets,now,account});
 
   const og = await buildOgImage({ model, prediction, signals, siteUrl: process.env.SITE_URL ?? '' });
   if (!og) {

@@ -23,15 +23,20 @@
  */
 
 import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import assert from 'node:assert/strict';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   pickFullTextCandidates,
   detailProbeExpression,
   harvestExpression,
+  makeFullTextReport,
+  waitForDetailProbe,
   TRUNCATED_MIN_LENGTH,
 } from '../src/lib/browser.mjs';
-import { mergeTweetBatch } from '../src/lib/collect.mjs';
+import { confirmedResetEvent } from '../src/lib/signals.mjs';
+import { mergeTweetContexts, mergeTweetBatch } from '../src/lib/collect.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -46,6 +51,30 @@ function check(name, cond, detail = '') {
     fails.push(`${name}${detail ? ' — ' + detail : ''}`);
     console.log(`  ✗ ${name}${detail ? ' — ' + detail : ''}`);
   }
+}
+
+function sha256(value) {
+  return createHash('sha256').update(value).digest('hex');
+}
+
+function sourceModule(source) {
+  return import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+}
+
+function fakeProbeReader(waitForProbe, responses) {
+  let elapsed = 0;
+  let calls = 0;
+  const result = waitForProbe(
+    async () => responses[Math.min(calls++, responses.length - 1)],
+    {
+      settleMs: 100,
+      contextWaitMs: 300,
+      maxWaitMs: 1_000,
+      now: () => elapsed,
+      pause: async (ms) => { elapsed += ms; },
+    },
+  );
+  return { result, get calls() { return calls; } };
 }
 
 /* ========== 1. 候选筛选：该补的别漏、重复的别开两次 ========== */
@@ -95,6 +124,37 @@ console.log('\n【1】候选筛选');
     '没有 id 的条目不进候选',
     pickFullTextCandidates([{ tweets: [{ text: long }] }], { minLength: 10 }).candidates.length === 0
   );
+
+  const completionTexts = ['Done', "It's done.", 'It is done!', 'Done and dusted.', 'Done https://t.co/example'];
+  for (const [index, text] of completionTexts.entries()) {
+    check(`严格的落地短句 ${index + 1} 进入详情候选`,
+      pickFullTextCandidates([{ tweets: [{ id: `done-${index}`, text }] }]).candidates.includes(`done-${index}`));
+  }
+  for (const text of ['The API feature is done.', 'Not done yet.', 'Done when rollout finishes.']) {
+    check(`功能进度或否定句不进落地候选：${text}`,
+      pickFullTextCandidates([{ tweets: [{ id: 'not-reset-done', text }] }]).candidates.length === 0);
+  }
+
+  const browserSource = await readFile(resolve(ROOT, 'src/lib/browser.mjs'), 'utf8');
+  const before = sha256(browserSource);
+  const missingLinkedDoneRule = browserSource.replace(
+    '|| isLinkedCompletionText(text) ||',
+    '|| false ||',
+  );
+  assert.notEqual(missingLinkedDoneRule, browserSource, '短完成句候选变异点存在');
+  const noLinkedDoneCandidate = await sourceModule(missingLinkedDoneRule);
+  check('隔离变异：漏掉裸 Done 候选会被正例断言拦住',
+    !noLinkedDoneCandidate.pickFullTextCandidates([{ tweets: [{ id: 'bare-done', text: 'Done' }] }]).candidates.includes('bare-done'));
+
+  const broadLinkedDoneRule = browserSource.replace(
+    "return /^(?:it[’']s\\s+|it is\\s+)?done(?:\\s+and\\s+dusted)?[.!]?$/i.test(value);",
+    'return /\\bdone\\b/i.test(value);',
+  );
+  assert.notEqual(broadLinkedDoneRule, browserSource, '宽泛完成句变异点存在');
+  const broadDoneCandidate = await sourceModule(broadLinkedDoneRule);
+  check('隔离变异：把 feature prose 当完成回复会被负例断言拦住',
+    broadDoneCandidate.pickFullTextCandidates([{ tweets: [{ id: 'feature-done', text: 'The API feature is done.' }] }]).candidates.includes('feature-done'));
+  check('完成短句候选变异仅在内存中执行', sha256(await readFile(resolve(ROOT, 'src/lib/browser.mjs'), 'utf8')) === before);
 }
 
 /* ========== 2. 合并：补全过的正文不许被更短的采集打回原形 ========== */
@@ -164,9 +224,185 @@ console.log('\n【3】截断判据与详情页取正文的判据');
   check('不再去捞已证伪的 payload（徒增几 MB 传输）', !probe.includes('outerHTML'));
 }
 
-/* ========== 4. 接线：纯函数再对，调用点被删也一样白搭 ========== */
+/* ========== 4. 详情页正文与祖先分批渲染：等待但不猜上下文 ========== */
 
-console.log('\n【4】接线（源码级断言）');
+console.log('\n【4】延迟回复上下文与可见诊断');
+
+{
+  const fullText = 'Landing tomorrow before 10am PST together with a small ship.';
+  const verifiedParent = {
+    id: '2113492187770175603', account: 'thsottiaux',
+    text: 'Day 18/ ... that’s a reset!', created_at: '2026-10-23T04:46:19.000Z',
+    relation: 'reply', verified: true,
+  };
+  const delayed = fakeProbeReader(waitForDetailProbe, [
+    { dom: fullText },
+    { dom: fullText, inReplyTo: verifiedParent },
+  ]);
+  const delayedResult = await delayed.result;
+  check('正文先出现、祖先后出现时继续等到核验关系',
+    delayedResult?.inReplyTo?.id === verifiedParent.id && delayedResult.replyContextStatus === 'verified',
+    JSON.stringify(delayedResult));
+  check('不必等满超时，祖先出现后立即返回', delayed.calls === 2, `读取 ${delayed.calls} 次`);
+
+  const standalone = fakeProbeReader(waitForDetailProbe, [{ dom: fullText }]);
+  const standaloneResult = await standalone.result;
+  check('短句始终没有父帖时明确报告上下文缺失',
+    standaloneResult?.replyContextStatus === 'missing' && standaloneResult.needsReplyContext === true);
+  check('没有父帖证据时不合成自回复关系', standaloneResult?.inReplyTo == null);
+  const report = makeFullTextReport(2, 2, 0, [
+    { id: 'standalone-short', replyContextStatus: standaloneResult.replyContextStatus },
+    { id: 'verified-reply', replyContextStatus: 'verified' },
+  ]);
+  check('fullTextReport 单独列出缺上下文的短句 ID',
+    report.missingReplyContext.length === 1 && report.missingReplyContext[0] === 'standalone-short');
+  check('有自身重置语义的完整句无需等待父帖',
+    (await waitForDetailProbe(async () => ({ dom: 'The reset is landing by midnight today.' }), {
+      settleMs: 1, maxWaitMs: 10, pause: async () => {}, now: () => 0,
+    }))?.replyContextStatus === 'not-required');
+
+  const doneReply = fakeProbeReader(waitForDetailProbe, [
+    { dom: 'Done' },
+    { dom: 'Done', inReplyTo: verifiedParent },
+  ]);
+  check('裸 Done 回复也等待并沿已核验父帖继续',
+    (await doneReply.result)?.replyContextStatus === 'verified' && doneReply.calls === 2);
+  check('功能进度 Done 不等待重置父帖',
+    (await waitForDetailProbe(async () => ({ dom: 'The API feature is done.' }), {
+      settleMs: 1, maxWaitMs: 10, pause: async () => {}, now: () => 0,
+    }))?.replyContextStatus === 'not-required');
+
+  const browserSource = await readFile(resolve(ROOT, 'src/lib/browser.mjs'), 'utf8');
+  const before = sha256(browserSource);
+  const waitMutant = browserSource.replace(
+    'if (!contextExpected || latest.replyContextStatus === \'verified\') return latest;',
+    'if (!contextExpected || latest.replyContextStatus === \'verified\' || contextDeadline === null) return latest;',
+  );
+  assert.notEqual(waitMutant, browserSource, '延迟祖先变异点存在');
+  const brokenWait = await sourceModule(waitMutant);
+  const brokenDelayed = fakeProbeReader(brokenWait.waitForDetailProbe, [
+    { dom: fullText },
+    { dom: fullText, inReplyTo: verifiedParent },
+  ]);
+  const brokenDelayedResult = await brokenDelayed.result;
+  check('隔离变异：正文一出现就提前返回会被延迟祖先断言拦住',
+    !(brokenDelayedResult?.inReplyTo?.id === verifiedParent.id && brokenDelayed.calls === 2));
+
+  const diagnosticMutant = browserSource.replace(
+    "contextExpected ? 'missing' : 'not-required'",
+    "contextExpected ? 'not-required' : 'not-required'",
+  );
+  assert.notEqual(diagnosticMutant, browserSource, '上下文诊断变异点存在');
+  const brokenDiagnostic = await sourceModule(diagnosticMutant);
+  const brokenStandalone = fakeProbeReader(brokenDiagnostic.waitForDetailProbe, [{ dom: fullText }]);
+  check('隔离变异：吞掉缺失状态会被诊断断言拦住',
+    (await brokenStandalone.result)?.replyContextStatus !== 'missing');
+  const reportMutant = browserSource.replace(
+    "missingReplyContext: scanned.filter((item) => item.replyContextStatus === 'missing').map((item) => item.id),",
+    'missingReplyContext: [],',
+  );
+  assert.notEqual(reportMutant, browserSource, '报告列表变异点存在');
+  const brokenReport = await sourceModule(reportMutant);
+  check('隔离变异：fullTextReport 不列缺失 ID 会被行为断言拦住',
+    brokenReport.makeFullTextReport(1, 1, 0, [{ id: 'standalone-short', replyContextStatus: 'missing' }])
+      .missingReplyContext.length === 0);
+  check('浏览器源码变异仅在内存中执行', sha256(await readFile(resolve(ROOT, 'src/lib/browser.mjs'), 'utf8')) === before);
+}
+
+/* 完成帖可能是这轮唯一新推文，必须补齐缓存父帖到重置主帖的链。 */
+{
+  const [root, reply] = JSON.parse(await readFile(resolve(ROOT, 'scripts/fixtures/reset-lifecycle-oct23.json'), 'utf8'));
+  const id = '2113500000000000000';
+  const completion = { ...reply, id, url: `https://x.com/thsottiaux/status/${id}`, text: 'Done.',
+    created_at: '2026-10-23T17:00:00Z', inReplyTo: null };
+  const known = [root, { ...reply, inReplyTo: null }];
+  const ref = (t) => ({ id: t.id, account: t.account, text: t.text, created_at: t.created_at,
+    url: t.url, relation: 'reply', verified: true });
+  async function replay(source) {
+    const executable = await sourceModule(source.replace('async function harvestFullTexts(', 'export async function harvestFullTexts('));
+    let current = null;
+    const visited = [];
+    const cdp = { sessionId: null, send: async (method, params) => {
+      if (method === 'Target.createTarget') return { targetId: 'mock' };
+      if (method === 'Target.attachToTarget') return { sessionId: 'mock' };
+      if (method === 'Page.navigate') { current = params.url.split('/').pop(); visited.push(current); }
+      return {};
+    }, evalJs: async () => current === id
+      ? { dom: completion.text, inReplyTo: ref(reply) }
+      : { dom: reply.text, inReplyTo: ref(root) } };
+    const { tweetContexts } = await executable.harvestFullTexts(cdp, [id], {
+      handle: 'thsottiaux', gapMs: 0, settleMs: 0, knownTweets: known,
+    });
+    const tweets = mergeTweetBatch(known, mergeTweetContexts([completion], tweetContexts, known));
+    return { visited, event: confirmedResetEvent(tweets.find((t) => t.id === id), { tweets }) };
+  }
+  const source = await readFile(resolve(ROOT, 'src/lib/browser.mjs'), 'utf8');
+  const hash = sha256(source);
+  const result = await replay(source);
+  check('仅新采到 Done 时继续打开 Landing tomorrow 父帖补链', result.visited.includes(reply.id));
+  check('三层完成链最终可形成确认事件', result.event?.type === 'reset' && result.event.context_evidence.length === 2);
+  const broken = source.replace("if (ref && isFullTextContextCandidate(ref.text ?? '')) {", 'if (false) {');
+  assert.notEqual(source, broken, '跟随父帖变异点存在');
+  const failure = await replay(broken);
+  check('隔离变异：停止补父帖会使三层完成链断开', !failure.event && !failure.visited.includes(reply.id));
+  check('三层链回放不改写采集源码', sha256(await readFile(resolve(ROOT, 'src/lib/browser.mjs'), 'utf8')) === hash);
+}
+
+/* ========== 5. 增量合并：不让弱采集抹掉已核验上下文 ========== */
+
+console.log('\n【5】增量保留已核验关系');
+
+{
+  const verifiedParent = {
+    id: '2113492187770175603', account: 'thsottiaux', text: 'Day 18/ ... reset!',
+    created_at: '2026-10-23T04:46:19.000Z', relation: 'reply', verified: true,
+  };
+  const base = [{
+    id: '2113492502355562875', text: 'Landing tomorrow before 10am PST together with a small ship.',
+    created_at: '2026-10-23T04:47:34.000Z', inReplyTo: verifiedParent,
+    role: 'reply', foundVia: 'with-replies', first_seen: '2026-10-23T05:00:00.000Z',
+  }];
+  const weakRefresh = mergeTweetBatch(base, [{
+    id: base[0].id, text: base[0].text, created_at: base[0].created_at,
+    inReplyTo: null, role: 'post', foundVia: 'timeline-browser',
+  }], '2026-10-24T05:00:00.000Z')[0];
+  check('后续无上下文的增量采集保留原核验父帖', weakRefresh.inReplyTo?.id === verifiedParent.id);
+  check('保留的核验上下文与 role=reply 一致', weakRefresh.role === 'reply');
+  check('普通字段仍按新采集更新', weakRefresh.foundVia === 'timeline-browser');
+  check('first_seen 仍保留首次发现时间', weakRefresh.first_seen === base[0].first_seen);
+
+  const replacement = { ...verifiedParent, id: '2113492187770175604', text: 'Corrected parent', created_at: '2026-10-23T04:46:20.000Z' };
+  const verifiedRefresh = mergeTweetBatch(base, [{
+    id: base[0].id, text: base[0].text, created_at: base[0].created_at,
+    inReplyTo: replacement, role: 'reply', foundVia: 'with-replies',
+  }])[0];
+  check('新的详情页核验关系允许纠正旧父帖', verifiedRefresh.inReplyTo?.id === replacement.id);
+
+  const collectSource = await readFile(resolve(ROOT, 'src/lib/collect.mjs'), 'utf8');
+  const before = sha256(collectSource);
+  const collectMutant = collectSource.replace(
+    'const keepPrevContext = isVerifiedReply(prev.inReplyTo) && !isVerifiedReply(t.inReplyTo);',
+    'const keepPrevContext = false;',
+  );
+  assert.notEqual(collectMutant, collectSource, '已核验关系保护变异点存在');
+  const collectUrl = (path) => new URL(path, `file://${ROOT}/src/lib/collect.mjs`).href;
+  const executableCollectMutant = collectMutant
+    .replaceAll("'./signals.mjs'", JSON.stringify(collectUrl('./signals.mjs')))
+    .replaceAll("'./browser.mjs'", JSON.stringify(collectUrl('./browser.mjs')))
+    .replaceAll("'./proxy.mjs'", JSON.stringify(collectUrl('./proxy.mjs')));
+  const brokenCollect = await sourceModule(executableCollectMutant);
+  const brokenMerge = brokenCollect.mergeTweetBatch(base, [{
+    id: base[0].id, text: base[0].text, created_at: base[0].created_at,
+    inReplyTo: null, role: 'post', foundVia: 'timeline-browser',
+  }])[0];
+  check('隔离变异：移除上下文保护会被增量合并断言拦住',
+    brokenMerge.inReplyTo?.id !== verifiedParent.id && brokenMerge.role !== 'reply');
+  check('采集源码变异仅在内存中执行', sha256(await readFile(resolve(ROOT, 'src/lib/collect.mjs'), 'utf8')) === before);
+}
+
+/* ========== 6. 接线：纯函数再对，调用点被删也一样白搭 ========== */
+
+console.log('\n【6】接线（源码级断言）');
 
 {
   const browserSrc = await readFile(resolve(ROOT, 'src/lib/browser.mjs'), 'utf8');
@@ -194,12 +430,26 @@ console.log('\n【4】接线（源码级断言）');
   );
   check('主流程把详情页全文接进执行结果', /detailText = r\.fullTexts/.test(collectSrc));
   check('详情页补全的成败写进 stats 留档（坏了要看得出来）', /fullText: fullTextReport/.test(collectSrc));
+  check('详情采集结果通过报告汇总函数留档', /report: makeFullTextReport\(candidates\.length, fullTexts\.size, skipped, scanned\)/.test(browserSrc));
   check(
     '已补全的正文有挡板（不然全量回补每 72 小时把全文打回半句）',
     /prev\.text_full === true/.test(collectSrc)
   );
   check('CLI 有开关可以关掉它', /--no-full-text/.test(cliSrc) && /fullText: !argv\.includes\('--no-full-text'\)/.test(cliSrc));
   check('CLI 会把补全结果打出来', /正文补全/.test(cliSrc));
+  const hasMissingContextWarning = (source) =>
+    /if \(f\.missingReplyContext\?\.length\) \{[\s\S]*?const ids = f\.missingReplyContext;[\s\S]*?console\.log\([\s\S]*?缺少核验回复上下文 \$\{ids\.length\} 条/.test(source);
+  check('CLI 将缺少核验上下文作为普通 stdout 警告输出', hasMissingContextWarning(cliSrc));
+  check('缺少上下文警告不设置采集失败状态',
+    !/if \(f\.missingReplyContext\?\.length\) \{[^}]*?(?:throw |process\.exitCode|result\.ok\s*=)/s.test(cliSrc));
+  const cliHash = sha256(cliSrc);
+  const disabledWarningMutant = cliSrc.replace(
+    'if (f.missingReplyContext?.length) {',
+    'if (false) {',
+  );
+  assert.notEqual(disabledWarningMutant, cliSrc, 'CLI 警告条件变异点存在');
+  check('隔离变异：关闭 stdout 警告会被接线断言拦住', !hasMissingContextWarning(disabledWarningMutant));
+  check('CLI 源码变异仅在内存中执行', sha256(await readFile(resolve(ROOT, 'scripts/collect.mjs'), 'utf8')) === cliHash);
   check(
     '降级路径（免登录首屏）明确报告未执行补全，而不是显示成「无候选」',
     /没有登录态可用于详情页/.test(cliSrc)

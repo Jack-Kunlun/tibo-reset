@@ -263,6 +263,19 @@ function hasResetDayAnnouncement(text) {
     !blockedResetSentence(s) && !RE_HYPOTHETICAL.test(s) &&
     !/\b(?:maybe|hope|wish|yesterday|previously)\b/i.test(s));
 }
+// 活动日的独立宣告不等于完成；具体到达时间可能在下一条自回复里补充。
+function hasScheduledResetDeclaration(text) {
+  if (!RE_SCHEDULE_PREFIX.test(text)) return false;
+  return splitSentences(text).some((s) =>
+    /\b(?:that[’']s|that is|it[’']s|it is)\s+(?:a\s+)?reset[.!]*$/i.test(s.trim()) &&
+    !blockedResetSentence(s) && !RE_HYPOTHETICAL.test(s) &&
+    !/\b(?:maybe|hope|wish|demand|want|yesterday|previously)\b/i.test(s) && !s.trim().endsWith('?'));
+}
+function isTargetedCompensation(text) {
+  return !RE_RESET.test(text) &&
+    /\b(?:affected you|affected users|those users|these users|some users|specific accounts?)\b/i.test(text) &&
+    /\b(?:inconsistency|incorrect|corrected|mistake|compensat\w*|reimburs\w*)\b/i.test(text);
+}
 const withoutUrls = (text) => String(text ?? '').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
 const RE_OWN_RESET_DONE = /^what would you like with your side of reset\?\s*it[’']s done[.!]?$/i;
 // 10/20 已核实为随帖落地：cooking 讲功能开发，不能据此推断 reset 仍未完成。
@@ -286,7 +299,7 @@ function blockedResetSentence(text) {
 // 「是否会重置」与「何时重置」分开判断；单独的 soon 及疑问、愿望不构成承诺。
 function hasUntimedAnnouncement(text, viaContext) {
   const whole = withoutUrls(text);
-  if (hasResetDayAnnouncement(whole)) return true;
+  if (hasResetDayAnnouncement(whole) || hasScheduledResetDeclaration(whole)) return true;
   // 日程标题按完整正文检查，否定、假设、疑问和回顾仍不能构成预告。
   if (RE_SCHEDULE_RESET.test(whole) && !blockedResetSentence(whole) &&
     !RE_HYPOTHETICAL.test(whole) && !whole.trim().endsWith('?') &&
@@ -346,7 +359,8 @@ export function hasOccurredReset(text) {
   // ……且只在这句话没有把它否定掉、或把它摆成备选项时才作数。
   // 纯文本层的判定，所以放在最后一道 —— 前面全是「否决」条件，
   // 否认不掉的才轮到这条弱证据成立。见 RE_DENIED / RE_ALTERNATIVE 的注释。
-  if (RE_DENIED.test(t) || RE_ALTERNATIVE.test(t)) return false;
+  if (t.trim().endsWith('?') || RE_DENIED.test(t) || RE_ALTERNATIVE.test(t) || hasScheduledResetDeclaration(t) ||
+    /\b(?:demand|want|wish|hope|need)\b[^.!?]{0,35}\breset\b/i.test(t)) return false;
   return RE_ANNOUNCE.test(t);
 }
 
@@ -1035,7 +1049,8 @@ function linkedResetContext(tweet, opts) {
       const completedAt = Date.parse(tweet.created_at);
       const windows = chain.flatMap((p) => parseTimes(p.text, Date.parse(p.created_at), opts.sourceZone ?? SOURCE_ZONE))
         .filter((w) => w.spec >= SPEC.relativeHours);
-      if (windows.some((w) => completedAt < w.from || completedAt > w.to)) return null;
+      // 已核验会话中的完成陈述是事实，不能因提前或延后于预告窗口而被预测否决。
+      if (!RE_LINKED_DONE.test(withoutUrls(tweet.text)) && windows.some((w) => completedAt < w.from || completedAt > w.to)) return null;
       return { tweet: parent, chain };
     }
     node = parent;
@@ -1044,6 +1059,26 @@ function linkedResetContext(tweet, opts) {
 }
 
 export function analyzeTweet(tweet, opts = {}) {
+  const decision = tweet?.manualDecision;
+  if (decision && ['announced', 'landed', 'ignored'].includes(decision.status)) {
+    const sourceZone = opts.sourceZone ?? SOURCE_ZONE;
+    const userZone = opts.userZone ?? USER_ZONE;
+    const createdAt = decision.updatedAt ?? tweet.created_at;
+    const zones = dualZone(createdAt, userZone, sourceZone, '北京时间', 'Tibo 当地时间');
+    const base = { id: tweet.id, account: tweet.account, text: decision.title || tweet.text,
+      url: decision.sourceUrl || tweet.url || null, createdAt, createdZones: zones,
+      manual: true, sourceLabel: '手动补录', reasons: [decision.note || '管理页手动修订'],
+      intent: decision.lead === false || decision.status === 'ignored' ? 0 : 3,
+      window: null, candidateWindow: null, viaContext: false };
+    if (decision.lead === false || decision.status === 'ignored') return { ...base, level: 'none', rejected: '手动排除或由同一修订统一处理' };
+    if (decision.status === 'landed') return { ...base, level: 'occurred' };
+    const from = Date.parse(decision.windowFrom), to = Date.parse(decision.windowTo);
+    if (!Number.isFinite(from) || !Number.isFinite(to)) return { ...base, level: 'explicit', timing: 'pending' };
+    const w = { from, to, precision: 'span' };
+    return { ...base, level: 'explicit', precision: 'span', window: {
+      from: new Date(from).toISOString(), to: new Date(to).toISOString(),
+      ...describeWindow(w, sourceZone, userZone) } };
+  }
   const sourceZone = opts.sourceZone ?? SOURCE_ZONE;
   const userZone = opts.userZone ?? USER_ZONE;
   const text = String(tweet.text ?? '').replace(/\s+/g, ' ').trim();
@@ -1095,7 +1130,7 @@ export function analyzeTweet(tweet, opts = {}) {
    *   `opts.partScan !== false` 是防递归（见 `hasOccurredPart` 的注释）。
    */
   const occurredInScope =
-    hasReset && opts.partScan !== false && resetSentencesOccurred(tweet, opts);
+    hasReset && (!hasScheduledResetDeclaration(text) || RE_PAST.test(text)) && opts.partScan !== false && resetSentencesOccurred(tweet, opts);
 
   const ownIntent = (hasReset ? 3 : 0) + (hasScope ? 2 : 0) + (hasGenerous ? 1 : 0);
   const hasAnnounce = RE_ANNOUNCE.test(text);
@@ -1137,7 +1172,7 @@ export function analyzeTweet(tweet, opts = {}) {
     ctxText && RE_RESET.test(ctxText) && (RE_SCOPE.test(ctxText) || linked)
       ? 3 + (RE_GENEROUS.test(ctxText) ? 1 : 0)
       : 0;
-  const hasContinue = RE_CONTINUE.test(text) || Boolean(linked && /^lands?\s+(?:tomorrow|today|before|by)\b/i.test(text));
+  const hasContinue = RE_CONTINUE.test(text) || Boolean(linked && /^(?:lands?|landing)\s+(?:tomorrow|today|before|by)\b/i.test(text));
   const viaContext = ownIntent < 2 && ctxIntent >= 2 && (hasContinue || linkedDone);
   const intent = viaContext ? Math.max(ownIntent, 3) : ownIntent;
 
@@ -1241,6 +1276,11 @@ export function analyzeTweet(tweet, opts = {}) {
     createdZones: { a: createdZones.a, b: createdZones.b, diffText: createdZones.diffText },
   };
 
+  if (isTargetedCompensation(text)) {
+    return { ...base, level: 'none', rejected: '部分账户的纠错补偿，不是公开额度重置预告', intent: 0,
+      window: null, candidateWindow: null };
+  }
+
   const resetSentences = splitSentences(text).filter((s) => RE_RESET.test(s));
   if (resetSentences.length && resetSentences.every(blockedResetSentence)) {
     return { ...base, level: 'none', rejected: '重置被否定或对象并非使用额度', intent: 0,
@@ -1332,7 +1372,7 @@ export function analyzeTweet(tweet, opts = {}) {
   // 真正的日程式宣告必须命中 RE_SCHEDULE_RESET（斜杠后是短名词短语或
   // nevermind 句式），否则一律按发布说明降级为线索。
   const scheduleOnly = RE_SCHEDULE_PREFIX.test(text) && !RE_SCHEDULE_RESET.test(withoutUrls(text)) &&
-    !hasResetDayAnnouncement(text);
+    !hasResetDayAnnouncement(text) && !hasScheduledResetDeclaration(text);
   const level = intent >= 3 && !scheduleOnly ? 'explicit' : 'hint';
   const win = describeWindow(w, sourceZone, userZone);
 
@@ -1362,6 +1402,8 @@ export function analyzeTweet(tweet, opts = {}) {
 
 /** 只有明确完成的公告才可直接入历史；名词化陈述、正在发卡都不等于完成。 */
 export function confirmedResetEvent(tweet, opts = {}) {
+  // 手工到账由独立修订层入库，不能再伪装成一条自动识别的官方完成公告。
+  if (tweet?.manualDecision) return null;
   const a = analyzeTweet(tweet, opts);
   if (a.level !== 'occurred') return null;
   const parts = splitSentences(a.text);
@@ -1463,7 +1505,7 @@ export function buildHypothesis(analyzed, opts = {}) {
       text: a.text,
       url: a.url,
       // 是回复还是原创 —— 他大量时间线索埋在回复里，这个区别对复核很重要
-      via: a.inReplyTo ? `回复 @${a.inReplyTo.account ?? '?'}` : '原创',
+      via: a.manual ? '手动补录' : a.inReplyTo ? `回复 @${a.inReplyTo.account ?? '?'}` : '原创',
       weight: a.level === 'explicit' ? 'hard' : 'soft',
       contributes: a.level === 'explicit' ? '承诺了这一天' : '提到这一天（无额度语境）',
       // explicit 的 word / precision 挂在顶层（window 是 describeWindow 的产物，
@@ -1546,7 +1588,7 @@ export function buildForecasts(signals = [], hypothesis = null) {
   for (const child of signals ?? []) {
     if (!child.window || child.viaContext !== true || child.contextRelation !== 'reply' || child.contextEvidence?.length !== 1) continue;
     const parent = (signals ?? []).find((s) => s.id === child.contextEvidence[0].id);
-    if (parent?.level === 'explicit' && hasResetDayAnnouncement(parent.text)) refinedParents.add(parent.id);
+    if (parent?.level === 'explicit' && (hasResetDayAnnouncement(parent.text) || hasScheduledResetDeclaration(parent.text))) refinedParents.add(parent.id);
   }
   const groups = new Map();
   for (const s of signals ?? []) {
@@ -1585,6 +1627,8 @@ export function buildForecasts(signals = [], hypothesis = null) {
 
     return {
       level: 'explicit',
+      manual: Boolean(lead.manual),
+      sourceLabel: lead.sourceLabel,
       day: matched ? hypothesis.day : null,
       precision: lead.precision,
       // 窗口永远是硬证据的产物（与 buildHypothesis 同一口径）
@@ -1612,7 +1656,7 @@ export function buildForecasts(signals = [], hypothesis = null) {
   const pending = (signals ?? []).filter((s) => s.timing === 'pending' && !s.window && !refinedParents.has(s.id));
   if (pending.length) {
     const lead = [...pending].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
-    list.push({ level: 'explicit', timing: 'pending', window: null, precision: null,
+    list.push({ level: 'explicit', manual: Boolean(lead.manual), sourceLabel: lead.sourceLabel, timing: 'pending', window: null, precision: null,
       text: lead.text, url: lead.url, createdAt: lead.createdAt, createdZones: lead.createdZones,
       reasons: lead.reasons ?? [], timeNote: '具体时间待公布', sources: pending.length,
       evidence: pending.map((s) => asEvidence(s, 'hard', '已预告重置，尚未给出时间')),
@@ -1778,6 +1822,23 @@ export function buildProgram(analyzed, opts = {}) {
   return null;
 }
 
+/** 实测反馈独立于作者发言，不进入全量完成、间隔或通知判定。 */
+export function readAccountObservation(tweet, { now = Date.now(), account = 'thsottiaux' } = {}) {
+  const report = tweet?.accountObservation;
+  if (report?.kind !== 'restored' || report.source !== 'maintainer-account' ||
+      report.precision !== 'approximate-minute') return null;
+  if (tweet.author_verified !== true || String(tweet.account).toLowerCase() !== String(account).toLowerCase() ||
+      !['timeline-browser', 'with-replies'].includes(tweet.foundVia)) return null;
+  const observedAt = Date.parse(report.observed_at);
+  const recordedAt = Date.parse(report.recorded_at);
+  const publishedAt = Date.parse(tweet.created_at);
+  if (![observedAt, recordedAt, publishedAt, now].every(Number.isFinite) ||
+      observedAt < publishedAt || observedAt > recordedAt || recordedAt > now) return null;
+  if (withoutUrls(report.announcement_text) !== withoutUrls(tweet.text)) return null;
+  return { announcementId: String(tweet.id), observedAt: new Date(observedAt).toISOString(),
+    recordedAt: new Date(recordedAt).toISOString(), precision: report.precision, sourceLabel: '维护者账号实测' };
+}
+
 /* ------------------------------- 入口 ------------------------------- */
 
 /**
@@ -1874,16 +1935,39 @@ export function detectSignals(tweets, opts = {}) {
     const from = new Date(w.from).getTime();
     const to = new Date(w.to).getTime();
     if (!Number.isFinite(from) || !Number.isFinite(to)) return null;
+    if (lastResetAt > 0 && lastResetAt <= now && lastResetAt >= from && lastResetAt > publishedAt) return 'fulfilled';
     if (to < now) return 'past';
-    return lastResetAt > 0 && lastResetAt <= now && lastResetAt >= from &&
-      lastResetAt > publishedAt ? 'fulfilled' : null;
+    return null;
   };
   const STALE_REASON_TEXT = {
     past: '窗口已过去：撤回窗口（原文留档，不再作为未来线索展示）',
     fulfilled: '窗口内已发生过重置：撤回窗口（原文留档，不再作为未来线索展示）',
   };
+  const allForecasts = buildForecasts(analyzed.filter((a) => a.level === 'explicit'), null);
+  const announcementIds = new Set(analyzed.filter((a) => a.level === 'explicit').map((a) => String(a.id)));
+  const accountObservations = list.filter((t) => announcementIds.has(String(t.id)))
+    .map((t) => readAccountObservation(t, { now, account })).filter(Boolean)
+    .sort((a, b) => Date.parse(a.observedAt) - Date.parse(b.observedAt));
+  const observationFor = (f) => accountObservations.filter((o) => (f.evidence ?? [])
+    .some((e) => e.weight === 'hard' && String(e.id) === o.announcementId)).at(-1) ?? null;
+  const publiclyFulfilled = (f) => lastResetAt > Date.parse(f.createdAt) && lastResetAt <= now &&
+    (!f.window || lastResetAt >= f.window.fromTs);
+  const observedForecasts = allForecasts.filter((f) => observationFor(f) && !publiclyFulfilled(f))
+    .map((f) => ({ ...f, status: 'observed', statusLabel: '已有账号实测到账', accountObservation: observationFor(f) }));
+  // 过期只说明承诺窗口已结束；实测到账与公开完成也分别保留。
+  const overdueForecasts = allForecasts
+    .filter((f) => !observationFor(f))
+    .filter((f) => f.window && f.window.toTs < now &&
+      !(lastResetAt > Date.parse(f.createdAt) && lastResetAt >= f.window.fromTs && lastResetAt <= now))
+    .map((f) => ({ ...f, status: 'overdue', statusLabel: '预告窗口已结束，落地待核实' }));
+  const supersededParents = new Set(analyzed.filter((a) => a.level === 'explicit' && a.window &&
+    a.window.toTs < now && a.viaContext && a.contextRelation === 'reply' && a.contextEvidence?.length === 1)
+    .filter((a) => analyzed.some((p) => p.id === a.contextEvidence[0].id && p.level === 'explicit' &&
+      (hasResetDayAnnouncement(p.text) || hasScheduledResetDeclaration(p.text))))
+    .map((a) => a.contextEvidence[0].id));
   const live = analyzed
     .map((a) => {
+      if (supersededParents.has(a.id)) return a;
       const why = staleWindowReason(a);
       if (!why) return a;
 
@@ -1991,13 +2075,25 @@ export function detectSignals(tweets, opts = {}) {
     signals: explicit,
     occurred,
     hints: hints.slice(0, MAX_LISTED),
+    // 首页使用独立的有效线索集；原始档案与计数继续保留。
+    activeHints: hints.filter((h) => {
+      const at = Date.parse(h.createdAt);
+      return at > lastResetAt && now - at <= DAY && h.intent >= 3 && RE_RESET.test(h.text) &&
+        !/\b(?:demand|want|wish|hope|need)\b[^.!?]{0,35}\breset\b/i.test(h.text) &&
+        !h.windowExpired && (!h.window || Date.parse(h.window.to) >= now);
+    }).map((h) => ({ ...h, expiresAt: new Date(Date.parse(h.createdAt) + DAY).toISOString() })),
+    overdueForecasts,
+    accountObservations,
+    accountObservationRevision: accountObservations.length ? JSON.stringify(accountObservations) : '',
+    observedForecasts,
+    latestAccountObservation: accountObservations.at(-1) ?? null,
     rejected: rejected.slice(0, MAX_LISTED),
     // 综合假设：跨推文聚合的产物，回答「凭什么说这个时间」。
     hypothesis,
     // 带时间的预告按窗口归组；未定时间的明确预告独立保留原文依据。
     // 渲染层只认这个字段 —— 页面上不再有「横幅 + 另一行计数 + 另一个折叠块」
     // 这种把一个结论拆三处的排法（见 decisions.md 的 D-018）。
-    forecasts: buildForecasts(explicit, hypothesis),
+    forecasts: buildForecasts(explicit.filter((a) => !supersededParents.has(a.id)), hypothesis).filter((f) => !observationFor(f)),
     counts: {
       scanned: list.length,
       explicit: explicit.length,

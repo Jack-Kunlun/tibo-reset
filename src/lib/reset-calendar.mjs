@@ -5,6 +5,7 @@ const DAY_MS = 86_400_000;
 const TRUSTED_SOURCES = new Set(['timeline-browser', 'with-replies']);
 const STATUS_LABELS = {
   confirmed: '已到账',
+  observed: '实测到账',
   pending: '待落地',
   updated: '日程更新',
   'elapsed-no-record': '暂无记录',
@@ -67,6 +68,7 @@ function sameSource(a, b) {
 }
 
 function trustedTweet(tweet, account) {
+  if (tweet?.manualDecision?.lead === true && tweet.foundVia === 'manual') return timestamp(tweet.created_at) != null;
   return tweet?.id != null && tweet.author_verified !== false &&
     String(tweet.account ?? '').replace(/^@/, '').toLowerCase() === account &&
     TRUSTED_SOURCES.has(tweet.foundVia) && timestamp(tweet.created_at) != null;
@@ -135,7 +137,7 @@ function addDetail(cell, detail, account) {
 
 function sourceTweetForEvent(event, tweets, account, context) {
   return tweets.find((tweet) => sameSource(event.sources, sourceIdentities(tweet, account)) &&
-    !contradictsConfirmedHistory(tweet, { account, tweets: context })) ?? null;
+    (event.record.manual || !contradictsConfirmedHistory(tweet, { account, tweets: context }))) ?? null;
 }
 
 function linkedProgramPost(tweet, posts, trusted, account) {
@@ -163,7 +165,9 @@ function linkedProgramPost(tweet, posts, trusted, account) {
   return null;
 }
 
-function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne }) {
+function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne, signals }) {
+  const observations = new Map((signals?.accountObservations ?? []).map((o) => [String(o.announcementId), o]));
+  const overdueIds = new Set((signals?.overdueForecasts ?? []).flatMap((f) => (f.evidence ?? []).map((e) => String(e.id))));
   // 原帖编号是活动日序；补发、跨 UTC 日与子编号都不能被日期运算挪到另一天。
   const posts = [];
   const seen = new Set();
@@ -187,7 +191,7 @@ function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne
   posts.sort((a, b) => timestamp(a.tweet.created_at) - timestamp(b.tweet.created_at));
   for (const event of events) {
     const matches = posts.filter((post) => sameSource(post.sources, event.sources) &&
-      !contradictsConfirmedHistory(post.tweet, { account, tweets: allTweets }));
+      (event.record.manual || !contradictsConfirmedHistory(post.tweet, { account, tweets: allTweets })));
     const direct = sourceIdentities({ id: event.record.id, url: event.record.url }, account);
     const directMatches = matches.filter((post) => sameSource(post.sources, direct));
     const candidates = directMatches.length ? directMatches : matches;
@@ -205,14 +209,19 @@ function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne
     const entries = posts.filter((post) => post.day === day).map(({ tweet, followup, events: confirmed }) => {
       const copy = programPostCopy(tweet);
       const analysis = analyzeTweet(tweet, { account, tweets: allTweets });
+      const observation = !confirmed.length && !settledPosts.has(String(tweet.id)) ? observations.get(String(tweet.id)) : null;
       let kind = copy.kind;
       if (confirmed.length) kind = confirmed.some((event) => event.record.type === 'reset') ? 'reset' : 'credit';
       else if (analysis.level === 'explicit') kind = 'announcement';
       else if (analysis.level === 'occurred') kind = 'reset-unconfirmed';
+      if (tweet.manualDecision?.status === 'ignored') kind = 'note';
       // 只撤下同一来源/会话已兑现的等待标记，保留当天其他尚未兑现的承诺。
       if (settledPosts.has(String(tweet.id)) && ['announcement', 'reset-unconfirmed'].includes(kind)) kind = 'note';
       return {
         id: String(tweet.id), url: tweet.url ?? null, text: tweet.text ?? '',
+        awaitingVerification: !observation && !confirmed.length && !settledPosts.has(String(tweet.id)) && overdueIds.has(String(tweet.id)),
+        isAccountObserved: Boolean(observation),
+        ...(observation ? { observedAt: observation.observedAt, observationPrecision: observation.precision, sourceLabel: observation.sourceLabel } : {}),
         createdAt: tweet.created_at, day, kind, title: confirmed.length && followup ? followup.title : copy.title,
         isUpdate: copy.kind === 'update',
         confirmedAt: confirmed.length ? new Date(Math.min(...confirmed.map((event) => event.at))).toISOString() : null,
@@ -224,15 +233,17 @@ function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne
     const resetCount = entries.reduce((total, entry) => total + entry.resetCount, 0);
     const creditCount = entries.reduce((total, entry) => total + entry.creditCount, 0);
     const confirmedCount = resetCount + creditCount;
+    const observedCount = entries.filter((entry) => entry.isAccountObserved).length;
     let status, statusLabel;
     if (confirmedCount && updateCount) { status = 'mixed'; statusLabel = '更新与重置'; }
     else if (confirmedCount) { status = 'confirmed'; statusLabel = '确认重置'; }
+    else if (observedCount) { status = 'observed'; statusLabel = '实测到账'; }
+    else if (entries.some((entry) => entry.kind === 'announcement')) { status = 'pending'; statusLabel = entries.some((entry) => entry.awaitingVerification) ? '落地待核实' : updateCount ? '更新与重置预告' : '重置预告'; }
     else if (updateCount) { status = 'updated'; statusLabel = '发布更新'; }
-    else if (entries.some((entry) => entry.kind === 'announcement')) { status = 'pending'; statusLabel = '重置预告'; }
     else if (entries.length) { status = 'noted'; statusLabel = entries.some((entry) => entry.kind === 'reset-unconfirmed') ? '提及重置' : '当日动态'; }
     else if (day <= latestDay) { status = 'missing'; statusLabel = '未见公告'; }
     else { status = 'future'; statusLabel = '待更新'; }
-    return { day, status, statusLabel, updateCount, resetCount, creditCount, confirmedCount,
+    return { day, status, statusLabel, updateCount, resetCount, creditCount, confirmedCount, observedCount,
       date: entries[0]?.createdAt ?? null, sourceUrl: entries.at(-1)?.url ?? null, entries };
   });
   return {
@@ -279,10 +290,12 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
       status: null,
       statusLabel: null,
       confirmedCount: 0,
+      observedCount: 0,
       resetCount: 0,
       creditCount: 0,
       datedCount: 0,
       pendingCount: 0,
+      overdueCount: 0,
       updatedCount: 0,
       detailMap: new Map(),
     };
@@ -292,6 +305,7 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
   let resetCount = 0;
   let creditCount = 0;
   const events = uniqueEvents(records, normalizedAccount, currentTime).filter((event) => {
+    if (event.record.manual) return true;
     const matched = trusted.filter((tweet) => sameSource(event.sources, sourceIdentities(tweet, normalizedAccount)));
     return !matched.length || !matched.every((tweet) => contradictsConfirmedHistory(tweet, { account: normalizedAccount, tweets: allTweets }));
   });
@@ -311,15 +325,32 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
       text: sourceTweet?.text ?? event.record.text ?? '',
       createdAt: sourceTweet?.created_at ?? event.record.announced_at,
       confirmedAt: new Date(event.at).toISOString(),
+      manual: Boolean(event.record.manual),
+      timePrecision: event.record.manualAccountObservation ? 'approximate-minute' : 'minute',
       type: event.record.type,
       roles: ['confirmed'],
     }, normalizedAccount);
   }
 
+  let observedCount = 0;
+  for (const observation of signals?.accountObservations ?? []) {
+    const tweet = trusted.find((t) => String(t.id) === String(observation.announcementId));
+    const observedAt = timestamp(observation.observedAt);
+    if (!tweet || observedAt == null || observedAt > currentTime) continue;
+    const index = dateToIndex.get(utcDate(observedAt));
+    if (index == null) continue;
+    const cell = builders[index];
+    cell.observedCount++; observedCount++;
+    addDetail(cell, { id: String(tweet.id), url: tweet.url ?? null, text: tweet.text ?? '',
+      createdAt: tweet.created_at, observedAt: observation.observedAt,
+      observationPrecision: observation.precision, sourceLabel: observation.sourceLabel,
+      roles: ['observed'] }, normalizedAccount);
+  }
+
   let datedCount = 0;
   let pendingCount = 0;
   const seenForecasts = new Set();
-  for (const forecast of signals?.forecasts ?? []) {
+  for (const forecast of [...(signals?.forecasts ?? []), ...(signals?.overdueForecasts ?? [])]) {
     if (forecast?.level !== 'explicit') continue;
     const forecastType = forecast.window ? 'dated' : forecast.timing === 'pending' ? 'pending' : null;
     if (!forecastType) continue;
@@ -336,6 +367,7 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
       const index = dateToIndex.get(utcDate(createdAt));
       if (index == null) continue;
       const cell = builders[index];
+      if (forecast.status === 'overdue') cell.overdueCount++;
       if (forecastType === 'dated') {
         cell.datedCount++;
         datedCount++;
@@ -349,6 +381,7 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
         text: tweet.text ?? evidence.text ?? '',
         createdAt: new Date(createdAt).toISOString(),
         forecastType,
+        awaitingVerification: forecast.status === 'overdue',
         window: analysis.window ? { from: analysis.window.from, to: analysis.window.to } : null,
         roles: ['forecast'],
       }, normalizedAccount);
@@ -389,14 +422,16 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
       timestamp(a.confirmedAt ?? a.createdAt) - timestamp(b.confirmedAt ?? b.createdAt) ||
       String(a.id ?? '').localeCompare(String(b.id ?? '')));
     if (cell.confirmedCount) plain.status = 'confirmed';
+    else if (cell.observedCount) plain.status = 'observed';
     else if (cell.datedCount || cell.pendingCount) plain.status = 'pending';
     else if (cell.updatedCount) plain.status = 'updated';
     else if (utcMidnight(cell.date) + DAY_MS <= currentTime) plain.status = 'elapsed-no-record';
     else plain.status = 'future';
-    plain.statusLabel = STATUS_LABELS[plain.status];
+    plain.statusLabel = plain.status === 'pending' && cell.overdueCount === cell.datedCount + cell.pendingCount ? '落地待核实' : STATUS_LABELS[plain.status];
     plain.isToday = cell.date === today;
     plain.details = details;
     plain.sourceUrl = details.find((detail) => detail.roles.includes('confirmed'))?.url ??
+      details.find((detail) => detail.roles.includes('observed'))?.url ??
       details.find((detail) => detail.roles.includes('forecast'))?.url ??
       details.find((detail) => detail.roles.includes('updated'))?.url ?? null;
     return plain;
@@ -404,12 +439,14 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
 
   return {
     title: `${days}天重置日历`,
+    hasManual: records.some((record) => record.manual),
     zone: 'UTC',
     fromDate,
     toDate,
     days,
     progressDay,
     startWeekday,
+    observedCount,
     confirmedCount,
     resetCount,
     creditCount,
@@ -420,6 +457,6 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     cells,
     sourceUrl: dayOne.url ?? null,
     programUrl: program.url ?? null,
-    plan: buildProgramPlan({ trusted, allTweets, events, account: normalizedAccount, program, dayOne }),
+    plan: buildProgramPlan({ trusted, allTweets, events, account: normalizedAccount, program, dayOne, signals }),
   };
 }

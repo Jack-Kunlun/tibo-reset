@@ -244,18 +244,15 @@ const PRECISION_TEXT = {
  *   4) 原文可追溯，并写明「依据什么词判定的」
  *   5) 没有信号时也要有一行状态，否则用户会怀疑检测是不是坏了
  *
- * 这一区**只讲未来**：预告（可行动）> 线索（弱依据兜底）。
+ * 这一区优先回答未来：公开预告 > 账号实测 > 落地待核实 > 线索。
  *
- * ⚠ 已经发生过的重置**不在这里列举**。它是**往回看**的事实，而本区回答的是
- *   「下一次什么时候」。同一段事实的载体已经有三个 —— 顶部的「距上次重置 N 天」
- *   倒计时、下方的「最近记录」、以及每轮的采集日志 —— 再在页首铺两块原文卡片，
- *   既把倒计时挤到首屏之外，也只是复述。检测能力保留在数据层（`signals.occurred`
- *   照常识别与计数），只是不参与这里的呈现。
+ * ⚠ `occurred` 是公开确认事实，仍由最近记录和计数承载；单账号恢复观察是另一种证据，
+ *   只在没有更近的公开预告时作为次级状态展示，不能改写公开确认时间或重置计数。
  *
  * 旧实现是 `level === 'explicit' ? signals : level === 'hint' ? hints : []` ——
  * 只要没有明确预告就退到线索档，于是页面上出现的是 5 条随机营销推文
  * （「11pm on a Tuesday」），而真正的重置根本不显示。现在预告优先，线索只在
- * 没有预告时兜底。
+ * 没有预告时兜底，账号实测与落地待核实先于线索。
  */
 /**
  * ⚠ 这一区**不再**显示「留档超出上限」提示（2026-10-07 撤掉，见 decisions.md D-039）。
@@ -361,7 +358,11 @@ export function renderSignal(sig, opts = {}) {
   // ② 线索：只在没有预告时才兜底。
   //    线索没有明确重置承诺，跟硬信号并列会稀释前者。
   if (!forecasts.length) {
-    const h = (sig.hints ?? []).find((s) => s.window) ?? null;
+    const observed = (sig.observedForecasts ?? []).at(-1);
+    if (observed) blocks.push(accountObservationBlock(observed));
+    const overdue = (sig.overdueForecasts ?? []).at(-1);
+    if (!observed && overdue) blocks.push(forecastBlock(overdue, sig, now));
+    const h = !observed && !overdue && (sig.activeHints ?? []).find((s) => s.window) || null;
     if (h) blocks.push(hintBlock(h, sig, now));
   }
 
@@ -392,6 +393,20 @@ export function renderSignal(sig, opts = {}) {
   }
 
   return prog + blocks.join('');
+}
+
+function accountObservationBlock(f) {
+  const observation = f.accountObservation ?? {};
+  const observedAt = observation.observedAt ? fmtDateTime(observation.observedAt) : '';
+  const time = `${observation.precision === 'approximate-minute' ? '约' : ''}${observedAt ? `${observedAt} 北京` : '时间未知'}`;
+  const source = observation.sourceLabel || '账号实测';
+  const link = f.url || f.evidence?.find((item) => item.url)?.url || '';
+  return `<section class="sig sig-observed" data-level="observed">
+    <div class="sig-head"><span class="sig-badge">已有账号实测到账</span><span class="sig-title">观察到一个账号的额度已恢复</span></div>
+    <p class="sig-note">${esc(time)} · ${esc(source)}</p>
+    <p class="sig-note">仅代表单个账号；公开完成状态与其他账号到账情况仍待更新。</p>
+    ${link ? `<a class="sp-source" href="${attr(link)}" target="_blank" rel="noopener noreferrer">查看对应预告 ↗</a>` : ''}
+  </section>`;
 }
 
 /**
@@ -482,7 +497,8 @@ function windowCountdown(w, now) {
  * 前者是缺陷，后者是判断，两者的可信度完全不同。
  */
 function forecastBlock(f, sig, now) {
-  const t = LEVEL_TEXT[f.level] ?? LEVEL_TEXT.explicit;
+  const overdue = f.status === 'overdue';
+  const t = overdue ? { label: '落地待核实', title: '预告窗口已结束，落地待核实' } : f.manual ? { label: '手动补录', title: '已补充重置预告' } : LEVEL_TEXT[f.level] ?? LEVEL_TEXT.explicit;
   const ev = f.evidence ?? [];
   const c = f.counts ?? { hard: 0, soft: 0 };
   const unadopted = (f.clockHints ?? []).filter((x) => !x.adopted);
@@ -518,7 +534,7 @@ function forecastBlock(f, sig, now) {
       <span class="sig-title">${t.title}</span>
       ${f.precision ? `<span class="sig-precision">粒度：${esc(f.window?.deadline ? '最晚时间' : PRECISION_TEXT[f.precision] ?? f.precision)}</span>` : ''}
     </div>
-    ${windowCountdown(f.window, now)}
+    ${overdue ? '<p class="sig-note">尚未取得公开完成确认</p>' : windowCountdown(f.window, now)}
     ${windowBlock(f.window)}
     ${f.timing === 'pending' ? '<p class="sig-note">具体时间待公布</p>' : ''}
     ${evBlock}
@@ -615,7 +631,7 @@ function fmtMDHM(ts) {
  */
 function scanClause(o) {
   const b = o.brief;
-  if (b.pendingAnnouncement) return 'Tibo 已预告重置，具体时间待公布';
+  if (b.pendingAnnouncement) return o.announcement?.manual ? '已补录重置预告，具体时间待补充' : 'Tibo 已预告重置，具体时间待公布';
   if (o.etaKind === 'announced' || b.scanned == null) return '';
   return `本轮扫描 ${b.scanned} 条推文${b.hints ? `，${b.hints} 条时间线索` : ''}均不足以构成预告`;
 }
@@ -638,7 +654,7 @@ function briefLine(o) {
     const bits = [];
     if (b.announcedHard) bits.push(`${b.announcedHard} 条承诺`);
     if (b.announcedSoft) bits.push(`${b.announcedSoft} 条同日提及`);
-    return `Tibo 已给出公告${bits.length ? `（${bits.join(' · ')}）` : ''}，${o.etaDeadline ? '该时间为公告截止点，此前可能到账；尚未确认落地' : '预计时间取窗口开启时刻'}。`;
+    return `${o.announcement?.manual ? '已手动补充预告' : 'Tibo 已给出公告'}${bits.length ? `（${bits.join(' · ')}）` : ''}，${o.etaDeadline ? '该时间为公告截止点，此前可能到账；尚未确认落地' : '预计时间取窗口开启时刻'}。`;
   }
   const n = b.intervals ? `按 ${b.intervals} 次历史间隔的节奏推算` : '按历史间隔的节奏推算';
   const scan = scanClause(o);
@@ -738,7 +754,7 @@ export function renderOutlook(o, m, prediction, signals, collect) {
       over ? 1 : 0
     }">
       <div class="pcard-top">
-        <span class="am-kicker">${announcement ? '<i class="announcement-beacon" aria-hidden="true"></i>TIBO 已预告' : 'NEXT RESET'}</span>
+        <span class="am-kicker">${announcement ? `<i class="announcement-beacon" aria-hidden="true"></i>${(signals?.forecasts ?? []).some((f) => f.manual) ? '手动补录预告' : 'TIBO 已预告'}` : 'NEXT RESET'}</span>
         <span class="pc-conf" data-level="${esc(o.confidence)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 7V4h3m10 0h3v3m0 10v3h-3M7 20H4v-3M5 12h14"/></svg>置信度 · ${esc(o.confidenceLabel)}</span>
       </div>
       <div class="am-stage">
@@ -1173,6 +1189,8 @@ export function renderDigest(m, prediction, outlook) {
       schema: 1,
       builtAt: new Date(m.now).toISOString(),
       dataUpdatedAt: m.dataUpdatedAt ?? null,
+      accountObservationRevision: m.accountObservationRevision ?? '',
+      manualRevision: m.manualRevision ?? 0,
       collectErrors: m.collectErrors ?? [],
       lastResetAt: m.lastAt,
       records: m.count,
@@ -1348,17 +1366,21 @@ export function renderFreshness(info, nowMs) {
 export function renderProgramPlan(plan, program) {
   if (!plan?.rows?.length) return renderProgram(program);
   const selected = plan.rows.find((row) => row.day === plan.latestDay) ?? plan.rows[0];
-  const markers = { updated: '更', mixed: '双', confirmed: '重', pending: '预', noted: '提', missing: '—', future: '·' };
+  const markers = { updated: '更', mixed: '双', confirmed: '重', observed: '实', pending: '预', noted: '提', missing: '—', future: '·' };
   const entryLabels = { update: '功能更新', roundup: '当日汇总', note: '当日动态', reset: '重置确认',
     credit: '发券确认', announcement: '重置预告', 'reset-unconfirmed': '提及重置·待核实' };
   const cells = plan.rows.map((row) => `<a class="plan-cell plan-${attr(row.status)}${row === selected ? ' is-selected' : ''}" href="#program-day-${row.day}" data-plan-select="${row.day}"${row === selected ? ' aria-current="true"' : ''} aria-label="Day ${row.day} · ${attr(row.statusLabel)}"><span>Day <b>${row.day}</b></span><small>${esc(row.statusLabel)}</small><i aria-hidden="true">${markers[row.status] || '·'}</i></a>`).join('');
   const rows = plan.rows.map((row) => {
     const entries = row.entries.map((entry) => {
-      const labels = [...new Set([entry.isUpdate ? '功能更新' : '', entryLabels[entry.kind]].filter(Boolean))];
+      const labels = [...new Set([entry.isUpdate ? '功能更新' : '', entry.isAccountObserved ? '已有账号实测到账' : entry.awaitingVerification ? '落地待核实' : entryLabels[entry.kind]].filter(Boolean))];
+      const observation = entry.isAccountObserved
+        ? `${entry.observationPrecision === 'approximate-minute' ? '约' : ''}${entry.observedAt ? `${fmtDateTime(entry.observedAt)} 北京` : '时间未知'} · ${entry.sourceLabel || '账号实测'} · 仅代表单个账号`
+        : '';
       return `<article class="plan-entry">
-        <div class="plan-entry-meta">${labels.map((label) => `<span class="plan-label${entry.kind === 'reset' || entry.kind === 'credit' ? ' is-confirmed' : ''}">${esc(label)}</span>`).join('')}<time>${entry.createdAt ? `${esc(fmtDateTime(entry.createdAt))} 北京` : '发布时间未知'}</time></div>
+        <div class="plan-entry-meta">${labels.map((label) => `<span class="plan-label${entry.isAccountObserved ? ' is-observed' : entry.kind === 'reset' || entry.kind === 'credit' ? ' is-confirmed' : ''}">${esc(label)}</span>`).join('')}<time>${entry.createdAt ? `${esc(fmtDateTime(entry.createdAt))} 北京` : '发布时间未知'}</time></div>
         <h3>${esc(entry.title || entry.text || '原帖摘要暂不可用')}</h3>
         ${entry.confirmedAt ? `<p class="plan-confirmed">确认时刻 ${esc(fmtDateTime(entry.confirmedAt))} 北京</p>` : ''}
+        ${observation ? `<p class="plan-observation">${esc(observation)}</p>` : ''}
         <div class="plan-entry-actions">${entry.text ? `<details class="plan-original"><summary>查看原文</summary><blockquote>${esc(entry.text)}</blockquote></details>` : ''}${entry.url ? `<a href="${attr(entry.url)}" target="_blank" rel="noopener noreferrer">原推链接 ↗</a>` : ''}</div>
       </article>`;
     }).join('');
@@ -1371,7 +1393,7 @@ export function renderProgramPlan(plan, program) {
     <div class="plan-heading"><div><span class="plan-kicker">每天发布改进，或重置额度</span><h2>${esc(plan.title)}</h2></div><span class="plan-latest">最新原帖 <b>Day ${plan.latestDay} / ${plan.days}</b></span></div>
     <p class="plan-stats"><span><b>${plan.reportedDays}</b> 天有原帖</span><span><b>${plan.updatedDays}</b> 天有功能更新</span><span><b>${plan.resetDays}</b> 天确认重置</span></p>
     <nav class="plan-grid" aria-label="按活动日查看">${cells}</nav>
-    <p class="plan-legend"><span>● 功能更新</span><span>● 重置确认</span><span>预 · 重置预告 · 待落地</span><span>日序取原帖 Day 编号</span></p>
+    <p class="plan-legend"><span>● 功能更新</span>${plan.rows.some((row) => row.observedCount) ? '<span>◇ 单账号实测</span>' : ''}<span>● 重置确认</span><span>预 · 重置预告 · 待落地</span><span>日序取原帖 Day 编号</span></p>
     <div class="plan-days">${rows}</div>
     ${renderProgram(program, { title: '活动时段与原始规则' })}
   </section>`;
@@ -1387,14 +1409,19 @@ export function renderResetCalendar(c) {
       <div class="rc-stat"><span>已确认到账</span><b>${c.confirmedCount}<small> 次</small></b></div>
       <p class="rc-muted">${c.resetCount} 次重置 · ${c.creditCount} 次发券</p>
       <div class="rc-stat rc-pending"><span>预告待落地</span><b>${c.pendingCount + (c.datedCount ?? 0)}<small> 条</small></b></div>
+      ${c.observedCount ? `<div class="rc-stat rc-observed"><span>账号实测到账</span><b>${c.observedCount}<small> 次</small></b></div>` : ''}
       <a class="rc-source" href="${attr(c.programUrl ?? c.sourceUrl)}" target="_blank" rel="noopener noreferrer">查看活动原文 ↗</a>
     </div><div class="rc-board"><div class="rc-week">${['一','二','三','四','五','六','日'].map((d) => `<span>周${d}</span>`).join('')}</div>
       <div class="rc-grid">${blanks}${c.cells.map((cell) => {
         const tag = cell.sourceUrl ? 'a' : 'div';
-        const title = [cell.date, cell.statusLabel, cell.confirmedCount ? `已到账 ${cell.confirmedCount} 次` : '', cell.pendingCount + cell.datedCount ? `待落地 ${cell.pendingCount + cell.datedCount} 条` : ''].filter(Boolean).join(' · ');
-        return `<${tag} class="rc-cell rc-${esc(cell.status)}${cell.isToday ? ' is-today' : ''}"${cell.sourceUrl ? ` href="${attr(cell.sourceUrl)}" target="_blank" rel="noopener noreferrer"` : ''} title="${attr(title)}"><b>${esc(cell.label)}</b><span>${esc(cell.status === 'pending' ? '预' : cell.status === 'updated' ? '更新' : cell.status === 'elapsed-no-record' ? '无记录' : cell.statusLabel)}</span>${cell.confirmedCount && cell.pendingCount + cell.datedCount ? '<i>另有预告</i>' : ''}</${tag}>`;
+        const observed = cell.details?.find((detail) => detail.roles?.includes('observed'));
+        const observedAt = observed?.observedAt ? `${observed.observationPrecision === 'approximate-minute' ? '约' : ''}${fmtDateTime(observed.observedAt)} 北京 · ${observed.sourceLabel || '账号实测'} · 仅代表单个账号` : '';
+        const manualConfirmed = cell.details?.find((detail) => detail.manual && detail.confirmedAt);
+        const manualTime = manualConfirmed ? `${manualConfirmed.timePrecision === 'approximate-minute' ? '约' : ''}${fmtDateTime(manualConfirmed.confirmedAt)} 北京 · 手动补录` : '';
+        const title = [cell.date, cell.statusLabel, manualTime, cell.confirmedCount ? `${c.hasManual ? '已到账' : '公开确认到账'} ${cell.confirmedCount} 次` : '', cell.observedCount ? `账号实测 ${cell.observedCount} 次` : '', observedAt, cell.pendingCount + cell.datedCount ? `待落地 ${cell.pendingCount + cell.datedCount} 条` : ''].filter(Boolean).join(' · ');
+        return `<${tag} class="rc-cell rc-${esc(cell.status)}${cell.isToday ? ' is-today' : ''}"${cell.sourceUrl ? ` href="${attr(cell.sourceUrl)}" target="_blank" rel="noopener noreferrer"` : ''} title="${attr(title)}"><b>${esc(cell.label)}</b><span>${esc(cell.status === 'pending' ? '预' : cell.status === 'updated' ? '更新' : cell.status === 'observed' ? '实测' : cell.status === 'elapsed-no-record' ? '无记录' : cell.statusLabel)}</span>${cell.confirmedCount && cell.pendingCount + cell.datedCount ? '<i>另有预告</i>' : ''}</${tag}>`;
       }).join('')}</div>
-      <p class="rc-legend"><span>● 已确认到账</span><span>预 · 重置预告 · 待落地</span><span>● 日程更新</span><span>暂无记录 ≠ 当日没有重置</span></p>
+      <p class="rc-legend"><span>● ${c.hasManual ? '已到账' : '公开确认到账'}</span>${c.observedCount ? '<span>◇ 单账号实测</span>' : ''}<span>预 · 重置预告 · 待落地</span><span>● 日程更新</span><span>暂无记录 ≠ 当日没有重置</span></p>
     </div></div>
   </section>`;
 }
@@ -1404,7 +1431,14 @@ export function renderAll(m, prediction, signals, opts = {}) {
   // 首屏那三个结论（预计时间 / 状态 / 置信度）只在一处算出来，主卡、依据区、
   // 内联摘要三方都读它 —— 否则「页面上的预计时间」会有三个各自漂移的版本。
   const outlook = buildOutlook({ chart: m, prediction, signals, now: m.now });
+  if (outlook?.announcement) outlook.announcement.manual = (signals?.forecasts ?? []).some((f) => f.manual && f.text === outlook.announcement.text && (f.url || '') === (outlook.announcement.url || ''));
   const signalHtml = renderSignal(signals, { inlineProgram: false });
+  const latestObservation = signals?.latestAccountObservation;
+  const observationAt = latestObservation?.observedAt ? Date.parse(latestObservation.observedAt) : NaN;
+  const lastAt = m.lastAt ? Date.parse(m.lastAt) : NaN;
+  const accountObservation = Number.isFinite(observationAt)
+    ? `<span class="am-account-observation">最近账号实测 · ${latestObservation.precision === 'approximate-minute' ? '约' : ''}${esc(fmtDateTime(latestObservation.observedAt))} 北京 · ${esc(latestObservation.sourceLabel || '账号实测')} · 仅代表单个账号</span>`
+    : '';
 
   // 键名统一为大写下划线，与模板里的占位符一一对应
   return {
@@ -1420,7 +1454,9 @@ export function renderAll(m, prediction, signals, opts = {}) {
     // 线索置顶但保持未确认身份；原文和时区按需展开，不挤占预测舞台。
     SIGNAL: outlook?.announcement && signalHtml
       ? `<details class="am-signal-details"><summary><span>公告依据与时间说明</span><span class="signal-disclosure">展开依据</span></summary>${signalHtml}</details>`
-      : signals?.hints?.some((hint) => hint.window) && signalHtml
+      : signals?.observedForecasts?.length && signalHtml
+        ? `<details class="am-signal-details is-observed"><summary><span class="signal-summary"><b>已有账号实测到账</b><span>仅代表单个账号的额度恢复记录</span></span><span class="signal-disclosure">查看详情</span></summary>${signalHtml}</details>`
+      : signals?.activeHints?.some((hint) => hint.window) && signalHtml
         ? `<details class="am-signal-details is-hint"><summary><span class="signal-summary"><b>线索 · 未确认</b><span>有新的额度相关时间线索</span></span><span class="signal-disclosure">查看详情</span></summary>${signalHtml}</details>`
         : signalHtml,
     // 与小程序读取同一份原帖日序投影，旧数据缺投影时仍可核对活动规则。
@@ -1450,6 +1486,9 @@ export function renderAll(m, prediction, signals, opts = {}) {
     ELAPSED: renderElapsedCounter(m),
     LAST_AT: m.lastAt,
     LAST_LABEL: fmtDateTime(m.lastAt).slice(5),
+    ELAPSED_CAPTION: Number.isFinite(observationAt) && (!Number.isFinite(lastAt) || observationAt > lastAt) ? '距上次公开确认' : '距上次重置',
+    LAST_CAPTION: Number.isFinite(observationAt) && (!Number.isFinite(lastAt) || observationAt > lastAt) ? '上次公开确认' : '上次',
+    ACCOUNT_OBSERVATION: accountObservation,
     // 判定分档的**整块元素**（含 `v-calm/v-watch/...` 那个类）。类名由 `verdictOf`
     // 给，模板拿不到分档结果，所以这里必须把外壳一起渲染出来 —— 只给内文的话，
     // 页面上就只剩一句没有配色的裸文本（验收 A1 的「判定文案」判据会直接红）。

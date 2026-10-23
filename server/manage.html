@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0e1b">
+  <title>观测数据管理 · Tibo Reset</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0b0e1b;--surface:#141a2c;--surface-2:#101628;--border:#293149;--text:#eceaf8;--muted:#9da7c2;--dim:#727e9c;--lav:#b9a7ef;--teal:#8fdcc3;--amber:#e8c27f;--red:#ed989f;--shadow:0 18px 60px #05071366}
+    *{box-sizing:border-box}
+    [hidden]{display:none!important}
+    html,body,.rows{scrollbar-width:none;-ms-overflow-style:none}
+    html::-webkit-scrollbar,body::-webkit-scrollbar,.rows::-webkit-scrollbar{display:none;width:0;height:0}
+    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;letter-spacing:.01em}
+    button,input,select,textarea{font:inherit}
+    button{color:inherit}
+    .shell{width:min(1240px,calc(100% - 48px));margin:0 auto;padding:32px 0 64px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:22px}
+    .brand{display:flex;align-items:center;gap:13px;min-width:0}
+    .brand-mark{width:38px;height:38px;border:1px solid #71649f;border-radius:13px;display:grid;place-items:center;color:var(--lav);background:#b9a7ef12;flex:none}
+    .brand-mark svg{width:21px;height:21px}
+    .eyebrow{color:var(--lav);font-size:10px;letter-spacing:.19em;text-transform:uppercase;font-weight:700}
+    h1{margin:1px 0 0;font-size:20px;line-height:1.25;font-weight:650;letter-spacing:0}
+    .top-actions{display:flex;align-items:center;gap:14px}
+    .sync-label{font-size:12px;color:var(--muted);white-space:nowrap}
+    .button{height:38px;padding:0 14px;border:1px solid var(--border);border-radius:10px;background:#1b2338;color:var(--text);display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:background .15s,border-color .15s,transform .15s}
+    .button:hover:not(:disabled){background:#242d46;border-color:#465276}
+    .button:active:not(:disabled){transform:translateY(1px)}
+    .button:disabled{opacity:.48;cursor:not-allowed}
+    .button.primary{color:#141326;background:var(--lav);border-color:var(--lav);font-weight:700}
+    .button.primary:hover:not(:disabled){background:#c9baf5}
+    .button.quiet{background:transparent}
+    .button.danger{color:#f1b0b3;border-color:#583541;background:#251923}
+    .button svg{width:15px;height:15px}
+    .notice{display:flex;align-items:center;gap:12px;padding:12px 15px;margin-bottom:19px;border:1px solid #37324f;border-radius:11px;background:#17172a;color:#c7c0e4;font-size:12px}
+    .notice svg{width:17px;height:17px;color:var(--lav);flex:none}
+    .notice strong{color:var(--text);font-weight:650}
+    .overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-bottom:18px}
+    .metric{min-height:84px;padding:14px 17px;border:1px solid var(--border);border-radius:12px;background:var(--surface);display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .metric-label{font-size:12px;color:var(--muted)}
+    .metric-sub{margin-top:3px;font-size:11px;color:var(--dim)}
+    .metric-value{font-size:24px;line-height:1;font-weight:650;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+    .metric-value.forecast{color:var(--lav)}.metric-value.landed{color:var(--teal)}
+    .workspace{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(330px,1fr);gap:16px;align-items:start}
+    .panel{border:1px solid var(--border);border-radius:14px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+    .panel-head{padding:18px 20px 15px;border-bottom:1px solid var(--border)}
+    .panel-head-row{display:flex;align-items:flex-start;justify-content:space-between;gap:15px}
+    h2{margin:0;font-size:15px;font-weight:650;letter-spacing:0}
+    .panel-subtitle{margin-top:4px;color:var(--muted);font-size:11px}
+    .list-controls{display:grid;grid-template-columns:1fr minmax(210px,280px);gap:15px;align-items:end;margin-top:15px}
+    .tabs{display:flex;align-items:center;gap:4px;min-width:0}
+    .tab{height:33px;padding:0 12px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:12px;white-space:nowrap;cursor:pointer}
+    .tab:hover{background:#ffffff08;color:var(--text)}
+    .tab[aria-selected="true"]{background:#b9a7ef1a;color:var(--lav);font-weight:650}
+    .tab-count{margin-left:5px;color:inherit;font-variant-numeric:tabular-nums;opacity:.8}
+    .search{position:relative}
+    .search svg{position:absolute;left:11px;top:10px;width:15px;height:15px;color:var(--dim);pointer-events:none}
+    .search input{width:100%;height:36px;padding:0 11px 0 34px;border:1px solid var(--border);border-radius:9px;background:#0e1424;color:var(--text);outline:none;font-size:12px}
+    .search input:focus,.field input:focus,.field select:focus,.field textarea:focus{border-color:#8175b5;box-shadow:0 0 0 3px #b9a7ef16}
+    .list-message{padding:11px 20px;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted)}
+    .list-message.error{color:#f2b4b4;background:#281a25}
+    .list-message[hidden]{display:none}
+    .rows{max-height:690px;overflow:auto;overscroll-behavior:contain}
+    .row{width:100%;padding:15px 20px;border:0;border-bottom:1px solid #252d43;background:transparent;text-align:left;display:block;cursor:pointer}
+    .row:last-child{border-bottom:0}
+    .row:hover{background:#ffffff04}
+    .row[aria-current="true"]{background:#b9a7ef0c;box-shadow:inset 2px 0 0 var(--lav)}
+    .row.forecast-row{padding:0;cursor:default}
+    .row-primary{width:100%;padding:15px 20px 9px;border:0;background:transparent;color:inherit;text-align:left;display:block;cursor:pointer}
+    .row-primary:hover{background:#ffffff04}
+    .row-primary[aria-current="true"]{background:#b9a7ef0c;box-shadow:inset 2px 0 0 var(--lav)}
+    .forecast-window{margin-top:7px;color:#b9a7ef;font-size:10px;line-height:1.45}
+    .forecast-evidence{display:flex;flex-wrap:wrap;gap:6px;padding:0 20px 13px}
+    .evidence-choice{max-width:100%;padding:5px 8px;border:1px solid #303750;border-radius:7px;background:#101628;color:#bcc4db;display:flex;align-items:center;gap:7px;text-align:left;cursor:pointer}
+    .evidence-choice:hover{border-color:#625887;background:#b9a7ef0b}
+    .evidence-choice[aria-current="true"]{border-color:#8276b6;color:var(--lav);background:#b9a7ef12}
+    .evidence-kind{color:var(--dim);font-size:9px;white-space:nowrap}
+    .evidence-text{max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}
+    .row-top{display:flex;justify-content:space-between;align-items:center;gap:14px}
+    .row-title{min-width:0;font-size:13px;line-height:1.5;font-weight:600;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
+    .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:10px;line-height:1.35;white-space:nowrap;flex:none}
+    .badge.announced{color:var(--lav);border-color:#51466f;background:#b9a7ef0d}
+    .badge.landed{color:var(--teal);border-color:#35594f;background:#8fdcc30b}
+    .badge.ignored{color:#a5aec3}
+    .badge.manual{color:var(--amber);border-color:#55482f;background:#e8c27f0b}
+    .row-meta{display:flex;align-items:center;gap:9px;margin-top:7px;color:var(--muted);font-size:11px;min-width:0}
+    .row-meta span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .row-date{font-variant-numeric:tabular-nums;flex:none;color:#8f9ab5}
+    .empty{min-height:210px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;color:var(--muted);text-align:center}
+    .empty-icon{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--border);border-radius:12px;color:var(--dim);margin-bottom:12px}
+    .empty-icon svg{width:18px;height:18px}
+    .empty strong{font-size:13px;color:#c9cde0;font-weight:600}
+    .empty span{margin-top:4px;font-size:11px}
+    .editor{position:sticky;top:18px}
+    .editor-head{padding:17px 18px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    .editor-head .button{height:31px;padding:0 10px;font-size:11px}
+    .editor-body{padding:16px 18px 18px}
+    .editor-help{margin:-2px 0 14px;color:var(--muted);font-size:11px;line-height:1.5}
+    .selection{padding:10px 11px;margin-bottom:16px;border:1px solid #303750;border-radius:9px;background:#101628}
+    .selection-label{font-size:10px;letter-spacing:.08em;color:var(--dim);text-transform:uppercase}
+    .selection-text{margin-top:3px;color:#cdd2e5;font-size:11px;line-height:1.45;overflow-wrap:anywhere}
+    .field{margin-top:13px}
+    .field:first-of-type{margin-top:0}
+    .field label,.field-label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;color:#c7cce0;font-size:11px;font-weight:600}
+    .field label small,.field-label small{font-weight:400;color:var(--dim)}
+    .field input,.field select,.field textarea{width:100%;min-height:37px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#0e1424;color:var(--text);outline:none;font-size:12px}
+    .field input::placeholder,.field textarea::placeholder{color:#6f7a96}
+    .field select{appearance:auto}
+    .field textarea{min-height:74px;resize:vertical;line-height:1.5}
+    .optional-details{margin-top:15px;border:1px solid var(--border);border-radius:9px;background:#101628}
+    .optional-details summary{padding:10px 11px;color:#c3c8dc;font-size:11px;font-weight:600;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .optional-details summary::-webkit-details-marker{display:none}
+    .optional-details summary::after{content:"＋";color:var(--lav);font-size:15px;font-weight:400}
+    .optional-details[open] summary{border-bottom:1px solid var(--border)}
+    .optional-details[open] summary::after{content:"−"}
+    .optional-details summary small{color:var(--dim);font-weight:400;text-align:right}
+    .optional-body{padding:0 11px 12px}
+    .status-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+    .status-option{min-height:34px;padding:0 6px;border:1px solid var(--border);border-radius:8px;background:#111729;color:var(--muted);font-size:11px;cursor:pointer}
+    .status-option[aria-pressed="true"]{border-color:#8276b6;background:#b9a7ef13;color:var(--lav);font-weight:650}
+    .status-option[data-status="landed"][aria-pressed="true"]{border-color:#528271;background:#8fdcc310;color:var(--teal)}
+    .status-option[data-status="ignored"][aria-pressed="true"]{border-color:#5d6477;background:#a5aec30e;color:#c4cada}
+    .time-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .field-hint{margin-top:5px;color:var(--dim);font-size:10px;line-height:1.45}
+    .form-error{margin-top:12px;padding:9px 10px;border:1px solid #64424b;border-radius:8px;background:#281a25;color:#f0b7bb;font-size:11px}
+    .form-error[hidden]{display:none}
+    .form-error button{margin-left:6px;padding:0;border:0;background:none;color:#f6d1d1;text-decoration:underline;cursor:pointer;font-size:inherit}
+    .editor-footer{display:flex;align-items:center;gap:8px;padding-top:16px;margin-top:16px;border-top:1px solid var(--border)}
+    .editor-footer .button.primary{flex:1}
+    .editor-footer .button.danger{padding:0 10px}
+    .editor-footnote{margin-top:10px;color:var(--dim);font-size:10px;line-height:1.45}
+    .history{margin-top:16px}
+    .history-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .history-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+    .history-item{padding:13px 20px;border-bottom:1px solid #252d43;min-width:0}
+    .history-item:nth-child(odd){border-right:1px solid #252d43}
+    .history-title{font-size:12px;font-weight:600;overflow-wrap:anywhere}
+    .history-meta{margin-top:5px;color:var(--muted);font-size:10px;display:flex;gap:8px;flex-wrap:wrap}
+    .history-empty{padding:20px;color:var(--dim);font-size:11px}
+    .toast{position:fixed;right:24px;bottom:24px;max-width:min(440px,calc(100vw - 48px));padding:11px 15px;border:1px solid #3a5d52;border-radius:10px;background:#14271f;color:#b4ead5;box-shadow:var(--shadow);font-size:12px;z-index:5}
+    .toast.error{border-color:#69454c;background:#291b25;color:#f2b9bd}
+    .toast[hidden]{display:none}
+    @media(max-width:960px){.shell{width:min(100% - 32px,760px);padding-top:24px}.workspace{grid-template-columns:1fr}.editor{position:static}.rows{max-height:560px}.editor-body{padding-bottom:20px}}
+    @media(max-width:620px){.shell{width:calc(100% - 22px);padding-top:16px}.topbar{align-items:flex-start;gap:12px}.top-actions{gap:8px}.sync-label{display:none}.brand-mark{width:34px;height:34px}h1{font-size:18px}.overview{gap:7px}.metric{min-height:76px;padding:11px 10px;align-items:flex-start;flex-direction:column;gap:6px}.metric-label{font-size:10px}.metric-sub{font-size:9px}.metric-value{font-size:21px}.list-controls{grid-template-columns:1fr;gap:10px}.tabs{overflow:auto}.tab{padding:0 9px}.row{padding:13px 14px}.row-primary{padding:13px 14px 8px}.forecast-evidence{padding:0 14px 12px}.evidence-text{max-width:250px}.panel-head{padding:15px 14px 12px}.row-top{align-items:flex-start}.history-list{grid-template-columns:1fr}.history-item:nth-child(odd){border-right:0}.history-head{padding:14px}.notice{align-items:flex-start}.time-pair{grid-template-columns:1fr}.editor-head,.editor-body{padding-left:14px;padding-right:14px}}
+
+    body.modal-open{overflow:hidden}
+    .overview{display:flex;align-items:center;gap:36px;margin:0 0 20px;padding:0 2px 18px;border-bottom:1px solid var(--border)}
+    .metric{display:flex;align-items:baseline;justify-content:flex-start;gap:12px;min-height:0;padding:0;border:0;border-radius:0;background:transparent}
+    .metric-value{font-size:22px;letter-spacing:0}.metric-sub{display:none}
+    .workspace{display:block}.workspace>.panel{width:100%;box-shadow:none}
+    .panel-head-row{align-items:center}.panel-head h2{display:flex;align-items:center;gap:12px}
+    .panel-head h2 .panel-subtitle{margin:0;font-weight:400}
+    .list-controls{grid-template-columns:1fr 300px;align-items:center;margin-top:18px}
+    .table-scroll{width:100%;overflow-x:auto;scrollbar-width:none}
+    .table-scroll::-webkit-scrollbar{display:none}
+    .event-table{width:100%;table-layout:fixed;border-collapse:collapse;text-align:left}
+    .event-table .status-col{width:135px}.event-table .date-col{width:185px}.event-table .action-col{width:165px}
+    .event-table th{padding:12px 20px;background:#101628;color:var(--muted);font-size:12px;font-weight:500;border-bottom:1px solid var(--border)}
+    .event-table td{padding:17px 20px;vertical-align:middle;border-bottom:1px solid #252d43;font-size:12px}
+    .event-table tr:last-child td{border-bottom:0}.event-table tbody tr:hover{background:#ffffff03}
+    .rows{display:table-row-group;max-height:none;overflow:visible}
+    .table-title{font-size:13px;line-height:1.6;font-weight:550;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+    .table-sub{margin-top:5px;color:var(--dim);font-size:11px;overflow-wrap:anywhere}
+    .table-time{font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+    .table-source{margin-top:5px;color:var(--dim);font-size:11px}
+    .action-cell{text-align:right}.row-actions{display:flex;align-items:center;justify-content:flex-end;gap:14px;white-space:nowrap}
+    .text-action{padding:5px 0;border:0;background:none;color:var(--lav);font-size:12px;cursor:pointer;text-decoration:none}.text-action:hover{text-decoration:underline}
+    .badge.hint{color:var(--amber);border-color:#55482f}.badge.none,.badge.unclassified{border-color:transparent;color:var(--muted);padding-left:0}
+    .event-table .badge{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+    .pager{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 20px;border-top:1px solid var(--border);color:var(--muted);font-size:12px}
+    .pager>div{display:flex;align-items:center;gap:14px}.pager .button{height:32px;font-size:12px}
+    dialog.editor,dialog.history{position:fixed;inset:0;margin:auto;padding:0;width:min(600px,calc(100% - 40px));max-height:90vh;color:var(--text);box-shadow:0 24px 90px #0008}
+    dialog::backdrop{background:#040712a6;backdrop-filter:blur(3px)}
+    .editor-head{align-items:center;padding:20px 24px}.editor-head h2{font-size:18px}.editor-head .dialog-close,.dialog-close{width:32px;height:32px;padding:0;font-size:23px;line-height:1;border:0}
+    .editor-body{padding:20px 24px 22px;max-height:calc(90vh - 82px);overflow:auto;scrollbar-width:none}
+    .editor-body::-webkit-scrollbar{display:none}.editor-help{font-size:12px}.selection-text{font-size:12px}.field label,.field-label{font-size:12px}
+    .editor-footer{position:sticky;bottom:-22px;margin-bottom:-22px;padding:18px 0 22px;background:var(--surface);justify-content:flex-end;z-index:1}
+    .editor-footer .button.primary{flex:none;min-width:140px;order:3}.editor-footer #cancel-button{order:2}.editor-footer #withdraw-button{margin-right:auto;order:1}
+    .editor-footnote{display:none}.history{margin-top:auto}.history-list{display:block;max-height:65vh;overflow:auto;scrollbar-width:none}.history-item:nth-child(odd){border-right:0}.history-actions{display:flex;gap:12px;align-items:center}
+    @media(max-width:800px){.event-table .date-col{width:160px}.event-table .status-col{width:110px}.event-table .action-col{width:130px}.event-table td,.event-table th{padding-left:14px;padding-right:14px}.list-controls{grid-template-columns:1fr;gap:12px}.overview{gap:24px}}
+    @media(max-width:620px){.event-table{min-width:720px}.overview{gap:18px;justify-content:space-between}.metric{flex-direction:row;gap:7px;align-items:baseline}.metric-label{font-size:11px}.metric-value{font-size:19px}.top-actions .sync-label{display:none}.panel-head-row>.button{height:34px;font-size:12px}.pager{flex-wrap:wrap}.editor-head{padding:18px}.editor-body{padding:18px}.editor-footer{bottom:-18px;padding-bottom:18px;margin-bottom:-18px}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 16.5c2.2-4.3 4.8-6.4 7.7-6.4 2.6 0 4.6 1.4 8.3 1.4M5 19c2.6-1.8 4.8-2.7 6.9-2.7 2.2 0 4.4.8 7.1 2.3M6.1 7.1c1.5 1.4 2.8 2.1 4.3 2.1 1.6 0 3.3-.8 5.1-2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="18.5" cy="6" r="2.5" fill="currentColor"/></svg></div>
+        <div><div class="eyebrow">Reset observatory</div><h1>观测数据管理</h1></div>
+      </div>
+      <div class="top-actions"><button class="button quiet" id="history-button" type="button">修改记录</button><span class="sync-label" id="sync-label">连接管理数据…</span><button class="button quiet" id="refresh-button" type="button" aria-label="刷新数据"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M16 8a6 6 0 0 0-10.2-3L4 6.8M4 4v2.8h2.8M4 12a6 6 0 0 0 10.2 3l1.8-1.8M16 16v-2.8h-2.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>刷新</button></div>
+    </header>
+
+    <div class="notice"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2.4 17 5v4.3c0 4.2-2.8 6.7-7 8.3-4.2-1.6-7-4.1-7-8.3V5l7-2.6Z" stroke="currentColor" stroke-width="1.4"/><path d="M10 6.2v4.1m0 2.8h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span><strong>公共管理页</strong> · 修改将同步到观测页面。保存只更新数据，不会额外发送通知。</span></div>
+
+    <section class="overview" aria-label="当前数据概况">
+      <article class="metric"><div><div class="metric-label">待跟进预告</div></div><div class="metric-value forecast" id="forecast-count">—</div></article>
+      <article class="metric"><div><div class="metric-label">已到账记录</div></div><div class="metric-value landed" id="landed-count">—</div></article>
+      <article class="metric"><div><div class="metric-label">已采集推文</div><div class="metric-sub" id="update-sub">等待接口返回</div></div><div class="metric-value" id="tweet-count">—</div></article>
+    </section>
+
+    <section class="workspace">
+      <section class="panel" aria-labelledby="items-heading">
+        <div class="panel-head">
+          <div class="panel-head-row"><div><h2 id="items-heading">事件列表 <span class="panel-subtitle" id="visible-count">0 条</span></h2><div class="panel-subtitle">查看全部推文和补录事件的当前判断，通过行末操作修正。</div></div><button class="button primary" id="new-button" type="button">＋ 新增事件</button></div>
+          <div class="list-controls">
+            <div class="tabs" role="tablist" aria-label="筛选推文">
+              <button class="tab" type="button" role="tab" data-tab="allEvents" aria-selected="true">全部事件 <span class="tab-count" id="tab-count-allTweets">—</span></button>
+              <button class="tab" type="button" role="tab" data-tab="announced" aria-selected="false">预告 <span class="tab-count" id="tab-count-announced">—</span></button>
+              <button class="tab" type="button" role="tab" data-tab="landed" aria-selected="false">已到账 <span class="tab-count" id="tab-count-landed">—</span></button>
+              <button class="tab" type="button" role="tab" data-tab="ignored" aria-selected="false">已排除 <span class="tab-count" id="tab-count-ignored">—</span></button>
+            </div>
+            <label class="search"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.7" stroke="currentColor" stroke-width="1.4"/><path d="m13 13 4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><input id="search-input" type="search" placeholder="搜索正文、标题或来源" autocomplete="off"></label>
+          </div>
+        </div>
+        <div class="list-message" id="list-message" role="status" hidden></div>
+        <div class="table-scroll"><table class="event-table"><colgroup><col><col class="status-col"><col class="date-col"><col class="action-col"></colgroup><thead><tr><th scope="col">事件内容</th><th scope="col">当前判断</th><th scope="col">相关时间 · 北京</th><th scope="col" class="action-cell">操作</th></tr></thead><tbody id="rows" class="rows"></tbody></table></div>
+        <div class="pager"><span id="page-description">—</span><div><button class="button quiet" id="previous-page" type="button">上一页</button><span id="page-number">1 / 1</span><button class="button quiet" id="next-page" type="button">下一页</button></div></div>
+        <div class="empty" id="list-empty" hidden><div class="empty-icon"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.7" stroke="currentColor" stroke-width="1.3"/><path d="m13 13 4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div><strong id="empty-title">没有匹配内容</strong><span id="empty-copy">调整搜索词，或切换其它列表。</span></div>
+      </section>
+
+
+    </section>
+
+
+  </main>
+      <dialog class="panel editor" id="edit-dialog" aria-labelledby="editor-heading">
+        <div class="editor-head"><div><h2 id="editor-heading">修改状态</h2><div class="panel-subtitle" id="editor-subtitle">选择推文或补录到账</div></div><button class="button quiet dialog-close" id="editor-close" type="button" aria-label="关闭状态编辑">×</button></div>
+        <div class="editor-body">
+          <p class="editor-help">补录时间按北京时间填写，默认当前时刻，可随时调整后直接保存。</p>
+          <div class="selection"><div class="selection-label">当前事件 · <span id="current-status">新增</span></div><div class="selection-text" id="selection-text">尚未选择推文；也可以直接补录到账。</div></div>
+
+          <form id="entry-form" novalidate>
+              <div class="field" id="new-title-field"><label for="title-input">事件内容 <small><span id="title-count">0</span> / 500</small></label><input id="title-input" maxlength="500" required placeholder="会根据状态自动填写"></div>
+            <div class="field"><div class="field-label" id="status-label">记录状态 <small>选择后保存</small></div><div class="status-options" role="radiogroup" aria-labelledby="status-label"><button class="status-option" type="button" data-status="announced" aria-pressed="true">预告</button><button class="status-option" type="button" data-status="landed" aria-pressed="false">已到账</button><button class="status-option" type="button" data-status="ignored" aria-pressed="false">排除</button></div></div>
+            <div class="field" id="landed-time-field"><label for="occurred-at">实际到账时间（北京时间）</label><input id="occurred-at" type="datetime-local" required><div class="field-hint">默认填入当前时间，可按你确认额度恢复的时刻调整。</div></div>
+            <div class="field" id="window-field" hidden><div class="field-label">预告时间范围 <small>可留空</small></div><div class="time-pair"><input id="window-from" type="datetime-local" aria-label="预告开始时间（北京时间）"><input id="window-to" type="datetime-local" aria-label="预告结束时间（北京时间）"></div><div class="field-hint">时间均按北京时间；填写时请同时填写开始与结束。</div></div>
+            <details class="optional-details" id="optional-details"><summary>补充信息（选填）<small>推文关联、类型、来源、备注</small></summary><div class="optional-body">
+              <div class="field"><label for="source-select">关联推文或到账记录 <small>可留空</small></label><select id="source-select"><option value="">不关联现有内容</option></select></div>
+
+              <div class="field"><label for="event-type">事件类型</label><select id="event-type"><option value="reset">额度重置</option><option value="credit">额度补充</option></select></div>
+              <div class="field"><label for="source-url">来源链接 <small>仅接受 X 推文链接</small></label><input id="source-url" type="url" inputmode="url" placeholder="https://x.com/thsottiaux/status/…"></div>
+              <div class="field"><label for="note-input">备注 <small><span id="note-count">0</span> / 2000</small></label><textarea id="note-input" maxlength="2000" placeholder="记录判断依据、来源说明或手工反馈"></textarea></div>
+            </div></details>
+            <div class="form-error" id="form-error" role="alert" hidden></div>
+            <div class="editor-footer"><button class="button primary" id="save-button" type="submit" disabled>确认已到账</button><button class="button quiet" id="cancel-button" type="button">取消</button><button class="button danger" id="withdraw-button" type="button" hidden>撤回</button></div>
+            <div class="editor-footnote">撤回会移除此条手工状态，原始推文与自动识别结果仍保留。需要纠正时，可以随时重新保存。</div>
+          </form>
+        </div>
+      </dialog>
+    <dialog class="panel history" id="history-dialog" aria-labelledby="history-heading"><div class="history-head"><div><h2 id="history-heading">修改记录</h2><div class="panel-subtitle">最近的手工状态调整</div></div><div class="history-actions"><span class="badge" id="history-count">0 条</span><button class="button quiet dialog-close" id="history-close" type="button" aria-label="关闭修改记录">×</button></div></div><div class="history-list" id="history-list"></div></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script>
+    (() => {
+      'use strict';
+      const $ = (selector) => document.querySelector(selector);
+      const state = { data: null, tab: 'allEvents', page: 1, pageSize: 15, query: '', selected: null, draft: null, saving: false, loading: false, toastTimer: 0 };
+      const form = $('#entry-form');
+      const statusButtons = [...document.querySelectorAll('.status-option')];
+      const tabButtons = [...document.querySelectorAll('.tab')];
+      const titleInput = $('#title-input');
+      const noteInput = $('#note-input');
+
+      function str(value) { return value == null ? '' : String(value); }
+      function escText(node, value) { node.textContent = str(value); return node; }
+      function el(tag, className, value) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (value != null) node.textContent = str(value);
+        return node;
+      }
+      function tweetId(tweet) { return str(tweet?.id ?? tweet?.tweetId ?? tweet?.tweet_id); }
+      function entryTweetId(entry) { return str(entry?.tweetId ?? entry?.sourceTweetId ?? entry?.tweet_id); }
+      function entryRecordId(entry) { return str(entry?.recordId ?? entry?.record_id); }
+      function recordId(record) { return str(record?.id ?? record?.recordId ?? record?.record_id); }
+      function isSyntheticRecordId(id) { return /^manual(?:-|$)/i.test(str(id)); }
+      function editableRecordId(record, entry) {
+        return [entryRecordId(entry), recordId(record)].find((id) => id && !isSyntheticRecordId(id)) ?? '';
+      }
+      function tweetIdFromUrl(value) {
+        try {
+          const url = new URL(str(value));
+          if (!['x.com', 'www.x.com', 'twitter.com', 'www.twitter.com'].includes(url.hostname)) return '';
+          return /^\/thsottiaux\/status\/(\d+)\/?$/i.exec(url.pathname)?.[1] ?? '';
+        } catch { return ''; }
+      }
+      function tweetIdFromRecord(record, byTweet = new Map()) {
+        const explicit = str(record?.tweetId ?? record?.sourceTweetId ?? record?.tweet_id ?? record?.evidenceId);
+        if (explicit && byTweet.has(explicit)) return explicit;
+        const urlId = tweetIdFromUrl(record?.url ?? record?.sourceUrl ?? record?.source_url ?? record?.confirmation_urls?.[0]);
+        if (urlId && byTweet.has(urlId)) return urlId;
+        const id = recordId(record);
+        return byTweet.has(id) ? id : explicit;
+      }
+      function contentOf(tweet) { return str(tweet?.full_text ?? tweet?.text ?? tweet?.content ?? tweet?.title ?? '（无正文）'); }
+      function eventTypeOf(value) { return value === 'credit' ? 'credit' : 'reset'; }
+      function typeLabel(value) { return eventTypeOf(value) === 'credit' ? '额度补充' : '额度重置'; }
+      function defaultTitle(status) { return ({ announced: '额度重置预告', landed: '额度重置已到账', ignored: '已排除重置线索' })[status] ?? '额度重置已到账'; }
+      function isDefaultTitle(value) { return ['额度重置预告', '额度重置已到账', '已排除重置线索'].includes(str(value).trim()); }
+      function beijingNowInput() { return new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 16); }
+      function sourceTime(value) {
+        const date = new Date(value);
+        if (!Number.isFinite(date.getTime())) return '';
+        return new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(date).replaceAll('/', '.');
+      }
+      function toBeijingInput(value) {
+        const ts = Date.parse(value);
+        if (!Number.isFinite(ts)) return '';
+        return new Date(ts + 8 * 60 * 60 * 1000).toISOString().slice(0, 16);
+      }
+      function fromBeijingInput(value) {
+        const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})$/.exec(value);
+        return match ? `${match[1]}T${match[2]}:${match[3]}:00+08:00` : '';
+      }
+      function tweetUrl(tweet) {
+        const direct = str(tweet?.url ?? tweet?.sourceUrl ?? tweet?.source_url);
+        if (validSourceUrl(direct)) return direct;
+        const id = tweetId(tweet);
+        return /^\d+$/.test(id) ? `https://x.com/thsottiaux/status/${id}` : '';
+      }
+      function validSourceUrl(value) {
+        if (!value) return true;
+        try {
+          const url = new URL(value);
+          return url.protocol === 'https:' && url.hostname === 'x.com' && !url.username && !url.password && !url.search && !url.hash && /^\/thsottiaux\/status\/\d+\/?$/.test(url.pathname);
+        } catch { return false; }
+      }
+      function entryKey(entry) { return str(entry?.id ?? ''); }
+      function manualForTweet(id) { return (state.data?.entries ?? []).find((entry) => entryTweetId(entry) === id) ?? null; }
+      function manualForRecord(recordOrId) {
+        const record = typeof recordOrId === 'object' && recordOrId !== null ? recordOrId : null;
+        const id = record ? recordId(record) : str(recordOrId);
+        const byId = record?.manualEntryId ? (state.data?.entries ?? []).find((entry) => entryKey(entry) === str(record.manualEntryId)) : null;
+        return byId ?? (id ? (state.data?.entries ?? []).find((entry) => entryRecordId(entry) === id) : null) ?? null;
+      }
+      function evidenceTweetIds(forecast) {
+        return (forecast?.evidence ?? []).map((item) => str(item?.id ?? item?.tweetId ?? item?.tweet_id)).filter(Boolean);
+      }
+      function buildIndexes() {
+        const data = state.data;
+        const tweets = data?.tweets ?? [];
+        const records = data?.records ?? [];
+        const byTweet = new Map(tweets.map((tweet) => [tweetId(tweet), tweet]).filter(([id]) => id));
+        const recordByTweet = new Map();
+        for (const record of records) {
+          const tid = tweetIdFromRecord(record, byTweet);
+          if (tid) recordByTweet.set(tid, record);
+        }
+        const forecastByTweet = new Map();
+        for (const forecast of [...(data?.forecasts ?? []), ...(data?.overdueForecasts ?? [])]) {
+          for (const tid of evidenceTweetIds(forecast)) forecastByTweet.set(tid, forecast);
+        }
+        return { tweets, records, byTweet, recordByTweet, forecastByTweet };
+      }
+      function manualForForecast(forecast, indexes) {
+        const ids = evidenceTweetIds(forecast);
+        const entries = state.data?.entries ?? [];
+        return entries.find((entry) => {
+          if (ids.includes(entryTweetId(entry))) return true;
+          const rid = entryRecordId(entry);
+          return rid && ids.some((id) => recordId(indexes.recordByTweet.get(id)) === rid);
+        }) ?? ids.map((id) => manualForRecord(indexes.recordByTweet.get(id))).find(Boolean) ?? null;
+      }
+      function effectiveStatus(tweet, record, forecast, entry) {
+        if (entry?.status) return entry.status;
+        if (record) return 'landed';
+        if (forecast) return 'announced';
+        return 'unclassified';
+      }
+      function rowForTweet(tweet, indexes) {
+        const tid = tweetId(tweet);
+        const record = indexes.recordByTweet.get(tid) ?? null;
+        const forecast = indexes.forecastByTweet.get(tid) ?? null;
+        const predicted = state.data?.tweetStates?.[tid];
+        const entry = (predicted?.entryId ? (state.data.entries ?? []).find(e => entryKey(e) === predicted.entryId) : null) ?? manualForTweet(tid) ?? (record ? manualForRecord(record) : null) ?? (forecast ? manualForForecast(forecast, indexes) : null);
+        return { key: `tweet:${tid}`, kind: 'tweet', tweet, tweetId: tid, record, forecast, entry, status: predicted?.status ?? effectiveStatus(tweet, record, forecast, entry), predictedLabel: predicted?.label, predictedSource: predicted?.source, title: contentOf(tweet), time: predicted?.occurredAt ?? entry?.occurredAt ?? entry?.occurred_at ?? record?.observedAt ?? record?.observed_at ?? record?.occurredAt ?? record?.occurred_at ?? record?.announced_at ?? record?.reset_at ?? tweet?.created_at ?? tweet?.createdAt ?? tweet?.timestamp ?? '', type: eventTypeOf(entry?.eventType ?? record?.type ?? tweet?.eventType) };
+      }
+      function recordTitle(record) { return str(record?.title ?? record?.text ?? record?.label ?? `${typeLabel(record?.type)} · ${sourceTime(record?.occurredAt ?? record?.occurred_at ?? record?.announced_at ?? record?.reset_at ?? '') || '时间待补'}`); }
+      function forecastWindowLabel(forecast) {
+        const window = forecast?.window ?? {};
+        const from = str(window.openText || (window.userFrom ? `${window.userFrom.y}.${window.userFrom.m}.${window.userFrom.d}（${window.userFrom.weekdayCN ?? ''}）${window.userFrom.hh}:${window.userFrom.mm}` : ''));
+        const to = str(window.deadlineText || window.userZone || '');
+        if (from && to) return `北京时间 ${from} 起 · 最晚 ${to}`;
+        if (to) return `北京时间最晚 ${to}`;
+        if (from) return `北京时间 ${from} 起`;
+        return '预告时间待明确';
+      }
+      function forecastTweetId(forecast) { return tweetIdFromUrl(forecast?.url); }
+      function forecastRow(forecast, indexes, key) {
+        const ids = evidenceTweetIds(forecast);
+        const evidenceTweets = ids.map((id) => indexes.byTweet.get(id)).filter(Boolean);
+        const entry = manualForForecast(forecast, indexes);
+        const leadId = forecastTweetId(forecast);
+        const tweet = indexes.byTweet.get(leadId) ?? evidenceTweets[0] ?? null;
+        const tid = tweet ? tweetId(tweet) : leadId || ids[0] || '';
+        const record = evidenceTweets.map((item) => indexes.recordByTweet.get(tweetId(item))).find(Boolean) ?? null;
+        const status = entry?.status ?? (record ? 'landed' : 'announced');
+        const title = str(forecast?.text ?? forecast?.title ?? forecast?.summary ?? (tweet ? contentOf(tweet) : '重置预告'));
+        return { key, kind: 'forecast', forecast, evidenceTweets, tweet, tweetId: tid, record, entry, status,
+          title, searchTitle: `${title} ${entry?.title ?? ''}`, time: forecast?.createdAt ?? tweet?.created_at ?? '',
+          windowLabel: forecastWindowLabel(forecast), type: eventTypeOf(entry?.eventType ?? forecast?.eventType ?? record?.type),
+          windowFrom: forecast?.window?.from, windowTo: forecast?.window?.to };
+      }
+      function buildRows(tab) {
+        if (!state.data) return [];
+        const indexes = buildIndexes();
+        if (['allEvents', 'ignored', 'hint'].includes(tab)) {
+          const rows = indexes.tweets.map((tweet) => rowForTweet(tweet, indexes));
+          const representedRecords = new Set(rows.map(row => row.record?.id).filter(Boolean));
+          const representedEntries = new Set(rows.map(row => row.entry?.id).filter(Boolean));
+          for (const record of indexes.records) {
+            if (representedRecords.has(record.id)) continue;
+            const entry = manualForRecord(record);
+            rows.push({ key: `record:${record.id}`, kind:'record', record, entry, status:'landed',
+              title: entry?.title || recordTitle(record), time: record.first_confirmed_at || record.announced_at, type: eventTypeOf(record.type) });
+            if (entry) representedEntries.add(entry.id);
+          }
+          for (const entry of state.data.entries ?? []) {
+            if (representedEntries.has(entry.id)) continue;
+            rows.push({ key:`entry:${entry.id}`, kind:'entry', entry, status:entry.status,
+              title:entry.title, time:entry.occurredAt || entry.updatedAt, type:eventTypeOf(entry.eventType) });
+          }
+          return tab === 'allEvents' ? rows : rows.filter(row => row.status === tab);
+        }
+        if (tab === 'allTweets') return indexes.tweets.map((tweet) => rowForTweet(tweet, indexes));
+        if (tab === 'announced') {
+          const rows = [];
+          const usedForecasts = new Set();
+          const representedEntries = new Set();
+          const forecasts = [...(state.data.forecasts ?? []), ...(state.data.overdueForecasts ?? [])];
+          for (const [index, forecast] of forecasts.entries()) {
+            const ids = evidenceTweetIds(forecast);
+            const forecastKey = `forecast:${str(forecast?.id) || ids.slice().sort().join(',') || index}`;
+            if (usedForecasts.has(forecastKey)) continue;
+            usedForecasts.add(forecastKey);
+            const row = forecastRow(forecast, indexes, forecastKey);
+            if (row.entry) representedEntries.add(entryKey(row.entry));
+            if (row.status === 'announced') rows.push(row);
+          }
+          for (const entry of state.data.entries ?? []) {
+            if (entry.status !== 'announced') continue;
+            if (representedEntries.has(entryKey(entry))) continue;
+            const rid = entryRecordId(entry);
+            const tid = entryTweetId(entry) || (rid ? tweetIdFromRecord(indexes.records.find((item) => recordId(item) === rid), indexes.byTweet) : '');
+            if (tid && indexes.forecastByTweet.has(tid)) continue;
+            const tweet = indexes.byTweet.get(tid) ?? null;
+            const record = rid ? indexes.records.find((item) => recordId(item) === rid) ?? null : tid ? indexes.recordByTweet.get(tid) ?? null : null;
+            const key = tid ? `tweet:${tid}` : rid ? `record:${rid}` : `entry:${entryKey(entry)}`;
+            if (rows.some((row) => row.key === key)) continue;
+            rows.push({ key, kind: tweet ? 'tweet' : record ? 'record' : 'entry', tweet, tweetId: tid, record, entry, status: 'announced', title: str(entry.title || (tweet ? contentOf(tweet) : record ? recordTitle(record) : '重置预告')), time: tweet?.created_at ?? entry.updatedAt ?? entry.createdAt ?? '', type: eventTypeOf(entry.eventType ?? record?.type) });
+          }
+          rows.sort((a, b) => Date.parse(b.time || 0) - Date.parse(a.time || 0));
+          return rows;
+        }
+        const rows = [];
+        const used = new Set();
+        for (const record of indexes.records) {
+          const id = recordId(record);
+          const tid = tweetIdFromRecord(record, indexes.byTweet);
+          const tweet = indexes.byTweet.get(tid) ?? null;
+          const entry = manualForRecord(record) ?? (tid ? manualForTweet(tid) : null);
+          if (effectiveStatus(tweet, record, null, entry) !== 'landed') continue;
+          const key = tid ? `tweet:${tid}` : `record:${id}`;
+          if (used.has(key)) continue;
+          rows.push({ key, kind: tweet ? 'tweet' : 'record', tweet, tweetId: tid, record, entry, status: effectiveStatus(tweet, record, null, entry), title: tweet ? contentOf(tweet) : recordTitle(record), time: entry?.occurredAt ?? entry?.occurred_at ?? record?.observedAt ?? record?.observed_at ?? record?.occurredAt ?? record?.occurred_at ?? record?.announced_at ?? record?.reset_at ?? tweet?.created_at ?? '', type: eventTypeOf(entry?.eventType ?? record?.type) });
+          used.add(key);
+          if (entry) used.add(`entry:${entryKey(entry)}`);
+        }
+        for (const entry of state.data.entries ?? []) {
+          if (entry.status !== 'landed' || used.has(`entry:${entryKey(entry)}`)) continue;
+          const tid = entryTweetId(entry);
+          const rid = entryRecordId(entry);
+          const key = tid ? `tweet:${tid}` : rid ? `record:${rid}` : `entry:${entryKey(entry)}`;
+          if (used.has(key)) continue;
+          const tweet = indexes.byTweet.get(tid) ?? null;
+          const record = indexes.records.find((item) => recordId(item) === rid) ?? (tid ? indexes.recordByTweet.get(tid) ?? null : null);
+          rows.push({ key, kind: tweet ? 'tweet' : 'entry', tweet, tweetId: tid, record, entry, status: 'landed', title: tweet ? contentOf(tweet) : str(entry.title), time: entry.occurredAt ?? entry.createdAt ?? record?.occurredAt ?? '', type: eventTypeOf(entry.eventType) });
+          used.add(key);
+        }
+        return rows;
+      }
+      function cleanExcerpt(value, max = 240) {
+        const text = str(value).replace(/\s+/g, ' ').trim();
+        return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+      }
+      function statusName(status) { return ({ announced: '预告', landed: '已到账', ignored: '排除', hint: '线索', none: '普通动态', unclassified: '普通动态' })[status] ?? '待处理'; }
+      function statusBadge(status, isManual) {
+        const badge = el('span', `badge ${status}`);
+        badge.textContent = statusName(status);
+        return badge;
+      }
+      function appendRowContent(button, row) {
+        const top = el('div', 'row-top');
+        const title = el('div', 'row-title', cleanExcerpt(row.title));
+        title.title = row.tweet ? contentOf(row.tweet) : str(row.title);
+        const badges = el('div'); badges.style.display = 'flex'; badges.style.gap = '5px';
+        badges.append(statusBadge(row.status));
+        if (row.entry || row.record?.manualEntryId || row.record?.manualAccountObservation) badges.append(el('span', 'badge manual', '手工登记'));
+        top.append(title, badges);
+        const meta = el('div', 'row-meta');
+        meta.append(el('span', '', typeLabel(row.type)));
+        if (row.time) meta.append(el('span', 'row-date', `${row.kind === 'forecast' ? '发布于 ' : ''}${sourceTime(row.time)} 北京`));
+        if (row.entry?.note) meta.append(el('span', '', cleanExcerpt(row.entry.note, 64)));
+        button.append(top, meta);
+      }
+      function evidenceLabel(tweet) {
+        if (tweet?.inReplyTo || tweet?.in_reply_to) return '时间回复';
+        if (/^\s*Day\s+\d+\b/i.test(contentOf(tweet))) return '重置原帖';
+        return '关联推文';
+      }
+      function renderRows() {
+        const rows = buildRows(state.tab);
+        const query = state.query.toLocaleLowerCase().trim();
+        const visible = query ? rows.filter(row => [row.title,row.predictedLabel,row.entry?.note,row.entry?.sourceUrl,row.tweet?.account].some(value => str(value).toLocaleLowerCase().includes(query))) : rows;
+        visible.sort((a,b) => Date.parse(b.time || 0) - Date.parse(a.time || 0));
+        const pages = Math.max(1,Math.ceil(visible.length/state.pageSize));
+        state.page = Math.min(Math.max(1,state.page),pages);
+        const root = $('#rows'); root.replaceChildren();
+        for (const row of visible.slice((state.page-1)*state.pageSize,state.page*state.pageSize)) {
+          const tr=el('tr'); tr.dataset.key=row.key;
+          const content=el('td'); const title=el('div','table-title',cleanExcerpt(row.title,200));title.title=row.title;
+          content.append(title);
+          content.append(el('div','table-sub',row.kind === 'record' || row.kind === 'entry' ? row.entry || row.record?.manual ? '手动补录 · 无需关联推文' : '历史到账记录' : `推文 · @${row.tweet?.account || 'thsottiaux'}`));
+          if (row.forecast?.window) content.append(el('div','table-sub',forecastWindowLabel(row.forecast)));
+          const current=el('td');const badge=statusBadge(row.status);badge.textContent=row.predictedLabel || statusName(row.status);current.append(badge);
+          current.append(el('div','table-source',row.predictedSource === 'manual' || row.entry || row.record?.manual ? '手动修订' : '自动判断'));
+          const when=el('td');when.append(el('div','table-time',sourceTime(row.time)||'时间待补充'));when.append(el('div','table-source',row.status==='landed'?'到账时间':row.tweet?'发布时间':row.entry?'修订时间':'记录时间'));
+          const actions=el('td','action-cell');const buttons=el('div','row-actions');
+          const link=row.entry?.sourceUrl || row.tweet?.url || row.record?.url || row.forecast?.url;
+          if(validSourceUrl(link) && link){const a=el('a','text-action','原文');a.href=link;a.target='_blank';a.rel='noopener noreferrer';buttons.append(a);}
+          const edit=el('button','text-action','修改状态');edit.type='button';edit.setAttribute('aria-label',`修改状态：${cleanExcerpt(row.title,100)}`);edit.addEventListener('click',()=>selectRow(row));buttons.append(edit);actions.append(buttons);
+          tr.append(content,current,when,actions);root.append(tr);
+        }
+        $('#visible-count').textContent=`${visible.length} 条`;
+        $('#list-empty').hidden=visible.length!==0;
+        $('#empty-title').textContent=query?'没有匹配内容':'暂无记录';
+        $('#empty-copy').textContent=query?'调整搜索词，或切换其他状态。':'可以直接新增一条预告或到账事件。';
+        $('#page-description').textContent=`共 ${visible.length} 条，每页 ${state.pageSize} 条`;
+        $('#page-number').textContent=`${state.page} / ${pages}`;
+        $('#previous-page').disabled=state.page<=1;$('#next-page').disabled=state.page>=pages;
+      }
+      function renderTabs() {
+        for (const button of tabButtons) button.setAttribute('aria-selected', String(button.dataset.tab === state.tab));
+        if (!state.data) return;
+        const announced = buildRows('announced').length;
+        const landed = buildRows('landed').length;
+        const tweets = (state.data.tweets ?? []).length;
+        $('#tab-count-announced').textContent = announced;
+        $('#tab-count-landed').textContent = landed;
+        $('#tab-count-allTweets').textContent = buildRows('allEvents').length;
+        $('#tab-count-ignored').textContent = buildRows('ignored').length;
+        $('#forecast-count').textContent = announced;
+        $('#landed-count').textContent = landed;
+        $('#tweet-count').textContent = tweets;
+        $('#update-sub').textContent = state.data.dataUpdatedAt ? `截至 ${sourceTime(state.data.dataUpdatedAt)} 北京` : '未提供采集时刻';
+      }
+      function renderSourceOptions(selected) {
+        const select = $('#source-select');
+        select.replaceChildren();
+        select.append(new Option('不关联现有内容', ''));
+        const data = state.data;
+        if (!data) return;
+        const tweetGroup = document.createElement('optgroup'); tweetGroup.label = '推文';
+        const tweets = [...(data.tweets ?? [])].sort((a, b) => Date.parse(b.created_at ?? b.createdAt ?? 0) - Date.parse(a.created_at ?? a.createdAt ?? 0));
+        for (const tweet of tweets) {
+          const id = tweetId(tweet); if (!id) continue;
+          const option = new Option(cleanExcerpt(contentOf(tweet), 86), `tweet:${id}`); tweetGroup.append(option);
+        }
+        if (tweetGroup.children.length) select.append(tweetGroup);
+        const recordGroup = document.createElement('optgroup'); recordGroup.label = '到账记录';
+        for (const record of data.records ?? []) {
+          const id = recordId(record); if (!id) continue;
+          const option = new Option(`${recordTitle(record)}${sourceTime(record.occurredAt ?? record.occurred_at ?? '') ? ` · ${sourceTime(record.occurredAt ?? record.occurred_at)}` : ''}`, `record:${id}`);
+          recordGroup.append(option);
+        }
+        if (recordGroup.children.length) select.append(recordGroup);
+        select.value = selected ?? '';
+      }
+      function currentFormValue() {
+        return { status: state.draft?.status ?? 'announced', type: $('#event-type').value, title: titleInput.value, note: noteInput.value, sourceUrl: $('#source-url').value, occurredAt: $('#occurred-at').value, windowFrom: $('#window-from').value, windowTo: $('#window-to').value, source: $('#source-select').value };
+      }
+      function isDirty(ignoreSource = false) {
+        if (!state.draft) return false;
+        const value = currentFormValue();
+        if (ignoreSource) value.source = state.draft.source ?? '';
+        return JSON.stringify(value) !== state.draft.initialValue;
+      }
+      function updateDraftBaseline() { if (state.draft) state.draft.initialValue = JSON.stringify(currentFormValue()); }
+      function setStatus(status) {
+        if (!state.draft) return;
+        const previous = state.draft.status;
+        if (status !== previous) {
+          if (!titleInput.value.trim() || isDefaultTitle(titleInput.value)) titleInput.value = defaultTitle(status);
+          if (status === 'landed' && !$('#occurred-at').value) $('#occurred-at').value = beijingNowInput();
+          updateCounters();
+        }
+        state.draft.status = status;
+        for (const button of statusButtons) button.setAttribute('aria-pressed', String(button.dataset.status === status));
+        $('#landed-time-field').hidden = status !== 'landed';
+        $('#window-field').hidden = status !== 'announced';
+        $('#occurred-at').required = status === 'landed';
+        clearFormError(); updateSaveDisabled();
+      }
+      function showFormError(message, actionLabel, action) {
+        const node = $('#form-error'); node.replaceChildren(document.createTextNode(message)); node.hidden = false;
+        if (actionLabel && action) {
+          const button = el('button', '', actionLabel); button.type = 'button'; button.addEventListener('click', action); node.append(button);
+        }
+      }
+      function clearFormError() { const node = $('#form-error'); node.hidden = true; node.replaceChildren(); }
+      function showToast(message, isError = false) {
+        const toast = $('#toast'); toast.textContent = message; toast.classList.toggle('error', isError); toast.hidden = false;
+        clearTimeout(state.toastTimer); state.toastTimer = setTimeout(() => { toast.hidden = true; }, 3600);
+      }
+      function updateSaveDisabled() {
+        const status = state.draft?.status ?? 'landed';
+        $('#save-button').textContent = state.saving ? '保存中…' : status === 'landed' ? '确认已到账' : status === 'announced' ? '保存预告' : status === 'ignored' ? '保存排除' : '请选择状态';
+        $('#save-button').disabled = !state.data || state.loading || state.saving || !state.draft || !['announced','landed','ignored'].includes(status);
+      }
+      function draftStatus(target, entry, record) {
+        if (entry?.status) return entry.status;
+        if (record) return 'landed';
+        if (['announced','landed','ignored'].includes(target?.status)) return target.status;
+        if (target?.forecast) return 'announced';
+        return target?.kind === 'new' ? 'landed' : '';
+      }
+      function selectRef(target) {
+        const indexes = buildIndexes();
+        const record = target?.record ?? null;
+        let entry = target?.entry ?? (record ? manualForRecord(record) : null) ?? (target?.forecast ? manualForForecast(target.forecast, indexes) : null);
+        const tid = target?.tweet ? tweetId(target.tweet) : str(target?.tweetId) || entryTweetId(entry) || tweetIdFromRecord(record, indexes.byTweet);
+        const tweet = target?.tweet ?? indexes.byTweet.get(tid) ?? null;
+        entry ??= tid ? manualForTweet(tid) : null;
+        const source = tweet ? `tweet:${tweetId(tweet)}` : record ? `record:${recordId(record)}` : '';
+        const entryId = entryKey(entry);
+        const status = draftStatus(target, entry, record);
+        const targetTitle = entry?.title ?? (tweet ? contentOf(tweet) : record ? recordTitle(record) : target?.title ?? '');
+        const currentTitle = entry?.title ? cleanExcerpt(targetTitle, 500) : cleanExcerpt(targetTitle || defaultTitle(status), 160);
+        const sourceUrl = entry?.sourceUrl ?? entry?.source_url ?? (tweet ? tweetUrl(tweet) : '');
+        const occurredAt = entry?.occurredAt ?? entry?.occurred_at ?? record?.observedAt ?? record?.observed_at ?? record?.occurredAt ?? record?.occurred_at ?? record?.announced_at ?? (status === 'landed' && target?.time ? target.time : target?.kind === 'new' ? beijingNowInput() : '');
+        const draft = { entryId, tweetId: tweet ? tweetId(tweet) : tid, recordId: editableRecordId(record, entry), status, type: eventTypeOf(entry?.eventType ?? record?.type ?? target?.type), title: currentTitle, note: str(entry?.note), sourceUrl: validSourceUrl(sourceUrl) ? sourceUrl : '', occurredAt: toBeijingInput(occurredAt), windowFrom: toBeijingInput(entry?.windowFrom ?? entry?.window_from ?? target?.forecast?.windowFrom ?? target?.forecast?.window?.from), windowTo: toBeijingInput(entry?.windowTo ?? entry?.window_to ?? target?.forecast?.windowTo ?? target?.forecast?.window?.to), source, label: cleanExcerpt(targetTitle, 170), initialValue: '' };
+        state.selected = target?.key ? { key: target.key, kind: target.kind, tweetId: draft.tweetId, recordId: draft.recordId } : null;
+        state.draft = draft;
+        $('#selection-text').textContent = draft.label || '补充一条手工记录';
+        $('#current-status').textContent=target?.predictedLabel || (target?.kind==='new'?'无关联推文':statusName(target?.status || draft.status));
+        $('#editor-subtitle').textContent = entry ? '编辑手工登记' : target?.forecast ? '复核预测并登记状态' : target?.record ? '核对到账记录' : target?.tweet ? '登记这条推文的状态' : '新建手工记录';
+        renderSourceOptions(source);
+        $('#event-type').value = draft.type;
+        titleInput.value = draft.title;
+        noteInput.value = draft.note;
+        $('#source-url').value = draft.sourceUrl;
+        $('#occurred-at').value = draft.occurredAt;
+        $('#window-from').value = draft.windowFrom;
+        $('#window-to').value = draft.windowTo;
+        $('#new-title-field').hidden = Boolean(tweet || record) && !(entry && !entryTweetId(entry) && !entryRecordId(entry));
+        $('#withdraw-button').hidden = !draft.entryId;
+        $('#withdraw-button').dataset.entryId = draft.entryId;
+        setStatus(draft.status);
+        updateCounters(); updateDraftBaseline(); updateSaveDisabled(); renderRows();
+      }
+      function selectRow(row) {
+        if (isDirty() && !window.confirm('当前修改尚未保存。切换记录会丢弃这些修改，继续吗？')) return;
+        selectRef(row);
+        $('#editor-heading').textContent='修改状态'; openEditor();
+      }
+      function newDraft() {
+        if (isDirty() && !window.confirm('当前修改尚未保存。新建记录会丢弃这些修改，继续吗？')) return;
+        selectRef({ kind: 'new', title: '' });
+        $('#editor-heading').textContent='新增事件'; openEditor();
+        $('#occurred-at').focus();
+      }
+      function updateCounters() {
+        $('#title-count').textContent = titleInput.value.length;
+        $('#note-count').textContent = noteInput.value.length;
+      }
+      function renderHistory() {
+        const root = $('#history-list'); root.replaceChildren();
+        const history = state.data?.history ?? [];
+        $('#history-count').textContent = `${history.length} 条`;
+        if (!history.length) { root.append(el('div', 'history-empty', '暂无手工修改记录。')); return; }
+        for (const item of history) {
+          const article = el('article', 'history-item');
+          const title = str(item.title ?? item.entry?.title ?? item.snapshot?.title ?? item.tweetId ?? '状态变更');
+          article.append(el('div', 'history-title', cleanExcerpt(title, 160)));
+          const meta = el('div', 'history-meta');
+          const at = item.changedAt ?? item.createdAt ?? item.at ?? item.timestamp;
+          if (at) meta.append(el('span', '', sourceTime(at)));
+          if (item.action) meta.append(el('span', '', item.action === 'withdraw' ? '撤回' : item.action === 'save' ? '保存' : item.action));
+          if (item.fromStatus || item.toStatus || item.status) meta.append(el('span', '', `${statusName(item.fromStatus ?? 'unclassified')} → ${statusName(item.toStatus ?? item.status)}`));
+          meta.append(el('span', 'badge manual', '手工登记'));
+          article.append(meta); root.append(article);
+        }
+      }
+      function renderAll() { renderTabs(); renderRows(); renderHistory(); }
+      async function loadData({ preserveDraft = false } = {}) {
+        if (state.loading) return;
+        state.loading = true; $('#sync-label').textContent = '正在刷新数据…'; $('#refresh-button').disabled = true; updateSaveDisabled();
+        const savedDraft = preserveDraft && state.draft ? { ...currentFormValue(), entryId: state.draft.entryId, tweetId: state.draft.tweetId, recordId: state.draft.recordId, kind: state.selected?.kind, key: state.selected?.key, initialValue: state.draft.initialValue } : null;
+        try {
+          const response = await fetch('/api/manage', { headers: { accept: 'application/json' }, cache: 'no-store' });
+          const body = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(str(body.error ?? body.message) || `管理数据读取失败（${response.status}）`);
+          state.data = body;
+          if (!preserveDraft) renderSourceOptions(state.draft?.source ?? '');
+          $('#sync-label').textContent = state.data.dataUpdatedAt ? `数据截至 ${sourceTime(state.data.dataUpdatedAt)} 北京` : '管理数据已连接';
+          $('#list-message').hidden = true;
+          renderAll();
+          if (savedDraft) restoreDraft(savedDraft);
+          else if (state.draft && !state.draft.entryId && !state.selected) updateSaveDisabled();
+        } catch (error) {
+          $('#sync-label').textContent = '管理接口暂不可用';
+          $('#list-message').textContent = `${error.message}。页面会保留当前表单；接口恢复后可刷新再保存。`;
+          $('#list-message').classList.add('error'); $('#list-message').hidden = false;
+          showToast(error.message, true);
+          if (!state.data) renderAll();
+        } finally {
+          state.loading = false; $('#refresh-button').disabled = false; updateSaveDisabled();
+        }
+      }
+      function restoreDraft(saved) {
+        const indexes = buildIndexes();
+        let target = null;
+        if (saved.tweetId) {
+          const tweet = indexes.byTweet.get(saved.tweetId) ?? null;
+          const record = indexes.recordByTweet.get(saved.tweetId) ?? null;
+          target = { kind: saved.kind ?? 'tweet', key: saved.key, tweet, record, entry: (state.data.entries ?? []).find((item) => entryKey(item) === saved.entryId) ?? null };
+        } else if (saved.recordId) {
+          const record = indexes.records.find((item) => recordId(item) === saved.recordId) ?? null;
+          target = { kind: saved.kind ?? 'record', key: saved.key, record, entry: (state.data.entries ?? []).find((item) => entryKey(item) === saved.entryId) ?? null };
+        } else if (saved.entryId) {
+          const entry = (state.data.entries ?? []).find((item) => entryKey(item) === saved.entryId) ?? null;
+          target = { kind: 'entry', key: saved.key, entry };
+        } else target = { kind: 'new', title: '' };
+        selectRef(target ?? { kind: 'new', title: '' });
+        state.draft.entryId = saved.entryId; state.draft.tweetId = saved.tweetId; state.draft.recordId = saved.recordId;
+        $('#source-select').value = saved.source; state.draft.source = saved.source;
+        $('#event-type').value = saved.type; titleInput.value = saved.title; noteInput.value = saved.note;
+        $('#source-url').value = saved.sourceUrl; $('#occurred-at').value = saved.occurredAt;
+        $('#window-from').value = saved.windowFrom; $('#window-to').value = saved.windowTo;
+        state.draft.status = saved.status; setStatus(saved.status); updateCounters();
+        state.draft.initialValue = saved.initialValue ?? JSON.stringify(currentFormValue()); renderRows();
+      }
+      function resolveSource(value) {
+        if (!state.data || !value) return { kind: 'new', title: '' };
+        const [kind, ...rest] = value.split(':'); const id = rest.join(':');
+        const indexes = buildIndexes();
+        if (kind === 'tweet') {
+          const tweet = indexes.byTweet.get(id) ?? null;
+          return tweet ? rowForTweet(tweet, indexes) : { kind: 'new', title: '' };
+        }
+        if (kind === 'record') {
+          const record = indexes.records.find((item) => recordId(item) === id) ?? null;
+          if (!record) return { kind: 'new', title: '' };
+          const tid = tweetIdFromRecord(record, indexes.byTweet);
+          const tweet = indexes.byTweet.get(tid) ?? null;
+          return { kind: tweet ? 'tweet' : 'record', key: tweet ? `tweet:${tid}` : `record:${id}`, tweet, tweetId: tid, record, entry: manualForRecord(record) ?? (tid ? manualForTweet(tid) : null), status: 'landed', title: tweet ? contentOf(tweet) : recordTitle(record), time: record.occurredAt ?? record.occurred_at ?? record.announced_at, type: eventTypeOf(record.type) };
+        }
+        return { kind: 'new', title: '' };
+      }
+      function validateDraft() {
+        clearFormError();
+        if (!state.draft) { showFormError('请先选择或补充一条记录。'); return false; }
+        if (!['announced','landed','ignored'].includes(state.draft.status)) { showFormError('请选择需要修正为的状态。'); return false; }
+        if (!titleInput.value.trim()) { titleInput.value = defaultTitle(state.draft.status); updateCounters(); }
+        if (state.draft.status === 'landed' && !$('#occurred-at').value) { $('#occurred-at').focus(); showFormError('登记已到账时，请填写实际到账时间。'); return false; }
+        const from = $('#window-from').value, to = $('#window-to').value;
+        if (state.draft.status === 'announced' && Boolean(from) !== Boolean(to)) { showFormError('预告开始和结束时间需要同时填写，或同时留空。'); return false; }
+        if (from && to && Date.parse(`${to}:00+08:00`) < Date.parse(`${from}:00+08:00`)) { showFormError('预告结束时间不能早于开始时间。'); return false; }
+        if (!validSourceUrl($('#source-url').value.trim())) { showFormError('来源链接格式不正确；请使用 https://x.com/账号/status/推文编号。'); return false; }
+        return true;
+      }
+      async function submitForm(event) {
+        event.preventDefault();
+        if (!validateDraft() || state.saving || !state.data) return;
+        const draft = state.draft;
+        const entry = {
+          ...(draft.entryId ? { id: draft.entryId } : {}),
+          ...(draft.tweetId ? { tweetId: draft.tweetId } : {}),
+          ...(draft.recordId ? { recordId: draft.recordId } : {}),
+          status: draft.status,
+          title: titleInput.value.trim(),
+          note: noteInput.value.trim(),
+          sourceUrl: $('#source-url').value.trim(),
+          eventType: $('#event-type').value,
+        };
+        if (draft.status === 'landed') entry.occurredAt = fromBeijingInput($('#occurred-at').value);
+        if (draft.status === 'announced' && $('#window-from').value && $('#window-to').value) {
+          entry.windowFrom = fromBeijingInput($('#window-from').value);
+          entry.windowTo = fromBeijingInput($('#window-to').value);
+        }
+        state.saving = true; updateSaveDisabled(); $('#save-button').textContent = '保存中…';
+        try {
+          const response = await fetch('/api/manage', { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify({ revision: state.data.revision, action: 'save', entry }) });
+          const body = await response.json().catch(() => ({}));
+          if (response.status === 409) {
+            showFormError('数据已被其他编辑更新。草稿仍保留；可重新载入最新状态，再决定如何保存。', '重新载入', () => loadData({ preserveDraft: true }));
+            return;
+          }
+          if (response.status === 422) { showFormError(str(body.error ?? body.message) || '信息未通过校验，请检查填写内容。'); return; }
+          if (!response.ok) throw new Error(str(body.error ?? body.message) || `保存失败（${response.status}）`);
+          state.data = { ...state.data, ...body, revision: body.revision ?? state.data.revision };
+          showToast('状态已保存，数据已更新。');
+          closeEditor(true);
+          await loadData();
+        } catch (error) { showFormError(error.message); }
+        finally { state.saving = false; updateSaveDisabled(); }
+      }
+      async function withdrawEntry() {
+        if (!state.data || !state.draft?.entryId || state.saving) return;
+        if (!window.confirm('撤回这条手工状态？原始推文与自动识别结果会保留。')) return;
+        state.saving = true; updateSaveDisabled(); $('#withdraw-button').disabled = true;
+        try {
+          const response = await fetch('/api/manage', { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify({ revision: state.data.revision, action: 'withdraw', id: state.draft.entryId }) });
+          const body = await response.json().catch(() => ({}));
+          if (response.status === 409) { showFormError('数据已被其他编辑更新。草稿仍保留；重新载入最新状态后再试。', '重新载入', () => loadData({ preserveDraft: true })); return; }
+          if (response.status === 422) { showFormError(str(body.error ?? body.message) || '无法撤回这条记录。'); return; }
+          if (!response.ok) throw new Error(str(body.error ?? body.message) || `撤回失败（${response.status}）`);
+          state.data = { ...state.data, ...body, revision: body.revision ?? state.data.revision };
+          showToast('手工状态已撤回。'); closeEditor(true); await loadData();
+        } catch (error) { showFormError(error.message); }
+        finally { state.saving = false; $('#withdraw-button').disabled = false; updateSaveDisabled(); }
+      }
+
+      tabButtons.forEach((button) => button.addEventListener('click', () => { state.tab = button.dataset.tab; state.page=1; renderTabs(); renderRows(); }));
+      $('#search-input').addEventListener('input', (event) => { state.query = event.target.value; state.page=1; renderRows(); });
+      $('#refresh-button').addEventListener('click', () => loadData({ preserveDraft: Boolean(state.draft) }));
+      $('#new-button').addEventListener('click', newDraft);
+      function openEditor(){
+        const dialog=$('#edit-dialog');if(!dialog.open)dialog.showModal();document.body.classList.add('modal-open');
+      }
+      function closeEditor(completed=false){
+        if(state.saving && completed!==true)return;
+        $('#edit-dialog').close();document.body.classList.remove('modal-open');
+        state.draft=null;state.selected=null;clearFormError();renderRows();
+      }
+      $('#cancel-button').addEventListener('click',closeEditor);
+      $('#editor-close').addEventListener('click',closeEditor);
+      $('#edit-dialog').addEventListener('cancel',event=>{event.preventDefault();closeEditor();});
+      $('#edit-dialog').addEventListener('click',event=>{if(event.target===$('#edit-dialog')){const r=event.target.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)closeEditor();}});
+      $('#history-button').addEventListener('click',()=>{$('#history-dialog').showModal();document.body.classList.add('modal-open');});
+      $('#history-close').addEventListener('click',()=>{$('#history-dialog').close();document.body.classList.remove('modal-open');});
+      $('#history-dialog').addEventListener('close',()=>document.body.classList.remove('modal-open'));
+      $('#previous-page').addEventListener('click',()=>{state.page--;renderRows();});
+      $('#next-page').addEventListener('click',()=>{state.page++;renderRows();});
+      statusButtons.forEach((button) => button.addEventListener('click', () => setStatus(button.dataset.status)));
+      $('#source-select').addEventListener('change', (event) => {
+        if (isDirty(true) && !window.confirm('切换来源会丢弃当前表单草稿，继续吗？')) { event.target.value = state.draft?.source ?? ''; return; }
+        selectRef(resolveSource(event.target.value));
+      });
+      $('#withdraw-button').addEventListener('click', withdrawEntry);
+      form.addEventListener('submit', submitForm);
+      [titleInput, noteInput].forEach((input) => input.addEventListener('input', () => { updateCounters(); updateSaveDisabled(); }));
+      form.addEventListener('input', () => { clearFormError(); updateSaveDisabled(); });
+
+      $('#save-button').disabled = true;
+      loadData();
+    })();
+  </script>
+</body>
+</html>

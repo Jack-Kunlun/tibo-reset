@@ -22,6 +22,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { derive } from './page.mjs';
+import { createStore } from '../../server/store.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -88,12 +89,7 @@ export function snapshotFrom({ chart, prediction, signals, statsFile, tweets, ac
  * 所以那边直接用 `snapshotFrom`，省掉一遍重复计算。
  */
 export async function buildSnapshot({ account, now }) {
-  const read = async (p) => JSON.parse(await readFile(resolve(ROOT, p), 'utf8'));
-  const [resets, tweets, statsFile] = await Promise.all([
-    read('data/resets.json'),
-    read('data/tweets.json'),
-    read('data/stats.json'),
-  ]);
+  const { resets, tweets, statsFile } = await createStore(resolve(ROOT, 'data'), { account }).getData({ now });
   const { chart, prediction, signals } = derive({ resets, tweets, statsFile, now, account });
   return snapshotFrom({ chart, prediction, signals, statsFile, tweets, account, now });
 }
