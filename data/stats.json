@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-20T06:33:48.000Z",
     "last_text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
-    "days_since_last": 2.7747626157407406,
+    "days_since_last": 2.7823047569444443,
     "avg_interval_days": 6.2203877314814795,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.437522122081761,
@@ -14,7 +14,7 @@
     "reset_count": 58,
     "hit_within_avg": 0.71875
   },
-  "generated_at": "2026-10-23T01:09:27.590Z",
+  "generated_at": "2026-10-23T01:20:19.257Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
@@ -64,7 +64,7 @@
     "updated": 0,
     "removed": 0,
     "upstreamCount": 64,
-    "refreshedAt": "2026-10-23T01:09:09.080Z",
+    "refreshedAt": "2026-10-23T01:20:00.904Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
