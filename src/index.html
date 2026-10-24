@@ -108,9 +108,13 @@
   #observatory .am-records{margin-top:18px}
   #observatory .am-record-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:23px;margin-top:15px}
   #observatory .am-record{min-width:0;display:block;font-size:12px}
+  /* 原文部分是链接，译文块在它**外面**（details 不能放进 a：点展开会连带跳转）。
+     链接本身要铺满整块，点击区域与视觉一致。 */
+  #observatory .am-record-link{display:block;min-width:0}
   #observatory .am-record+.am-record{border-left:1px solid var(--am-line);padding-left:23px}
   #observatory .am-record-top{display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;font-size:11px;color:var(--am-muted)}
   #observatory .am-record p{margin-top:6px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+  #observatory .am-record .tweet-translation{margin-top:8px}
   #observatory .am-footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;margin-top:25px;padding-top:20px;border-top:1px solid #dedbe9;color:var(--am-muted);font-size:11px}
   #observatory .am-ripple-field{position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none;z-index:0}
   #observatory .am-tap-ring{position:absolute;border:1px solid #9f86d13d;box-shadow:0 0 35px #b69de923;border-radius:50%;height:230px;width:230px;margin:-115px 0 0 -115px;pointer-events:none;z-index:0;animation:am-tap .85s ease-out forwards}
@@ -593,6 +597,8 @@
   #observatory .am-side .am-records{margin:0;display:flex;flex-direction:column;flex:1}
   #observatory .am-side .am-record-grid{flex:1;grid-auto-rows:1fr;gap:0}
   #observatory .am-side .am-record{display:flex;flex-direction:column;justify-content:center;padding:16px 0}
+  /* 竖排居中的是「原文 + 译文」这一列，不是链接本身 —— 链接要铺满才能点。 */
+  #observatory .am-side .am-record-link{display:block}
   #observatory .am-side .am-record:first-child{padding-top:8px}
   #observatory .am-side .am-record:last-child{padding-bottom:0}
   #observatory .am-main>.reset-calendar .rc-heading p,#observatory .am-main>.reset-calendar .rc-caption{font-size:10px}

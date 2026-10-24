@@ -496,4 +496,86 @@ assert.equal(hash(await readFile(signalsPath, 'utf8')), hash(signalsText), '信�
 assert.equal(hash(await readFile(collectPath, 'utf8')), hash(collectText), '采集模块源码必须逐字未变');
 assert.equal(hash(await readFile(applyPath, 'utf8')), hash(applyText), '写盘脚本源码必须逐字未变');
 
+/* ===================== 9. 网页端渲染：两处展示位与结构约束 ===================== */
+
+/**
+ * 这一节守的是 2026-10-25 实测发现的两个真漏位：
+ *
+ *   ① **展示位漏挂**：「最近记录」与「更多记录（时间线）」两处只渲染原文，
+ *      译文虽已挂在数据层（`model.records` 上）却没输出 —— 页面上看不到。
+ *      小程序端当时是渲染了的，所以这是**网页端单边缺**。
+ *
+ *   ② **结构违规**：`最近记录`的卡片原本整张是 `<a>`，把译文 `<details>`
+ *      塞进去之后：`<a>` 只能包含 phrasing content，`<details>` 是 flow content；
+ *      浏览器**不会**把它踢出 `<a>`（Chrome 155 实测 `details_parentTag = "A"`），
+ *      于是「点『中文翻译』展开译文」会**同时触发外层链接跳转** ——
+ *      实测 `outer_a_click_fired = true`，用户想看译文却被带去了 X。
+ *
+ * 两条都曾经**没有任何断言看着**，所以能长期存活。
+ */
+
+section('9. 网页端渲染：两处展示位与 <details> 结构');
+
+{
+  // 用**真实的**渲染链路（page.mjs 的 derive + render.mjs 的 renderPage），
+  // 不另造夹具 —— 漏位恰恰是因为「数据层挂好了、渲染层没接」，
+  // 夹具渲染只会把那个缺口糊掉。
+  const { derive, renderPage } = await import('../src/lib/page.mjs');
+  const readJson = async (p) => JSON.parse(await readFile(resolve(ROOT, 'data', p), 'utf8'));
+  const [resets, tweets, statsFile] = await Promise.all([
+    readJson('resets.json'), readJson('tweets.json'), readJson('stats.json'),
+  ]);
+  const model = derive({ resets, tweets, statsFile, now: Date.now(), account: 'thsottiaux' });
+  const template = await readFile(resolve(ROOT, 'src/index.html'), 'utf8');
+  const html = renderPage({ template, ...model, og: null });
+
+  // ---- ① 数据层：译文确实挂在历史记录上 ----
+  const records = model.model?.records ?? [];
+  const withZhRecords = records.filter((r) => r.translation?.text);
+  check('历史记录里确有带译文的条目（数据层已挂载）', withZhRecords.length > 0,
+    `records=${records.length} 带译文=${withZhRecords.length}`);
+
+  // ---- ② 展示位：两处都要输出译文块 ----
+  //
+  // 判据按**容器**切，不按全文计数 —— 全文计数会被 CSS 里的类名污染。
+  const slice = (from, len) => {
+    const i = html.indexOf(from);
+    return i < 0 ? '' : html.slice(i, i + len);
+  };
+  const recordsZone = slice('id="records"', 4000);
+  const timelineZone = slice('<ul class="tl"', 30000);
+  const blocksIn = (zone) => (zone.match(/<details class="tweet-translation">/g) ?? []).length;
+
+  check('「最近记录」区输出了译文块', blocksIn(recordsZone) > 0, `块数=${blocksIn(recordsZone)}`);
+  check('「更多记录（时间线）」区输出了译文块', blocksIn(timelineZone) > 0, `块数=${blocksIn(timelineZone)}`);
+
+  // 两处渲染的条目数必须与数据层对得上 —— 少一条就说明有展示位没接上。
+  const recentSlice = records.slice(-3).reverse();
+  const timelineSlice = [...records].reverse().slice(0, 14);
+  check(
+    '「最近记录」的译文块数 = 该区带译文的条目数（不多不少）',
+    blocksIn(recordsZone) === recentSlice.filter((r) => r.translation?.text).length,
+    `页面=${blocksIn(recordsZone)} 数据=${recentSlice.filter((r) => r.translation?.text).length}`
+  );
+  check(
+    '「更多记录（时间线）」的译文块数 = 该区带译文的条目数（不多不少）',
+    blocksIn(timelineZone) === timelineSlice.filter((r) => r.translation?.text).length,
+    `页面=${blocksIn(timelineZone)} 数据=${timelineSlice.filter((r) => r.translation?.text).length}`
+  );
+
+  // ---- ③ 结构约束：<details> 不能落在 <a> 里 ----
+  //
+  // 判据用「`<a ...>` 到 `</a>` 的区间里有没有 `<details`」——
+  // 不依赖 DOM 解析器（HTML 解析器**不会**纠正这个违规），纯文本即可判。
+  const anchorsWithDetails = (html.match(/<a\b[^>]*>(?:(?!<\/a>)[\s\S])*?<details\b/gi) ?? []).length;
+  check('页面里没有把 <details> 放进 <a>（点展开不会连带跳转）', anchorsWithDetails === 0,
+    `违规处数=${anchorsWithDetails}`);
+
+  // 「最近记录」的卡片里，链接与译文块必须是**同级**（译文在 <a> 之外）。
+  const recordBlock = html.match(/<div class="am-record">[\s\S]*?<\/div><\/div>/)?.[0] ?? '';
+  check('「最近记录」卡片：链接与译文块同级（译文不在 <a> 内）',
+    /<a\b[^>]*>[\s\S]*?<\/a><details\b/.test(recordBlock) && !/<a\b[^>]*>(?:(?!<\/a>)[\s\S])*?<details\b/.test(recordBlock),
+    recordBlock.slice(0, 160));
+}
+
 console.log(`\n${passed} 项通过；9 个隔离变异全部被对应断言拦住，源码哈希未变`);

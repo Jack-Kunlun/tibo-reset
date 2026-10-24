@@ -9,6 +9,9 @@ import { createServer } from 'node:net';
 import { spawn } from 'node:child_process';
 import { setTimeout as pause } from 'node:timers/promises';
 import { createHash } from 'node:crypto';
+import { deflateSync } from 'node:zlib';
+
+import { writeOgAsset } from '../server/og.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const file = new URL('../server/index.mjs', import.meta.url);
@@ -24,6 +27,73 @@ const now = Date.now();
 const iso = (hours) => new Date(now + hours * 3600000).toISOString();
 const tweet = { id: '90000001', account: 'thsottiaux', author_verified: true, foundVia: 'timeline-browser',
   created_at: iso(-2), text: 'We will reset all usage limits tomorrow.', url: 'https://x.com/thsottiaux/status/90000001' };
+
+/**
+ * 造一张**形状合法**的 og 卡片（1200×630 的 PNG）。
+ *
+ * ⚠ 为什么这个夹具是必需的（2026-10-25 修 CI 假红）：
+ *
+ * `server/index.mjs` 的 `getOgMeta()` 有一条守卫：一旦数据里有「人工修订过的记录」，
+ * 就不输出 og:image —— 因为预绘制的卡片上只有自动采集的旧数字，给平台一张
+ * 「对着旧图说新话」的卡片比不给更糟。
+ *
+ * 这条守卫有两个可能的写法：
+ *   A（正确）：看**投影后**的数据里有没有 manual 记录 —— 旧反馈（accountObservation）
+ *              也会被投影成 manual 记录，所以能拦住。
+ *   B（错误）：只看**账本**（manual-state.json）里有几条 —— 账本被删了就漏过去。
+ *
+ * 反例测试要把 B 抓住，靠的就是「B 会让 og:image 重新出现」。而 og:image 出现的
+ * 前提是**环境里确实有一张卡片**。原先卡片只存在于 `dist/og-image.png` ——
+ * 那是**构建产物**，CI 上 `npm run test` 跑在 `node scripts/build.mjs` **之前**，
+ * 且 `dist/` 不入库 ⇒ **CI 上那张图从来就不存在** ⇒ B 也输出不了 og:image
+ * ⇒ 反例抓不住 ⇒ 断言报 `Missing expected rejection`（2026-10-24 实测，
+ * Pages 因此从 9-21 起停更一个月）。
+ *
+ * 所以隔离环境自己备一张卡片（走 `data/og/` 这条**运行期推送**的通道，
+ * 与线上真实路径一致），不再依赖构建产物。
+ *
+ * 卡片本体只需要形状合法：`decodeOgPng` 只看 PNG 签名与 IHDR 声明的宽高。
+ */
+function buildOgCardPng(width = 1200, height = 630) {
+  const chunk = (type, body) => {
+    const len = Buffer.alloc(4);
+    len.writeUInt32BE(body.length, 0);
+    const typed = Buffer.concat([Buffer.from(type, 'latin1'), body]);
+    const crc = Buffer.alloc(4);
+    crc.writeUInt32BE(crc32(typed), 0);
+    return Buffer.concat([len, typed, crc]);
+  };
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
+  ihdr[8] = 8;   // bit depth
+  ihdr[9] = 2;   // color type: truecolor
+  // 一整块同色像素（IDAT 只要求能解开；这里用 zlib 压一段空数据）
+  const raw = Buffer.alloc(height * (1 + width * 3));
+  for (let y = 0; y < height; y++) raw[y * (1 + width * 3)] = 0;
+  return Buffer.concat([
+    Buffer.from('\x89PNG\r\n\x1a\n', 'latin1'),
+    chunk('IHDR', ihdr),
+    chunk('IDAT', deflateSync(raw)),
+    chunk('IEND', Buffer.alloc(0)),
+  ]);
+}
+
+const CRC_TABLE = (() => {
+  const table = new Int32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    table[n] = c;
+  }
+  return table;
+})();
+
+function crc32(buf) {
+  let c = 0xffffffff;
+  for (const b of buf) c = CRC_TABLE[(c ^ b) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
 
 async function replay(serverText, probeOnly = false) {
   const folder = await mkdtemp(resolve(tmpdir(), 'tibo-manage-runtime-'));
@@ -41,6 +111,14 @@ async function replay(serverText, probeOnly = false) {
     writeFile(resolve(folder, 'resets.json'), JSON.stringify({ records })),
     writeFile(resolve(folder, 'stats.json'), JSON.stringify({ generated_at: iso(-1), errors: [] })),
   ]);
+  // 隔离环境自带一张 og 卡片（见 buildOgCardPng 上方的说明）。
+  // 走 `data/og/` 这条运行期推送通道 —— 与线上真实路径一致，
+  // 且不依赖 `dist/og-image.png`（那是构建产物，CI 上跑 test 时还不存在）。
+  await writeOgAsset(folder, {
+    png: buildOgCardPng(),
+    description: '隔离环境自带的 og 卡片',
+    builtAt: iso(-1),
+  });
   const child = spawn(process.execPath, [resolve(folder, 'server.mjs')], { cwd: root,
     env: { ...process.env, DATA_DIR: folder, PORT: String(port), COLLECT_INTERVAL_MIN: '0', WX_APPID: '', WX_SECRET: '', SITE_URL: 'https://acceptance.example', INGEST_TOKEN: 'isolated-test-token' },
     stdio: ['ignore', 'pipe', 'pipe'] });

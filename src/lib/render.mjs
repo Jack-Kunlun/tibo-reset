@@ -907,11 +907,32 @@ export function renderRecentRhythm(m) {
   }).join('');
 }
 
+/**
+ * 「最近记录」三张卡。
+ *
+ * ⚠ 译文块**不能放在 `<a>` 里面**（2026-10-25 实测修正）：
+ *
+ * `<a>` 只能包含 phrasing content，而 `<details>` 是 flow content —— 浏览器
+ * 不会把它踢出 `<a>`（Chrome 155 实测：`a_childTags = ["SPAN","DETAILS"]`，
+ * `details_parentTag = "A"`），于是：
+ *   ① HTML 内容模型违规；
+ *   ② **点「中文翻译」展开译文会同时触发外层链接跳转** —— 实测
+ *      `outer_a_click_fired = true`，用户想看译文却被带去了 X。
+ *
+ * 所以这里让 `<a>` 只包**原文那部分**（可点、跳原推），译文块放在 `<a>` **之后**、
+ * 作为同级元素。译文与原文的先后顺序不变（原文在上、译文在下）。
+ *
+ * 无 url 的记录没有 `<a>`（原本就是 `<div>`），译文块直接跟在 `<p>` 后面。
+ */
 export function renderRecentRecords(m) {
   return m.records.slice(-3).reverse().map((r) => {
-    const tag = r.url ? 'a' : 'div';
     const link = r.url ? ` href="${attr(r.url)}" target="_blank" rel="noopener noreferrer"` : '';
-    return `<${tag} class="am-record"${link}><div class="am-record-top"><span class="am-mono">${fmtDate(r.at).slice(5)} ${fmtTime(r.at)}</span><span>${r.type === 'credit' ? '发券型' : '普通重置'}${r.url ? ' ↗' : ''}</span></div><p>${esc(r.text || '（无原文）')}</p></${tag}>`;
+    const top = `<div class="am-record-top"><span class="am-mono">${fmtDate(r.at).slice(5)} ${fmtTime(r.at)}</span><span>${r.type === 'credit' ? '发券型' : '普通重置'}${r.url ? ' ↗' : ''}</span></div>`;
+    const body = `<p>${esc(r.text || '（无原文）')}</p>`;
+    const translation = translationDetails(r);
+    return r.url
+      ? `<div class="am-record"><a class="am-record-link"${link}>${top}${body}</a>${translation}</div>`
+      : `<div class="am-record">${top}${body}${translation}</div>`;
   }).join('');
 }
 
@@ -1137,6 +1158,7 @@ export function renderTimeline(m) {
       <div class="body">
         <span class="tag ${r.type === 'credit' ? 'c' : 'r'}">${r.type === 'credit' ? '发券型' : '普通重置'}</span>
         <p>${esc(r.text || '（无原文）')}</p>
+        ${translationDetails(r)}
         ${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener">查看原推 ↗</a>` : ''}
       </div>
     </li>`
