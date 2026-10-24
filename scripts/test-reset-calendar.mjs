@@ -142,7 +142,6 @@ const cacheRecords=[{id:'700',type:'reset',announced_at:'2026-10-06T00:00:00Z'},
 const getCachedSignals = runInNewContext(`let sigCache={key:null,value:null}; ${getSignalsSource}; getSignals`,{
   store:{getData:async()=>({tweets:{updated_at:'unchanged',tweets:[day1]},resets:{records:cacheRecords}})},
   latestEventMs,buildResetCalendar,detectSignals:()=>({program,forecasts:[]}),
-  withTweetTranslations:(value)=>value,
   SOURCE_ACCOUNT:ACCOUNT,SOURCE_ZONE:'America/Los_Angeles',USER_ZONE:'Asia/Shanghai',Date,
 });
 const beforeCache=await getCachedSignals();cacheRecords[0].type='credit';const correctedCache=await getCachedSignals();cacheRecords.shift();const removedCache=await getCachedSignals();

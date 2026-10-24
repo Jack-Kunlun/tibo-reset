@@ -250,7 +250,6 @@ function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne
         isAccountObserved: Boolean(observation),
         ...(observation ? { observedAt: observation.observedAt, observationPrecision: observation.precision, sourceLabel: observation.sourceLabel } : {}),
         createdAt: tweet.created_at, day, kind, title: confirmed.length && followup ? followup.title : copy.title,
-        ...(tweet.translation ? { translation: tweet.translation } : {}),
         isUpdate: copy.kind === 'update',
         confirmedAt: confirmed.length ? new Date(Math.min(...confirmed.map((event) => event.at))).toISOString() : null,
         resetCount: confirmed.filter((event) => event.record.type === 'reset').length,

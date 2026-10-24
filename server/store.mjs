@@ -10,8 +10,6 @@
 import { readFile, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createManualStore, projectManualData } from '../src/lib/manual-state.mjs';
-import { withTweetTranslations } from '../src/lib/tweet-translations.mjs';
-import { TRANSLATION_CACHE_FILE, validTranslationCache } from '../src/lib/auto-translations.mjs';
 
 export function createStore(dataDir, { account = 'thsottiaux' } = {}) {
   const cache = new Map();
@@ -46,29 +44,22 @@ export function createStore(dataDir, { account = 'thsottiaux' } = {}) {
   }
 
   async function getRawData() {
-    const [resets, tweets, statsFile, translations] = await Promise.all([
+    const [resets, tweets, statsFile] = await Promise.all([
       readJson('resets.json', { records: [] }),
       readJson('tweets.json', { tweets: [] }),
       readJson('stats.json', { stats: null, generated_at: null }),
-      readJson(TRANSLATION_CACHE_FILE, {}),
     ]);
-    const usableTranslations = validTranslationCache(translations);
-    const translationEntries = usableTranslations ? translations.entries : {};
-    const translationRevision = usableTranslations ? translations.revision : 0;
     // 返回独立副本，避免派生逻辑意外改写后续请求复用的缓存数据。
     return {
       resets: JSON.parse(JSON.stringify(resets)),
-      tweets: withTweetTranslations(tweets, translationEntries),
+      tweets: JSON.parse(JSON.stringify(tweets)),
       statsFile: JSON.parse(JSON.stringify(statsFile)),
-      translationEntries: JSON.parse(JSON.stringify(translationEntries)),
-      translationRevision,
     };
   }
 
   async function getData({ now = Date.now() } = {}) {
     const [raw, manual] = await Promise.all([getRawData(), manualStore.get()]);
-    return { ...projectManualData({ ...raw, manual, now, account }),
-      translationEntries: raw.translationEntries, translationRevision: raw.translationRevision };
+    return projectManualData({ ...raw, manual, now, account });
   }
 
   return {

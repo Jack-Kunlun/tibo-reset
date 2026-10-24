@@ -79,7 +79,6 @@ function recordRows(chart) {
         summary: String(r?.text || '').split('\n')[0].slice(0, 45),
         type: r && r.type === 'credit' ? '发券型' : '额度重置',
         text: (r && r.text) || '',
-        translation: r?.translation?.language === 'zh-CN' ? r.translation.text : '',
         url: (r && r.url) || '',
       };
     });
@@ -150,7 +149,6 @@ function calendarSelection(calendar, date) {
         : `${detail.timePrecision === 'approximate-minute' ? '约' : ''}${fmtDateTime(toTs(detail.confirmedAt || detail.createdAt))} 北京${detail.manual ? ' · 手动补录' : ''}`,
       time: fmtClock(toTs(detail.roles.includes('observed') ? detail.observedAt : detail.confirmedAt || detail.createdAt)),
       text: detail.text || '',
-      translation: detail.translation?.language === 'zh-CN' ? detail.translation.text : '',
       url: detail.url || '',
     })),
   };

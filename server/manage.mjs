@@ -3,7 +3,6 @@
 import { canonicalizeManualEntryTarget, projectManualData, validateManualEntry } from '../src/lib/manual-state.mjs';
 import { analyzeTweet, detectSignals, latestEventMs } from '../src/lib/signals.mjs';
 import { buildResetCalendar } from '../src/lib/reset-calendar.mjs';
-import { withTweetTranslations } from '../src/lib/tweet-translations.mjs';
 
 const MAX_BODY_BYTES = 32 * 1024;
 const BODY_KEYS = new Set(['revision', 'action', 'entry', 'entryId', 'id']);
@@ -366,10 +365,10 @@ export async function handleManage(req, res, { store, send, account = 'thsottiau
     return reply(200, {
       revision: manual.revision,
       dataUpdatedAt: raw.tweets?.updated_at ?? null,
-      forecasts: withTweetTranslations(signals?.forecasts ?? [], raw.translationEntries),
-      overdueForecasts: withTweetTranslations(signals?.overdueForecasts ?? [], raw.translationEntries),
-      records: withTweetTranslations(effective.resets.records, raw.translationEntries),
-      tweets: withTweetTranslations(raw.tweets?.tweets ?? [], raw.translationEntries),
+      forecasts: signals?.forecasts ?? [],
+      overdueForecasts: signals?.overdueForecasts ?? [],
+      records: effective.resets.records,
+      tweets: raw.tweets?.tweets ?? [],
       tweetStates: buildTweetStates({ raw, effective, manual, signals, account, now: currentNow }),
       programPlan: selectableProgramPlan(effective, signals, currentNow, account),
       entries: manual.entries,

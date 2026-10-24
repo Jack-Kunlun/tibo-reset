@@ -16,7 +16,6 @@ import { detectSignals, latestEventMs } from '../src/lib/signals.mjs';
 import { buildResetCalendar } from '../src/lib/reset-calendar.mjs';
 import { createStore } from '../server/store.mjs';
 import { createDashboardPage } from '../miniprogram/utils/dashboard.js';
-import { withTweetTranslations } from '../src/lib/tweet-translations.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const MINI_ROOT = resolve(ROOT, 'miniprogram');
@@ -410,7 +409,7 @@ function createWxmlRuntime() {
 const now = Date.now();
 const dataDirArg=process.argv.find(arg=>arg.startsWith('--data-dir='));
 const previewDataDir=dataDirArg ? resolve(dataDirArg.slice('--data-dir='.length)) : resolve(ROOT,'data');
-const [{ resets, tweets, statsFile: stats, translationEntries, translationRevision }, appConfig] = await Promise.all([
+const [{ resets, tweets, statsFile: stats }, appConfig] = await Promise.all([
   createStore(previewDataDir).getData({ now }),
   readJson('miniprogram/app.json'),
 ]);
@@ -425,17 +424,15 @@ const demoTweet = {
 };
 const tweetPool = DEMO_SIGNAL ? [demoTweet, ...tweets.tweets] : tweets.tweets;
 const account = 'thsottiaux';
-const chart = withTweetTranslations(buildChartData(resets.records, now), translationEntries);
+const chart = buildChartData(resets.records, now);
 const prediction = predictAll(resets.records, { now, tweets: tweets.tweets, account });
-let signals = detectSignals(tweetPool, {
+const signals = detectSignals(tweetPool, {
   now,
   account,
   lastResetAt: latestEventMs(resets.records),
 });
 signals.manualRevision = tweets.manualRevision ?? 0;
 signals.calendar = buildResetCalendar({ records: resets.records, tweets: tweetPool, signals, now, account });
-signals.translationRevision = translationRevision;
-signals = withTweetTranslations(signals, translationEntries);
 const state = {
   chart,
   prediction,

@@ -87,7 +87,6 @@ function planEntryView(entry, day, index) {
     key: String(entry.id || entry.url || `day-${day}-entry-${index}`),
     title,
     text: String(entry.text || ''),
-    translation: entry.translation?.language === 'zh-CN' ? entry.translation.text : '',
     url: entry.url || '',
     when: Number.isFinite(createdAt) ? `${fmtDateTime(createdAt)} 北京${entry.manual || entry.sourceLabel === '手动确认' ? ' · 手动确认' : ''}` : '发布时间未知',
     confirmedWhen: Number.isFinite(confirmedAt) ? `确认时刻 ${fmtDateTime(confirmedAt)} 北京` : '',
@@ -379,7 +378,6 @@ function evidenceView(e) {
     via: e.via && e.via !== '原创' ? `↩ ${e.via.replace(/^回复\s*/, '')}` : '原创',
     word: e.timeWord || '',
     text: e.text || '',
-    translation: e.translation?.language === 'zh-CN' ? e.translation.text : '',
     url: e.url || '',
   };
 }
@@ -470,7 +468,6 @@ function signalView(top, level) {
     evMix: '',
     evNote: '',
     text: top.text || '',
-    translation: top.translation?.language === 'zh-CN' ? top.translation.text : '',
     timeNote: top.timeNote || '',
     reason: (top.reasons || []).join('、'),
     // 双时区文本在采集侧就算好了：小程序端算它要依赖 Intl，部分安卓机型不可用

@@ -52,7 +52,7 @@ const sharedHeader = (name) =>
 /* ------------------------------ 读入 ------------------------------ */
 
 const now = resolveBuildNow(process.env.BUILD_NOW);
-const [{ resets, tweets, statsFile, translationEntries, translationRevision }, template] = await Promise.all([
+const [{ resets, tweets, statsFile }, template] = await Promise.all([
   createStore(resolve(ROOT, 'data'), { account: ACCOUNT }).getData({ now }),
   readFile(resolve(ROOT, 'src/index.html'), 'utf8'),
 ]);
@@ -65,8 +65,6 @@ const { chart: chartData, prediction, signals, model } = derive({
   resets,
   tweets,
   statsFile,
-  translationEntries,
-  translationRevision,
   now,
   account: ACCOUNT,
 });

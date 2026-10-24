@@ -69,8 +69,6 @@ import { predictAll, DEFAULT_CONFIG } from '../src/lib/predict.mjs';
 import { analyzeTweet, detectSignals, latestEventMs, USER_ZONE, SOURCE_ZONE } from '../src/lib/signals.mjs';
 import { buildChartData } from '../src/lib/chart-data.js';
 import { buildResetCalendar } from '../src/lib/reset-calendar.mjs';
-import { withTweetTranslations } from '../src/lib/tweet-translations.mjs';
-import { createAutoTranslator, selectTranslationTweets } from '../src/lib/auto-translations.mjs';
 import { derive, logoDataUri, renderPage } from '../src/lib/page.mjs';
 import { createStore } from './store.mjs';
 import { handleManage } from './manage.mjs';
@@ -140,31 +138,6 @@ if (announcementTemplate.error || (announcementTemplate.templateId && !WX_ANNOUN
 const store = createStore(DATA_DIR, { account: SOURCE_ACCOUNT });
 const subs = createSubscriptionStore(DATA_DIR);
 const wechat = createWeChatClient({ appId: WX_APPID, appSecret: WX_SECRET });
-let autoTranslator = null;
-if (process.env.AUTO_TRANSLATE !== '0') {
-  try {
-    autoTranslator = createAutoTranslator({ dataDir: DATA_DIR, account: SOURCE_ACCOUNT });
-    await autoTranslator.initialize((await store.getRawData()).tweets.tweets ?? []);
-  } catch (error) {
-    autoTranslator = null;
-    console.warn(`[translation] 初始化失败，保留原文：${error.message}`);
-  }
-}
-
-function scheduleTranslations() {
-  if (!autoTranslator) return;
-  // 翻译与通知独立，不让外部接口的超时延长采集响应或阻塞重置提醒。
-  setImmediate(async () => {
-    try {
-      const data = await store.getData();
-      const signals = await getSignals(data);
-      await autoTranslator.enqueue(selectTranslationTweets(data.tweets.tweets, signals, { account: SOURCE_ACCOUNT }));
-    } catch (error) {
-      console.warn(`[translation] 暂未完成，保留原文：${error.message}`);
-    }
-  });
-}
-
 /* ---------------------------- 预测结果缓存 ---------------------------- */
 // predictAll 内含 walk-forward 回测与 bootstrap，单次约几十毫秒。
 // 数据没变就没必要重算，因此按数据文件 mtime 做缓存。
@@ -202,15 +175,13 @@ async function getSignals(data) {
   const now = Date.now();
   const hourBucket = Math.floor(now / 3_600_000);
   const observationKey = JSON.stringify(tweets.filter((t) => t.accountObservation).map((t) => [t.id, t.accountObservation]));
-  const key = `${file.updated_at ?? ''}|${tweets.length}|${file.manualRevision ?? 0}|${data.translationRevision ?? 0}|${observationKey}|${JSON.stringify(resets.records)}|${hourBucket}|${SOURCE_ACCOUNT}|${SOURCE_ZONE}|${USER_ZONE}`;
+  const key = `${file.updated_at ?? ''}|${tweets.length}|${file.manualRevision ?? 0}|${observationKey}|${JSON.stringify(resets.records)}|${hourBucket}|${SOURCE_ACCOUNT}|${SOURCE_ZONE}|${USER_ZONE}`;
   if (sigCache.key === key) return sigCache.value;
   const value = detectSignals(tweets, { now, account: SOURCE_ACCOUNT, lastResetAt });
   value.manualRevision = file.manualRevision ?? 0;
-  value.translationRevision = data.translationRevision ?? 0;
   value.calendar = buildResetCalendar({ records: resets.records, tweets, signals: value, now, account: SOURCE_ACCOUNT });
-  const translated = withTweetTranslations(value, data.translationEntries);
-  sigCache = { key, value: translated };
-  return translated;
+  sigCache = { key, value };
+  return value;
 }
 
 /** 通知只接受主链路已核验归属的推文，避免免登录历史快照或他人推文触发预告。 */
@@ -271,7 +242,7 @@ async function getChart(data) {
   data ??= await store.getData();
   const { records } = data.resets;
   if (!records.length) return null;
-  return withTweetTranslations(buildChartData(records, Date.now()), data.translationEntries);
+  return buildChartData(records, Date.now());
 }
 
 /* ------------------------------- 静态资源 ------------------------------- */
@@ -368,15 +339,13 @@ async function getOgMeta() {
 }
 
 async function renderIndexHtml() {
-  const [{ resets, tweets, statsFile, translationEntries, translationRevision }, assets, og] = await Promise.all([
+  const [{ resets, tweets, statsFile }, assets, og] = await Promise.all([
     store.getData(), loadPageAssets(), getOgMeta(),
   ]);
   const derived = derive({
     resets,
     tweets,
     statsFile,
-    translationEntries,
-    translationRevision,
     now: Date.now(),
     account: SOURCE_ACCOUNT,
   });
@@ -608,7 +577,6 @@ async function handleApi(req, res, url) {
       send,
       // 两种通知各消费自己的授权和水位；预告只从实时重算的、已核验推文中产生。
       onAccepted: async () => {
-        scheduleTranslations();
         const common = {
           dataDir: DATA_DIR,
           store: subs,
@@ -739,8 +707,6 @@ server.listen(PORT, () => {
   } else {
     console.log('  采集      已关闭（数据由本机采集后直接 POST /api/ingest 推送）');
   }
-  console.log(`  中文翻译  ${autoTranslator ? 'MyMemory 免 Key · 新增相关推文异步翻译' : '自动翻译关闭 · 使用已有译文或原文'}`);
-  scheduleTranslations();
 });
 
 for (const sig of ['SIGINT', 'SIGTERM']) {

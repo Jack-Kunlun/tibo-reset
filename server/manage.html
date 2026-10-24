@@ -163,7 +163,6 @@
     .table-sub{margin-top:5px;color:var(--dim);font-size:11px;overflow-wrap:anywhere}
     .table-time{font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
     .table-source{margin-top:5px;color:var(--dim);font-size:11px}
-    .table-translation{margin-top:7px;color:var(--lav);font-size:11px}.table-translation summary{cursor:pointer}.table-translation p{margin:8px 0 0;color:#d5d1e3;line-height:1.8;white-space:pre-wrap}
     .action-cell{text-align:right}.row-actions{display:flex;align-items:center;justify-content:flex-end;gap:14px;white-space:nowrap}
     .text-action{padding:5px 0;border:0;background:none;color:var(--lav);font-size:12px;cursor:pointer;text-decoration:none}.text-action:hover{text-decoration:underline}
     .badge.hint{color:var(--amber);border-color:#55482f}.badge.none,.badge.unclassified{border-color:transparent;color:var(--muted);padding-left:0}
@@ -527,8 +526,6 @@
           const programDay=row.entry?.programDay ?? row.record?.programDay;
           if(programDay)content.append(el('div','table-sub',`对应计划 Day ${programDay}`));
           else if((row.entry || row.record?.manual) && !row.tweet)content.append(el('div','table-sub','尚未关联计划日'));
-          const translation=row.tweet?.translation ?? row.record?.translation;
-          if(translation?.language==='zh-CN' && translation.text){const details=el('details','table-translation');details.append(el('summary','','中文翻译'),el('p','',translation.text));content.append(details);}
           if (row.forecast?.window) content.append(el('div','table-sub',forecastWindowLabel(row.forecast)));
           const current=el('td');const badge=statusBadge(row.status);badge.textContent=row.predictedLabel || statusName(row.status);current.append(badge);
           current.append(el('div','table-source',row.predictedSource === 'manual' || row.entry || row.record?.manual ? '手动修订' : '自动判断'));
