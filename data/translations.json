@@ -1,4 +1,346 @@
 {
+  "2113770862860222611": {
+    "sourceHash": "cb20274f34189bbdd6c970b7c2d479053c3e55c7696c7528eeccde5fc57e7b6e",
+    "text": "Codex CLI 更新：我们新增了可复用的提示词预设、内联模型与权限设置，以及企业版 MCP 登录。同时修复了恢复长会话时的失败问题，并加入了 Windows 企业代理认证。出人意料的是，自 DevDay 以来 CLI 的使用量翻了一倍。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2113029854417600834": {
+    "sourceHash": "554fe652c10cbdb4f0ee68caeeef24dd4e04c2e4e0dbd3f24cc7a4cb274056f5",
+    "text": "完全包含在 Pro 套餐内，不占用你的每周用量。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2112034063934742720": {
+    "sourceHash": "1013127d4df3ec06eca63f785f1b17a3cc59cd05ea869b82191a76f7f653d399",
+    "text": "我们团队与 OpenCode 合作，让其中既是 OpenAI API 客户的那部分用户恢复使用，并退回了本会在攻击中被扣掉的额度。另外，你可以申请 Daybreak Blue 权限，用我们偏防御向的宽松配置来做防护。别等到真出事才手忙脚乱，我们随时可以帮忙。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2111918768733753664": {
+    "sourceHash": "b3f5592c3030c700f43aa7fd19233ac905177581e986914bdef31fb3f6fd676c",
+    "text": "大家已经逃离时间线了，现在在街上跟我要重置额度。我做些小卡片发给他们。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2111849858374177222": {
+    "sourceHash": "f4df3ea88be15ee4601a2dd775cb3db0f28866bae8d18c8fca2d7f407479ce95",
+    "text": "今天在搞什么？",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2111519953564368960": {
+    "sourceHash": "c585d663cc5aaf90e3354bc50a7fc4aa55588dd69b86d88fa0f111d1af864aee",
+    "text": "确实，今天他只有平时一半大。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2111492738025959922": {
+    "sourceHash": "9837b3215374cbc4cec1a8c935be6306989e23d772120affb8141fe26dffb6c0",
+    "text": "今天之内，太平洋标准时间下班前到账。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2111492028177723532": {
+    "sourceHash": "1a8c565004481932a3607f7fe5d0d8c0b3a3220768b3ffb8b9a55c92a3a5019b",
+    "text": "是我多想了，还是 @ajambrosino 今天被削弱了？",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2110612268962779352": {
+    "sourceHash": "42c9b11837d4e7d3da1dfe89d8c371eb2cd6dcd5086aa53099db01bc9c33d6e6",
+    "text": "Zach，那咱们把这个改进一下。你今天看着很酷。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2110595554036400151": {
+    "sourceHash": "8516c339fed841a33c4834a2d43ead6a08ddbcf42508579c8144b6eabec9f634",
+    "text": "两小时内到账。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2109892247580000595": {
+    "sourceHash": "87c87fef2e852f84a5df79c4292137c39a3f3d7f62faa2996fa8955ae908412f",
+    "text": "好计划就该简单。我有一个方案，能让大家实际可用的用量大幅增加。希望很快能做完。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2109439315570999598": {
+    "sourceHash": "7a066cb0002a6629143bf9f60437a5c0fb2d8f949af1e6375f25a8a78d03ab77",
+    "text": "这次投票的结果把我搞糊涂了。我本来以为，为了让需求曲线更平滑而恢复 5 小时限制的情况下，Pro 100/200/500 各档的票数会更明显地倒向 2 倍那一侧。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2109430894604026039": {
+    "sourceHash": "1090a95c17eea0c635f2964e611edfb77943d2c4710680521de1792e5d5be262",
+    "text": "这次调整之后，通过订阅消耗用量时，GPT-6.1 Sol 不再收取长上下文费用。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2108840070648397933": {
+    "sourceHash": "3e772f40eb23b20319969b2f024d86f093dfef10e7398113d8da630fe1ea43f1",
+    "text": "一眨眼，已经到周六了。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2108778939057664357": {
+    "sourceHash": "d4726020fa6cc9e835219c6e770a085dfb372a9d43cbf3b4490e9c40bbe39400",
+    "text": "各位，你们知道我们为什么给 Codex 选 300k 的上下文长度吗？我们算过账，这个数更划算。跑 1M 也行，但那只会多消耗用量。好的默认值很重要。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2108349826727588000": {
+    "sourceHash": "b0ee30c898f2c4a4ef0b40cfd3d82cd34cf2f74137716eb4faae00d6f6daa4f1",
+    "text": "今天，我们正式发布 ChatGPT。就在这儿：https://chatgpt.com",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2107913738791596286": {
+    "sourceHash": "8641eec7bb5cb7ad94e46f81d485b8af387696a2d8631ce8d1020848e5910283",
+    "text": "太平洋标准时间下班前到。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2107676261099426030": {
+    "sourceHash": "a7ca8adb407e38e1c89ede2946f2430301bc8829c87e060fb41bb79b186dd7ad",
+    "text": "而且我们不会把这些改进撤回去。鱼和熊掌你都能吃到。明天 Day 3 见！",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2107597780352950624": {
+    "sourceHash": "ddc4645398d119f235c50de08d497b7e0a679a8b8d6a98fd44b22c5d2acfc745",
+    "text": "跟今天其余的发布完全不相关，不过我们的模型确实解决了一些重要的数学问题，团队把它记在了下面这篇博客里。科学进步的新时代，太了不起了。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2107578816638177408": {
+    "sourceHash": "25fd6d4e7e42f354a0eb8bf9519b0e43a3c20706ed204812b3b78f75e2e922a9",
+    "text": "等着今天的更新上线。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2107578625419866469": {
+    "sourceHash": "579c20371c959dc07eaa3b61164667f14682b4ca2488c9b2e7096c84cfc2fdd3",
+    "text": "四个更新，或者一次重置。或者两个都有。第 2 天过得怎么样。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2107577536779870210": {
+    "sourceHash": "c3f3cbc35ec9e9f51b06f2d6efa124b574f1f5f56a7e44f686fd1c6c191b8123",
+    "text": "我还挺喜欢发重置的。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2107558288934216153": {
+    "sourceHash": "9ef6693b408bd8661ba68b8e899017b638762f0b21adccd77a95f867e5b4d92b",
+    "text": "不绕弯子，今天就三个更新。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2106610099720720811": {
+    "sourceHash": "afb11bb6ca9633739b96d0444229cbe1103612066072f83e11129b6c6d3bdf83",
+    "text": "好，那我们就定下来了。接下来只做几件事：简化、让同样的用量更高效、颠覆性的功能或者新模型。有时候你得抢在曲线前面投入，但反馈很明确：你们都希望东西更简单。已经在做了。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2106609390577156384": {
+    "sourceHash": "4bfdeb3779600f190e70b48878590e443cbec5874dd54b5cf5faeacc50792a7c",
+    "text": "应用里现在有完整的用量面板了！要是还缺什么，告诉我，我马上补。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2106603980386394123": {
+    "sourceHash": "ce84bda2f110e46e89e12b385a86a8020ccb97acec29c261ef44c7082e9454b2",
+    "text": "它做的事：删掉所有我不需要保留的邮件分类，并批量做了确认；识别出我各类工作的标签，把邮件都打上相应的标签；带着我过了一遍需要回复的邮件，同时在后台检索相关上下文，帮我把事情做对。过程中我得以梳理了不少别人直接发到邮件里的反馈和请求。是个不错的周六。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2106257453679808676": {
+    "sourceHash": "2718dbcd94d86c21a020ac6cc091ac049f4b7aa6c89a9f25761577b41152c684",
+    "text": "嘿，你还猜不到我们下周要发布什么。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2106239912932692085": {
+    "sourceHash": "0e7bae7ec127ddd7a1657932979bf2557909691c1e614bfadfcd42350458e9e0",
+    "text": "是啊，那是我没能在上午 10 点准时传达到位，是我的问题。下次会安排得更周全，抱歉。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2105899634032025682": {
+    "sourceHash": "9dd7a54201892bf78834d5f665dcae38be3d119e200570c149b1442ad83834d4",
+    "text": "刚从九千多封未读邮件降到 6110 封。接下来 48 小时内，配合干净的过滤器，把收件箱清到零。Dot 已经接下这个挑战了。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2105456105954648292": {
+    "sourceHash": "0e84595e2a6b945227e6223918416e3f70e3b8508e4768692b752f4fc48ab8f1",
+    "text": "你好，今天想让我做点什么？",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2105344469923221941": {
+    "sourceHash": "5ee88dd351077eaf14b70b104e2dd4706f2ba67eabadb7aefcf034ad58ab00ac",
+    "text": "对个人版 Daybreak Blue 用户来说，从明天（10/1）起，使用偏防御向的能力时需要配备符合要求的硬件密钥。企业用户不受影响。硬件密钥是必要的保护，用来确保操作确实来自账号背后的人；这也是我们优先加速防守方策略的一部分。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2105108807693246808": {
+    "sourceHash": "8da714be01ab848c0c860737008e3c6388d6809be1d65fa69a13bcb91d805306",
+    "text": "全部会在 12 小时内铺开。这波操作相当猛！",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2105108212219572319": {
+    "sourceHash": "a92340c8b84982152887264dae4fb5638106a639c34f3a6522b48699e28364de",
+    "text": "没有任何延迟，今天全部上线了。现在只看有多少人愿意用上 Dot。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2105102312167575701": {
+    "sourceHash": "7aae3da80346f2660b2a963375c0c6cb9cbc385b51cd0ace6a61ab806e40e9c4",
+    "text": "社区里有人发了公告，但那个说法是错的 😅 你的主 Dot 已包含在套餐里，7×24 全天可用。你让它帮你创建 Codex 任务时，那部分会照常消耗用量；但当你的 Dot 直接干活时，这部分不消耗任何用量，完全是在套餐用量之外。以后你可以提升它的速度、让它有更多带宽，这会是一项付费功能，但基础能力始终会包含在你的套餐里。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2105007628460109953": {
+    "sourceHash": "8b0298990a30a6e83184a74b70d6a7aa17f5054dbacfb9300dc2968182741508",
+    "text": "GPT-6.1 是个好模型，而且效率高得难以置信。今天起已包含在所有付费套餐中，API 上也已上线。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2105006253986738615": {
+    "sourceHash": "f8cc9497354bd1eacbf2ac92569d0af22c4f8d2d3ab31ad19440dbd570c0a6ee",
+    "text": "现在你可以在 16 家以上的合作伙伴产品里直接使用你的 ChatGPT 订阅。没有什么小限制，你在那儿就能把套餐里包含的用量全部用掉。比如 Devin、OpenCode、Notion，还有很多别的。用 ChatGPT 登录就能开始用。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2104994835212226681": {
+    "sourceHash": "a10a7ccdf8028a4dda00f99f1068c952b34a0e95b6b825b3daa3d6202d5f01db",
+    "text": "因为所有更新同时上线，现场演示受影响了，但他们承诺以后会继续做这类直播。我们宣布的东西几乎都会在今天上线。真等不及看你们会拿它做什么了。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2104988071188148495": {
+    "sourceHash": "0eafde572e769da1f199ba0f1982adfec7504bccf97f96e0bc6098edee5bc82e",
+    "text": "responses API 上的 token 流量相比去年今天增长了 100 倍。与此同时，团队把可用性做到了 99.9%，性能也有显著改善。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2104987594719461796": {
+    "sourceHash": "da654d014b080f96decff86ba48157a356191db2137d6c9384c54204b97fe199",
+    "text": "全新的 Codex Cloud 上线了，比去年改进很大。有了可配置的云端环境，一旦你花时间配好，就再也回不去在笔记本上搭了。Agents API——也就是支撑我们所有云端代理（包括 Dot）的同一套技术——现在也进入预览，并支持操作电脑。它让你也能做出我们今天开放的那些同样惊艳的产品。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2104986027953930613": {
+    "sourceHash": "3fa19668cebde4050fdcf1db43f8538deebf736c74383d3a52edd3326c07ccbe",
+    "text": "隆重推出 6.1 Sol：智能水平接近 Astra，价格只有 Astra 的五分之一，缓存读取还打 95% 折扣。它绝对是一头能打的牛。再叠加 ultrafast——8 倍加速——Astra 今天就有，6.1 Sol 也快了。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2104981170685616361": {
+    "sourceHash": "58e6acc8a9623ed322ed7d22d4cf36cef63cf9adc836239c788e38401facef24",
+    "text": "正式推出 Dot。Dot 7×24 全天为你工作，会从你的反馈中学习，拥有自己的电脑和浏览器，可以接入我们生态里 4000 多个应用。它们由 Astra 驱动——我们迄今为止最好的模型。包含在你的 Pro 套餐里，不消耗你的任何用量。Dot 工作的时候你甚至可以直接给它发消息。今天先给你开通主 Dot，很快你就能创建一整支 Dot 团队了。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2104961497055240633": {
+    "sourceHash": "da5f43d23aeef167ef17d5d21b83a7c83114b566b5dfa34f72f8d1a465b5dd3f",
+    "text": "太平洋时间上午 10 点，一秒不差。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2104934849970913519": {
+    "sourceHash": "1d2304e2e511e0554f82d4d88c586e2e6d718c09543fbc77abae83248c1e2136",
+    "text": "然后我跑到 Theo 身边，凑在他右耳边小声说：「醒醒 Theo，今天是 DevDay。」",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2104838506363408740": {
+    "sourceHash": "6bbbc73a4a563d5407408bd5b0469fe03f281e24ff4d6dcb283e23809d80fa99",
+    "text": "那是昨天，今天才是 DevDay。而且全是好消息。真没想到我们一直捂得这么严。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2104465709384491519": {
+    "sourceHash": "be5885beb2fa776db12e5fe4215c3c31dfacf3e044b3a2f7cff0643ae78ed73d",
+    "text": "周日的氛围。很快在 Fort Mason 见 🎮👩‍💻",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2104313777013526880": {
+    "sourceHash": "ebb14c4a45a727e698079d9f264f40c1bb05220ed3bbe8f3e18803b96817eeed",
+    "text": "去健身房了，周二回来。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2103375711797211460": {
+    "sourceHash": "4db3f87a4dfeb4ce416eaf7d949f52f0150428466cb9a11b8eb4b8438cf0035e",
+    "text": "最近这儿安静了点，一是因为内部 Slack 最近太欢乐了，二是因为大家都铆足了劲准备 DevDay。周二会很有意思。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2102996313780736363": {
+    "sourceHash": "8af5301256dee823f0740efed74ee361142cd0c7baf1d28e706a804699f1a3c0",
+    "text": "等不及下周二 DevDay 了。有些东西很好玩，但也有非常非常多能改变你工作方式的东西。这是最有野心的一轮冲刺，Astra 真的在这么短的时间里让新东西成为可能。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2101920928070562029": {
+    "sourceHash": "fcfd4efcb2f4b825bf899d11bd63d3a38675bf7089950bceccb824f9cd7bc367",
+    "text": "周二凌晨三点。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2101158161994699036": {
+    "sourceHash": "36671f9129ccea70322157b8de0d8e3a845d82d9e0c921986fca15762670c71b",
+    "text": "你主用 Sol？顺便好奇问一下，你从来不买额度吗？",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2101157729037586694": {
+    "sourceHash": "86ecf7ef16d7ca6fef8b8a72abaeed42a1b05c27c775d8853d3f25227ae22fe8",
+    "text": "今天我们和 @romainhuet、@sama 一起在做主题演讲稿，最有意思的部分就是想着怎么把这些讲给你们听——里面好东西太多了，一口气全讲完都有点离谱。下周我们就先放一些出来，不让你们等太久；但接下来几个月我们一直在做的所有新东西，以及它们将如何组合起来，我都非常期待。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2101126440469344384": {
+    "sourceHash": "247276b110b28aeb2fa134327d151289460807d016f829c3795ced95cb369f7c",
+    "text": "我们的内容大概够撑三场 Dev Day。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2100121084817502216": {
+    "sourceHash": "208dd6d96c6f0ab2c1702a7bea58b2397ffe9fcf37e7c6ac01d6cde0059a2858",
+    "text": "周二晚上 11 点，创业公司既视感拉满。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2099922755655479624": {
+    "sourceHash": "7fac1d61f2e088bb000b4b18c14816c8ddf787af53a9046c17945886b6148fce",
+    "text": "2026 年是效率之年，而周二则是在你家门把手上随机掉落小礼物。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2099886370319978506": {
+    "sourceHash": "3e7ae8a8ce87a955489294bd4e60eeaf7cddfb1245988a2fdb4d703c7e50e056",
+    "text": "不敢相信这是这个周末刚拍的，连脖子上的纹身都在。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2099744972195131850": {
+    "sourceHash": "a0b4fd376a9eb74abe6f54919d020835e98fc0ef7b3b0c87c2c40cc66a0bcdac",
+    "text": "这一周的发布密度，你本来会以为要留到 DevDay 2025 才有的。真是疯狂。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2098639827084480864": {
+    "sourceHash": "77567b085772704254c6b570add022fcfa8f88260769197e03246d404f5d94c6",
+    "text": "这周全是 Astra 驱动的发布——Images 2.5、GPT-Live-1、Agents API、Data Agent、面向金融服务的 ChatGPT——而这还不是 DevDay。下周同样安排得满满当当。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
   "2113770573994299544": {
     "sourceHash": "7cbef2511b7a5b0c3f91ebb78659b0ff24e9d57c1413d2387efcc0eeaf5768f3",
     "text": "第 19 天 / 几项小更新：Dot 的通话接通速度大幅加快；在 Codex 和 Work 的对话中途切换推理强度，不再让缓存失效；我们也更新了 Codex CLI。",

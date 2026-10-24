@@ -42,7 +42,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-24T00:03:43.104Z"
+      "first_seen": "2026-10-24T00:03:43.104Z",
+      "translation": {
+        "text": "Codex CLI 更新：我们新增了可复用的提示词预设、内联模型与权限设置，以及企业版 MCP 登录。同时修复了恢复长会话时的失败问题，并加入了 Windows 企业代理认证。出人意料的是，自 DevDay 以来 CLI 的使用量翻了一倍。",
+        "sourceHash": "cb20274f34189bbdd6c970b7c2d479053c3e55c7696c7528eeccde5fc57e7b6e",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2113770573994299544",
@@ -216,6 +222,12 @@
         "text": "Insane. My dot found an $8,300 mistake in my tax return. The return was prepared by a tax firm that is best in class! People, if you’re not using ChatGPT for your Finances, you are definitely leaving money on the table.",
         "created_at": "2026-10-21T15:48:13.000Z",
         "url": ""
+      },
+      "translation": {
+        "text": "完全包含在 Pro 套餐内，不占用你的每周用量。",
+        "sourceHash": "554fe652c10cbdb4f0ee68caeeef24dd4e04c2e4e0dbd3f24cc7a4cb274056f5",
+        "language": "zh-CN",
+        "provider": "agent"
       }
     },
     {
@@ -523,7 +535,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-19T05:42:47.671Z"
+      "first_seen": "2026-10-19T05:42:47.671Z",
+      "translation": {
+        "text": "我们团队与 OpenCode 合作，让其中既是 OpenAI API 客户的那部分用户恢复使用，并退回了本会在攻击中被扣掉的额度。另外，你可以申请 Daybreak Blue 权限，用我们偏防御向的宽松配置来做防护。别等到真出事才手忙脚乱，我们随时可以帮忙。",
+        "sourceHash": "1013127d4df3ec06eca63f785f1b17a3cc59cd05ea869b82191a76f7f653d399",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2111994295364571327",
@@ -610,7 +628,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-19T00:01:24.998Z"
+      "first_seen": "2026-10-19T00:01:24.998Z",
+      "translation": {
+        "text": "大家已经逃离时间线了，现在在街上跟我要重置额度。我做些小卡片发给他们。",
+        "sourceHash": "b3f5592c3030c700f43aa7fd19233ac905177581e986914bdef31fb3f6fd676c",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2111918635849801739",
@@ -641,7 +665,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-18T16:01:35.708Z"
+      "first_seen": "2026-10-18T16:01:35.708Z",
+      "translation": {
+        "text": "今天在搞什么？",
+        "sourceHash": "f4df3ea88be15ee4601a2dd775cb3db0f28866bae8d18c8fca2d7f407479ce95",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2111832959842161136",
@@ -792,7 +822,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-10-17T20:01:20.701Z"
+      "first_seen": "2026-10-17T20:01:20.701Z",
+      "translation": {
+        "text": "确实，今天他只有平时一半大。",
+        "sourceHash": "c585d663cc5aaf90e3354bc50a7fc4aa55588dd69b86d88fa0f111d1af864aee",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2111495569806065883",
@@ -861,7 +897,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-17T20:01:20.701Z"
+      "first_seen": "2026-10-17T20:01:20.701Z",
+      "translation": {
+        "text": "今天之内，太平洋标准时间下班前到账。",
+        "sourceHash": "9837b3215374cbc4cec1a8c935be6306989e23d772120affb8141fe26dffb6c0",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2111492673890824348",
@@ -898,7 +940,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-17T20:01:20.701Z"
+      "first_seen": "2026-10-17T20:01:20.701Z",
+      "translation": {
+        "text": "是我多想了，还是 @ajambrosino 今天被削弱了？",
+        "sourceHash": "1a8c565004481932a3607f7fe5d0d8c0b3a3220768b3ffb8b9a55c92a3a5019b",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2111491105120547265",
@@ -1389,7 +1437,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-10-15T06:05:24.487Z"
+      "first_seen": "2026-10-15T06:05:24.487Z",
+      "translation": {
+        "text": "Zach，那咱们把这个改进一下。你今天看着很酷。",
+        "sourceHash": "42c9b11837d4e7d3da1dfe89d8c371eb2cd6dcd5086aa53099db01bc9c33d6e6",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2110595987542868381",
@@ -1427,7 +1481,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-15T05:15:12.983Z"
+      "first_seen": "2026-10-15T05:15:12.983Z",
+      "translation": {
+        "text": "两小时内到账。",
+        "sourceHash": "8516c339fed841a33c4834a2d43ead6a08ddbcf42508579c8144b6eabec9f634",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2110595484180214059",
@@ -1577,7 +1637,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-13T06:43:50.305Z"
+      "first_seen": "2026-10-13T06:43:50.305Z",
+      "translation": {
+        "text": "好计划就该简单。我有一个方案，能让大家实际可用的用量大幅增加。希望很快能做完。",
+        "sourceHash": "87c87fef2e852f84a5df79c4292137c39a3f3d7f62faa2996fa8955ae908412f",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2109873307722121591",
@@ -1893,7 +1959,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-12T00:51:25.155Z"
+      "first_seen": "2026-10-12T00:51:25.155Z",
+      "translation": {
+        "text": "这次投票的结果把我搞糊涂了。我本来以为，为了让需求曲线更平滑而恢复 5 小时限制的情况下，Pro 100/200/500 各档的票数会更明显地倒向 2 倍那一侧。",
+        "sourceHash": "7a066cb0002a6629143bf9f60437a5c0fb2d8f949af1e6375f25a8a78d03ab77",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2109438305188327838",
@@ -1931,7 +2003,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-12T00:51:25.155Z"
+      "first_seen": "2026-10-12T00:51:25.155Z",
+      "translation": {
+        "text": "这次调整之后，通过订阅消耗用量时，GPT-6.1 Sol 不再收取长上下文费用。",
+        "sourceHash": "1090a95c17eea0c635f2964e611edfb77943d2c4710680521de1792e5d5be262",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2109430343346581527",
@@ -2243,7 +2321,13 @@
       "role": "post",
       "foundVia": "timeline-browser",
       "first_seen": "2026-10-10T08:47:23.302Z",
-      "author_verified": true
+      "author_verified": true,
+      "translation": {
+        "text": "一眨眼，已经到周六了。",
+        "sourceHash": "3e772f40eb23b20319969b2f024d86f093dfef10e7398113d8da630fe1ea43f1",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2108780620583403652",
@@ -2280,7 +2364,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-10-10T05:38:57.008Z"
+      "first_seen": "2026-10-10T05:38:57.008Z",
+      "translation": {
+        "text": "各位，你们知道我们为什么给 Codex 选 300k 的上下文长度吗？我们算过账，这个数更划算。跑 1M 也行，但那只会多消耗用量。好的默认值很重要。",
+        "sourceHash": "d4726020fa6cc9e835219c6e770a085dfb372a9d43cbf3b4490e9c40bbe39400",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2108777962053292398",
@@ -2428,7 +2518,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-09T01:15:26.727Z"
+      "first_seen": "2026-10-09T01:15:26.727Z",
+      "translation": {
+        "text": "今天，我们正式发布 ChatGPT。就在这儿：https://chatgpt.com",
+        "sourceHash": "b0ee30c898f2c4a4ef0b40cfd3d82cd34cf2f74137716eb4faae00d6f6daa4f1",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2108275041276420573",
@@ -2679,6 +2775,12 @@
         "text": "Bro is taking “I don’t write code anymore” too literally",
         "created_at": "2026-10-07T12:20:34.000Z",
         "url": ""
+      },
+      "translation": {
+        "text": "太平洋标准时间下班前到。",
+        "sourceHash": "8641eec7bb5cb7ad94e46f81d485b8af387696a2d8631ce8d1020848e5910283",
+        "language": "zh-CN",
+        "provider": "agent"
       }
     },
     {
@@ -2822,7 +2924,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-10-07T03:41:40.733Z"
+      "first_seen": "2026-10-07T03:41:40.733Z",
+      "translation": {
+        "text": "而且我们不会把这些改进撤回去。鱼和熊掌你都能吃到。明天 Day 3 见！",
+        "sourceHash": "a7ca8adb407e38e1c89ede2946f2430301bc8829c87e060fb41bb79b186dd7ad",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2107676072871600470",
@@ -2987,7 +3095,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-06T23:17:23.229Z"
+      "first_seen": "2026-10-06T23:17:23.229Z",
+      "translation": {
+        "text": "跟今天其余的发布完全不相关，不过我们的模型确实解决了一些重要的数学问题，团队把它记在了下面这篇博客里。科学进步的新时代，太了不起了。",
+        "sourceHash": "ddc4645398d119f235c50de08d497b7e0a679a8b8d6a98fd44b22c5d2acfc745",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2107592473048715573",
@@ -3149,7 +3263,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-10-06T21:11:49.454Z"
+      "first_seen": "2026-10-06T21:11:49.454Z",
+      "translation": {
+        "text": "等着今天的更新上线。",
+        "sourceHash": "25fd6d4e7e42f354a0eb8bf9519b0e43a3c20706ed204812b3b78f75e2e922a9",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2107578625419866469",
@@ -3160,7 +3280,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-06T21:11:49.454Z"
+      "first_seen": "2026-10-06T21:11:49.454Z",
+      "translation": {
+        "text": "四个更新，或者一次重置。或者两个都有。第 2 天过得怎么样。",
+        "sourceHash": "579c20371c959dc07eaa3b61164667f14682b4ca2488c9b2e7096c84cfc2fdd3",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2107577536779870210",
@@ -3178,7 +3304,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-10-06T21:11:49.454Z"
+      "first_seen": "2026-10-06T21:11:49.454Z",
+      "translation": {
+        "text": "我还挺喜欢发重置的。",
+        "sourceHash": "c3f3cbc35ec9e9f51b06f2d6efa124b574f1f5f56a7e44f686fd1c6c191b8123",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2107576143285219799",
@@ -3287,7 +3419,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-10-06T20:08:57.087Z"
+      "first_seen": "2026-10-06T20:08:57.087Z",
+      "translation": {
+        "text": "不绕弯子，今天就三个更新。",
+        "sourceHash": "9ef6693b408bd8661ba68b8e899017b638762f0b21adccd77a95f867e5b4d92b",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2107555660548468830",
@@ -4024,7 +4162,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-04T06:02:04.987Z"
+      "first_seen": "2026-10-04T06:02:04.987Z",
+      "translation": {
+        "text": "好，那我们就定下来了。接下来只做几件事：简化、让同样的用量更高效、颠覆性的功能或者新模型。有时候你得抢在曲线前面投入，但反馈很明确：你们都希望东西更简单。已经在做了。",
+        "sourceHash": "afb11bb6ca9633739b96d0444229cbe1103612066072f83e11129b6c6d3bdf83",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2106609390577156384",
@@ -4042,7 +4186,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-10-04T04:59:20.574Z"
+      "first_seen": "2026-10-04T04:59:20.574Z",
+      "translation": {
+        "text": "应用里现在有完整的用量面板了！要是还缺什么，告诉我，我马上补。",
+        "sourceHash": "4bfdeb3779600f190e70b48878590e443cbec5874dd54b5cf5faeacc50792a7c",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2106607456130592861",
@@ -4097,7 +4247,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-04T04:59:20.574Z"
+      "first_seen": "2026-10-04T04:59:20.574Z",
+      "translation": {
+        "text": "它做的事：删掉所有我不需要保留的邮件分类，并批量做了确认；识别出我各类工作的标签，把邮件都打上相应的标签；带着我过了一遍需要回复的邮件，同时在后台检索相关上下文，帮我把事情做对。过程中我得以梳理了不少别人直接发到邮件里的反馈和请求。是个不错的周六。",
+        "sourceHash": "ce84bda2f110e46e89e12b385a86a8020ccb97acec29c261ef44c7082e9454b2",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2106602729875685780",
@@ -4281,7 +4437,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-10-03T05:43:48.912Z"
+      "first_seen": "2026-10-03T05:43:48.912Z",
+      "translation": {
+        "text": "嘿，你还猜不到我们下周要发布什么。",
+        "sourceHash": "2718dbcd94d86c21a020ac6cc091ac049f4b7aa6c89a9f25761577b41152c684",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2106255580772061332",
@@ -4364,7 +4526,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-10-03T04:40:13.136Z"
+      "first_seen": "2026-10-03T04:40:13.136Z",
+      "translation": {
+        "text": "是啊，那是我没能在上午 10 点准时传达到位，是我的问题。下次会安排得更周全，抱歉。",
+        "sourceHash": "0e7bae7ec127ddd7a1657932979bf2557909691c1e614bfadfcd42350458e9e0",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2106239435461579088",
@@ -4474,7 +4642,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-02T10:10:04.231Z"
+      "first_seen": "2026-10-02T10:10:04.231Z",
+      "translation": {
+        "text": "刚从九千多封未读邮件降到 6110 封。接下来 48 小时内，配合干净的过滤器，把收件箱清到零。Dot 已经接下这个挑战了。",
+        "sourceHash": "9dd7a54201892bf78834d5f665dcae38be3d119e200570c149b1442ad83834d4",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2105863620433453166",
@@ -4793,7 +4967,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-10-02T10:10:04.231Z"
+      "first_seen": "2026-10-02T10:10:04.231Z",
+      "translation": {
+        "text": "你好，今天想让我做点什么？",
+        "sourceHash": "0e84595e2a6b945227e6223918416e3f70e3b8508e4768692b752f4fc48ab8f1",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2105395200248156556",
@@ -4856,7 +5036,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-10-02T10:10:04.231Z"
+      "first_seen": "2026-10-02T10:10:04.231Z",
+      "translation": {
+        "text": "对个人版 Daybreak Blue 用户来说，从明天（10/1）起，使用偏防御向的能力时需要配备符合要求的硬件密钥。企业用户不受影响。硬件密钥是必要的保护，用来确保操作确实来自账号背后的人；这也是我们优先加速防守方策略的一部分。",
+        "sourceHash": "5ee88dd351077eaf14b70b104e2dd4706f2ba67eabadb7aefcf034ad58ab00ac",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2105310973532012793",
@@ -5263,7 +5449,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-09-30T05:47:20.931Z"
+      "first_seen": "2026-09-30T05:47:20.931Z",
+      "translation": {
+        "text": "全部会在 12 小时内铺开。这波操作相当猛！",
+        "sourceHash": "8da714be01ab848c0c860737008e3c6388d6809be1d65fa69a13bcb91d805306",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2105108212219572319",
@@ -5281,7 +5473,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-09-30T05:47:20.931Z"
+      "first_seen": "2026-09-30T05:47:20.931Z",
+      "translation": {
+        "text": "没有任何延迟，今天全部上线了。现在只看有多少人愿意用上 Dot。",
+        "sourceHash": "a92340c8b84982152887264dae4fb5638106a639c34f3a6522b48699e28364de",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2105106575866364103",
@@ -5370,7 +5568,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-09-30T05:47:20.931Z"
+      "first_seen": "2026-09-30T05:47:20.931Z",
+      "translation": {
+        "text": "社区里有人发了公告，但那个说法是错的 😅 你的主 Dot 已包含在套餐里，7×24 全天可用。你让它帮你创建 Codex 任务时，那部分会照常消耗用量；但当你的 Dot 直接干活时，这部分不消耗任何用量，完全是在套餐用量之外。以后你可以提升它的速度、让它有更多带宽，这会是一项付费功能，但基础能力始终会包含在你的套餐里。",
+        "sourceHash": "7aae3da80346f2660b2a963375c0c6cb9cbc385b51cd0ace6a61ab806e40e9c4",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2105097443847332188",
@@ -5529,7 +5733,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-09-29T21:23:48.363Z"
+      "first_seen": "2026-09-29T21:23:48.363Z",
+      "translation": {
+        "text": "GPT-6.1 是个好模型，而且效率高得难以置信。今天起已包含在所有付费套餐中，API 上也已上线。",
+        "sourceHash": "8b0298990a30a6e83184a74b70d6a7aa17f5054dbacfb9300dc2968182741508",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2105006253986738615",
@@ -5540,7 +5750,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-09-29T21:23:48.363Z"
+      "first_seen": "2026-09-29T21:23:48.363Z",
+      "translation": {
+        "text": "现在你可以在 16 家以上的合作伙伴产品里直接使用你的 ChatGPT 订阅。没有什么小限制，你在那儿就能把套餐里包含的用量全部用掉。比如 Devin、OpenCode、Notion，还有很多别的。用 ChatGPT 登录就能开始用。",
+        "sourceHash": "f8cc9497354bd1eacbf2ac92569d0af22c4f8d2d3ab31ad19440dbd570c0a6ee",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2104994835212226681",
@@ -5551,7 +5767,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-09-29T21:23:48.363Z"
+      "first_seen": "2026-09-29T21:23:48.363Z",
+      "translation": {
+        "text": "因为所有更新同时上线，现场演示受影响了，但他们承诺以后会继续做这类直播。我们宣布的东西几乎都会在今天上线。真等不及看你们会拿它做什么了。",
+        "sourceHash": "a10a7ccdf8028a4dda00f99f1068c952b34a0e95b6b825b3daa3d6202d5f01db",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2104992080095564111",
@@ -5595,7 +5817,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-09-29T21:23:48.363Z"
+      "first_seen": "2026-09-29T21:23:48.363Z",
+      "translation": {
+        "text": "responses API 上的 token 流量相比去年今天增长了 100 倍。与此同时，团队把可用性做到了 99.9%，性能也有显著改善。",
+        "sourceHash": "0eafde572e769da1f199ba0f1982adfec7504bccf97f96e0bc6098edee5bc82e",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2104987594719461796",
@@ -5607,7 +5835,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-09-29T21:23:48.363Z"
+      "first_seen": "2026-09-29T21:23:48.363Z",
+      "translation": {
+        "text": "全新的 Codex Cloud 上线了，比去年改进很大。有了可配置的云端环境，一旦你花时间配好，就再也回不去在笔记本上搭了。Agents API——也就是支撑我们所有云端代理（包括 Dot）的同一套技术——现在也进入预览，并支持操作电脑。它让你也能做出我们今天开放的那些同样惊艳的产品。",
+        "sourceHash": "da654d014b080f96decff86ba48157a356191db2137d6c9384c54204b97fe199",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2104986448269279399",
@@ -5629,7 +5863,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-09-29T21:23:48.363Z"
+      "first_seen": "2026-09-29T21:23:48.363Z",
+      "translation": {
+        "text": "隆重推出 6.1 Sol：智能水平接近 Astra，价格只有 Astra 的五分之一，缓存读取还打 95% 折扣。它绝对是一头能打的牛。再叠加 ultrafast——8 倍加速——Astra 今天就有，6.1 Sol 也快了。",
+        "sourceHash": "3fa19668cebde4050fdcf1db43f8538deebf736c74383d3a52edd3326c07ccbe",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2104983716049379472",
@@ -5653,7 +5893,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-09-29T21:23:48.363Z"
+      "first_seen": "2026-09-29T21:23:48.363Z",
+      "translation": {
+        "text": "正式推出 Dot。Dot 7×24 全天为你工作，会从你的反馈中学习，拥有自己的电脑和浏览器，可以接入我们生态里 4000 多个应用。它们由 Astra 驱动——我们迄今为止最好的模型。包含在你的 Pro 套餐里，不消耗你的任何用量。Dot 工作的时候你甚至可以直接给它发消息。今天先给你开通主 Dot，很快你就能创建一整支 Dot 团队了。",
+        "sourceHash": "58e6acc8a9623ed322ed7d22d4cf36cef63cf9adc836239c788e38401facef24",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2104961497055240633",
@@ -5664,7 +5910,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-09-29T21:23:48.363Z"
+      "first_seen": "2026-09-29T21:23:48.363Z",
+      "translation": {
+        "text": "太平洋时间上午 10 点，一秒不差。",
+        "sourceHash": "da5f43d23aeef167ef17d5d21b83a7c83114b566b5dfa34f72f8d1a465b5dd3f",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2104952602710638877",
@@ -5730,7 +5982,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-09-29T15:39:41.225Z"
+      "first_seen": "2026-09-29T15:39:41.225Z",
+      "translation": {
+        "text": "然后我跑到 Theo 身边，凑在他右耳边小声说：「醒醒 Theo，今天是 DevDay。」",
+        "sourceHash": "1d2304e2e511e0554f82d4d88c586e2e6d718c09543fbc77abae83248c1e2136",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2104838506363408740",
@@ -5741,7 +5999,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-09-29T13:20:39.155Z"
+      "first_seen": "2026-09-29T13:20:39.155Z",
+      "translation": {
+        "text": "那是昨天，今天才是 DevDay。而且全是好消息。真没想到我们一直捂得这么严。",
+        "sourceHash": "6bbbc73a4a563d5407408bd5b0469fe03f281e24ff4d6dcb283e23809d80fa99",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2104827790440935508",
@@ -5793,7 +6057,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-09-29T05:17:34.017Z"
+      "first_seen": "2026-09-29T05:17:34.017Z",
+      "translation": {
+        "text": "周日的氛围。很快在 Fort Mason 见 🎮👩‍💻",
+        "sourceHash": "be5885beb2fa776db12e5fe4215c3c31dfacf3e044b3a2f7cff0643ae78ed73d",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2104462923661988233",
@@ -5912,7 +6182,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-09-29T05:17:34.017Z"
+      "first_seen": "2026-09-29T05:17:34.017Z",
+      "translation": {
+        "text": "去健身房了，周二回来。",
+        "sourceHash": "ebb14c4a45a727e698079d9f264f40c1bb05220ed3bbe8f3e18803b96817eeed",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2104313502697660428",
@@ -6158,7 +6434,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-09-25T12:30:00.628Z"
+      "first_seen": "2026-09-25T12:30:00.628Z",
+      "translation": {
+        "text": "最近这儿安静了点，一是因为内部 Slack 最近太欢乐了，二是因为大家都铆足了劲准备 DevDay。周二会很有意思。",
+        "sourceHash": "4db3f87a4dfeb4ce416eaf7d949f52f0150428466cb9a11b8eb4b8438cf0035e",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2102996313780736363",
@@ -6169,7 +6451,13 @@
       "account": "thsottiaux",
       "role": "post",
       "foundVia": "timeline-browser",
-      "first_seen": "2026-09-24T12:22:28.987Z"
+      "first_seen": "2026-09-24T12:22:28.987Z",
+      "translation": {
+        "text": "等不及下周二 DevDay 了。有些东西很好玩，但也有非常非常多能改变你工作方式的东西。这是最有野心的一轮冲刺，Astra 真的在这么短的时间里让新东西成为可能。",
+        "sourceHash": "8af5301256dee823f0740efed74ee361142cd0c7baf1d28e706a804699f1a3c0",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2102982591628648784",
@@ -6603,7 +6891,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-09-22T04:36:07.335Z"
+      "first_seen": "2026-09-22T04:36:07.335Z",
+      "translation": {
+        "text": "周二凌晨三点。",
+        "sourceHash": "fcfd4efcb2f4b825bf899d11bd63d3a38675bf7089950bceccb824f9cd7bc367",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2101920329346195690",
@@ -6867,7 +7161,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-09-22T04:36:07.335Z"
+      "first_seen": "2026-09-22T04:36:07.335Z",
+      "translation": {
+        "text": "你主用 Sol？顺便好奇问一下，你从来不买额度吗？",
+        "sourceHash": "36671f9129ccea70322157b8de0d8e3a845d82d9e0c921986fca15762670c71b",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2101157729037586694",
@@ -6880,7 +7180,13 @@
       "foundVia": "timeline-browser",
       "inReplyTo": null,
       "url": "https://x.com/thsottiaux/status/2101157729037586694",
-      "text_full": true
+      "text_full": true,
+      "translation": {
+        "text": "今天我们和 @romainhuet、@sama 一起在做主题演讲稿，最有意思的部分就是想着怎么把这些讲给你们听——里面好东西太多了，一口气全讲完都有点离谱。下周我们就先放一些出来，不让你们等太久；但接下来几个月我们一直在做的所有新东西，以及它们将如何组合起来，我都非常期待。",
+        "sourceHash": "86ecf7ef16d7ca6fef8b8a72abaeed42a1b05c27c775d8853d3f25227ae22fe8",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2101156788011962700",
@@ -6934,7 +7240,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-09-22T04:36:07.335Z"
+      "first_seen": "2026-09-22T04:36:07.335Z",
+      "translation": {
+        "text": "我们的内容大概够撑三场 Dev Day。",
+        "sourceHash": "247276b110b28aeb2fa134327d151289460807d016f829c3795ced95cb369f7c",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2101125563448705092",
@@ -7240,7 +7552,13 @@
       "role": "post",
       "foundVia": "timeline-browser",
       "inReplyTo": null,
-      "first_seen": "2026-09-22T03:21:52.165Z"
+      "first_seen": "2026-09-22T03:21:52.165Z",
+      "translation": {
+        "text": "周二晚上 11 点，创业公司既视感拉满。",
+        "sourceHash": "208dd6d96c6f0ab2c1702a7bea58b2397ffe9fcf37e7c6ac01d6cde0059a2858",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2099923055636250714",
@@ -7270,7 +7588,13 @@
       "role": "post",
       "foundVia": "timeline-browser",
       "inReplyTo": null,
-      "first_seen": "2026-09-22T03:21:52.165Z"
+      "first_seen": "2026-09-22T03:21:52.165Z",
+      "translation": {
+        "text": "2026 年是效率之年，而周二则是在你家门把手上随机掉落小礼物。",
+        "sourceHash": "7fac1d61f2e088bb000b4b18c14816c8ddf787af53a9046c17945886b6148fce",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2099922535521693877",
@@ -7342,7 +7666,13 @@
       "account": "thsottiaux",
       "role": "reply",
       "foundVia": "with-replies",
-      "first_seen": "2026-09-22T04:36:07.335Z"
+      "first_seen": "2026-09-22T04:36:07.335Z",
+      "translation": {
+        "text": "不敢相信这是这个周末刚拍的，连脖子上的纹身都在。",
+        "sourceHash": "3e7ae8a8ce87a955489294bd4e60eeaf7cddfb1245988a2fdb4d703c7e50e056",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2099884278733787199",
@@ -7426,7 +7756,13 @@
       "role": "post",
       "foundVia": "timeline-browser",
       "inReplyTo": null,
-      "first_seen": "2026-09-22T03:21:52.165Z"
+      "first_seen": "2026-09-22T03:21:52.165Z",
+      "translation": {
+        "text": "这一周的发布密度，你本来会以为要留到 DevDay 2025 才有的。真是疯狂。",
+        "sourceHash": "a0b4fd376a9eb74abe6f54919d020835e98fc0ef7b3b0c87c2c40cc66a0bcdac",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2099741116925096020",
@@ -7607,7 +7943,13 @@
       "role": "post",
       "foundVia": "timeline-browser",
       "inReplyTo": null,
-      "first_seen": "2026-09-22T03:16:19.218Z"
+      "first_seen": "2026-09-22T03:16:19.218Z",
+      "translation": {
+        "text": "这周全是 Astra 驱动的发布——Images 2.5、GPT-Live-1、Agents API、Data Agent、面向金融服务的 ChatGPT——而这还不是 DevDay。下周同样安排得满满当当。",
+        "sourceHash": "77567b085772704254c6b570add022fcfa8f88260769197e03246d404f5d94c6",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2098613228486152223",
@@ -7684,7 +8026,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-24T09:37:03.896Z",
+  "updated_at": "2026-10-24T12:05:49.625Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }
