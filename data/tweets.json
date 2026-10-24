@@ -1,6 +1,93 @@
 {
   "tweets": [
     {
+      "id": "2114074885622501706",
+      "text": "DM if you want to help scale dots to 1B users and have done similar things in the past",
+      "created_at": "2026-10-24T19:21:45.000Z",
+      "url": "https://x.com/thsottiaux/status/2114074885622501706",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-24T20:01:20.486Z"
+    },
+    {
+      "id": "2114074317759938918",
+      "text": "No need for a bribe. What’s bothering you",
+      "created_at": "2026-10-24T19:19:29.000Z",
+      "url": "https://x.com/thsottiaux/status/2114074317759938918",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "can",
+        "id": "",
+        "text": "can i bribe someone at @OpenAIDevs to remove \"mini\" from codex?",
+        "created_at": "2026-10-24T16:24:32.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-24T20:01:20.486Z"
+    },
+    {
+      "id": "2114073762895405067",
+      "text": "Hi 👋",
+      "created_at": "2026-10-24T19:17:17.000Z",
+      "url": "https://x.com/thsottiaux/status/2114073762895405067",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "TokenGremlin",
+        "id": "",
+        "text": "Wait, are we seeing a wave of resignations at OpenAI now too? Please don't tell me Tibo is next. Seriously, what the hell is going on?",
+        "created_at": "2026-10-24T17:58:34.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-24T20:01:20.486Z"
+    },
+    {
+      "id": "2114037527598576003",
+      "text": "One day",
+      "created_at": "2026-10-24T16:53:18.000Z",
+      "url": "https://x.com/thsottiaux/status/2114037527598576003",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "vishalsingh2972",
+        "id": "",
+        "text": "RESET PARK 😎",
+        "created_at": "2026-10-24T16:29:41.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-24T20:01:20.486Z"
+    },
+    {
+      "id": "2114030784625647855",
+      "text": "Saturday is for fixing bugs while sipping coffee. What are some great places to hangout in SF?",
+      "created_at": "2026-10-24T16:26:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2114030784625647855",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-24T20:01:20.486Z",
+      "translation": {
+        "text": "周六就该一边喝咖啡一边修 bug。旧金山有哪些好地方适合待着？",
+        "sourceHash": "c74568c9823fea5e83546513633a7c16babc1f94a805418db58a30a003d06d05",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
       "id": "2113838156193894447",
       "text": "The difference between having a tool and being a tool is subtle these days and it’s easy to accidentally build yourself into being a tool. Don’t be a tool.",
       "created_at": "2026-10-24T03:41:04.000Z",
@@ -8026,7 +8113,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-24T12:05:49.625Z",
+  "updated_at": "2026-10-24T20:02:24.409Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }

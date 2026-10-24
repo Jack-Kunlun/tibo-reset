@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-20T06:33:48.000Z",
     "last_text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
-    "days_since_last": 4.227346898148149,
+    "days_since_last": 4.560793726851852,
     "avg_interval_days": 6.2203877314814795,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.437522122081761,
@@ -14,26 +14,26 @@
     "reset_count": 58,
     "hit_within_avg": 0.71875
   },
-  "generated_at": "2026-10-24T12:01:10.876Z",
+  "generated_at": "2026-10-24T20:01:20.695Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
-    "stoppedBy": "known",
-    "newTweets": 0,
+    "stoppedBy": "floor",
+    "newTweets": 5,
     "knownCount": 447,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 1,
-      "harvested": 5,
-      "withContext": 1,
+      "steps": 8,
+      "harvested": 14,
+      "withContext": 6,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 5,
-      "attempted": 5,
-      "fetched": 5,
+      "candidates": 6,
+      "attempted": 6,
+      "fetched": 6,
       "skipped": 0,
       "missingReplyContext": [],
       "scanned": [
@@ -71,6 +71,13 @@
           "showMore": false,
           "needsReplyContext": false,
           "replyContextStatus": "not-required"
+        },
+        {
+          "id": "2112592264686149749",
+          "length": 442,
+          "showMore": false,
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
         }
       ]
     }
@@ -80,7 +87,7 @@
     "updated": 0,
     "removed": 0,
     "upstreamCount": 66,
-    "refreshedAt": "2026-10-24T12:00:48.100Z",
+    "refreshedAt": "2026-10-24T20:00:46.837Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
