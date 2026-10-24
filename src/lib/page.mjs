@@ -19,9 +19,10 @@ import { fileURLToPath } from 'node:url';
 
 import { buildChartData } from './chart-data.js';
 import { predictAll } from './predict.mjs';
-import { detectSignals, latestEventMs } from './signals.mjs';
+import { detectSignals, latestEventMs, withSignalTranslations } from './signals.mjs';
 import { renderAll } from './render.mjs';
-import { buildResetCalendar } from './reset-calendar.mjs';
+import { buildResetCalendar, withCalendarTranslations } from './reset-calendar.mjs';
+import { withChartTranslations } from './tweet-translations.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -39,18 +40,23 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
  * @returns {{chart:object, prediction:object, signals:object, model:object}}
  */
 export function derive({ resets, tweets, statsFile, now, account }) {
-  const chart = buildChartData(resets.records, now);
+  // 图表（历史记录）也要挂译文 —— 历史记录里的正文就是原推文，
+  // 与信号证据、28 天计划条目同源。小程序「重置历史」页会渲染它。
+  const chart = withChartTranslations(buildChartData(resets.records, now), tweets.tweets);
   if (!chart) throw new Error('记录不足（至少需要 2 条带时间的记录），无法渲染页面');
 
   const prediction = predictAll(resets.records, { now, tweets: tweets.tweets, account });
   // lastResetAt 让「已经兑现的预告」不再展示（见 signals.mjs 里 staleWindowReason 的注释）。
   // 口径是「最近一次额度事件」，**含发券型 credit** —— 预告兑现与否与那次发放叫什么名字无关。
-  const signals = detectSignals(tweets.tweets, {
+  const signals = withSignalTranslations(detectSignals(tweets.tweets, {
     now,
     account,
     lastResetAt: latestEventMs(resets.records),
-  });
-  signals.calendar = buildResetCalendar({ records: resets.records, tweets: tweets.tweets, signals, now, account });
+  }), tweets.tweets);
+  signals.calendar = withCalendarTranslations(
+    buildResetCalendar({ records: resets.records, tweets: tweets.tweets, signals, now, account }),
+    tweets.tweets,
+  );
   const model = {
     ...chart,
     generatedAt: statsFile.generated_at ?? new Date(now).toISOString(),
@@ -58,6 +64,8 @@ export function derive({ resets, tweets, statsFile, now, account }) {
     collectErrors: statsFile.errors ?? [],
     accountObservationRevision: signals.accountObservationRevision,
     manualRevision: tweets.manualRevision ?? 0,
+    // 译文条数：译文变化时页面要能察觉（否则「推上去了但页面没变」）。
+    translationRevision: signals.translationRevision ?? 0,
   };
   return { chart, prediction, signals, model };
 }

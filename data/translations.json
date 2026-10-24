@@ -1,0 +1,218 @@
+{
+  "2113770573994299544": {
+    "sourceHash": "7cbef2511b7a5b0c3f91ebb78659b0ff24e9d57c1413d2387efcc0eeaf5768f3",
+    "text": "第 19 天 / 几项小更新：Dot 的通话接通速度大幅加快；在 Codex 和 Work 的对话中途切换推理强度，不再让缓存失效；我们也更新了 Codex CLI。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2113492502355562875": {
+    "sourceHash": "2a0136bee4f91125a61036478c0008f20a84d9dbf19ecb75ea1646b8305d6965",
+    "text": "将于明天太平洋标准时间上午 10 点前到账，同时会有一项小更新。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2113492187770175603": {
+    "sourceHash": "92d08ce2cd96b7c3f6b413426684c4be7731c62c1c2df677d69c70095f0279bf",
+    "text": "第 18 天 / Decisions API 正式上线，OpenResponses 加入 Linux 基金会；我们发布了一些性能改进，Uber 也正在全面采用 Codex 和 Work。不过，没错……还是一次重置！",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2113162413008884099": {
+    "sourceHash": "0beceaa7c3ce63896d4626c32c332474d996a495d857a90fe9797ef6587cfdd3",
+    "text": "将于明天太平洋标准时间上午 10 点前到账。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2113162277688070445": {
+    "sourceHash": "809bbb1045ac7619c1671e7ad2cdb23eab8d337bb53ead6731642dd09d4775cd",
+    "text": "第 17 天 / 你们可能以为我们忘了，不过没有，今天是重置日。也借这个机会提醒大家提前开通 Daybreak Blue 权限，只需要 15 分钟；你肯定不想在发生故障时才去办理。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2112798407928713717": {
+    "sourceHash": "0410597f49f234d7370b0ed485cb36c29f5cb232eeab6063c8c211024373ecab",
+    "text": "我要求来一次重置。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2112712984644784534": {
+    "sourceHash": "12f45079f76d50b5c1ce6e27105bff8159b970e3cd74e9f2bcb8c49deb062858",
+    "text": "第 16 天 / API 的缓存现在可以保留 12 小时；对于在 Codex 和 Work 中登录使用的用户，我们会一直保留上下文缓存。回到旧对话，或过了几个小时再继续，都不会受到用量方面的惩罚，并且可以保证命中缓存。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2112432076767289678": {
+    "sourceHash": "ac73a92917eac8b5d9b1f0371b7a33e1eb326f4caff59884576bc52f39b8c932",
+    "text": "第 15 天 / 改口了，我们还在继续做……还有一次重置。尽情使用吧。https://t.co/RZ9WhtI802",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2112268918681485431": {
+    "sourceHash": "85baa7522bf092b3f4317fd3df0dfe0387b42abeb8d6f3c185af3c0ab81c531e",
+    "text": "第 15 天 / 我们这下完了。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2111990254408434095": {
+    "sourceHash": "b6bf62df8877b957cde7a0b08023ab47c403a521d4b5207371486827e591a9b1",
+    "text": "第 14 天 / 一项让日常使用更方便的小改进：现在可以在桌面应用的同一对话中编辑之前发出的消息了。这是大家期待已久的功能，我们确实拖了太久才做出来。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2111492673890824348": {
+    "sourceHash": "63add0a7447b6734fee2221c04ddfd80088c10eb65170f3f7d2054c901c28b71",
+    "text": "第 13 天 / 额度重置。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2111244596131111253": {
+    "sourceHash": "b86e22824621324ac66a700494582cab3556eb1547699c971b3e07217817f692",
+    "text": "第 12 天 / 我们对 Codex 和 Work 做了改进，让大家获得更多实际可用的用量。具体包括在子代理之间复用上下文、延长上下文缓存保留时间，以及改进请求路由来提高缓存命中率。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2110750421367287996": {
+    "sourceHash": "4093300d3a16f144dee15c63334b12774e647e1f3f3d17c1691314c77f04f033",
+    "text": "第 11 天 / 我们已经上线一系列改进并增加算力，大幅减少那条打断工作的提示：“所选模型已满载，请尝试其他模型。”即使出现这种情况，任务之后也应当会自动继续，而不是一直卡住。如果你仍然遇到，请告诉我们，我们会检查。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2110595484180214059": {
+    "sourceHash": "38991b615fa396dadb7087bc50f9a45bd2a64072ca1ee7a9c8854e210317b505",
+    "text": "说我的重置按钮丢了，实在太夸张了。第 10 天 / 重置。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2110151780478927344": {
+    "sourceHash": "964b65e178e6659f40870fad1f7224deb6b43ddcad575024191c12974881fdfe",
+    "text": "第 9 天 / 我们优化了 ChatGPT 和 Codex 桌面应用将状态数据保存到磁盘的方式，预计可让这部分数据的磁盘占用减少 60%。这是项小更新，但已经有不少重度用户反馈磁盘空间不够用了。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2109812216212099456": {
+    "sourceHash": "8164749d90ecd96301d2918bf1737d0c70308d4822448565319da533cae9775b",
+    "text": "第 8 天 / 重置。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2109430343346581527": {
+    "sourceHash": "f5fd7a1ccd454399a36efd08cff071fe7c220fafd696dd72e471a89acc3d5caa",
+    "text": "第 7 天 / 在 Codex 和 Work 中使用 GPT-6.1 Sol 时，默认上下文长度从 272k 提升到 500k，增加约 80%。以后我们还会继续提高；这项改动可以减少上下文压缩，也有利于那些需要长时间保留大量上下文和细节的任务。经过仔细测试，500k 是目前最适合大多数用户的平衡点。你仍然可以自行调高或调低，GPT-6.1 Sol 的最大上下文长度为 1M。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2109045220411351517": {
+    "sourceHash": "12c8da8032adfa1c00ee63642248456d90b5d41a591797e98f98b5ab23dad84c",
+    "text": "第 6 天 / 重置。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2108646052178092403": {
+    "sourceHash": "07eaf3c38bc0029ee0c5ade75c691e7fafab57040f2c3d795690d727e9fc7131",
+    "text": "第 5 天（Dot 特别篇）/ 现在完全通过 ChatGPT 手机应用，就能创建 Dot 并给它发消息了。之前已有这么多人通过桌面版和网页版创建 Dot，令人印象深刻。是时候扩大使用规模了！",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2108645667451318747": {
+    "sourceHash": "8c185b05860bf38e4e0c8dcaf592d24ce5110c84a7cd6a871fb94d9779428d1b",
+    "text": "第 5 天 / 桌面应用加入输入预测。它们经常准确得让人忍不住再看一眼。Pro 套餐已包含这项功能，并且不消耗用量。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2108275041276420573": {
+    "sourceHash": "6dbb9e379052ec2cbe4506e08249f567c817b7b22855734a4bc27e0394569809",
+    "text": "第 4 天 / 我们把任务引导改成了即时生效：模型现在能更快响应你做出的调整，让你实时纠正方向，减少模型白费功夫。另外还发布了 GPT-6.1 Sol ultrafast。这两项改进配合得很好。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2108084615349170480": {
+    "sourceHash": "de79a0b4f93783a93c724084336ef84e4417497366cdb3f4f17a2219a8095295",
+    "text": "第 3 天（加演）/ 我们悄悄重新发布了 Codex Cloud。现在已经挺好用了。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2107913674593644711": {
+    "sourceHash": "932f22cac15aaf96dab01b94de0628fe6de89f21c87e1c29ab20a9aac20dfa71",
+    "text": "第 3 天 / 今天的大更新是 Chat 中的 GPT-6。不过，今天也值得小小庆祝一下：Codex 和 ChatGPT Work 的活跃用户数创下 4000 万的新高。正在为所有付费账号发放一次可储备的重置。明天见！",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2107575657014468879": {
+    "sourceHash": "7c20bf3e9cc58bd13ef94817d7ca5f1d197bd04af2f231178d86323ee18dbe9e",
+    "text": "第 2 天汇总 / 2.1：Approve for me（自动审查）现已包含在套餐中，不消耗用量；过去使用它可能占到套餐用量的 2%–10%，这项改动也更利于用户。2.2：简化了面向开发者的 API。2.3：集成会议笔记。2.4：面向开发者的 Decisions API 上线，我们也会将其用于应用中改善体验。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2107574912349303197": {
+    "sourceHash": "3f32c45b08f4e86fd84376d3220576bef09d7a723809bbb754c95f435bf1d480",
+    "text": "第 2.4 天 / Decisions API 已上线。我们自己也会用它，以许多有趣的方式改善所有用户的体验。实时通用分类器确实带来了不少可能性。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2107573405553938664": {
+    "sourceHash": "5c8690ec739d5738d5b795b26992b831f7802efda257af4ece5f9f57d43d42fc",
+    "text": "第 2.3 天 / 不用再担心忘记与同事讨论过什么。尽情交流，逐步积累上下文，然后把它载入 Codex，让 Codex 帮你完成工作。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2107548725359104441": {
+    "sourceHash": "b51374baf946def42ea52400f36bffd07bea0df75a1a53720836152a8dcf8066",
+    "text": "第 2.2 天 / 这项更新比较小：我们减少了使用 API 开发时的一些阻碍。祝大家开发愉快。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2107368734981517634": {
+    "sourceHash": "4d34e417ba74a0f768afd97476dc55bd20e4d9763ba5cd5a11d5523262dc9501",
+    "text": "第 2.1 天 / 所有通过 ChatGPT 账号登录的用户，现在都可以免费使用自动审查。可以在“设置 > 权限 > 自动审查”中开启。默认沙箱设置要求你批准所有操作，除非花很多时间配置具体规则，否则很容易产生决策疲劳。自动审查改善了这一点：执行长任务时，由第二个代理审查主代理采取的全部操作。它唯一的目标是阻止高风险操作，并防止发生不符合用户原始意图的意外操作。这项自动审查功能现在免费，不消耗套餐用量。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2107158998495748264": {
+    "sourceHash": "d2366060b858c9da9ab8b633924951f05cbcf30a208a3132af23e3436d8f469d",
+    "text": "第 1 天 / 我们优化了默认速度：通过订阅使用 GPT-6 Astra 和 GPT-6.1 Sol 时，速度提升约 50%。覆盖我们的所有产品，以及通过“使用 ChatGPT 登录”的合作伙伴产品，包括 OpenCode、Pi、Amp、Devin 等。你不需要做任何调整，接下来两小时内应该就能感受到变化。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2106845241357824205": {
+    "sourceHash": "475366fe53d83fa6571e6ed1a9369448b13a6b88b4b4ea71c17b2e27f3cbb7fc",
+    "text": "接下来的 28 天，我们每天要么发布一项对大多数 Codex 和 Work 用户有明显价值的改进，要么发放一次完整额度重置。改进现在开始。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2111566005684289735": {
+    "sourceHash": "11a6767d5674c7e45f7e00dc525762275b3a48491ad6045427d2609cc496c516",
+    "text": "完成了。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2110618732666257557": {
+    "sourceHash": "0aed7f04ca2e2c0457d36d78dcfcb1cc16eb888845e87c9c2fc25227356b65ee",
+    "text": "全部搞定。https://t.co/0fehr43VS4",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2109873287853707513": {
+    "sourceHash": "82b53c9e0c904ebf9ddf09088644e5743328452390a783406a1d09e403c0ff50",
+    "text": "重置这道配菜，你还想搭配什么？已经完成了。https://t.co/gpNaB6otgy",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2109132167112782291": {
+    "sourceHash": "c7417b6db3a17a6c664d7e74459ff83f0408b99ab4465b447e5ccd4322b371e8",
+    "text": "重置已经安排妥当，全部生效了。https://t.co/HGxaD3Zdcj",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2108040921044639779": {
+    "sourceHash": "505e7065a9b083dbd9631555ca4e1ac21cbbc6ee5d0f4be6055d2dbb1d2f6834",
+    "text": "确认所有账号都已到账。到目前为止，大家感觉如何？https://t.co/tzw7dNX4pN",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2107676072871600470": {
+    "sourceHash": "e18e1588338564c98bcf0e60e5b53f881a89973a3fb61670d38b85fbdf0e233c",
+    "text": "我们发布了四项被认为不错乃至很棒的更新，还有一些数学证明，但投票结果很明确，社区要求来一次重置。我确实调整过投票机制，而且看起来这场游戏偏向重置，不过目前规则就是如此。因此……这次重置已经……https://t.co/mHSI0Pcu4M",
+    "language": "zh-CN",
+    "provider": "agent"
+  }
+}

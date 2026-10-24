@@ -1,5 +1,6 @@
 import { analyzeTweet, detectProgram, contradictsConfirmedHistory } from './signals.mjs';
 import { programPostCopy, programFollowup } from './program-copy.mjs';
+import { attachTranslations, translationIndex } from './tweet-translations.mjs';
 
 const DAY_MS = 86_400_000;
 const TRUSTED_SOURCES = new Set(['timeline-browser', 'with-replies']);
@@ -509,4 +510,22 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     programUrl: program.url ?? null,
     plan,
   };
+}
+
+/**
+ * 给日历结果**补上译文**（与信号层同一套机制）。
+ *
+ * 日历里的两条展示位都带原文：
+ *   · `plan.rows[].entries[]` —— 28 天计划的每日条目；
+ *   · `cells[].details[]` —— 月历里每一天的明细。
+ * 两处都是**新造的对象**，不补就都没有译文。
+ *
+ * @param {object} calendar buildResetCalendar 的产物
+ * @param {Array} tweets 原始推文数组（译文挂在上面）
+ * @returns {object} 补过译文的新对象
+ */
+export function withCalendarTranslations(calendar, tweets) {
+  const index = translationIndex(tweets);
+  if (index.size === 0) return calendar;
+  return attachTranslations(calendar, index);
 }

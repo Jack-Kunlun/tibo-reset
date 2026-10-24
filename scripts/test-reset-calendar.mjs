@@ -5,8 +5,8 @@ import { dirname, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runInNewContext } from 'node:vm';
-import { analyzeTweet, detectSignals, latestEventMs } from '../src/lib/signals.mjs';
-import { buildResetCalendar } from '../src/lib/reset-calendar.mjs';
+import { analyzeTweet, detectSignals, latestEventMs, withSignalTranslations } from '../src/lib/signals.mjs';
+import { buildResetCalendar, withCalendarTranslations } from '../src/lib/reset-calendar.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ACCOUNT = 'thsottiaux';
@@ -142,6 +142,7 @@ const cacheRecords=[{id:'700',type:'reset',announced_at:'2026-10-06T00:00:00Z'},
 const getCachedSignals = runInNewContext(`let sigCache={key:null,value:null}; ${getSignalsSource}; getSignals`,{
   store:{getData:async()=>({tweets:{updated_at:'unchanged',tweets:[day1]},resets:{records:cacheRecords}})},
   latestEventMs,buildResetCalendar,detectSignals:()=>({program,forecasts:[]}),
+  withSignalTranslations,withCalendarTranslations,
   SOURCE_ACCOUNT:ACCOUNT,SOURCE_ZONE:'America/Los_Angeles',USER_ZONE:'Asia/Shanghai',Date,
 });
 const beforeCache=await getCachedSignals();cacheRecords[0].type='credit';const correctedCache=await getCachedSignals();cacheRecords.shift();const removedCache=await getCachedSignals();
@@ -440,7 +441,11 @@ for (const [index, item] of planCases.entries()) {
   if (item.extra) mutant = mutant.replace(item.extra[0], item.extra[1]);
   const copyUrl = item.copyFrom ? dataModule(copyText.replace(item.copyFrom, item.copyTo)) : pathToFileURL(copyPath).href;
   mutant = mutant.replace("'./signals.mjs'", JSON.stringify(pathToFileURL(resolve(ROOT, 'src/lib/signals.mjs')).href))
-    .replace("'./program-copy.mjs'", JSON.stringify(copyUrl));
+    .replace("'./program-copy.mjs'", JSON.stringify(copyUrl))
+    // ⚠ 译文模块是 data: URL 模块的**相对依赖**：data: URL 没有基准路径，
+    // './tweet-translations.mjs' 会解析失败（ERR_UNSUPPORTED_RESOLVE_REQUEST）。
+    // 所以凡是这段源码新增了相对 import，都得一起换成绝对 file URL。
+    .replace("'./tweet-translations.mjs'", JSON.stringify(pathToFileURL(resolve(ROOT, 'src/lib/tweet-translations.mjs')).href));
   const module = await import(dataModule(mutant + '\n// isolated mutant ' + index));
   assert.equal(item.verify(module.buildResetCalendar(item.input)), false, '源码反例必须被该行为断言拦截：' + item.name);
 }

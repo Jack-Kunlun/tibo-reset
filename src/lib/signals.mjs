@@ -26,6 +26,7 @@
  */
 
 import { dualZone, partsIn, offsetHours } from './chart-data.js';
+import { attachTranslations, translationIndex } from './tweet-translations.mjs';
 
 export const USER_ZONE = 'Asia/Shanghai';
 export const SOURCE_ZONE = 'America/Los_Angeles'; // 公开报道称 Tibo 常驻旧金山，可配置
@@ -2108,4 +2109,33 @@ export function detectSignals(tweets, opts = {}) {
     },
     truncated: hints.length > MAX_LISTED || rejected.length > MAX_LISTED,
   };
+}
+
+/**
+ * 给信号结果**补上译文**。
+ *
+ * 为什么在出口统一补，而不是在每个加工点各补一次：
+ *   推文在识别过程中被加工成很多种形状 —— 证据条目（asEvidence）、
+ *   假设链（buildHypothesis）、预告条目（buildForecasts）、线索（hints）——
+ *   每一种都是**新造的对象**，天然不带原文那条推文上的附加字段。
+ *   在每个加工点都记得补一遍，漏一处就是一处静默不一致（页面某处有译文、
+ *   另一处没有），而且这种不一致**不会报错**，只会让人以为「本来就该这样」。
+ *
+ * 出口统一补 = 一处改动覆盖全部展示位，且将来新增展示位**自动**带上译文。
+ *
+ * ⚠ 译文**只用于阅读**：补挂发生在识别完成之后，不参与任何判定。
+ * counts、level、window 全都是补挂前算好的，补挂不会改动它们。
+ *
+ * @param {object} signals detectSignals 的产物
+ * @param {Array} tweets 原始推文数组（译文挂在上面）
+ * @returns {object} 补过译文的新对象
+ */
+export function withSignalTranslations(signals, tweets) {
+  const index = translationIndex(tweets);
+  if (index.size === 0) {
+    // 连译文都没有时也要给出 0 —— 否则「有 0 条译文」与「没算过」分不清，
+    // 前端刷新判据会因此永远认为「没变化」。
+    return { ...signals, translationRevision: 0 };
+  }
+  return { ...attachTranslations(signals, index), translationRevision: index.size };
 }

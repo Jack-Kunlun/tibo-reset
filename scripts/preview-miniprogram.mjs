@@ -12,8 +12,9 @@ import { fileURLToPath } from 'node:url';
 
 import { buildChartData } from '../src/lib/chart-data.js';
 import { predictAll } from '../src/lib/predict.mjs';
-import { detectSignals, latestEventMs } from '../src/lib/signals.mjs';
-import { buildResetCalendar } from '../src/lib/reset-calendar.mjs';
+import { detectSignals, latestEventMs, withSignalTranslations } from '../src/lib/signals.mjs';
+import { buildResetCalendar, withCalendarTranslations } from '../src/lib/reset-calendar.mjs';
+import { withChartTranslations } from '../src/lib/tweet-translations.mjs';
 import { createStore } from '../server/store.mjs';
 import { createDashboardPage } from '../miniprogram/utils/dashboard.js';
 
@@ -424,15 +425,19 @@ const demoTweet = {
 };
 const tweetPool = DEMO_SIGNAL ? [demoTweet, ...tweets.tweets] : tweets.tweets;
 const account = 'thsottiaux';
-const chart = buildChartData(resets.records, now);
+const chart = withChartTranslations(buildChartData(resets.records, now), tweetPool);
 const prediction = predictAll(resets.records, { now, tweets: tweets.tweets, account });
-const signals = detectSignals(tweetPool, {
+// 译文挂载与线上一致：识别完成之后再补挂，只影响展示，不参与任何判定。
+const signals = withSignalTranslations(detectSignals(tweetPool, {
   now,
   account,
   lastResetAt: latestEventMs(resets.records),
-});
+}), tweetPool);
 signals.manualRevision = tweets.manualRevision ?? 0;
-signals.calendar = buildResetCalendar({ records: resets.records, tweets: tweetPool, signals, now, account });
+signals.calendar = withCalendarTranslations(
+  buildResetCalendar({ records: resets.records, tweets: tweetPool, signals, now, account }),
+  tweetPool,
+);
 const state = {
   chart,
   prediction,

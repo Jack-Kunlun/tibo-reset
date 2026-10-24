@@ -543,6 +543,24 @@ function forecastBlock(f, sig, now) {
 }
 
 /**
+ * 译文折叠块。
+ *
+ * 为什么默认**收起**：原文是权威表述，译文是辅助阅读。默认展开会让
+ * 中英双语在页面上打架，读者分不清哪句是「他说的」。
+ *
+ * 判据严格：必须标了 zh-CN 且译文非空。译文的数据层已经用 sha256 绑过原文，
+ * 这里不再重复校验 —— 展示层只负责「有就显示」，不负责「凭什么有」。
+ *
+ * @param {object} item 带 text / translation 的对象
+ * @returns {string} HTML 片段（无译文时为空串）
+ */
+function translationDetails(item) {
+  return item?.translation?.language === 'zh-CN' && item.translation.text
+    ? `<details class="tweet-translation"><summary>中文翻译</summary><p class="translation-text">${esc(item.translation.text)}</p></details>`
+    : '';
+}
+
+/**
  * 证据条目：**这条预告依据的一条推文**。
  *
  * 时间一律换算到**北京时间**再显示并写明「北京」—— 旧版直接把
@@ -568,6 +586,7 @@ function evidenceItem(e) {
         ${e.url ? `<a class="ev-link" href="${esc(e.url)}" target="_blank" rel="noopener">原推 ↗</a>` : ''}
       </div>
       <p class="ev-quote">${esc(e.text ?? '')}</p>
+      ${translationDetails(e)}
     </li>`;
 }
 
@@ -591,6 +610,7 @@ function hintBlock(top, sig, now) {
     </div>
     ${windowBlock(top.window)}
     <blockquote class="sig-quote">${esc(top.text)}</blockquote>
+    ${translationDetails(top)}
     <div class="sig-meta">
       <span>发布于 ${esc(cz.a?.text ?? dualZone(top.createdAt, CJK, sig.sourceZone, '北京时间', '当地时间').a.text)} 北京 · ${esc(cz.b?.text ?? '')} 当地</span>
       ${top.timeNote ? `<span class="sig-note">${esc(top.timeNote)}</span>` : ''}
@@ -1191,6 +1211,9 @@ export function renderDigest(m, prediction, outlook) {
       dataUpdatedAt: m.dataUpdatedAt ?? null,
       accountObservationRevision: m.accountObservationRevision ?? '',
       manualRevision: m.manualRevision ?? 0,
+      // 译文条数。译文变了但数据条数没变时，页面必须能察觉 ——
+      // 否则新译文推上去了，页面却一直显示旧的（因为没有别的字段会变）。
+      translationRevision: m.translationRevision ?? 0,
       collectErrors: m.collectErrors ?? [],
       lastResetAt: m.lastAt,
       records: m.count,
@@ -1381,7 +1404,7 @@ export function renderProgramPlan(plan, program) {
         <h3>${esc(entry.title || entry.text || '原帖摘要暂不可用')}</h3>
         ${entry.confirmedAt ? `<p class="plan-confirmed">确认时刻 ${esc(fmtDateTime(entry.confirmedAt))} 北京</p>` : ''}
         ${observation ? `<p class="plan-observation">${esc(observation)}</p>` : ''}
-        <div class="plan-entry-actions">${entry.text ? `<details class="plan-original"><summary>查看原文</summary><blockquote>${esc(entry.text)}</blockquote></details>` : ''}${entry.url ? `<a href="${attr(entry.url)}" target="_blank" rel="noopener noreferrer">原推链接 ↗</a>` : ''}</div>
+        <div class="plan-entry-actions">${entry.text ? `<details class="plan-original"><summary>${entry.translation ? '查看原文与翻译' : '查看原文'}</summary>${entry.translation?.text ? `<p class="translation-label">中文翻译</p><blockquote class="translation-text">${esc(entry.translation.text)}</blockquote><p class="translation-label">英文原文</p>` : ''}<blockquote>${esc(entry.text)}</blockquote></details>` : ''}${entry.url ? `<a href="${attr(entry.url)}" target="_blank" rel="noopener noreferrer">原推链接 ↗</a>` : ''}</div>
       </article>`;
     }).join('');
     return `<details class="plan-day${row === selected ? ' is-selected' : ''}" id="program-day-${row.day}" data-plan-day="${row.day}"${row === selected ? ' open' : ''}>

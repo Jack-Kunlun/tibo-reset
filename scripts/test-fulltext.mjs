@@ -389,7 +389,10 @@ console.log('\n【5】增量保留已核验关系');
   const executableCollectMutant = collectMutant
     .replaceAll("'./signals.mjs'", JSON.stringify(collectUrl('./signals.mjs')))
     .replaceAll("'./browser.mjs'", JSON.stringify(collectUrl('./browser.mjs')))
-    .replaceAll("'./proxy.mjs'", JSON.stringify(collectUrl('./proxy.mjs')));
+    .replaceAll("'./proxy.mjs'", JSON.stringify(collectUrl('./proxy.mjs')))
+    // ⚠ collect.mjs 现在还 import 了译文模块（清理失效译文，D-082）。
+    // data: URL 模块没有基准路径，相对 import 会 ERR_UNSUPPORTED_RESOLVE_REQUEST ⇒ 必须一起换成绝对 file URL。
+    .replaceAll("'./tweet-translations.mjs'", JSON.stringify(collectUrl('./tweet-translations.mjs')));
   const brokenCollect = await sourceModule(executableCollectMutant);
   const brokenMerge = brokenCollect.mergeTweetBatch(base, [{
     id: base[0].id, text: base[0].text, created_at: base[0].created_at,

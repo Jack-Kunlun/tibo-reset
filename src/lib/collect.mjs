@@ -19,6 +19,7 @@ import { promisify } from 'node:util';
 import { analyzeTweet, detectSignals, latestEventMs, classifyEvent, confirmedResetEvent } from './signals.mjs';
 import { collectStreams } from './browser.mjs';
 import { resolveProxy } from './proxy.mjs';
+import { pruneStaleTranslations } from './tweet-translations.mjs';
 
 const execFileP = promisify(execFile);
 
@@ -885,7 +886,17 @@ export function mergeTweetBatch(base = [], incoming = [], nowIso = new Date().to
     merged.set(key, next);
   }
 
-  return [...merged.values()].sort(
+  // ⚠ 正文变了就意味着**旧译文作废**（译文用 sha256 绑原文，见
+  // src/lib/tweet-translations.mjs）。作者改了帖、或采集侧补全了正文，
+  // 库里那条 translation 就成了过期资产 —— 它说的是上一版原文。
+  //
+  // 必须在**这里**清，而不是等到展示层：推文对象是持久字段，会随 tweets
+  // 载荷推到线上，而 `/api/state` 的 `tweets` 数组原样吐出推文对象 ⇒
+  // 留着它，下游看到的就是「这条推文有译文」，可那条译文说的已经不是这句话。
+  //
+  // 展示层现在恰好不出事（它只信 translationIndex，只收有效译文），但那是
+  // 巧合不是保证。让「推文对象上有 translation 字段」本身成为可靠信号。
+  return pruneStaleTranslations([...merged.values()]).sort(
     (a, b) => new Date(b.created_at ?? 0) - new Date(a.created_at ?? 0)
   );
 }

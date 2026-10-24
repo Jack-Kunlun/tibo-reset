@@ -78,10 +78,10 @@
             <view class="tr-view tr-plan-entry-meta"><text class="tr-text">{{item.when}}</text><text wx:if="{{item.confirmedWhen}}" class="tr-text">{{item.confirmedWhen}}</text></view>
             <text wx:if="{{item.observationText}}" class="tr-text tr-plan-entry-observation">{{item.observationText}}</text>
             <view class="tr-view tr-plan-entry-actions">
-              <view wx:if="{{item.hasText}}" class="tr-view tr-plan-action" data-key="{{item.key}}" bindtap="onTogglePlanEntry" role="button">{{expandedPlanEntry === item.key ? '收起原文' : '展开原文'}}</view>
+              <view wx:if="{{item.hasText}}" class="tr-view tr-plan-action" data-key="{{item.key}}" bindtap="onTogglePlanEntry" role="button">{{expandedPlanEntry === item.key ? '收起原文' : item.translation ? '查看原文与翻译' : '展开原文'}}</view>
               <view wx:if="{{item.url && !singlePage}}" class="tr-view tr-plan-action" data-url="{{item.url}}" bindtap="onCopySource" role="button">复制原推链接 ↗</view>
             </view>
-            <view wx:if="{{expandedPlanEntry === item.key}}" class="tr-view"><text class="tr-text tr-plan-entry-text">{{item.text}}</text></view>
+            <view wx:if="{{expandedPlanEntry === item.key}}" class="tr-view"><text wx:if="{{item.translation}}" class="tr-text tr-translation-label">中文翻译</text><text wx:if="{{item.translation}}" class="tr-text tr-translation-text">{{item.translation}}</text><text wx:if="{{item.translation}}" class="tr-text tr-translation-label">英文原文</text><text class="tr-text tr-plan-entry-text">{{item.text}}</text></view>
           </view>
         </view>
         <text wx:else class="tr-text tr-plan-empty">{{selectedPlan.statusLabel}} · 暂无可展示的原帖条目</text>
@@ -126,11 +126,12 @@
             <text wx:if="{{item.via}}" class="tr-text ev-via">{{item.via}}</text>
             <text wx:if="{{item.word}}" class="tr-text ev-word">{{item.word}}</text>
           </view>
-          <text class="tr-text ev-quote">{{item.text}}</text>
+          <text wx:if="{{item.translation}}" class="tr-text tr-translation-label">中文翻译</text><text wx:if="{{item.translation}}" class="tr-text tr-translation-text">{{item.translation}}</text><text wx:if="{{item.translation}}" class="tr-text tr-translation-label">英文原文</text><text class="tr-text ev-quote">{{item.text}}</text>
           <text wx:if="{{item.url && !singlePage}}" class="tr-text ev-link" data-url="{{item.url}}" bindtap="onCopySource">复制原推链接</text>
         </view>
       </view>
       <text wx:if="{{!signal.evCount}}" class="tr-text quote">{{signal.text}}</text>
+      <view wx:if="{{!signal.evCount && signal.translation}}" class="tr-view"><text class="tr-text tr-translation-label">中文翻译</text><text class="tr-text tr-translation-text">{{signal.translation}}</text></view>
       <view class="tr-view meta">
         <text wx:if="{{signal.createdText}}" class="tr-text">发布于 {{signal.createdText}}</text>
         <text wx:if="{{signal.timeNote}}" class="tr-text note">{{signal.timeNote}}</text>

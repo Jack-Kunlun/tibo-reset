@@ -328,6 +328,10 @@
   #observatory .sig-meta{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--am-muted);margin-top:10px}
   #observatory .sig-meta a{color:var(--am-accent)}
   #observatory .sig-quote{margin:12px 0;background:#fff;border:1px solid var(--am-line);border-radius:10px;padding:12px;font-size:12px}
+  #observatory .tweet-translation{margin:10px 0 0;font-size:12px}
+  #observatory .tweet-translation summary{cursor:pointer;color:var(--am-accent)}
+  #observatory .translation-label{margin:12px 0 4px;color:var(--am-muted);font-size:11px}
+  #observatory .translation-text{margin:0;color:var(--am-ink);line-height:1.75;white-space:pre-wrap;overflow-wrap:anywhere}
   #observatory .sig-note{color:#8a672a}
   #observatory .win{margin:12px 0;border:1px solid var(--am-line);border-radius:10px;overflow:hidden;background:#fff}
   #observatory .sw{display:grid;grid-template-columns:90px 1fr auto;gap:8px;padding:10px 12px;border-bottom:1px solid var(--am-line);align-items:baseline;font-size:11px}
@@ -476,6 +480,8 @@
   #observatory .sig-title{font-size:13px;font-weight:500}
   #observatory .sig-badge{background:#b4a3ff12;color:#b4a3ff}
   #observatory .sig-quote,#observatory .ev,#observatory .win{background:#0f1525;border-color:var(--am-line);color:#bbc4db}
+  #observatory .tweet-translation summary{color:#b4a3ff}
+  #observatory .translation-text{color:#d5dbef}
   #observatory .sw{border-color:var(--am-line)}
   #observatory .sw-v{color:#d5dbef}
   #observatory .sw-foot,#observatory .sig-clock{color:#929ab7}
@@ -1054,6 +1060,7 @@
   var renderedAt = Date.parse(digest.dataUpdatedAt) || 0;
   var renderedObservationRevision = digest.accountObservationRevision || '';
   var renderedManualRevision = digest.manualRevision || 0;
+  var renderedTranslationRevision = digest.translationRevision || 0;
   var renderedErrors = JSON.stringify(digest.collectErrors || []);
   var key = 'reset-observatory-reading';
   var selectors = ['.sig-prog', '.am-signal-details', '.am-disclosure', '.am-more'];
@@ -1086,8 +1093,10 @@
       var newer = Date.parse(state.dataUpdatedAt) > renderedAt;
       var observationChanged = (state.signals && state.signals.accountObservationRevision || '') !== renderedObservationRevision;
       var manualChanged = (state.signals && state.signals.manualRevision || 0) !== renderedManualRevision;
+      // 译文变了也算「有新东西」—— 译文挂在推文上，条数不变时别的字段都不会变。
+      var translationChanged = (state.signals && state.signals.translationRevision || 0) !== renderedTranslationRevision;
       var errorsChanged = JSON.stringify(state.collectErrors || []) !== renderedErrors;
-      if ((!newer && !observationChanged && !manualChanged && !errorsChanged) || document.hidden) return;
+      if ((!newer && !observationChanged && !manualChanged && !translationChanged && !errorsChanged) || document.hidden) return;
       var open = {};
       selectors.forEach(function (selector) {
         var box = document.querySelector(selector);

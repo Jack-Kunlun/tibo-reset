@@ -66,9 +66,10 @@ import { fileURLToPath } from 'node:url';
 
 import { runCollection } from '../src/lib/collect.mjs';
 import { predictAll, DEFAULT_CONFIG } from '../src/lib/predict.mjs';
-import { analyzeTweet, detectSignals, latestEventMs, USER_ZONE, SOURCE_ZONE } from '../src/lib/signals.mjs';
+import { analyzeTweet, detectSignals, latestEventMs, withSignalTranslations, USER_ZONE, SOURCE_ZONE } from '../src/lib/signals.mjs';
 import { buildChartData } from '../src/lib/chart-data.js';
-import { buildResetCalendar } from '../src/lib/reset-calendar.mjs';
+import { buildResetCalendar, withCalendarTranslations } from '../src/lib/reset-calendar.mjs';
+import { withChartTranslations } from '../src/lib/tweet-translations.mjs';
 import { derive, logoDataUri, renderPage } from '../src/lib/page.mjs';
 import { createStore } from './store.mjs';
 import { handleManage } from './manage.mjs';
@@ -175,11 +176,15 @@ async function getSignals(data) {
   const now = Date.now();
   const hourBucket = Math.floor(now / 3_600_000);
   const observationKey = JSON.stringify(tweets.filter((t) => t.accountObservation).map((t) => [t.id, t.accountObservation]));
-  const key = `${file.updated_at ?? ''}|${tweets.length}|${file.manualRevision ?? 0}|${observationKey}|${JSON.stringify(resets.records)}|${hourBucket}|${SOURCE_ACCOUNT}|${SOURCE_ZONE}|${USER_ZONE}`;
+  // ⚠ 译文变更也必须让缓存失效：译文挂在推文对象上，而推文数组的内容变了
+  // （tweets.length 可能不变、updated_at 也不一定变）⇒ 光看这两个字段不够。
+  // 用「有译文的推文条数」做维度：译文数量变了就是内容变了。
+  const translationKey = tweets.filter((t) => t?.translation?.text).length;
+  const key = `${file.updated_at ?? ''}|${tweets.length}|${file.manualRevision ?? 0}|${observationKey}|${translationKey}|${JSON.stringify(resets.records)}|${hourBucket}|${SOURCE_ACCOUNT}|${SOURCE_ZONE}|${USER_ZONE}`;
   if (sigCache.key === key) return sigCache.value;
-  const value = detectSignals(tweets, { now, account: SOURCE_ACCOUNT, lastResetAt });
+  const value = withSignalTranslations(detectSignals(tweets, { now, account: SOURCE_ACCOUNT, lastResetAt }), tweets);
   value.manualRevision = file.manualRevision ?? 0;
-  value.calendar = buildResetCalendar({ records: resets.records, tweets, signals: value, now, account: SOURCE_ACCOUNT });
+  value.calendar = withCalendarTranslations(buildResetCalendar({ records: resets.records, tweets, signals: value, now, account: SOURCE_ACCOUNT }), tweets);
   sigCache = { key, value };
   return value;
 }
@@ -242,7 +247,9 @@ async function getChart(data) {
   data ??= await store.getData();
   const { records } = data.resets;
   if (!records.length) return null;
-  return buildChartData(records, Date.now());
+  // 译文挂上后小程序「重置历史」页才能显示中文；按归一化原文匹配，
+  // 上游摘要与原文不同的条目自动没有译文（详见 withChartTranslations 注释）。
+  return withChartTranslations(buildChartData(records, Date.now()), data.tweets?.tweets ?? []);
 }
 
 /* ------------------------------- 静态资源 ------------------------------- */
