@@ -20,11 +20,11 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 const DEFAULT_ACCOUNT = 'thsottiaux';
 const ENTRY_KEYS = new Set([
   'id', 'tweetId', 'recordId', 'status', 'title', 'note', 'sourceUrl',
-  'occurredAt', 'windowFrom', 'windowTo', 'eventType', 'createdAt', 'updatedAt',
+  'occurredAt', 'windowFrom', 'windowTo', 'eventType', 'programId', 'programDay', 'createdAt', 'updatedAt',
 ]);
 const INPUT_ENTRY_KEYS = new Set([
   'id', 'tweetId', 'recordId', 'status', 'title', 'note', 'sourceUrl',
-  'occurredAt', 'windowFrom', 'windowTo', 'eventType',
+  'occurredAt', 'windowFrom', 'windowTo', 'eventType', 'programId', 'programDay',
 ]);
 
 function jsonClone(value) {
@@ -127,6 +127,20 @@ export function validateManualEntry(value, { now = Date.now(), account = DEFAULT
   if (typeof note !== 'string' || note.length > 2000) throw manualError('MANUAL_INVALID', 'note 最长 2000 字符');
   const eventType = value.eventType === undefined ? 'reset' : value.eventType;
   if (!['reset', 'credit'].includes(eventType)) throw manualError('MANUAL_INVALID', 'eventType 必须是 reset 或 credit');
+  const hasProgramId = value.programId !== undefined && value.programId !== null && value.programId !== '';
+  const hasProgramDay = value.programDay !== undefined && value.programDay !== null && value.programDay !== '';
+  if (hasProgramId !== hasProgramDay) throw manualError('MANUAL_INVALID', 'programId 与 programDay 必须同时填写');
+  let programId;
+  if (hasProgramId) {
+    const rawId = value.programId;
+    programId = typeof rawId === 'number' && Number.isSafeInteger(rawId) && rawId > 0
+      ? String(rawId) : typeof rawId === 'string' ? rawId.trim() : '';
+    if (!/^[1-9]\d{0,31}$/.test(programId)) throw manualError('MANUAL_INVALID', 'programId 必须是有效的数字活动原帖 ID');
+    if (!Number.isInteger(value.programDay) || value.programDay < 1 || value.programDay > 62) {
+      throw manualError('MANUAL_INVALID', 'programDay 必须是 1–62 的整数');
+    }
+    if (value.status !== 'landed') throw manualError('MANUAL_INVALID', '只有已到账记录可以归属每日计划');
+  }
   const sourceUrl = validateSourceUrl(value.sourceUrl, account);
   const occurredAt = canonicalIso(value.occurredAt, 'occurredAt', { optional: true });
   const windowFrom = canonicalIso(value.windowFrom, 'windowFrom', { optional: true });
@@ -162,6 +176,7 @@ export function validateManualEntry(value, { now = Date.now(), account = DEFAULT
     ...(occurredAt ? { occurredAt } : {}),
     ...(windowFrom ? { windowFrom, windowTo } : {}),
     eventType,
+    ...(programId ? { programId, programDay: value.programDay } : {}),
     ...(createdAt ? { createdAt, updatedAt } : {}),
   };
 }
@@ -180,7 +195,7 @@ function validateState(value) {
   if (value.entries.length > MAX_MANUAL_ENTRIES || value.history.length > MAX_MANUAL_HISTORY) {
     throw stateError('手动账本条数超过限制');
   }
-  const ids = new Set(), targets = new Set();
+  const ids = new Set(), targets = new Set(), programDays = new Set();
   const entries = value.entries.map((entry) => {
     const normalized = validateManualEntry(entry, { stored: true, now: Date.now() });
     if (!normalized.id || ids.has(normalized.id)) throw stateError('手动账本 entry ID 缺失或重复');
@@ -188,6 +203,11 @@ function validateState(value) {
     for (const target of targetIds(normalized)) {
       if (targets.has(target)) throw stateError('手动账本同一目标存在重复更正');
       targets.add(target);
+    }
+    if (normalized.programId) {
+      const programTarget = `${normalized.programId}:${normalized.programDay}`;
+      if (programDays.has(programTarget)) throw stateError('手动账本同一活动日存在重复到账归属');
+      programDays.add(programTarget);
     }
     return normalized;
   });
@@ -270,6 +290,10 @@ export function createManualStore(dataDir) {
         const existing = index >= 0 ? next.entries[index] : null;
         before = existing ? jsonClone(existing) : null;
         entryId = existing?.id ?? randomUUID();
+        if (incoming.programId && next.entries.some((entry) => entry.id !== entryId &&
+            entry.programId === incoming.programId && entry.programDay === incoming.programDay)) {
+          throw manualError('MANUAL_PROGRAM_DAY_EXISTS', '这个活动日已关联一条手动到账记录');
+        }
         after = {
           ...incoming,
           id: entryId,
@@ -481,6 +505,8 @@ function manualDecision(entry, lead) {
     note: entry.note,
     ...(entry.sourceUrl ? { sourceUrl: entry.sourceUrl } : {}),
     updatedAt: entry.updatedAt,
+    ...(entry.occurredAt ? { occurredAt: entry.occurredAt } : {}),
+    ...(entry.programId ? { programId: entry.programId, programDay: entry.programDay } : {}),
     ...(entry.windowFrom ? { windowFrom: entry.windowFrom, windowTo: entry.windowTo } : {}),
   };
 }
@@ -505,6 +531,7 @@ function manualRecord(entry, targets, account, tweets) {
     manual: true,
     manualEntryId: entry.id,
     confirmation_urls: confirmationUrls,
+    ...(entry.programId ? { programId: entry.programId, programDay: entry.programDay } : {}),
   };
 }
 

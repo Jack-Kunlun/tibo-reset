@@ -1016,3 +1016,5 @@ page { background: #0B1020; color: #F2F0FC; }
 .design .tr-reminder-copy > .tr-strong { color: #f2f0fc; }
 .design .tr-enable.is-idle { width: 92rpx; min-width: 92rpx; max-width: 92rpx; }
 .design .tr-enable-all.is-idle { width: 100%; min-width: 0; max-width: none; }
+.tr-translation-label{display:block;margin-top:22rpx;margin-bottom:8rpx;color:#a89bcc;font-size:21rpx;line-height:1.5}
+.tr-translation-text{display:block;color:#e0dbea;font-size:25rpx;line-height:1.8;white-space:pre-wrap;word-break:break-word}

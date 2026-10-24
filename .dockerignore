@@ -37,6 +37,9 @@ data/og
 #   一旦 push 到registry就等于把 openid 列表公开了。
 data/subscriptions.json
 
+# 机器翻译缓存与日配额随数据卷保留，镜像不能带入另一实例的运行状态。
+data/translation-cache.json
+
 # ⚠ TLS 私钥与证书，**绝不能进镜像**。
 #   证书是给宿主机上的 Nginx 用的（TLS 在那一层终止），容器内根本不需要它。
 #   而 Dockerfile 是 `COPY . .`，不排除就会把私钥打进层里 —— 且镜像层是叠加的，

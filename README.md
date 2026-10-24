@@ -91,6 +91,7 @@ PORT=9000 COLLECT_INTERVAL_MIN=15 ADMIN_TOKEN=secret node server/index.mjs
 | `ADMIN_TOKEN` | 空 | 设置后 `POST /api/refresh` 需要 `Authorization: Bearer <token>` |
 | `INGEST_TOKEN` | 空 | 设置后 `POST /api/ingest` 需要 `Authorization: Bearer <token>`。**境内服务必须设**，否则任何人都能往数据目录写东西 |
 | `SOURCE_ACCOUNT` | `thsottiaux` | 被观测的 X 账号，换掉即可观测别的账号 |
+| `AUTO_TRANSLATE` | 开启 | MyMemory 免 Key 自动翻译；设为 `0` 关闭外部请求，已有译文仍可阅读 |
 | `SITE_URL` | 空 | 对外访问地址（如 `https://reset.example.com`），用于页面里的 `og:url` / `og:image`。不配则不输出这两条 meta —— 宁可少两条，也不给分享平台一个抓不到的地址 |
 
 **F9 重置通知**（预告与落地可一起申请授权，每类一次授权对应一次通知）
@@ -111,8 +112,8 @@ AppSecret 仅放服务端环境变量。小程序通过 `/api/subscribe/config` 
 | `WX_TEMPLATE_DATA` | 仓库落地字段映射 | JSON；支持 `{event}` / `{time}` / `{eta}`，字段须与后台一致；格式无效会关闭落地入口 |
 | `WX_ANNOUNCEMENT_TEMPLATE_DATA` | 仓库预告字段映射 | 同上；格式无效只关闭预告入口 |
 
-预告通知明确说明「尚未确认落地」，时间取预告发布时间；落地通知以公开完成公告为依据，
-时间取首次确认公告的北京时间。两类通知分别登记、去重和消耗，模型概率不触发通知。
+预告通知明确说明「尚未确认落地」，时间取预告发布时间；落地通知接受公开完成公告和手动到账确认，
+并保留来源与实际确认时间。两类通知分别登记、去重和消耗，模型概率不触发通知。
 首页主卡下方两类默认选中，点击一次申请两个不同标题模板，按微信逐项授权结果独立登记。
 默认选中不代表已获授权；不在进入页面或刷新时弹授权。旧服务没有双模板配置时保留单项入口。
 授权拒绝不登记，授权成功但同步失败只重试登记，不重复申请授权。
@@ -122,6 +123,16 @@ AppSecret 仅放服务端环境变量。小程序通过 `/api/subscribe/config` 
 暂时失败留待下一轮成功 ingest 补推。名单更新与发送批次分别串行；只支持单服务进程写入同一数据卷。
 微信请求和磁盘写入不能构成同一个事务，响应丢失或进程中断仍有重复尝试的可能。
 代码检查不等于真机授权或收信；发布前必须用本人的微信完成授权、确认新事件和实际收信验证。
+
+**原帖中文翻译**
+
+MyMemory 自动翻译默认开启，无需账号或 Key。后端首次启动保留旧帖基线，之后只为新增或正文变化的可信相关推文补译。
+译文与全文哈希绑定，原文变化后旧译文立即失效；已有人工译文优先，英文原文始终保留。
+翻译在采集成功后异步执行，超额、超时或无效响应时显示英文；不会影响重置识别与提醒。
+缓存和额度信息位于数据卷 `translation-cache.json`，重启复用，不纳入版本管理或镜像。
+本地日额为 4,500 字符，每条请求不超过 500 UTF-8 字节；官方匿名额度为每日 5,000 字符，详见
+[MyMemory 限额](https://mymemory.translated.net/doc/usagelimits.php)。命中 429 后暂停 24 小时。
+`npm run test:translations` 使用隔离数据和 mock 验证，不消耗真实翻译额度。
 
 **构建期**（`node scripts/build.mjs`，不是运行期）
 

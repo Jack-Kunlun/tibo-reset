@@ -214,42 +214,78 @@ globalThis.wx = makeWx(wxRecord);
 await import(resolve(ROOT, 'miniprogram/app.js'));
 {
   const pageHost = globalThis.wx;
-  const events = {};
-  const modals = [];
-  let warmups = 0;
-  let applies = 0;
-  let managers = 0;
-  globalThis.wx = {
-    ...pageHost,
-    getUpdateManager() {
-      managers++;
-      return {
-        onUpdateReady: (cb) => { events.ready = cb; },
-        onUpdateFailed: (cb) => { events.failed = cb; },
-        applyUpdate: () => { applies++; },
-      };
-    },
-    showModal: (opts) => modals.push(opts),
-  };
-  const app = { ...capturedApp, warmup() { warmups++; } };
-  app.onLaunch();
-  check('App 启动注册更新监听，同时保留数据预热', warmups === 1 && typeof events.ready === 'function' && typeof events.failed === 'function');
+  function makeUpdateFixture() {
+    const events = {};
+    const modals = [];
+    let warmups = 0;
+    let applies = 0;
+    let managers = 0;
+    let readyRegistrations = 0;
+    let failedRegistrations = 0;
+    const host = {
+      ...pageHost,
+      getUpdateManager() {
+        managers++;
+        return {
+          onUpdateReady(cb) { readyRegistrations++; events.ready = cb; },
+          onUpdateFailed(cb) { failedRegistrations++; events.failed = cb; },
+          applyUpdate: () => { applies++; },
+        };
+      },
+      showModal: (opts) => modals.push(opts),
+    };
+    globalThis.wx = host;
+    const app = {
+      ...capturedApp,
+      globalData: { ...capturedApp.globalData },
+      warmup() { warmups++; },
+    };
+    app.onLaunch();
+    return {
+      app, events, modals,
+      counts: () => ({ warmups, applies, managers, readyRegistrations, failedRegistrations }),
+    };
+  }
+
+  const postponed = makeUpdateFixture();
+  const initial = postponed.counts();
+  check('App 启动只注册一次微信更新监听，同时保留数据预热',
+    initial.warmups === 1 && initial.managers === 1
+      && initial.readyRegistrations === 1 && initial.failedRegistrations === 1
+      && typeof postponed.events.ready === 'function' && typeof postponed.events.failed === 'function');
   wxRecord.enterScene = 1154;
-  app.onShow();
-  events.ready();
-  check('App 朋友圈单页入口不弹重启提示', modals.length === 0);
-  app.onHide();
+  postponed.app.onShow();
+  postponed.events.ready();
+  check('App 朋友圈单页入口不弹重启提示', postponed.modals.length === 0);
+  postponed.app.onHide();
   wxRecord.enterScene = 1001;
-  app.onShow();
-  check('App 普通入口会提示已下载的更新', modals.length === 1);
-  modals[0].success({ cancel: true });
-  modals[0].complete();
-  app.onHide();
-  app.onShow();
-  check('App 再次回前台会提醒，更新管理器只注册一次', modals.length === 2 && managers === 1);
-  modals[1].success({ confirm: true });
-  modals[1].complete();
-  check('App 确认后调用微信 applyUpdate', applies === 1);
+  postponed.app.onShow();
+  check('App 普通入口会提示已下载的更新', postponed.modals.length === 1);
+  postponed.modals[0].success({ cancel: true });
+  postponed.modals[0].complete();
+  postponed.app.onHide();
+  postponed.app.onShow();
+  const afterPostpone = postponed.counts();
+  check('App 点稍后后跨前台不重复提示，更新监听仍只注册一次',
+    postponed.modals.length === 1 && afterPostpone.managers === 1
+      && afterPostpone.readyRegistrations === 1 && afterPostpone.failedRegistrations === 1);
+
+  // 独立宿主验证确认重启，避免依赖上一个 fixture 的「已提示」状态。
+  const confirmed = makeUpdateFixture();
+  confirmed.app.onShow();
+  confirmed.events.ready();
+  check('独立 App fixture 的 ready 回调显示确认提示', confirmed.modals.length === 1);
+  confirmed.modals[0].success({ confirm: true });
+  confirmed.modals[0].complete();
+  check('独立 App fixture 确认后调用微信 applyUpdate', confirmed.counts().applies === 1);
+
+  const failed = makeUpdateFixture();
+  failed.app.onShow();
+  failed.events.failed();
+  check('App 保留下载失败说明与官方失败回调接线',
+    failed.modals.length === 1 && failed.modals[0].showCancel === false
+      && /检查网络/.test(failed.modals[0].content)
+      && failed.counts().readyRegistrations === 1 && failed.counts().failedRegistrations === 1);
   globalThis.wx = pageHost;
 }
 
@@ -778,17 +814,20 @@ const snapshotSignals = (await import(resolve(ROOT, 'miniprogram/data/snapshot.j
 const hasForecast = (snapshotSignals.forecasts || []).length > 0;
 const hasOccurred = (snapshotSignals.occurred || []).length > 0;
 const hasHintWin = (snapshotSignals.activeHints || []).some((s) => s.window);
-const expectShow = hasForecast || hasHintWin;
+const hasObserved = (snapshotSignals.observedForecasts || []).length > 0;
+const hasOverdue = (snapshotSignals.overdueForecasts || []).length > 0;
+const displayedForecast = snapshotSignals.forecasts?.[0] ?? (!hasObserved ? snapshotSignals.overdueForecasts?.at(-1) : null);
+const expectShow = hasForecast || hasObserved || hasOverdue || hasHintWin;
 
 check('信号对象存在', !!d.signal);
 check(
-  '醒目态与数据一致（预告 > 线索，不含已发生）',
+  '醒目态与数据一致（含待核实状态，不因已发生档单独展示）',
   d.signal.show === expectShow,
   `show=${d.signal.show} 期望=${expectShow}（level=${snapshotSignals.level} occurred=${hasOccurred}）`
 );
 // 这一条是本轮的回归点：数据里明明有 2 条已发生的重置，但它不该把横幅顶起来 ——
 // 顶上首页的是「距上次重置 N 天」，不是复述一遍那段事实。
-if (hasOccurred && !hasForecast && !hasHintWin) {
+if (hasOccurred && !expectShow) {
   check(
     '已发生的重置不进横幅（数据里有，横幅里没有）',
     d.signal.show === false,
@@ -796,22 +835,22 @@ if (hasOccurred && !hasForecast && !hasHintWin) {
   );
 }
 if (expectShow) {
-  check('醒目态给出时间窗口或标明待公布', !!d.signal.window || d.signal.timing === 'pending', JSON.stringify(d.signal.window));
+  check('醒目态给出时间窗口或明确状态', !!d.signal.window || d.signal.timing === 'pending' || d.signal.status === 'observed' || d.signal.status === 'overdue', JSON.stringify(d.signal.window));
   if (d.signal.window) {
     check('窗口含双时区', !!(d.signal.window.sourceZone && d.signal.window.userZone), JSON.stringify(d.signal.window));
     check('窗口含时差说明', !!d.signal.window.diffText, d.signal.window.diffText);
   }
-  check('给出判定依据（不只给结论）', !!d.signal.reason, d.signal.reason);
+  check('给出判定依据或账号观察来源', !!d.signal.reason || Boolean(d.signal.observationText), d.signal.reason);
 
-  if (hasForecast) {
+  if (displayedForecast) {
     // 本轮的核心结构：**一条预告，里面 N 条推文**。
     // 旧版把同一件事拆成「横幅（只挂最新一条原文）+ 另起一行计数 + 独立摘要块」，
     // 端上要在三处之间自己拼归属关系。
     check('预告里挂着依据推文', d.signal.evCount >= 1, `实际 ${d.signal.evCount}`);
     check(
       '依据条数与数据层一致（不各算各的）',
-      d.signal.evCount === snapshotSignals.forecasts[0].evidence.length,
-      `${d.signal.evCount} vs ${snapshotSignals.forecasts[0].evidence.length}`
+      d.signal.evCount === displayedForecast.evidence.length,
+      `${d.signal.evCount} vs ${displayedForecast.evidence.length}`
     );
     check('依据默认收起（一屏放不下「窗口 + 推文 + 倒计时」）', d.signal.evOpen === false, String(d.signal.evOpen));
     check(
@@ -829,6 +868,8 @@ if (expectShow) {
     );
     check('摘要行说清构成（承诺几条、同日提及几条）', d.signal.evMix.includes('承诺'), d.signal.evMix);
     check('没有依据可挂时不会渲染空的依据块', d.signal.ev.length === 0 || !!d.signal.evMix, String(d.signal.ev.length));
+  } else if (hasObserved) {
+    check('账号观察保留来源与范围，不伪造公开完成',d.signal.status==='observed' && !!d.signal.observationText && /单个账号/.test(d.signal.scopeNote));
   } else {
     // 线索形态：单条推文 + 它的窗口，没有证据链
     check('线索形态：给出原文', !!d.signal.text, d.signal.text);

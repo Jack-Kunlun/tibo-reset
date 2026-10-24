@@ -414,12 +414,13 @@ const cds = [
 // 预告块的标志是 `data-level` 非 hint 的 `.sig` section（hintBlock 走 hint 档）。
 const forecastSections = [...html.matchAll(/<section class="sig" data-level="(?!hint")[^"]+">([\s\S]*?)<\/section>/g)].map((match) => match[1]);
 const pendingSections = forecastSections.filter((section) => section.includes('<p class="sig-note">具体时间待公布</p>'));
-// 未定时预告保留事实，不拿历史估计伪造倒数；每个有时间窗口的预告仍须有倒数。
-const timedForecasts = forecastSections.length - pendingSections.length;
+const overdueSections = forecastSections.filter((section) => section.includes('<p class="sig-note">尚未取得公开完成确认</p>'));
+// 未定时与已过期的预告都不能显示倒数，只有仍在等待的定时预告需要倒数。
+const timedForecasts = forecastSections.filter((section) => !pendingSections.includes(section) && !overdueSections.includes(section)).length;
 check(
-  `倒计时块与页面档位一致（定时预告 ${timedForecasts} 个 / 待公布 ${pendingSections.length} 个 / 倒数 ${cds.length} 个）`,
-  cds.length === timedForecasts && pendingSections.every((section) => !section.includes('class="sig-cd"')),
-  '每个定时预告须有倒数，未定时预告不得显示倒数'
+  `倒计时块与页面档位一致（定时预告 ${timedForecasts} 个 / 待公布 ${pendingSections.length} 个 / 过期待核实 ${overdueSections.length} 个 / 倒数 ${cds.length} 个）`,
+  cds.length === timedForecasts && [...pendingSections, ...overdueSections].every((section) => !section.includes('class="sig-cd"')),
+  '有效定时预告须有倒数，未定时或过期预告不得显示倒数'
 );
 for (const [, fromStr, anchor] of cds) {
   const from = Number(fromStr);

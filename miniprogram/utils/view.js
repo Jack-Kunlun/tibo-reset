@@ -82,12 +82,14 @@ function planEntryView(entry, day, index) {
   const kindLabel = isAccountObserved ? { text: '已有账号实测到账', cls: 'observed' }
     : entry.awaitingVerification ? { text: '落地待核实', cls: 'announcement' } : PLAN_ENTRY_LABELS[entry.kind];
   if (kindLabel && !(entry.isUpdate && entry.kind === 'update')) labels.push(kindLabel);
+  if(entry.manual || entry.sourceLabel === '手动确认')labels.push({text:'手动确认',cls:'manual'});
   return {
     key: String(entry.id || entry.url || `day-${day}-entry-${index}`),
     title,
     text: String(entry.text || ''),
+    translation: entry.translation?.language === 'zh-CN' ? entry.translation.text : '',
     url: entry.url || '',
-    when: Number.isFinite(createdAt) ? `${fmtDateTime(createdAt)} 北京` : '发布时间未知',
+    when: Number.isFinite(createdAt) ? `${fmtDateTime(createdAt)} 北京${entry.manual || entry.sourceLabel === '手动确认' ? ' · 手动确认' : ''}` : '发布时间未知',
     confirmedWhen: Number.isFinite(confirmedAt) ? `确认时刻 ${fmtDateTime(confirmedAt)} 北京` : '',
     observationText: isAccountObserved
       ? `${entry.observationPrecision === 'approximate-minute' ? '约' : ''}${Number.isFinite(observedAt) ? `${fmtDateTime(observedAt)} 北京` : '时间未知'} · ${entry.sourceLabel || '账号实测'} · 仅代表单个账号`
@@ -376,7 +378,8 @@ function evidenceView(e) {
     // 手机上跟时间、标签挤在一行会顶断。缩成「↩ @xxx」，信息没丢。
     via: e.via && e.via !== '原创' ? `↩ ${e.via.replace(/^回复\s*/, '')}` : '原创',
     word: e.timeWord || '',
-    text: (e.text || '').slice(0, 180),
+    text: e.text || '',
+    translation: e.translation?.language === 'zh-CN' ? e.translation.text : '',
     url: e.url || '',
   };
 }
@@ -467,6 +470,7 @@ function signalView(top, level) {
     evMix: '',
     evNote: '',
     text: top.text || '',
+    translation: top.translation?.language === 'zh-CN' ? top.translation.text : '',
     timeNote: top.timeNote || '',
     reason: (top.reasons || []).join('、'),
     // 双时区文本在采集侧就算好了：小程序端算它要依赖 Intl，部分安卓机型不可用

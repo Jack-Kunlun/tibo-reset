@@ -65,7 +65,7 @@ export function createSubscriptionStore(dataDir) {
   let updates = Promise.resolve();
   let notifications = Promise.resolve();
 
-  const empty = () => ({ schema: 1, updated_at: null, last_event_at: null, announcement_ids: [], items: [] });
+  const empty = () => ({ schema: 1, updated_at: null, last_event_at: null, landed_event_keys: [], announcement_ids: [], items: [] });
 
   const store = {
     path,
@@ -78,6 +78,9 @@ export function createSubscriptionStore(dataDir) {
           schema: 1,
           updated_at: raw.updated_at ?? null,
           last_event_at: raw.last_event_at ?? null,
+          landed_event_keys: Array.isArray(raw.landed_event_keys)
+            ? [...new Set(raw.landed_event_keys.filter((key) => typeof key === 'string' && key.length <= 256))]
+            : [],
           announcement_ids: Array.isArray(raw.announcement_ids) ? raw.announcement_ids : [],
           items: raw.items.map((item) => ({ ...item, kind: itemKind(item) })),
         };
@@ -93,6 +96,7 @@ export function createSubscriptionStore(dataDir) {
         schema: 1,
         updated_at: new Date().toISOString(),
         last_event_at: state.last_event_at ?? null,
+        landed_event_keys: Array.isArray(state.landed_event_keys) ? [...new Set(state.landed_event_keys)] : [],
         announcement_ids: state.announcement_ids ?? [],
         items: state.items,
       };
@@ -200,6 +204,69 @@ export function fmtWeChatTime(ts) {
   return `${g('year')}-${g('month')}-${g('day')} ${g('hour')}:${g('minute')}`;
 }
 
+function landedEventKeys(record) {
+  const keys = new Set();
+  const add = (key) => { if (key) keys.add(key); };
+  if (record?.id != null && String(record.id).trim()) add(`record:${String(record.id).trim()}`);
+  if (record?.manualEntryId) add(`manual:${String(record.manualEntryId)}`);
+  if (/^[1-9]\d{0,31}$/.test(String(record?.programId ?? '')) &&
+      Number.isInteger(record?.programDay) && record.programDay >= 1 && record.programDay <= 62) {
+    add(`program:${record.programId}:${record.programDay}`);
+  }
+  for (const url of [record?.url, ...(Array.isArray(record?.confirmation_urls) ? record.confirmation_urls : [])]) {
+    if (typeof url !== 'string') continue;
+    const match = /^https:\/\/x\.com\/thsottiaux\/status\/(\d+)$/.exec(url);
+    if (match) add(`source:${match[1]}`);
+  }
+  // 独立人工到账可能没有推文、记录 ID 或计划日；同类型与精确到账时刻是它唯一可复核的稳定身份。
+  if (record?.manual === true && (record.type === 'reset' || record.type === 'credit') && Number.isFinite(eventTime(record))) {
+    add(`manual-event:${record.type}:${eventTime(record)}`);
+  }
+  if (!keys.size) add(`time:${record?.type ?? ''}:${eventTime(record)}`);
+  return [...keys].sort();
+}
+
+function sharesEventKey(a, b) {
+  const keys = new Set(a ?? []);
+  return (b ?? []).some((key) => keys.has(key));
+}
+
+function findPendingRecord(records, pending, legacyAt) {
+  const candidates = detectNewResets(records, null);
+  if (pending?.source === 'manual' && pending.manualEntryId) {
+    const exact = candidates.find((record) => record.manual === true && String(record.manualEntryId) === String(pending.manualEntryId));
+    if (exact) return exact;
+    const stableKey = (pending.keys ?? []).find((key) => /^manual-event:(?:reset|credit):\d+$/.test(key));
+    if (!stableKey) return null;
+    const matches = candidates.filter((record) => record.manual === true && landedEventKeys(record).includes(stableKey));
+    return matches.length === 1 ? matches[0] : null;
+  }
+  if (Array.isArray(pending?.keys) && pending.keys.length) {
+    return candidates.find((record) => sharesEventKey(pending.keys, landedEventKeys(record))) ?? null;
+  }
+  const at = Date.parse(legacyAt ?? pending?.eventAt ?? pending?.confirmedAt ?? '');
+  return Number.isFinite(at) ? candidates.find((record) => eventTime(record) === at) ?? null : null;
+}
+
+function notificationRecordFor(record, notificationRecords) {
+  if (!record) return null;
+  if (record.id != null) {
+    const byId = notificationRecords.find((item) => item.id != null && String(item.id) === String(record.id));
+    if (byId) return byId;
+  }
+  const sourceUrls = [record.url, ...(Array.isArray(record.confirmation_urls) ? record.confirmation_urls : [])]
+    .filter((url) => typeof url === 'string' && url);
+  const matches = notificationRecords.filter((item) => item.type === record.type && eventTime(item) === eventTime(record));
+  if (sourceUrls.length) {
+    const sourceIds = new Set(sourceUrls);
+    const bySource = matches.find((item) => [item.url, ...(Array.isArray(item.confirmation_urls) ? item.confirmation_urls : [])]
+      .some((url) => sourceIds.has(url)));
+    if (bySource) return bySource;
+  }
+  // 无 ID 的历史记录只在时间与类型组合唯一时关联，避免 undefined ID 命中第一条旧记录。
+  return matches.length === 1 ? matches[0] : record;
+}
+
 /* ------------------------------ 推送 ------------------------------ */
 
 /**
@@ -207,45 +274,106 @@ export function fmtWeChatTime(ts) {
  *
  * @returns {Promise<object>} 结果摘要，写进日志用
  */
-export async function notifyNewResets({ dataDir, store, client, templateId, page, templateSpec, getRecords, log = console }) {
+export async function notifyNewResets({ dataDir, store, client, templateId, page, templateSpec, getRecords,
+  getNotificationRecords, manualEvent, queueOnly = false, log = console }) {
   if (!templateId) return { skipped: 'no-template-id' };
   if (!client?.configured) return { skipped: 'wechat-not-configured' };
   return store.notify(async () => {
     const records = getRecords ? await getRecords() : JSON.parse(await readFile(resolve(dataDir, 'resets.json'), 'utf8')).records ?? [];
+    const notificationRecords = getNotificationRecords ? await getNotificationRecords() : records;
     const maxAt = latestEventAt(records);
-    const confirmedTimes = new Set(detectNewResets(records, null).map((record) => eventTime(record)));
+    const manualEntryId = manualEvent?.manualEntryId ?? (manualEvent?.id ? String(manualEvent.id).replace(/^manual-/, '') : null);
+    const manualRecord = manualEntryId ? notificationRecords.find((record) => record.manual === true &&
+      String(record.manualEntryId ?? '') === String(manualEntryId)) ?? null : null;
+    const manualConfirmedAt = Date.parse(manualEvent?.confirmedAt ?? '');
+    const explicitManual = manualRecord && Number.isFinite(manualConfirmedAt) && manualConfirmedAt <= Date.now()
+      ? { record: manualRecord, source: 'manual', manualEntryId: String(manualEntryId),
+          confirmedAt: manualConfirmedAt, eventAt: eventTime(manualRecord), keys: landedEventKeys(manualRecord) }
+      : null;
     const work = await store.update((state) => {
-      // 修正/撤回的完成记录不能继续支撑旧待发项；旧名单只存时间戳时也按同一口径核验。
-      for (const item of state.items) {
-        if (item.pending_event_at && !confirmedTimes.has(Date.parse(item.pending_event_at))) delete item.pending_event_at;
-      }
-      if (maxAt === null) return { skipped: 'no-resets' };
-      if (!state.last_event_at) {
+      state.landed_event_keys = Array.isArray(state.landed_event_keys) ? state.landed_event_keys : [];
+      const hadWatermark = Boolean(state.last_event_at);
+      if (!state.last_event_at && maxAt !== null) {
         state.last_event_at = new Date(maxAt).toISOString();
-        return { skipped: 'baseline-initialized', lastEventAt: state.last_event_at };
       }
-      const fresh = detectNewResets(records, state.last_event_at);
+      const fresh = hadWatermark ? detectNewResets(records, state.last_event_at) : [];
       const newest = fresh[fresh.length - 1];
-      if (newest) {
-        const at = new Date(eventTime(newest)).toISOString();
-        for (const item of state.items) {
-          if (itemKind(item) !== 'landed' || item.template_id !== templateId || Date.parse(item.created_at) > eventTime(newest)) continue;
-          item.id ||= randomUUID();
-          item.pending_event_at ||= at;
+      const automatic = newest ? {
+        record: notificationRecordFor(newest, notificationRecords) ?? newest,
+        source: 'automatic',
+        confirmedAt: eventTime(newest),
+        eventAt: eventTime(newest),
+        keys: landedEventKeys(notificationRecordFor(newest, notificationRecords) ?? newest),
+      } : null;
+      const candidates = [explicitManual, automatic].filter(Boolean);
+      const uniqueCandidates = [];
+      for (const candidate of candidates) {
+        if (!uniqueCandidates.some((existing) => sharesEventKey(existing.keys, candidate.keys))) uniqueCandidates.push(candidate);
+      }
+      let queuedForManual = 0;
+      let manualSkipped = null;
+      for (const candidate of uniqueCandidates) {
+        const matchingPending = state.items.filter((item) => itemKind(item) === 'landed' && item.template_id === templateId &&
+          item.pending_event && sharesEventKey(item.pending_event.keys, candidate.keys));
+        if (matchingPending.length) {
+          state.landed_event_keys = [...new Set([...state.landed_event_keys, ...candidate.keys])];
+          if (candidate.source === 'manual') queuedForManual += matchingPending.length;
+          continue;
         }
+        const seen = state.landed_event_keys.some((key) => candidate.keys.includes(key));
+        if (seen) {
+          state.landed_event_keys = [...new Set([...state.landed_event_keys, ...candidate.keys])];
+        }
+        const at = new Date(candidate.confirmedAt).toISOString();
+        const eligibleItems = state.items.filter((item) => itemKind(item) === 'landed' && item.template_id === templateId &&
+          (!Number.isFinite(Date.parse(item.created_at)) || Date.parse(item.created_at) <= candidate.confirmedAt) &&
+          !item.pending_event && !item.pending_event_at &&
+          (!seen || candidate.source === 'manual' && sharesEventKey(item.cancelled_event_keys, candidate.keys)));
+        if (!eligibleItems.length) {
+          if (candidate.source === 'manual') manualSkipped = seen ? 'already-notified' : 'no-eligible-grants';
+          continue;
+        }
+        for (const item of eligibleItems) {
+          item.id ||= randomUUID();
+          item.pending_event = {
+            source: candidate.source,
+            ...(candidate.manualEntryId ? { manualEntryId: candidate.manualEntryId } : {}),
+            keys: candidate.keys,
+            confirmedAt: at,
+            eventAt: new Date(candidate.eventAt).toISOString(),
+          };
+          item.pending_event_at = new Date(candidate.eventAt).toISOString();
+        }
+        state.landed_event_keys = [...new Set([...state.landed_event_keys, ...candidate.keys])];
+        if (candidate.source === 'manual') queuedForManual += eligibleItems.length;
+      }
+      if (maxAt !== null && state.last_event_at) {
         state.last_event_at = new Date(Math.max(Date.parse(state.last_event_at), maxAt)).toISOString();
       }
-      const items = state.items.filter((x) => itemKind(x) === 'landed' && x.template_id === templateId && x.pending_event_at);
-      return items.length ? { items: structuredClone(items) } : { skipped: 'no-new-event', lastEventAt: state.last_event_at };
+      const items = state.items.filter((x) => itemKind(x) === 'landed' && x.template_id === templateId &&
+        (x.pending_event || x.pending_event_at));
+      if (items.length) return { items: structuredClone(items), queued: queuedForManual, pendingCount: items.length,
+        ...(manualSkipped ? { skipped: manualSkipped } : {}) };
+      if (manualSkipped) return { skipped: manualSkipped, queued: 0, pendingCount: 0, lastEventAt: state.last_event_at };
+      if (!explicitManual && detectNewResets(notificationRecords, null).length === 0) {
+        return { skipped: 'no-resets', queued: 0, pendingCount: 0, lastEventAt: state.last_event_at };
+      }
+      if (!hadWatermark && maxAt !== null && !explicitManual) {
+        return { skipped: 'baseline-initialized', queued: 0, pendingCount: 0, lastEventAt: state.last_event_at };
+      }
+      return { skipped: explicitManual ? 'already-notified' : 'no-new-event', queued: 0, pendingCount: 0, lastEventAt: state.last_event_at };
     });
-    if (work.skipped) return work;
+    if (queueOnly) return { queued: work.queued ?? 0, pendingCount: work.pendingCount ?? 0,
+      status: work.queued ? 'queued' : work.pendingCount ? 'pending' : 'skipped', sent: 0, failed: 0,
+      ...(work.skipped ? { skipped: work.skipped } : {}) };
+    if (!work.items?.length) return work;
     let sent = 0, failed = 0, removed = 0;
     for (const item of work.items) {
       // 长批次等待期间，重置记录可能被修正；发送前重新确认硬事实仍在当前快照中。
-      let currentTimes;
+      let currentRecords;
       try {
-        const currentRecords = getRecords ? await getRecords() : JSON.parse(await readFile(resolve(dataDir, 'resets.json'), 'utf8')).records ?? [];
-        currentTimes = new Set(detectNewResets(currentRecords, null).map((record) => eventTime(record)));
+        currentRecords = getNotificationRecords ? await getNotificationRecords() :
+          (getRecords ? await getRecords() : JSON.parse(await readFile(resolve(dataDir, 'resets.json'), 'utf8')).records ?? []);
       } catch (err) {
         failed++;
         log.warn?.(`[subscribe] 无法复核落地记录，保留待发授权：${err.message}`);
@@ -254,18 +382,37 @@ export async function notifyNewResets({ dataDir, store, client, templateId, page
       const eligible = await store.update((state) => {
         const current = state.items.find((x) => x.id === item.id && itemKind(x) === 'landed' && x.template_id === templateId);
         if (!current) return false;
-        if (!currentTimes.has(Date.parse(current.pending_event_at))) {
+        const resolved = findPendingRecord(currentRecords, current.pending_event, current.pending_event_at);
+        if (!resolved) {
+          // 撤回只取消这次待发；重新确认时可复用这份未消费授权，不能牵连后来的新授权。
+          if (current.pending_event?.source === 'manual') {
+            current.cancelled_event_keys = [...new Set([
+              ...(current.cancelled_event_keys ?? []), ...(current.pending_event.keys ?? []),
+            ])];
+          }
+          delete current.pending_event;
           delete current.pending_event_at;
           return false;
         }
-        return true;
+        current.pending_event_at = new Date(eventTime(resolved)).toISOString();
+        if (current.pending_event) {
+          current.pending_event.eventAt = current.pending_event_at;
+          if (current.pending_event.source === 'manual') {
+            if (resolved.manualEntryId) current.pending_event.manualEntryId = String(resolved.manualEntryId);
+            current.pending_event.keys = [...new Set([...(current.pending_event.keys ?? []), ...landedEventKeys(resolved)])].sort();
+          }
+        }
+        return { pendingEvent: structuredClone(current.pending_event ?? null), pendingEventAt: current.pending_event_at };
       });
       if (!eligible) continue;
       let consume = false;
       try {
         await client.sendSubscribeMessage({
           openid: item.openid, templateId, page,
-          data: buildTemplateData({ event: '重置已落地｜公开完成公告已确认', time: fmtWeChatTime(Date.parse(item.pending_event_at)), eta: '查看观测台了解详情' }, templateSpec),
+          data: buildTemplateData({ event: eligible.pendingEvent?.source === 'manual'
+            ? '重置已到账｜手动确认' : '重置已落地｜公开完成公告已确认',
+          time: fmtWeChatTime(Date.parse(eligible.pendingEvent?.eventAt ?? eligible.pendingEventAt)),
+          eta: '查看观测台了解详情' }, templateSpec),
         });
         sent++;
         consume = true;
@@ -276,6 +423,9 @@ export async function notifyNewResets({ dataDir, store, client, templateId, page
       }
       if (consume) await store.update((state) => { state.items = state.items.filter((x) => x.id !== item.id); });
       if (SEND_GAP_MS) await new Promise((r) => setTimeout(r, SEND_GAP_MS));
+    }
+    if (sent === 0 && failed === 0 && removed === 0) {
+      return { skipped: 'no-new-event', candidates: work.items.length, sent, failed, removed };
     }
     return { candidates: work.items.length, sent, failed, removed };
   });

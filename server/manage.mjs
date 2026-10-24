@@ -2,6 +2,8 @@
 
 import { canonicalizeManualEntryTarget, projectManualData, validateManualEntry } from '../src/lib/manual-state.mjs';
 import { analyzeTweet, detectSignals, latestEventMs } from '../src/lib/signals.mjs';
+import { buildResetCalendar } from '../src/lib/reset-calendar.mjs';
+import { withTweetTranslations } from '../src/lib/tweet-translations.mjs';
 
 const MAX_BODY_BYTES = 32 * 1024;
 const BODY_KEYS = new Set(['revision', 'action', 'entry', 'entryId', 'id']);
@@ -275,6 +277,68 @@ function rawFromStore(store) {
   return Promise.all([store.getResets(), store.getTweets(), store.getStats()]).then(([resets, tweets, statsFile]) => ({ resets, tweets, statsFile }));
 }
 
+function resolveSignals(currentState, effective, now, account) {
+  const supplied = currentState?.signals ?? (currentState &&
+    ('forecasts' in currentState || 'overdueForecasts' in currentState || 'activeHints' in currentState)
+    ? currentState : null);
+  return supplied ?? detectSignals(effective.tweets.tweets, {
+    now,
+    account,
+    lastResetAt: latestEventMs(effective.resets.records),
+  });
+}
+
+function selectableProgramPlan(effective, signals, now, account) {
+  const calendar = buildResetCalendar({
+    records: effective.resets.records,
+    tweets: effective.tweets.tweets,
+    signals,
+    now,
+    account,
+  });
+  const plan = calendar?.plan;
+  if (!plan?.programId || !Number.isInteger(plan.days) || !Array.isArray(plan.rows) ||
+      !plan.toDate || now > Date.parse(`${plan.toDate}T23:59:59.999Z`)) return null;
+  return {
+    programId: String(plan.programId),
+    days: plan.days,
+    latestDay: plan.latestDay,
+    rows: plan.rows.map(({ day, status, statusLabel }) => ({ day, status, statusLabel })),
+  };
+}
+
+function hasValidatedProgramHistory(entry, manualState) {
+  const previous = manualState.entries.find((item) => item.id === entry.id);
+  if (!previous || previous.status !== 'landed' || previous.programId !== entry.programId ||
+      previous.programDay !== entry.programDay) return false;
+  return manualState.history.some((item) => item.action === 'save' && item.entryId === previous.id &&
+    item.after?.status === 'landed' && item.after.programId === previous.programId &&
+    item.after.programDay === previous.programDay);
+}
+
+function validateProgramAssignment(entry, canonical, effective, signals, now, account, manualState) {
+  if (!entry.programId) return;
+  const plan = selectableProgramPlan(effective, signals, now, account);
+  const isCurrentProgram = Boolean(plan && String(entry.programId) === plan.programId);
+  if (isCurrentProgram) {
+    if (entry.programDay > plan.days || !plan.rows.some((row) => row.day === entry.programDay)) {
+      throw statusError('programDay 超出当前每日计划');
+    }
+  } else if (!hasValidatedProgramHistory(entry, manualState)) {
+    if (!plan) throw statusError('当前没有可归属的每日计划，或该计划已结束');
+    throw statusError('programId 不属于当前可信每日计划');
+  }
+  const ids = new Set(canonical.groupTweetIds.map(String));
+  if (canonical.entry.tweetId) ids.add(String(canonical.entry.tweetId));
+  const rawTweets = Array.isArray(effective.tweets?.tweets) ? effective.tweets.tweets : [];
+  const explicitDays = rawTweets.filter((tweet) => ids.has(String(tweet.id)))
+    .map((tweet) => String(tweet.text ?? '').match(/\bDay\s*(\d+)(?:\.\d+|\s*\([^)]*\))?\s*\//i))
+    .filter(Boolean).map((match) => Number(match[1]));
+  if (explicitDays.some((day) => day !== entry.programDay)) {
+    throw statusError('关联推文已声明不同的 Day 编号，不能归属到所选日程');
+  }
+}
+
 function manualStoreFrom(store) {
   if (store?.manualStore) return store.manualStore;
   if (typeof store?.getManualState === 'function' && typeof store?.mutateManual === 'function') {
@@ -284,7 +348,7 @@ function manualStoreFrom(store) {
 }
 
 /** GET 返回公开可审查的原始推文与有效记录；POST 保存或撤销一条账本更正。 */
-export async function handleManage(req, res, { store, send, account = 'thsottiaux', getState, now = Date.now() } = {}) {
+export async function handleManage(req, res, { store, send, account = 'thsottiaux', getState, onSaved, now = Date.now() } = {}) {
   const reply = (status, body) => sendResponse(send, res, req, status, body);
   if (req.method !== 'GET' && req.method !== 'POST') return reply(405, { error: 'method not allowed' });
   if (req.method === 'POST' && !sameOriginHost(req)) return reply(403, { error: 'cross-origin write rejected' });
@@ -298,22 +362,16 @@ export async function handleManage(req, res, { store, send, account = 'thsottiau
     ]);
     const currentNow = typeof now === 'function' ? now() : now;
     const effective = projectManualData({ ...raw, manual, now: currentNow, account });
-    const providedSignals = currentState?.signals ?? (currentState &&
-      ('forecasts' in currentState || 'overdueForecasts' in currentState || 'activeHints' in currentState)
-      ? currentState : null);
-    const signals = providedSignals ?? detectSignals(effective.tweets.tweets, {
-      now: currentNow,
-      account,
-      lastResetAt: latestEventMs(effective.resets.records),
-    });
+    const signals = resolveSignals(currentState, effective, currentNow, account);
     return reply(200, {
       revision: manual.revision,
       dataUpdatedAt: raw.tweets?.updated_at ?? null,
-      forecasts: signals?.forecasts ?? [],
-      overdueForecasts: signals?.overdueForecasts ?? [],
-      records: effective.resets.records,
-      tweets: raw.tweets?.tweets ?? [],
+      forecasts: withTweetTranslations(signals?.forecasts ?? [], raw.translationEntries),
+      overdueForecasts: withTweetTranslations(signals?.overdueForecasts ?? [], raw.translationEntries),
+      records: withTweetTranslations(effective.resets.records, raw.translationEntries),
+      tweets: withTweetTranslations(raw.tweets?.tweets ?? [], raw.translationEntries),
       tweetStates: buildTweetStates({ raw, effective, manual, signals, account, now: currentNow }),
+      programPlan: selectableProgramPlan(effective, signals, currentNow, account),
       entries: manual.entries,
       history: manual.history,
     });
@@ -339,12 +397,20 @@ export async function handleManage(req, res, { store, send, account = 'thsottiau
     catch (error) { return reply(error.status ?? 422, { error: error.message }); }
     try {
       const manual = await manualStore.get();
-      const effectiveRecords = projectManualData({ ...raw, manual, now: currentNow, account }).resets.records;
+      const effective = projectManualData({ ...raw, manual, now: currentNow, account });
+      const effectiveRecords = effective.resets.records;
       entry = normalizeEffectiveTarget(entry, effectiveRecords, manual);
       entry = validateManualEntry(entry, { now: currentNow, account });
       validateTarget(entry, raw, account);
       const canonical = canonicalizeManualEntryTarget(entry, { resets: raw.resets, tweets: raw.tweets, account });
       entry = canonical.entry;
+      const currentState = typeof getState === 'function' ? await getState() : null;
+      const signals = resolveSignals(currentState, effective, currentNow, account);
+      validateProgramAssignment(entry, canonical, effective, signals, currentNow, account, manual);
+      if (entry.programId && manual.entries.some((existing) => existing.id !== entry.id &&
+          existing.programId === entry.programId && existing.programDay === entry.programDay)) {
+        throw statusError('这个活动日已关联一条手动到账记录', 409, 'MANUAL_PROGRAM_DAY_EXISTS');
+      }
       if (canonical.groupTweetIds.length) {
         const groupIds = new Set(canonical.groupTweetIds);
         const overlapping = manual.entries.filter((existing) => {
@@ -367,7 +433,13 @@ export async function handleManage(req, res, { store, send, account = 'thsottiau
     catch (error) { return reply(error.status ?? 422, { error: error.message }); }
     try {
       const result = await manualStore.mutate({ revision: body.revision, action: 'save', entry, now: currentNow, account });
-      return reply(200, { revision: result.revision, entry: result.entry, entries: result.entries, history: result.history });
+      let notification;
+      if (result.entry.status === 'landed' && typeof onSaved === 'function') {
+        try { notification = await onSaved({ entry: result.entry, manualEntryId: result.entry.id }); }
+        catch (error) { notification = { sent: 0, failed: 1, error: String(error?.message ?? 'notification failed') }; }
+      }
+      return reply(200, { revision: result.revision, entry: result.entry, entries: result.entries, history: result.history,
+        ...(notification !== undefined ? { notification } : {}) });
     } catch (error) {
       return reply(error.status ?? 500, { error: error.message, ...(error.code === 'REVISION_CONFLICT' ? { revision: (await manualStore.get()).revision } : {}) });
     }

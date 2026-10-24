@@ -22,6 +22,7 @@ import { predictAll } from './predict.mjs';
 import { detectSignals, latestEventMs } from './signals.mjs';
 import { renderAll } from './render.mjs';
 import { buildResetCalendar } from './reset-calendar.mjs';
+import { withTweetTranslations } from './tweet-translations.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -38,19 +39,20 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
  * @param {{resets:object, tweets:object, statsFile:object, now:number, account:string}} input
  * @returns {{chart:object, prediction:object, signals:object, model:object}}
  */
-export function derive({ resets, tweets, statsFile, now, account }) {
+export function derive({ resets, tweets, statsFile, now, account, translationEntries = {}, translationRevision = 0 }) {
   const chart = buildChartData(resets.records, now);
   if (!chart) throw new Error('记录不足（至少需要 2 条带时间的记录），无法渲染页面');
 
   const prediction = predictAll(resets.records, { now, tweets: tweets.tweets, account });
   // lastResetAt 让「已经兑现的预告」不再展示（见 signals.mjs 里 staleWindowReason 的注释）。
   // 口径是「最近一次额度事件」，**含发券型 credit** —— 预告兑现与否与那次发放叫什么名字无关。
-  const signals = detectSignals(tweets.tweets, {
+  let signals = detectSignals(tweets.tweets, {
     now,
     account,
     lastResetAt: latestEventMs(resets.records),
   });
   signals.calendar = buildResetCalendar({ records: resets.records, tweets: tweets.tweets, signals, now, account });
+  signals.translationRevision = translationRevision;
   const model = {
     ...chart,
     generatedAt: statsFile.generated_at ?? new Date(now).toISOString(),
@@ -58,8 +60,9 @@ export function derive({ resets, tweets, statsFile, now, account }) {
     collectErrors: statsFile.errors ?? [],
     accountObservationRevision: signals.accountObservationRevision,
     manualRevision: tweets.manualRevision ?? 0,
+    translationRevision,
   };
-  return { chart, prediction, signals, model };
+  return withTweetTranslations({ chart, prediction, signals, model }, translationEntries);
 }
 
 /* ------------------------------- 组装 ------------------------------- */

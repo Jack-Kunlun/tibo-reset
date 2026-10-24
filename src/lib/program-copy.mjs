@@ -2,6 +2,9 @@ import { createHash } from 'node:crypto';
 
 // 中文摘要与采集原文全文绑定；原帖变化时回退原文，避免沿用过期结论。
 const COPIES = {
+"2113162277688070445": {"hash":"809bbb1045ac7619c1671e7ad2cdb23eab8d337bb53ead6731642dd09d4775cd","title":"宣布重置日，提醒提前开通 Daybreak Blue","kind":"note"},
+"2113492187770175603": {"hash":"92d08ce2cd96b7c3f6b413426684c4be7731c62c1c2df677d69c70095f0279bf","title":"Decisions API 正式上线、性能改进与额度重置预告","kind":"update"},
+"2113770573994299544": {"hash":"7cbef2511b7a5b0c3f91ebb78659b0ff24e9d57c1413d2387efcc0eeaf5768f3","title":"Dot 通话加速，切换推理保留缓存，更新 Codex CLI","kind":"update"},
   "2107158998495748264": {
     "hash": "d2366060b858c9da9ab8b633924951f05cbcf30a208a3132af23e3436d8f469d",
     "title": "默认速度提升约 50%",

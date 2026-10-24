@@ -42,6 +42,31 @@ assert.equal(draftStatus({kind:'new'},null,null),'landed','无推文补录默认
 const autoAnnounce = runInNewContext(html.slice(statusStart,statusEnd).replace("return target?.kind === 'new' ? 'landed' : '';", "return target?.kind === 'new' ? 'landed' : 'announced';") + '; draftStatus');
 assert.equal(autoAnnounce({kind:'tweet',status:'none'},null,null),'announced','旧默认值的隔离反例会把普通动态预选为预告');
 
+const dayStart=html.indexOf('      function suggestedProgramDay(');
+const dayEnd=html.indexOf('      function currentFormValue(',dayStart);
+const pendingPlan={programId:'123',rows:[{day:18,status:'pending'},{day:19,status:'noted'}]};
+const suggested=(source,plan,target,entry)=>runInNewContext(source.slice(dayStart,dayEnd)+';suggestedProgramDay(target,entry)',{state:{data:{programPlan:plan}},target,entry});
+assert.equal(suggested(html,pendingPlan,{kind:'new'},null),18,'唯一待落地日建议显示在可更改的选择框');
+assert.equal(suggested(html,{...pendingPlan,rows:[...pendingPlan.rows,{day:17,status:'pending'}]},{kind:'new'},null),'','多个待落地日不能猜');
+assert.equal(suggested(html,pendingPlan,{kind:'entry'},{id:'legacy'}),'','既有无关联条目不静默补归属');
+assert.equal(suggested(html,pendingPlan,{kind:'entry'},{programId:'other',programDay:18}),'','不同活动不得沿用日序');
+const guessAmbiguous=html.replace('if(pending.length===1)return pending[0].day;','if(pending.length)return pending[0].day;');
+assert.notEqual(guessAmbiguous,html);
+assert.equal(suggested(guessAmbiguous,{...pendingPlan,rows:[...pendingPlan.rows,{day:17,status:'pending'}]},{kind:'new'},null),18,'去掉唯一性约束的隔离反例会猜错归属');
+const renderDayStart=html.indexOf('      function renderProgramOptions(');
+const renderDayEnd=html.indexOf('      function suggestedProgramDay(',renderDayStart);
+function renderedDays(source){
+ const select={options:[],replaceChildren(...options){this.options=options;},append(option){this.options.push(option);}};
+ const field={hidden:true};
+ const Option=function(label,value){return{label,value};};
+ runInNewContext(source.slice(source.indexOf('      function renderProgramOptions('),source.indexOf('      function suggestedProgramDay('))+";renderProgramOptions(18,'previous');",{state:{data:{programPlan:pendingPlan},draft:{status:'landed'}},Option,$:id=>id==='#program-day'?select:field});
+ return {select,field};
+}
+assert.ok(renderedDays(html).select.options.some(option=>option.value==='18') && renderedDays(html).select.disabled,'历史活动归属保留原值且不被新活动改写');
+const dropHistory=html.replace('if(historical && selected)select.append','if(false)select.append');
+assert.notEqual(dropHistory,html);
+assert.ok(!renderedDays(dropHistory).select.options.some(option=>option.label.includes('原活动归属')),'删除历史选项的隔离反例会丢失归属显示');
+
 const duplicate = html.replace('if (entry) used.add(`entry:${entryKey(entry)}`);', '');
 assert.notEqual(duplicate, html);
 assert.equal(rowsFrom(duplicate, [record], [entry]).length, 2, '去掉关联去重的隔离反例会重复计数');

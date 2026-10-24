@@ -651,6 +651,10 @@
   @media(max-width:1000px){#observatory .am-main{grid-template-columns:minmax(0,1.6fr) minmax(300px,1fr)}#observatory .plan-cell small{display:none}#observatory .plan-cell i{display:block}}
   @media(max-width:850px){#observatory .am-main{grid-template-columns:1fr}#observatory .am-signal-slot,#observatory .am-focus>.pred,#observatory .am-focus>:not(.pred),#observatory .am-main>.reset-calendar,#observatory .am-main>.am-side{grid-column:1;grid-row:auto}#observatory .am-main>.am-side{display:flex;align-items:stretch;margin-top:0}#observatory .plan-cell small{display:block}#observatory .plan-cell i{display:none}}
   @media(max-width:700px){#observatory .am-main{display:flex;flex-direction:column;gap:18px}#observatory .am-focus{width:100%;gap:18px}#observatory .am-main>.am-side{display:flex;width:100%;margin-top:0;gap:18px}#observatory .program-plan{padding:20px 16px}#observatory .plan-heading h2{font-size:16px}#observatory .plan-grid{gap:6px}#observatory .plan-cell{min-height:55px;border-radius:8px;gap:5px}#observatory .plan-cell small{display:none}#observatory .plan-cell i{display:block}#observatory .plan-cell b{font-size:12px}#observatory .plan-cell>span{font-size:9px}#observatory .plan-stats{gap:6px 12px;font-size:10px}#observatory .plan-entry-meta time{margin-left:0}#observatory .signal-summary{gap:7px}#observatory .signal-summary>span{font-size:11px}#observatory .signal-disclosure{font-size:10px}#observatory .am-signal-details{padding:14px}#observatory .am-lower .am-trends{margin:16px 0}}
+.tweet-translation{margin:12px 0;color:var(--lav,#b9a7ef);font-size:12px}
+.tweet-translation summary{cursor:pointer}
+.translation-label{margin:14px 0 6px;color:#a89bcc;font-size:11px}
+.translation-text{color:#ded9ed;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}
 </style>
 
 </head>
@@ -1054,6 +1058,7 @@
   var renderedAt = Date.parse(digest.dataUpdatedAt) || 0;
   var renderedObservationRevision = digest.accountObservationRevision || '';
   var renderedManualRevision = digest.manualRevision || 0;
+  var renderedTranslationRevision = digest.translationRevision || 0;
   var renderedErrors = JSON.stringify(digest.collectErrors || []);
   var key = 'reset-observatory-reading';
   var selectors = ['.sig-prog', '.am-signal-details', '.am-disclosure', '.am-more'];
@@ -1086,8 +1091,9 @@
       var newer = Date.parse(state.dataUpdatedAt) > renderedAt;
       var observationChanged = (state.signals && state.signals.accountObservationRevision || '') !== renderedObservationRevision;
       var manualChanged = (state.signals && state.signals.manualRevision || 0) !== renderedManualRevision;
+      var translationChanged = (state.signals && state.signals.translationRevision || 0) !== renderedTranslationRevision;
       var errorsChanged = JSON.stringify(state.collectErrors || []) !== renderedErrors;
-      if ((!newer && !observationChanged && !manualChanged && !errorsChanged) || document.hidden) return;
+      if ((!newer && !observationChanged && !manualChanged && !translationChanged && !errorsChanged) || document.hidden) return;
       var open = {};
       selectors.forEach(function (selector) {
         var box = document.querySelector(selector);

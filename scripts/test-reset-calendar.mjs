@@ -142,6 +142,7 @@ const cacheRecords=[{id:'700',type:'reset',announced_at:'2026-10-06T00:00:00Z'},
 const getCachedSignals = runInNewContext(`let sigCache={key:null,value:null}; ${getSignalsSource}; getSignals`,{
   store:{getData:async()=>({tweets:{updated_at:'unchanged',tweets:[day1]},resets:{records:cacheRecords}})},
   latestEventMs,buildResetCalendar,detectSignals:()=>({program,forecasts:[]}),
+  withTweetTranslations:(value)=>value,
   SOURCE_ACCOUNT:ACCOUNT,SOURCE_ZONE:'America/Los_Angeles',USER_ZONE:'Asia/Shanghai',Date,
 });
 const beforeCache=await getCachedSignals();cacheRecords[0].type='credit';const correctedCache=await getCachedSignals();cacheRecords.shift();const removedCache=await getCachedSignals();
@@ -165,6 +166,44 @@ const planDone = tweet('871', '2026-10-06T05:00:00Z', 'Done and dusted', {
   quotedTweet: { account: ACCOUNT, text: planPromise.text, created_at: planPromise.created_at },
 });
 const doneRecord = { id: planDone.id, type: 'reset', announced_at: planDone.created_at };
+const manualProgramPost = tweet('889', '2026-10-06T06:00:00Z', 'Day 2/ Reset all propagated.');
+const manualProgramAnnouncement = tweet('890', '2026-10-06T07:00:00Z', 'Day 2/ A reset is coming soon.');
+const manualProgramEntry = { id: 'manual-900', manualEntryId: '00000000-0000-4000-8000-000000000900',
+  manual: true, type: 'reset', announced_at: '2026-10-07T02:00:00Z', first_confirmed_at: '2026-10-07T02:00:00Z',
+  text: 'Day 2 reset manually confirmed', programId: '190', programDay: 2 };
+const manualProgramFixture = {
+  records: [{ id: manualProgramPost.id, type: 'reset', announced_at: '2026-10-06T06:05:00Z', url: manualProgramPost.url }, manualProgramEntry],
+  tweets: [day1, manualProgramPost, manualProgramAnnouncement, day3],
+  signals: { program: { ...program, id: '190', days: 7 },
+    overdueForecasts: [{ level: 'explicit', status: 'overdue', timing: 'pending',
+      evidence: [{ id: manualProgramAnnouncement.id }] }] },
+  now: '2026-10-10T12:00:00.000Z',
+};
+const manualProgramStandaloneFixture = {
+  ...manualProgramFixture,
+  records: [{ ...manualProgramEntry, id: 'manual-901', manualEntryId: '00000000-0000-4000-8000-000000000901', programDay: 6 }],
+};
+const manualProgramCompletionReply = tweet('892', '2026-10-07T02:10:00Z', 'Reset all propagated.', {
+  foundVia: 'with-replies', inReplyTo: { ...manualProgramPost, relation: 'reply', verified: true },
+});
+const unrelatedSameUtcDayPost = tweet('893', '2026-10-07T03:00:00Z', 'Day 3/ Reset all propagated.');
+const manualProgramDedupeFixture = {
+  ...manualProgramFixture,
+  records: [
+    { ...manualProgramEntry, id: 'manual-902', manualEntryId: '00000000-0000-4000-8000-000000000902' },
+    { id: manualProgramCompletionReply.id, type: 'reset', announced_at: manualProgramCompletionReply.created_at,
+      url: manualProgramCompletionReply.url, confirmation_urls: [manualProgramCompletionReply.url] },
+  ],
+  tweets: [day1, manualProgramPost, manualProgramAnnouncement, manualProgramCompletionReply, day3],
+};
+const manualProgramNoLinkSameDateFixture = {
+  ...manualProgramFixture,
+  records: [
+    manualProgramEntry,
+    { id: unrelatedSameUtcDayPost.id, type: 'reset', announced_at: unrelatedSameUtcDayPost.created_at, url: unrelatedSameUtcDayPost.url },
+  ],
+  tweets: [day1, manualProgramPost, unrelatedSameUtcDayPost, day3],
+};
 const planCases = [
   {
     name: '审核跟进帖早于编号帖时停止关联',
@@ -205,7 +244,7 @@ const planCases = [
     input: planFixture([resetPost, tweet('880', '2026-10-06T06:00:00Z', 'Day 2.1/ Another reset is coming soon.')],
       [{ id: resetPost.id, type: 'reset', announced_at: resetPost.created_at }]),
     verify: c => c.plan.rows[1].confirmedCount === 1 && c.plan.rows[1].entries.some(e => e.id === '880' && e.kind === 'announcement'),
-    from: 'if (settledPosts.has(String(tweet.id)) &&', to: 'if (true &&',
+    from: 'if ((settledPosts.has(String(tweet.id)) || programSettled) &&', to: 'if ((true || programSettled) &&',
   },
   {
     name: '新的确认帖沿核验引用和自我回复链归到原编号，无需硬编码 ID',
@@ -261,7 +300,7 @@ const planCases = [
     name: '后续完成的活动日不继续显示待落地，原始预告原文仍保留',
     input: realPlanInput,
     verify: c => c.plan.rows[5].status === 'confirmed' && !c.plan.rows[5].entries.some(e => e.kind === 'announcement') && c.plan.rows[5].entries.some(e => e.text.includes('Day 6/')),
-    from: "if (settledPosts.has(String(tweet.id)) &&", to: 'if (false &&',
+    from: 'if ((settledPosts.has(String(tweet.id)) || programSettled) &&', to: 'if ((false || programSettled) &&',
   },
   {
     name: '活动中缺失日标未见公告，最新日之后标待更新，不按日期补完成',
@@ -330,6 +369,61 @@ const planCases = [
     input: { ...realPlanInput, tweets: tweetsData.tweets.map(t => t.id === '2109045220411351517' ? { ...t, text: 'Day 6/ Reset cancelled.' } : t) },
     verify: c => c.plan.rows[5].confirmedCount === 0,
     copyFrom: "if (!anchor || createHash('sha256').update(String(anchor.text ?? '')).digest('hex') !== link.anchorHash) return null;", copyTo: 'if (!anchor) return null;',
+  },
+  {
+    name: '显式活动日的独立手动到账补入计划，清除同日待核实且保留原文',
+    input: manualProgramFixture,
+    verify: c => c.plan.programId === '190' && c.plan.rows[1].status === 'confirmed' &&
+      c.plan.rows[1].confirmedCount === 1 && c.plan.rows[1].resetCount === 1 &&
+      c.plan.rows[1].entries.some(e => e.manual && e.text === manualProgramEntry.text) &&
+      c.plan.rows[1].entries.some(e => e.id === manualProgramAnnouncement.id && e.text === manualProgramAnnouncement.text && e.kind === 'note' && !e.awaitingVerification),
+    from: 'const assignedManualProgramEvents = events.filter((event) => event.record.manual &&',
+    to: 'const assignedManualProgramEvents = events.filter((event) => false && event.record.manual &&',
+  },
+  {
+    name: '手动活动日与随后采集到的同日自动完成只计一次',
+    input: manualProgramFixture,
+    verify: c => c.confirmedCount === 1 && c.cells.find((cell) => cell.date === '2026-10-07')?.confirmedCount === 1 &&
+      c.plan.rows[1].confirmedCount === 1 && c.plan.rows[1].resetCount === 1,
+    from: 'if (!isAssignedManualEvent(event)) event.suppressedByManualProgramDay = true;',
+    to: 'if (!isAssignedManualEvent(event)) event.suppressedByManualProgramDay = false;',
+  },
+  {
+    name: '人工无推文归属可确认活动日，但不冒充最新原帖 Day 或有原帖日期',
+    input: manualProgramStandaloneFixture,
+    verify: c => c.plan.latestDay === 3 && c.plan.reportedDays === 3 &&
+      c.plan.rows[5].confirmedCount === 1 && c.plan.rows[5].entries.some((entry) => entry.manual && entry.sourceLabel === '手动确认'),
+    from: 'const latestDay = Math.max(0, ...posts.map((post) => post.day));',
+    to: 'const latestDay = Math.max(0, ...posts.map((post) => post.day), ...settledProgramDays);',
+  },
+  {
+    name: '人工无推文 Day 不计入有原帖日期',
+    input: manualProgramStandaloneFixture,
+    verify: c => c.plan.reportedDays === 3,
+    from: 'reportedDays: new Set(posts.map((post) => post.day)).size,',
+    to: 'reportedDays: rows.filter((row) => row.entries.length).length,',
+  },
+  {
+    name: '人工无推文活动日明确标注手动确认来源',
+    input: manualProgramStandaloneFixture,
+    verify: c => c.plan.rows[5].entries.some((entry) => entry.manual && entry.sourceLabel === '手动确认'),
+    from: "sourceLabel: '手动确认',", to: "sourceLabel: '自动采集',",
+  },
+  {
+    name: '无推文的手动活动日与后来可信回复完成只计一次到账',
+    input: manualProgramDedupeFixture,
+    verify: c => c.confirmedCount === 1 && c.cells.find((cell) => cell.date === '2026-10-07')?.confirmedCount === 1 &&
+      c.plan.rows[1].confirmedCount === 1,
+    from: 'if (!isAssignedManualEvent(event)) event.suppressedByManualProgramDay = true;',
+    to: 'if (!isAssignedManualEvent(event)) event.suppressedByManualProgramDay = false;',
+  },
+  {
+    name: '无可信同日/回复归属时不能按到账日期合并另一 Day 的公开完成',
+    input: manualProgramNoLinkSameDateFixture,
+    verify: c => c.confirmedCount === 2 && c.cells.find((cell) => cell.date === '2026-10-07')?.confirmedCount === 2 &&
+      c.plan.rows[1].confirmedCount === 1 && c.plan.rows[2].confirmedCount === 1,
+    from: 'if (post.day !== day) continue;',
+    to: 'if (false) continue;',
   },
 ];
 const calendarPath = resolve(ROOT, 'src/lib/reset-calendar.mjs');

@@ -16,6 +16,7 @@ import { detectSignals, latestEventMs } from '../src/lib/signals.mjs';
 import { buildResetCalendar } from '../src/lib/reset-calendar.mjs';
 import { createStore } from '../server/store.mjs';
 import { createDashboardPage } from '../miniprogram/utils/dashboard.js';
+import { withTweetTranslations } from '../src/lib/tweet-translations.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const MINI_ROOT = resolve(ROOT, 'miniprogram');
@@ -407,8 +408,10 @@ function createWxmlRuntime() {
 /* ------------------------------ 本地数据 ------------------------------ */
 
 const now = Date.now();
-const [{ resets, tweets, statsFile: stats }, appConfig] = await Promise.all([
-  createStore(resolve(ROOT, 'data')).getData({ now }),
+const dataDirArg=process.argv.find(arg=>arg.startsWith('--data-dir='));
+const previewDataDir=dataDirArg ? resolve(dataDirArg.slice('--data-dir='.length)) : resolve(ROOT,'data');
+const [{ resets, tweets, statsFile: stats, translationEntries, translationRevision }, appConfig] = await Promise.all([
+  createStore(previewDataDir).getData({ now }),
   readJson('miniprogram/app.json'),
 ]);
 const DEMO_SIGNAL = process.argv.includes('--demo-signal');
@@ -422,15 +425,17 @@ const demoTweet = {
 };
 const tweetPool = DEMO_SIGNAL ? [demoTweet, ...tweets.tweets] : tweets.tweets;
 const account = 'thsottiaux';
-const chart = buildChartData(resets.records, now);
+const chart = withTweetTranslations(buildChartData(resets.records, now), translationEntries);
 const prediction = predictAll(resets.records, { now, tweets: tweets.tweets, account });
-const signals = detectSignals(tweetPool, {
+let signals = detectSignals(tweetPool, {
   now,
   account,
   lastResetAt: latestEventMs(resets.records),
 });
 signals.manualRevision = tweets.manualRevision ?? 0;
 signals.calendar = buildResetCalendar({ records: resets.records, tweets: tweetPool, signals, now, account });
+signals.translationRevision = translationRevision;
+signals = withTweetTranslations(signals, translationEntries);
 const state = {
   chart,
   prediction,
@@ -665,6 +670,7 @@ new Function(checkedBrowserScript);
 
 const demoNotice = DEMO_REMINDER
   ? '<div class="preview-demo-notice">本地布局预览 · 提醒按钮仅演示</div>'
+  : previewDataDir !== resolve(ROOT,'data') ? '<div class="preview-demo-notice">隔离验收数据 · 不代表线上状态</div>'
   : '';
 const html = '<!DOCTYPE html>\n<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
   '<title>小程序三 Tab 预览 · 等 TIBO 按按钮</title><style>' + appCss + extraCss + '</style></head><body>' +

@@ -551,6 +551,11 @@ function forecastBlock(f, sig, now) {
  * 「承诺 / 提及」的标签不能省：前者决定窗口，后者只是旁证，
  * 混在一起会让人以为 4 条推文的分量相等。
  */
+function translationDetails(item) {
+  return item.translation?.language === 'zh-CN' && item.translation.text
+    ? `<details class="tweet-translation"><summary>中文翻译</summary><p class="translation-text">${esc(item.translation.text)}</p></details>` : '';
+}
+
 function evidenceItem(e) {
   const weight = e.weight === 'hard' ? 'hard' : 'soft';
   const when = e.createdAt ? `${fmtDate(e.createdAt).slice(5)} ${fmtTime(e.createdAt)}` : '';
@@ -568,6 +573,7 @@ function evidenceItem(e) {
         ${e.url ? `<a class="ev-link" href="${esc(e.url)}" target="_blank" rel="noopener">原推 ↗</a>` : ''}
       </div>
       <p class="ev-quote">${esc(e.text ?? '')}</p>
+      ${translationDetails(e)}
     </li>`;
 }
 
@@ -591,6 +597,7 @@ function hintBlock(top, sig, now) {
     </div>
     ${windowBlock(top.window)}
     <blockquote class="sig-quote">${esc(top.text)}</blockquote>
+    ${translationDetails(top)}
     <div class="sig-meta">
       <span>发布于 ${esc(cz.a?.text ?? dualZone(top.createdAt, CJK, sig.sourceZone, '北京时间', '当地时间').a.text)} 北京 · ${esc(cz.b?.text ?? '')} 当地</span>
       ${top.timeNote ? `<span class="sig-note">${esc(top.timeNote)}</span>` : ''}
@@ -1191,6 +1198,7 @@ export function renderDigest(m, prediction, outlook) {
       dataUpdatedAt: m.dataUpdatedAt ?? null,
       accountObservationRevision: m.accountObservationRevision ?? '',
       manualRevision: m.manualRevision ?? 0,
+      translationRevision: m.translationRevision ?? 0,
       collectErrors: m.collectErrors ?? [],
       lastResetAt: m.lastAt,
       records: m.count,
@@ -1372,7 +1380,7 @@ export function renderProgramPlan(plan, program) {
   const cells = plan.rows.map((row) => `<a class="plan-cell plan-${attr(row.status)}${row === selected ? ' is-selected' : ''}" href="#program-day-${row.day}" data-plan-select="${row.day}"${row === selected ? ' aria-current="true"' : ''} aria-label="Day ${row.day} · ${attr(row.statusLabel)}"><span>Day <b>${row.day}</b></span><small>${esc(row.statusLabel)}</small><i aria-hidden="true">${markers[row.status] || '·'}</i></a>`).join('');
   const rows = plan.rows.map((row) => {
     const entries = row.entries.map((entry) => {
-      const labels = [...new Set([entry.isUpdate ? '功能更新' : '', entry.isAccountObserved ? '已有账号实测到账' : entry.awaitingVerification ? '落地待核实' : entryLabels[entry.kind]].filter(Boolean))];
+      const labels = [...new Set([entry.isUpdate ? '功能更新' : '', entry.isAccountObserved ? '已有账号实测到账' : entry.awaitingVerification ? '落地待核实' : entryLabels[entry.kind],entry.manual || entry.sourceLabel === '手动确认' ? '手动确认' : ''].filter(Boolean))];
       const observation = entry.isAccountObserved
         ? `${entry.observationPrecision === 'approximate-minute' ? '约' : ''}${entry.observedAt ? `${fmtDateTime(entry.observedAt)} 北京` : '时间未知'} · ${entry.sourceLabel || '账号实测'} · 仅代表单个账号`
         : '';
@@ -1381,7 +1389,7 @@ export function renderProgramPlan(plan, program) {
         <h3>${esc(entry.title || entry.text || '原帖摘要暂不可用')}</h3>
         ${entry.confirmedAt ? `<p class="plan-confirmed">确认时刻 ${esc(fmtDateTime(entry.confirmedAt))} 北京</p>` : ''}
         ${observation ? `<p class="plan-observation">${esc(observation)}</p>` : ''}
-        <div class="plan-entry-actions">${entry.text ? `<details class="plan-original"><summary>查看原文</summary><blockquote>${esc(entry.text)}</blockquote></details>` : ''}${entry.url ? `<a href="${attr(entry.url)}" target="_blank" rel="noopener noreferrer">原推链接 ↗</a>` : ''}</div>
+        <div class="plan-entry-actions">${entry.text ? `<details class="plan-original"><summary>${entry.translation ? '查看原文与翻译' : '查看原文'}</summary>${entry.translation?.text ? `<p class="translation-label">中文翻译</p><blockquote class="translation-text">${esc(entry.translation.text)}</blockquote><p class="translation-label">英文原文</p>` : ''}<blockquote>${esc(entry.text)}</blockquote></details>` : ''}${entry.url ? `<a href="${attr(entry.url)}" target="_blank" rel="noopener noreferrer">原推链接 ↗</a>` : ''}</div>
       </article>`;
     }).join('');
     return `<details class="plan-day${row === selected ? ' is-selected' : ''}" id="program-day-${row.day}" data-plan-day="${row.day}"${row === selected ? ' open' : ''}>

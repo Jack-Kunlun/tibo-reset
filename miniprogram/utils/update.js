@@ -1,21 +1,28 @@
 /** 更新由微信下载；只有准备完成并经用户确认，才切换代码包。 */
+const controllersByHost = new WeakMap();
+
 export function createUpdatePrompt(host = typeof wx === 'undefined' ? null : wx) {
+  const cacheableHost = host !== null
+    && (typeof host === 'object' || typeof host === 'function');
+  if (cacheableHost && controllersByHost.has(host)) return controllersByHost.get(host);
+
   let manager = null;
   let foreground = false;
   let allowed = true;
   let pending = null;
   let foregroundEpoch = 0;
-  let promptedEpoch = -1;
+  const prompted = { ready: false, failed: false };
+  const attemptedEpoch = { ready: -1, failed: -1 };
   let modalOpen = false;
   let applying = false;
 
   function prompt() {
-    if (!manager || !foreground || !allowed || !pending
-      || promptedEpoch === foregroundEpoch || modalOpen || applying) return;
+    if (!manager || !foreground || !allowed || !pending || modalOpen || applying) return;
     const kind = pending;
-    const promptEpoch = foregroundEpoch;
+    if (prompted[kind] || attemptedEpoch[kind] === foregroundEpoch) return;
+    attemptedEpoch[kind] = foregroundEpoch;
     let applyFailed = false;
-    promptedEpoch = foregroundEpoch;
+    let modalFailed = false;
     modalOpen = true;
     try {
       host.showModal({
@@ -29,6 +36,7 @@ export function createUpdatePrompt(host = typeof wx === 'undefined' ? null : wx)
         confirmColor: '#7161e8',
         success(res) {
           if (kind === 'ready' && res.confirm && pending === 'ready' && !applying) {
+            prompted.ready = true;
             applying = true;
             try {
               manager.applyUpdate();
@@ -37,18 +45,29 @@ export function createUpdatePrompt(host = typeof wx === 'undefined' ? null : wx)
               pending = 'failed';
               applyFailed = true;
             }
+          } else if (kind === 'ready') {
+            // success 代表这次提示已送达；点「稍后」也不应因生命周期事件重弹。
+            prompted.ready = true;
           } else if (kind === 'failed' && pending === 'failed') {
+            prompted.failed = true;
             pending = null;
           }
         },
+        fail() {
+          // 弹窗没能显示时留待下一次前台重试，不在当前周期反复调用。
+          modalFailed = true;
+          modalOpen = false;
+        },
         complete() {
           modalOpen = false;
+          if (!modalFailed) {
+            // 某些宿主只回 complete；将其视为一次已结束的提示，避免旧弹窗补发。
+            if (kind === 'ready') prompted.ready = true;
+            if (kind === 'failed' && pending === 'failed') pending = null;
+            if (kind === 'failed' && pending === null) prompted.failed = true;
+          }
           if (applyFailed) {
-            // applyUpdate 失败后只补一条失败说明，不在同一前台周期循环弹窗。
-            promptedEpoch = -1;
-            prompt();
-          } else if (foreground && foregroundEpoch !== promptEpoch) {
-            // 旧弹窗可能跨越后台周期；关闭后补发新前台尚未看到的提示。
+            // applyUpdate 失败后只补一条失败说明。
             prompt();
           }
         },
@@ -67,6 +86,8 @@ export function createUpdatePrompt(host = typeof wx === 'undefined' ? null : wx)
         try {
           candidate.onUpdateReady(() => {
             pending = 'ready';
+            prompted.failed = false;
+            attemptedEpoch.failed = -1;
             prompt();
           });
         } catch {
@@ -76,7 +97,7 @@ export function createUpdatePrompt(host = typeof wx === 'undefined' ? null : wx)
           try {
             candidate.onUpdateFailed(() => {
               // 已经下载好的包不被重复的失败通知覆盖。
-              if (pending !== 'ready') pending = 'failed';
+              if (pending !== 'ready' && !prompted.failed) pending = 'failed';
               prompt();
             });
           } catch {
@@ -89,11 +110,10 @@ export function createUpdatePrompt(host = typeof wx === 'undefined' ? null : wx)
     // 宿主更新接口异常时保留页面；若 manager 已取得，保留其它已注册的能力。
   }
 
-  return {
+  const controller = {
     onShow(allowPrompt = true) {
       if (!foreground) {
         foregroundEpoch++;
-        promptedEpoch = -1;
       }
       foreground = true;
       allowed = allowPrompt;
@@ -104,4 +124,6 @@ export function createUpdatePrompt(host = typeof wx === 'undefined' ? null : wx)
       foreground = false;
     },
   };
+  if (cacheableHost) controllersByHost.set(host, controller);
+  return controller;
 }

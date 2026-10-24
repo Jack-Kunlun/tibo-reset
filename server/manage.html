@@ -163,6 +163,7 @@
     .table-sub{margin-top:5px;color:var(--dim);font-size:11px;overflow-wrap:anywhere}
     .table-time{font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
     .table-source{margin-top:5px;color:var(--dim);font-size:11px}
+    .table-translation{margin-top:7px;color:var(--lav);font-size:11px}.table-translation summary{cursor:pointer}.table-translation p{margin:8px 0 0;color:#d5d1e3;line-height:1.8;white-space:pre-wrap}
     .action-cell{text-align:right}.row-actions{display:flex;align-items:center;justify-content:flex-end;gap:14px;white-space:nowrap}
     .text-action{padding:5px 0;border:0;background:none;color:var(--lav);font-size:12px;cursor:pointer;text-decoration:none}.text-action:hover{text-decoration:underline}
     .badge.hint{color:var(--amber);border-color:#55482f}.badge.none,.badge.unclassified{border-color:transparent;color:var(--muted);padding-left:0}
@@ -191,7 +192,7 @@
       <div class="top-actions"><button class="button quiet" id="history-button" type="button">修改记录</button><span class="sync-label" id="sync-label">连接管理数据…</span><button class="button quiet" id="refresh-button" type="button" aria-label="刷新数据"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M16 8a6 6 0 0 0-10.2-3L4 6.8M4 4v2.8h2.8M4 12a6 6 0 0 0 10.2 3l1.8-1.8M16 16v-2.8h-2.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>刷新</button></div>
     </header>
 
-    <div class="notice"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2.4 17 5v4.3c0 4.2-2.8 6.7-7 8.3-4.2-1.6-7-4.1-7-8.3V5l7-2.6Z" stroke="currentColor" stroke-width="1.4"/><path d="M10 6.2v4.1m0 2.8h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span><strong>公共管理页</strong> · 修改将同步到观测页面。保存只更新数据，不会额外发送通知。</span></div>
+    <div class="notice"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2.4 17 5v4.3c0 4.2-2.8 6.7-7 8.3-4.2-1.6-7-4.1-7-8.3V5l7-2.6Z" stroke="currentColor" stroke-width="1.4"/><path d="M10 6.2v4.1m0 2.8h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span><strong>公共管理页</strong> · 修改同步到观测页面；手动到账向已授权用户发送落地提醒，同一事件不重复发送。</span></div>
 
     <section class="overview" aria-label="当前数据概况">
       <article class="metric"><div><div class="metric-label">待跟进预告</div></div><div class="metric-value forecast" id="forecast-count">—</div></article>
@@ -233,6 +234,7 @@
           <form id="entry-form" novalidate>
               <div class="field" id="new-title-field"><label for="title-input">事件内容 <small><span id="title-count">0</span> / 500</small></label><input id="title-input" maxlength="500" required placeholder="会根据状态自动填写"></div>
             <div class="field"><div class="field-label" id="status-label">记录状态 <small>选择后保存</small></div><div class="status-options" role="radiogroup" aria-labelledby="status-label"><button class="status-option" type="button" data-status="announced" aria-pressed="true">预告</button><button class="status-option" type="button" data-status="landed" aria-pressed="false">已到账</button><button class="status-option" type="button" data-status="ignored" aria-pressed="false">排除</button></div></div>
+            <div class="field" id="program-day-field" hidden><label for="program-day">对应 28 天计划 <small>可选</small></label><select id="program-day"><option value="">不关联计划日</option></select><div class="field-hint">无关联推文时，选择计划日可同步当天状态。</div></div>
             <div class="field" id="landed-time-field"><label for="occurred-at">实际到账时间（北京时间）</label><input id="occurred-at" type="datetime-local" required><div class="field-hint">默认填入当前时间，可按你确认额度恢复的时刻调整。</div></div>
             <div class="field" id="window-field" hidden><div class="field-label">预告时间范围 <small>可留空</small></div><div class="time-pair"><input id="window-from" type="datetime-local" aria-label="预告开始时间（北京时间）"><input id="window-to" type="datetime-local" aria-label="预告结束时间（北京时间）"></div><div class="field-hint">时间均按北京时间；填写时请同时填写开始与结束。</div></div>
             <details class="optional-details" id="optional-details"><summary>补充信息（选填）<small>推文关联、类型、来源、备注</small></summary><div class="optional-body">
@@ -522,6 +524,11 @@
           const content=el('td'); const title=el('div','table-title',cleanExcerpt(row.title,200));title.title=row.title;
           content.append(title);
           content.append(el('div','table-sub',row.kind === 'record' || row.kind === 'entry' ? row.entry || row.record?.manual ? '手动补录 · 无需关联推文' : '历史到账记录' : `推文 · @${row.tweet?.account || 'thsottiaux'}`));
+          const programDay=row.entry?.programDay ?? row.record?.programDay;
+          if(programDay)content.append(el('div','table-sub',`对应计划 Day ${programDay}`));
+          else if((row.entry || row.record?.manual) && !row.tweet)content.append(el('div','table-sub','尚未关联计划日'));
+          const translation=row.tweet?.translation ?? row.record?.translation;
+          if(translation?.language==='zh-CN' && translation.text){const details=el('details','table-translation');details.append(el('summary','','中文翻译'),el('p','',translation.text));content.append(details);}
           if (row.forecast?.window) content.append(el('div','table-sub',forecastWindowLabel(row.forecast)));
           const current=el('td');const badge=statusBadge(row.status);badge.textContent=row.predictedLabel || statusName(row.status);current.append(badge);
           current.append(el('div','table-source',row.predictedSource === 'manual' || row.entry || row.record?.manual ? '手动修订' : '自动判断'));
@@ -577,8 +584,28 @@
         if (recordGroup.children.length) select.append(recordGroup);
         select.value = selected ?? '';
       }
+      function renderProgramOptions(selected,programId=state.data?.programPlan?.programId) {
+        const plan=state.data?.programPlan;
+        const select=$('#program-day');select.replaceChildren(new Option('不关联计划日',''));
+        const historical=programId && programId!==plan?.programId;
+        select.disabled=Boolean(historical);
+        $('#program-day-field').hidden=(!plan?.programId && !historical) || state.draft?.status!=='landed';
+        if(historical && selected)select.append(new Option(`Day ${selected} · 原活动归属`,String(selected)));
+        else if(plan?.programId)for(const row of plan.rows ?? [])select.append(new Option(`Day ${row.day} · ${row.statusLabel || '待更新'}`,String(row.day)));
+        select.value=selected ? String(selected) : '';
+      }
+      function suggestedProgramDay(target,entry) {
+        if(entry)return entry.programId===state.data?.programPlan?.programId ? entry.programDay : '';
+        const ownDay=/\bDay\s*(\d+)(?:\.\d+|\s*\([^)]*\))?\s*\//i.exec(target?.tweet?.text || '');
+        if(ownDay)return Number(ownDay[1]);
+        if(target?.kind==='new'){
+          const pending=(state.data?.programPlan?.rows ?? []).filter(row=>row.status==='pending');
+          if(pending.length===1)return pending[0].day;
+        }
+        return '';
+      }
       function currentFormValue() {
-        return { status: state.draft?.status ?? 'announced', type: $('#event-type').value, title: titleInput.value, note: noteInput.value, sourceUrl: $('#source-url').value, occurredAt: $('#occurred-at').value, windowFrom: $('#window-from').value, windowTo: $('#window-to').value, source: $('#source-select').value };
+        return { status: state.draft?.status ?? 'announced', type: $('#event-type').value, title: titleInput.value, note: noteInput.value, sourceUrl: $('#source-url').value, occurredAt: $('#occurred-at').value, windowFrom: $('#window-from').value, windowTo: $('#window-to').value, source: $('#source-select').value, programDay: $('#program-day').value, programId: state.draft?.programId ?? '' };
       }
       function isDirty(ignoreSource = false) {
         if (!state.draft) return false;
@@ -600,6 +627,7 @@
         $('#landed-time-field').hidden = status !== 'landed';
         $('#window-field').hidden = status !== 'announced';
         $('#occurred-at').required = status === 'landed';
+        $('#program-day-field').hidden=status!=='landed' || (!state.data?.programPlan?.programId && !state.draft.programRefLocked);
         clearFormError(); updateSaveDisabled();
       }
       function showFormError(message, actionLabel, action) {
@@ -646,6 +674,10 @@
         $('#current-status').textContent=target?.predictedLabel || (target?.kind==='new'?'无关联推文':statusName(target?.status || draft.status));
         $('#editor-subtitle').textContent = entry ? '编辑手工登记' : target?.forecast ? '复核预测并登记状态' : target?.record ? '核对到账记录' : target?.tweet ? '登记这条推文的状态' : '新建手工记录';
         renderSourceOptions(source);
+        state.draft.programRefLocked=Boolean(entry?.programId && entry.programId!==state.data?.programPlan?.programId);
+        state.draft.originalProgramDay=entry?.programDay;
+        renderProgramOptions(state.draft.programRefLocked ? entry.programDay : suggestedProgramDay(target,entry),entry?.programId ?? state.data?.programPlan?.programId);
+        state.draft.programId=entry?.programId ?? state.data?.programPlan?.programId ?? '';
         $('#event-type').value = draft.type;
         titleInput.value = draft.title;
         noteInput.value = draft.note;
@@ -734,6 +766,8 @@
         } else target = { kind: 'new', title: '' };
         selectRef(target ?? { kind: 'new', title: '' });
         state.draft.entryId = saved.entryId; state.draft.tweetId = saved.tweetId; state.draft.recordId = saved.recordId;
+        renderProgramOptions(saved.programDay,saved.programId);
+        state.draft.programId=saved.programId;
         $('#source-select').value = saved.source; state.draft.source = saved.source;
         $('#event-type').value = saved.type; titleInput.value = saved.title; noteInput.value = saved.note;
         $('#source-url').value = saved.sourceUrl; $('#occurred-at').value = saved.occurredAt;
@@ -762,6 +796,7 @@
         clearFormError();
         if (!state.draft) { showFormError('请先选择或补充一条记录。'); return false; }
         if (!['announced','landed','ignored'].includes(state.draft.status)) { showFormError('请选择需要修正为的状态。'); return false; }
+        if(state.draft.status==='landed' && $('#program-day').value && state.draft.programId!==state.data?.programPlan?.programId && !(state.draft.programRefLocked && Number($('#program-day').value)===state.draft.originalProgramDay)){showFormError('对应活动已经变化，请关闭后重新选择计划日。');return false;}
         if (!titleInput.value.trim()) { titleInput.value = defaultTitle(state.draft.status); updateCounters(); }
         if (state.draft.status === 'landed' && !$('#occurred-at').value) { $('#occurred-at').focus(); showFormError('登记已到账时，请填写实际到账时间。'); return false; }
         const from = $('#window-from').value, to = $('#window-to').value;
@@ -784,6 +819,7 @@
           sourceUrl: $('#source-url').value.trim(),
           eventType: $('#event-type').value,
         };
+        if(draft.status==='landed' && $('#program-day').value && state.draft.programId){entry.programId=state.draft.programId;entry.programDay=Number($('#program-day').value);}
         if (draft.status === 'landed') entry.occurredAt = fromBeijingInput($('#occurred-at').value);
         if (draft.status === 'announced' && $('#window-from').value && $('#window-to').value) {
           entry.windowFrom = fromBeijingInput($('#window-from').value);
@@ -800,7 +836,9 @@
           if (response.status === 422) { showFormError(str(body.error ?? body.message) || '信息未通过校验，请检查填写内容。'); return; }
           if (!response.ok) throw new Error(str(body.error ?? body.message) || `保存失败（${response.status}）`);
           state.data = { ...state.data, ...body, revision: body.revision ?? state.data.revision };
-          showToast('状态已保存，数据已更新。');
+          const notification=body.notification;
+          const unavailable=['no-template-id','wechat-not-configured'].includes(notification?.skipped);
+          showToast(notification?.failed ? '状态已保存；落地提醒未完成，可再次保存重试。' : unavailable ? '状态已保存；当前提醒服务未配置，尚未发送通知。' : notification?.skipped==='no-eligible-grants' ? '状态已保存；本次没有可用的落地提醒授权。' : notification?.queued ? `状态已保存，${notification.queued} 条落地提醒已进入发送队列。` : notification?.sent ? `状态已保存，已发送 ${notification.sent} 条落地提醒。` : '状态已保存，数据已更新。',Boolean(notification?.failed || unavailable));
           closeEditor(true);
           await loadData();
         } catch (error) { showFormError(error.message); }

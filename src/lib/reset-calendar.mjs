@@ -166,6 +166,7 @@ function linkedProgramPost(tweet, posts, trusted, account) {
 }
 
 function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne, signals }) {
+  const programId = String(program.id ?? dayOne.id ?? '');
   const observations = new Map((signals?.accountObservations ?? []).map((o) => [String(o.announcementId), o]));
   const overdueIds = new Set((signals?.overdueForecasts ?? []).flatMap((f) => (f.evidence ?? []).map((e) => String(e.id))));
   // 原帖编号是活动日序；补发、跨 UTC 日与子编号都不能被日期运算挪到另一天。
@@ -190,7 +191,14 @@ function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne
   }
   posts.sort((a, b) => timestamp(a.tweet.created_at) - timestamp(b.tweet.created_at));
   for (const event of events) {
+    const eventProgramId = event.record.manual && event.record.programId != null
+      ? String(event.record.programId) : null;
+    const eventProgramDay = event.record.manual && Number.isInteger(event.record.programDay)
+      ? event.record.programDay : null;
+    // 手动归属是显式选择的活动日，不能被关联推文的其他 Day 编号挪走，也不能跨活动串入。
+    if (eventProgramId && (eventProgramId !== programId || eventProgramDay < 1 || eventProgramDay > program.days)) continue;
     const matches = posts.filter((post) => sameSource(post.sources, event.sources) &&
+      (!eventProgramDay || post.day === eventProgramDay) &&
       (event.record.manual || !contradictsConfirmedHistory(post.tweet, { account, tweets: allTweets })));
     const direct = sourceIdentities({ id: event.record.id, url: event.record.url }, account);
     const directMatches = matches.filter((post) => sameSource(post.sources, direct));
@@ -199,36 +207,73 @@ function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne
     // 确认记录只按原帖身份关联，不把同一天的无关重置拼到活动日上。
     if (primary) primary.events.push(event);
   }
+  const assignedManualProgramEvents = events.filter((event) => event.record.manual &&
+    String(event.record.programId ?? '') === programId && Number.isInteger(event.record.programDay) &&
+    event.record.programDay >= 1 && event.record.programDay <= program.days);
+  const settledProgramDays = new Set(assignedManualProgramEvents.map((event) => event.record.programDay));
+  // 手动选定某活动日后，该日后续被采集到的公开到账别名归并为同一笔，避免日计划双计。
+  for (const day of settledProgramDays) {
+    for (const post of posts) {
+      if (post.day !== day) continue;
+      const isAssignedManualEvent = (event) => event.record.manual &&
+        String(event.record.programId ?? '') === programId && event.record.programDay === day;
+      for (const event of post.events) {
+        if (!isAssignedManualEvent(event)) event.suppressedByManualProgramDay = true;
+      }
+      post.events = post.events.filter(isAssignedManualEvent);
+    }
+  }
   const settledPosts = new Set(posts.filter((post) => post.events.length && post.followup?.anchorId)
     .map((post) => post.followup.anchorId));
   const assignedEvents = posts.flatMap((post) => post.events);
   for (const post of posts) if (assignedEvents.some((event) => sameSource(event.sources, post.sources))) settledPosts.add(String(post.tweet.id));
+  // 进度徽标只表示可信原帖推进到哪一天；人工归属只改变当天确认状态。
   const latestDay = Math.max(0, ...posts.map((post) => post.day));
   const rows = Array.from({ length: Number(program.days) }, (_, index) => {
     const day = index + 1;
-    const entries = posts.filter((post) => post.day === day).map(({ tweet, followup, events: confirmed }) => {
+    const dayPosts = posts.filter((post) => post.day === day);
+    const entries = dayPosts.map(({ tweet, followup, events: confirmed }) => {
       const copy = programPostCopy(tweet);
       const analysis = analyzeTweet(tweet, { account, tweets: allTweets });
       const observation = !confirmed.length && !settledPosts.has(String(tweet.id)) ? observations.get(String(tweet.id)) : null;
       let kind = copy.kind;
+      const programSettled = settledProgramDays.has(day);
       if (confirmed.length) kind = confirmed.some((event) => event.record.type === 'reset') ? 'reset' : 'credit';
       else if (analysis.level === 'explicit') kind = 'announcement';
       else if (analysis.level === 'occurred') kind = 'reset-unconfirmed';
       if (tweet.manualDecision?.status === 'ignored') kind = 'note';
       // 只撤下同一来源/会话已兑现的等待标记，保留当天其他尚未兑现的承诺。
-      if (settledPosts.has(String(tweet.id)) && ['announcement', 'reset-unconfirmed'].includes(kind)) kind = 'note';
+      if ((settledPosts.has(String(tweet.id)) || programSettled) && ['announcement', 'reset-unconfirmed'].includes(kind)) kind = copy.kind === 'update' ? 'update' : 'note';
       return {
         id: String(tweet.id), url: tweet.url ?? null, text: tweet.text ?? '',
-        awaitingVerification: !observation && !confirmed.length && !settledPosts.has(String(tweet.id)) && overdueIds.has(String(tweet.id)),
+        awaitingVerification: !observation && !confirmed.length && !settledPosts.has(String(tweet.id)) && !programSettled && overdueIds.has(String(tweet.id)),
         isAccountObserved: Boolean(observation),
         ...(observation ? { observedAt: observation.observedAt, observationPrecision: observation.precision, sourceLabel: observation.sourceLabel } : {}),
         createdAt: tweet.created_at, day, kind, title: confirmed.length && followup ? followup.title : copy.title,
+        ...(tweet.translation ? { translation: tweet.translation } : {}),
         isUpdate: copy.kind === 'update',
         confirmedAt: confirmed.length ? new Date(Math.min(...confirmed.map((event) => event.at))).toISOString() : null,
         resetCount: confirmed.filter((event) => event.record.type === 'reset').length,
         creditCount: confirmed.filter((event) => event.record.type === 'credit').length,
       };
     });
+    const manualEventsShown = dayPosts.flatMap((post) => post.events)
+      .filter((event) => event.record.manual && String(event.record.programId ?? '') === programId && event.record.programDay === day);
+    const hasManualEventEntry = manualEventsShown.length > 0;
+    const standaloneManualEvents = hasManualEventEntry ? [] : assignedManualProgramEvents.filter((event) => event.record.programDay === day);
+    for (const event of standaloneManualEvents) {
+      entries.push({
+        id: String(event.record.manualEntryId ?? event.record.id), url: event.record.url ?? null,
+        text: event.record.text ?? '手动确认重置已到账', title: event.record.text ?? '手动确认重置已到账',
+        createdAt: new Date(event.at).toISOString(), confirmedAt: new Date(event.at).toISOString(),
+        day, kind: event.record.type === 'credit' ? 'credit' : 'reset', isUpdate: false,
+        awaitingVerification: false, isAccountObserved: false,
+        resetCount: event.record.type === 'reset' ? 1 : 0,
+        creditCount: event.record.type === 'credit' ? 1 : 0,
+        manual: true,
+        sourceLabel: '手动确认',
+      });
+    }
     const updateCount = entries.filter((entry) => entry.isUpdate).length;
     const resetCount = entries.reduce((total, entry) => total + entry.resetCount, 0);
     const creditCount = entries.reduce((total, entry) => total + entry.creditCount, 0);
@@ -247,11 +292,14 @@ function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne
       date: entries[0]?.createdAt ?? null, sourceUrl: entries.at(-1)?.url ?? null, entries };
   });
   return {
-    title: `Tibo ${program.days} 天计划`, days: Number(program.days), latestDay,
-    reportedDays: rows.filter((row) => row.entries.length).length,
+    title: `Tibo ${program.days} 天计划`, programId, days: Number(program.days), latestDay,
+    reportedDays: new Set(posts.map((post) => post.day)).size,
     updatedDays: rows.filter((row) => row.updateCount).length,
     resetDays: rows.filter((row) => row.confirmedCount).length,
-    sourceUrl: program.url ?? null, rows,
+    sourceUrl: program.url ?? null,
+    fromDate: utcDate(timestamp(dayOne.created_at)),
+    toDate: utcDate(utcMidnight(utcDate(timestamp(dayOne.created_at))) + (Number(program.days) - 1) * DAY_MS),
+    rows,
   };
 }
 
@@ -266,7 +314,7 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
   // 日历保留历史事实，不跟随按洛杉矶时间到期的未来规则一同消失。
   const program = signals?.program ?? trusted.map((tweet) => ({ tweet, hit: detectProgram(tweet.text) }))
     .filter((item) => item.hit).sort((a, b) => timestamp(b.tweet.created_at) - timestamp(a.tweet.created_at))
-    .map(({ tweet, hit }) => ({ ...hit, announcedAt: tweet.created_at, url: tweet.url }))[0];
+    .map(({ tweet, hit }) => ({ ...hit, id: String(tweet.id), announcedAt: tweet.created_at, url: tweet.url }))[0];
   const days = Number(program?.days);
   const programAnnouncedAt = timestamp(program?.announcedAt);
   if (currentTime == null || !Number.isInteger(days) || days < 1 || days > 62 || programAnnouncedAt == null) return null;
@@ -309,7 +357,10 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     const matched = trusted.filter((tweet) => sameSource(event.sources, sourceIdentities(tweet, normalizedAccount)));
     return !matched.length || !matched.every((tweet) => contradictsConfirmedHistory(tweet, { account: normalizedAccount, tweets: allTweets }));
   });
-  for (const event of events) {
+  // 先按可信 Day/回复链完成活动计划归属，再将同一活动日的手动到账与公开完成合并。
+  const plan = buildProgramPlan({ trusted, allTweets, events, account: normalizedAccount, program, dayOne, signals });
+  const calendarEvents = events.filter((event) => !event.suppressedByManualProgramDay);
+  for (const event of calendarEvents) {
     const index = dateToIndex.get(utcDate(event.at));
     if (index == null) continue;
     const cell = builders[index];
@@ -457,6 +508,6 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     cells,
     sourceUrl: dayOne.url ?? null,
     programUrl: program.url ?? null,
-    plan: buildProgramPlan({ trusted, allTweets, events, account: normalizedAccount, program, dayOne, signals }),
+    plan,
   };
 }

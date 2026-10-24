@@ -89,8 +89,8 @@ export function snapshotFrom({ chart, prediction, signals, statsFile, tweets, ac
  * 所以那边直接用 `snapshotFrom`，省掉一遍重复计算。
  */
 export async function buildSnapshot({ account, now }) {
-  const { resets, tweets, statsFile } = await createStore(resolve(ROOT, 'data'), { account }).getData({ now });
-  const { chart, prediction, signals } = derive({ resets, tweets, statsFile, now, account });
+  const { resets, tweets, statsFile, translationEntries, translationRevision } = await createStore(resolve(ROOT, 'data'), { account }).getData({ now });
+  const { chart, prediction, signals } = derive({ resets, tweets, statsFile, now, account, translationEntries, translationRevision });
   return snapshotFrom({ chart, prediction, signals, statsFile, tweets, account, now });
 }
 

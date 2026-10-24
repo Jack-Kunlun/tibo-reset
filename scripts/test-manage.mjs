@@ -109,12 +109,21 @@ const RAW_TWEETS = { updated_at: '2026-10-23T07:01:24.525Z', tweets: [DAY_ONE, D
 const RAW_STATS = { generated_at: RAW_TWEETS.updated_at, stats: { total: 2 }, errors: [] };
 const WINDOW_FROM = '2026-10-23T20:00:00+08:00';
 const WINDOW_TO = '2026-10-23T22:00:00+08:00';
+const PROGRAM_POST = {
+  id: '2112000000000000000', text: 'Either we reset once or pause for the next 28 days.',
+  created_at: '2026-10-04T20:00:00.000Z', account: 'thsottiaux', author_verified: true,
+  foundVia: 'timeline-browser', url: 'https://x.com/thsottiaux/status/2112000000000000000',
+};
+const PROGRAM_ID = PROGRAM_POST.id;
+const PROGRAM_SIGNALS = { program: { id: PROGRAM_ID, days: 28, announcedAt: PROGRAM_POST.created_at, url: PROGRAM_POST.url },
+  forecasts: [], overdueForecasts: [], activeHints: [] };
 let checks = 0, mutants = 0;
 
 const sourcePaths = {
   manual: new URL('../src/lib/manual-state.mjs', import.meta.url),
   store: new URL('../server/store.mjs', import.meta.url),
   manage: new URL('../server/manage.mjs', import.meta.url),
+  calendar: new URL('../src/lib/reset-calendar.mjs', import.meta.url),
 };
 const sourceSnapshots = {};
 for (const [key, url] of Object.entries(sourcePaths)) {
@@ -165,13 +174,13 @@ function responseHarness() {
 async function requestManage(store, {
   method = 'GET', body = '', contentType = 'application/json', origin = undefined,
   host = 'localhost:8787', getState = undefined, now = NOW, account = 'thsottiaux', send = undefined,
-  handler = handleManage,
+  handler = handleManage, onSaved = undefined,
 } = {}) {
   const req = Readable.from(body ? [body] : []);
   req.method = method;
   req.headers = { host, ...(contentType ? { 'content-type': contentType } : {}), ...(origin ? { origin } : {}) };
   const res = responseHarness();
-  await handler(req, res, { store, getState, now, account, send });
+  await handler(req, res, { store, getState, onSaved, now, account, send });
   return { status: res.statusCode, headers: res.headers, body: JSON.parse(res.body || 'null') };
 }
 
@@ -849,6 +858,131 @@ await expectMutantRejected('GET 状态映射覆盖全部推文而不截断到 20
 await expectMutantRejected('过期且未列入当前信号的显式旧预告不得标成待落地', 'manage', [
   ["? '历史预告，非当前预告'\n        : analysis.level === 'hint' ?", "? '预告待落地'\n        : analysis.level === 'hint' ?"],
 ], async (module) => exerciseCurrentTweetStates(module.handleManage));
+
+async function exerciseProgramAssignment(handler) {
+  const folder = await tempDir();
+  try {
+    const day17Completion = { ...DAY17_COMPLETE };
+    const resets = { records: [...RAW_RESETS.records, { id: day17Completion.id, type: 'reset',
+      announced_at: day17Completion.created_at, text: day17Completion.text, url: day17Completion.url,
+      confirmation_urls: [day17Completion.url] }] };
+    await seed(folder, { resets, tweets: { ...RAW_TWEETS, tweets: [...RAW_TWEETS.tweets, PROGRAM_POST, day17Completion] } });
+    const store = createStore(folder);
+    const getState = async () => ({ signals: PROGRAM_SIGNALS });
+    const initial = await requestManage(store, { handler, getState });
+    assert.equal(initial.body.programPlan.programId, PROGRAM_ID);
+    assert.equal(initial.body.programPlan.days, 28);
+    assert.equal(initial.body.programPlan.rows.length, 28);
+    assert.equal(initial.body.programPlan.rows.find((row) => row.day === 17).status, 'confirmed');
+    const callbackCalls = [];
+    const saved = await requestManage(store, { method: 'POST', handler, getState, onSaved: async (detail) => {
+      callbackCalls.push(detail);
+      return { sent: 1, failed: 0 };
+    }, origin: 'http://localhost:8787', body: JSON.stringify({ revision: 0, action: 'save', entry: {
+      status: 'landed', title: 'Day 18 reset manually confirmed', occurredAt: '2026-10-23T05:00:00.000Z',
+      eventType: 'reset', programId: PROGRAM_ID, programDay: 18,
+    } }) });
+    assert.equal(saved.status, 200, JSON.stringify(saved.body));
+    assert.equal(saved.body.entry.programId, PROGRAM_ID);
+    assert.equal(saved.body.entry.programDay, 18);
+    assert.equal(saved.body.notification.sent, 1);
+    assert.equal(callbackCalls.length, 1);
+    const current = await requestManage(store, { handler, getState });
+    assert.equal(current.body.programPlan.rows.find((row) => row.day === 17).status, 'confirmed');
+    const day18 = current.body.programPlan.rows.find((row) => row.day === 18);
+    assert.equal(day18.status, 'confirmed');
+    const unassigned = await requestManage(store, { method: 'POST', handler, getState, origin: 'http://localhost:8787',
+      body: JSON.stringify({ revision: 1, action: 'save', entry: { status: 'landed', title: 'Standalone, no day guess',
+        occurredAt: '2026-10-23T05:05:00.000Z', eventType: 'credit' } }) });
+    assert.equal(unassigned.status, 200);
+    assert.equal(unassigned.body.entry.programDay, undefined);
+    assert.equal((await requestManage(store, { handler, getState })).body.programPlan.rows.find((row) => row.day === 18).status, 'confirmed');
+    assert.equal(callbackCalls.length, 1, '无计划归属到账仍保存，但回调仅由显式手动记录触发；本次未传回调');
+    const duplicateDay = await requestManage(store, { method: 'POST', handler, getState, origin: 'http://localhost:8787',
+      body: JSON.stringify({ revision: 2, action: 'save', entry: { status: 'landed', title: 'Duplicate day event',
+        occurredAt: '2026-10-23T05:06:00.000Z', eventType: 'reset', programId: PROGRAM_ID, programDay: 18 } }) });
+    assert.equal(duplicateDay.status, 409);
+    checks += 13;
+
+    const invalidId = await requestManage(store, { method: 'POST', handler, getState, origin: 'http://localhost:8787',
+      body: JSON.stringify({ revision: 2, action: 'save', entry: { status: 'landed', title: 'Wrong program',
+        occurredAt: '2026-10-23T05:06:00.000Z', eventType: 'reset', programId: '2112000000000009999', programDay: 19 } }) });
+    assert.equal(invalidId.status, 422);
+    const conflictDay = await requestManage(store, { method: 'POST', handler, getState, origin: 'http://localhost:8787',
+      body: JSON.stringify({ revision: 2, action: 'save', entry: { tweetId: DAY18.id, status: 'landed', title: 'Conflict day',
+        occurredAt: '2026-10-23T05:07:00.000Z', eventType: 'reset', programId: PROGRAM_ID, programDay: 17 } }) });
+    assert.equal(conflictDay.status, 422);
+    const expired = await requestManage(store, { method: 'POST', handler, getState, now: Date.parse('2026-11-02T00:00:00.000Z'),
+      origin: 'http://localhost:8787', body: JSON.stringify({ revision: 2, action: 'save', entry: { status: 'landed',
+        title: 'Expired program', occurredAt: '2026-11-01T23:00:00.000Z', eventType: 'reset', programId: PROGRAM_ID, programDay: 20 } }) });
+    assert.equal(expired.status, 422);
+    assert.throws(() => validateManualEntry({ status: 'landed', title: 'Partial program', occurredAt: '2026-10-23T05:08:00Z',
+      eventType: 'reset', programId: PROGRAM_ID }, { now: NOW }));
+    assert.throws(() => validateManualEntry({ status: 'landed', title: 'Bad day', occurredAt: '2026-10-23T05:08:00Z',
+      eventType: 'reset', programId: PROGRAM_ID, programDay: 63 }, { now: NOW }));
+    checks += 6;
+    const notificationFailure = await requestManage(store, { method: 'POST', handler, getState, origin: 'http://localhost:8787',
+      onSaved: async () => { throw new Error('mock transient notification failure'); },
+      body: JSON.stringify({ revision: 2, action: 'save', entry: { status: 'landed', title: 'Persist before notification',
+        occurredAt: '2026-10-23T05:09:00.000Z', eventType: 'reset', programId: PROGRAM_ID, programDay: 19 } }) });
+    assert.equal(notificationFailure.status, 200);
+    assert.equal(notificationFailure.body.notification.failed, 1);
+    assert.equal((await store.manualStore.get()).revision, 3);
+    checks += 3;
+  } finally { await rm(folder, { recursive: true, force: true }); }
+}
+
+async function exerciseHistoricalProgramEdit(handler) {
+  const folder = await tempDir();
+  try {
+    await seed(folder, { tweets: { ...RAW_TWEETS, tweets: [...RAW_TWEETS.tweets, PROGRAM_POST] } });
+    const store = createStore(folder), getState = async () => ({ signals: PROGRAM_SIGNALS });
+    const saved = await requestManage(store, { method: 'POST', handler, getState, origin: 'http://localhost:8787',
+      body: JSON.stringify({ revision: 0, action: 'save', entry: { status: 'landed', title: 'Original Day 18 correction',
+        occurredAt: '2026-10-23T05:00:00.000Z', eventType: 'reset', programId: PROGRAM_ID, programDay: 18 } }) });
+    assert.equal(saved.status, 200);
+    const expiredNow = Date.parse('2026-11-02T00:00:00.000Z');
+    const edited = await requestManage(store, { method: 'POST', handler, getState, now: expiredNow, origin: 'http://localhost:8787',
+      body: JSON.stringify({ revision: 1, action: 'save', entry: { id: saved.body.entry.id, status: 'landed',
+        title: 'Edited after program expiry', occurredAt: '2026-10-23T05:00:00.000Z', eventType: 'reset',
+        programId: PROGRAM_ID, programDay: 18 } }) });
+    assert.equal(edited.status, 200, JSON.stringify(edited.body));
+    assert.equal(edited.body.entry.programId, PROGRAM_ID);
+    assert.equal(edited.body.entry.programDay, 18);
+    assert.equal(edited.body.entry.title, 'Edited after program expiry');
+    const afterExpiry = await requestManage(store, { handler, getState, now: expiredNow });
+    assert.equal(afterExpiry.body.programPlan, null, '过期计划不再作为可选的新归属');
+    assert.equal(afterExpiry.body.entries.find((entry) => entry.id === saved.body.entry.id)?.programDay, 18,
+      '历史条目的原有活动日归属保留');
+    const fakeHistorical = await requestManage(store, { method: 'POST', handler, getState, now: expiredNow,
+      origin: 'http://localhost:8787', body: JSON.stringify({ revision: 2, action: 'save', entry: {
+        status: 'landed', title: 'Unverified historical activity', occurredAt: '2026-10-23T05:00:00.000Z',
+        eventType: 'reset', programId: PROGRAM_ID, programDay: 19 } }) });
+    assert.equal(fakeHistorical.status, 422, '新条目不能伪造已过期活动归属');
+    checks += 8;
+  } finally { await rm(folder, { recursive: true, force: true }); }
+}
+
+await exerciseProgramAssignment(handleManage);
+await exerciseHistoricalProgramEdit(handleManage);
+await expectMutantRejected('过期计划只允许续编具有可信保存历史的同一活动日', 'manage', [
+  ['return manualState.history.some(', 'return false && manualState.history.some('],
+], async (module) => exerciseHistoricalProgramEdit(module.handleManage));
+await expectMutantRejected('管理接口拒绝跨计划或无效计划日的到账归属', 'manage', [
+  ['if (!entry.programId) return;', 'if (entry.programId) return;'],
+], async (module) => {
+  const folder = await tempDir();
+  try {
+    await seed(folder, { tweets: { ...RAW_TWEETS, tweets: [...RAW_TWEETS.tweets, PROGRAM_POST] } });
+    const store = createStore(folder);
+    const result = await requestManage(store, { method: 'POST', handler: module.handleManage, getState: async () => ({ signals: PROGRAM_SIGNALS }),
+      origin: 'http://localhost:8787', body: JSON.stringify({ revision: 0, action: 'save', entry: {
+        status: 'landed', title: 'Day 18 reset manually confirmed', occurredAt: '2026-10-23T05:00:00.000Z',
+        eventType: 'reset', programId: PROGRAM_ID, programDay: 18,
+      } }) });
+    assert.equal(result.status, 422);
+  } finally { await rm(folder, { recursive: true, force: true }); }
+});
 
 // 匿名接口验证目标、同源写入、公开读取结构、版本冲突与敏感信息隔离。
 {

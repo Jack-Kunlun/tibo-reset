@@ -39,6 +39,9 @@ data/og/
 #   不显式排除就会被推到公开仓库里。
 data/subscriptions.json
 
+# 机器译文、首次采集基线与日配额只属于当前运行实例，不能随采集归档提交。
+data/translation-cache.json
+
 # ⚠ TLS 私钥与证书，**绝不能进仓库**。
 #   这份是腾讯云（TrustAsia DV）签发的 reset.example.com 证书包，
 #   里面 `reset.example.com.key` 是私钥 —— 一旦推到公开仓库，

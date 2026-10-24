@@ -14,6 +14,11 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const file = new URL('../server/index.mjs', import.meta.url);
 const source = await readFile(file, 'utf8');
 const hash = (value) => createHash('sha256').update(value).digest('hex');
+assert.match(source, /if \(result\.pendingCount > 0\) setImmediate/, '管理保存按全部持久 pending 判断是否需要异步 drain');
+assert.doesNotMatch(source, /if \(result\.queued\) setImmediate/, '不能把本次新事件 queued 数当作全部 pending');
+const wrongDrainGate = source.replace('if (result.pendingCount > 0) setImmediate', 'if (result.queued) setImmediate');
+assert.notEqual(wrongDrainGate, source, '总 pending 与本次 queued 混用的隔离变异锚点存在');
+assert.doesNotMatch(wrongDrainGate, /if \(result\.pendingCount > 0\) setImmediate/, '隔离变异会被管理保存 drain 条件断言发现');
 const before = hash(source);
 const now = Date.now();
 const iso = (hours) => new Date(now + hours * 3600000).toISOString();
@@ -62,6 +67,8 @@ async function replay(serverText, probeOnly = false) {
     const save = await request('/api/manage', { revision: 0, action: 'save', entry: {
       tweetId: tweet.id, status: 'landed', title: '额度重置已到账', occurredAt: iso(-0.5), eventType: 'reset' } });
     assert.equal(save.status, 200, JSON.stringify(save));
+    assert.deepEqual(save.data.notification, { sent: 0, failed: 0, skipped: 'wechat-not-configured' },
+      '已保存到账通过管理回调进入通知链路；隔离环境没有微信配置，因此不尝试外发');
     const changed = (await request('/api/state')).data;
     assert.equal(changed.chart.count, records.length + 1); assert.equal(changed.chart.lastAt, iso(-0.5));
     assert.equal(changed.signals.forecasts.length, 0); assert.equal(changed.signals.observedForecasts.length, 0);
@@ -76,6 +83,7 @@ async function replay(serverText, probeOnly = false) {
     const extra = await request('/api/manage', { revision: 1, action: 'save', entry: {
       status: 'announced', title: '手动补充一条预告', windowFrom: iso(0), windowTo: iso(8), eventType: 'reset' } });
     assert.equal(extra.status, 200);
+    assert.equal(extra.data.notification, undefined, '预告保存不触发到账通知');
     const withExtra = (await request('/api/state')).data;
     assert.equal(withExtra.signals.forecasts.length, 1);
     assert.equal(withExtra.signals.forecasts[0].manual, true);
@@ -113,6 +121,10 @@ await replay(source);
 const brokenRoute = source.replace("url.pathname === '/api/manage'", "url.pathname === '/api/manage-disabled'");
 assert.notEqual(brokenRoute, source);
 assert.equal((await replay(brokenRoute, true)).status, 404, '隔离路由反例可发现管理入口未接入');
+const notificationDisconnected = source.replace(/onSaved: async \(\{ entry, manualEntryId \}\) => \{[\s\S]*?\n      \},\n    \}\);/,
+  "onSaved: async () => ({ sent: 0, failed: 0, skipped: 'no-template-id' }),\n    });");
+assert.notEqual(notificationDisconnected, source);
+await assert.rejects(replay(notificationDisconnected), /已保存到账通过管理回调进入通知链路/);
 const brokenOg = source.replace('if ((await store.getData()).resets.records.some((record) => record.manual)) return null;', 'if ((await store.getManualState()).entries.length) return null;');
 assert.notEqual(brokenOg, source);
 await assert.rejects(replay(brokenOg), /也不能输出旧分享图/);
@@ -141,7 +153,8 @@ assert.equal((await notificationProbe(subscribeSource, true)).sent, 0, '发送�
 const initialGateDisabled = subscribeSource.replace('const records = getRecords ? await getRecords() : ', 'const records = ');
 assert.notEqual(initialGateDisabled, subscribeSource);
 assert.equal((await notificationProbe(initialGateDisabled, false)).result.candidates, 1, '旧原始数据反例会错误创建候选');
-const finalGateDisabled = subscribeSource.replace('const currentRecords = getRecords ? await getRecords() : ', 'const currentRecords = ');
+const finalGateDisabled = subscribeSource.replace(`currentRecords = getNotificationRecords ? await getNotificationRecords() :
+          (getRecords ? await getRecords() : JSON.parse(await readFile(resolve(dataDir, 'resets.json'), 'utf8')).records ?? []);`, 'currentRecords = records;');
 assert.notEqual(finalGateDisabled, subscribeSource);
 assert.equal((await notificationProbe(finalGateDisabled, true)).sent, 1, '关闭发送前复核的反例会向 mock 误发送');
 assert.equal(hash(await readFile(subscribeUrl)), hash(subscribeSource));
