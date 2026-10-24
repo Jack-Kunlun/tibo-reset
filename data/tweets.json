@@ -1,6 +1,50 @@
 {
   "tweets": [
     {
+      "id": "2113771215433392478",
+      "text": "Fun game",
+      "created_at": "2026-10-23T23:15:04.000Z",
+      "url": "https://x.com/thsottiaux/status/2113771215433392478",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "playdropai",
+        "id": "",
+        "text": "Agents working in tandem. What could go wrong? ✅ Space datacenters ✅ Kardashev scale ✅ Dyson spheres We put your mascots in orbit. Keeping them alive is your problem. @thsottiaux @bcherny @alexandr_wang @poteto",
+        "created_at": "2026-10-23T22:39:45.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-24T00:03:43.104Z"
+    },
+    {
+      "id": "2113770862860222611",
+      "text": "On codex cli updates. We've added reusable prompt presets, inline model and permission settings, and enterprise MCP sign-in. We've also fixed failures when resuming long sessions and added Windows corporate-proxy authentication. Surprisingly the CLI has grown 2X in usage since devday.",
+      "created_at": "2026-10-23T23:13:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2113770862860222611",
+      "author_verified": true,
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-24T00:03:43.104Z"
+    },
+    {
+      "id": "2113770573994299544",
+      "text": "Day 19/ Small updates. Calls connect much faster for dots, changing reasoning in codex & work mid conversation does not invalidate cache anymore and a we've also updated the codex cli.",
+      "created_at": "2026-10-23T23:12:31.000Z",
+      "url": "https://x.com/thsottiaux/status/2113770573994299544",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-24T00:03:43.104Z"
+    },
+    {
       "id": "2113492502355562875",
       "text": "Landing tomorrow before 10am PST together with a small ship.",
       "created_at": "2026-10-23T04:47:34.000Z",
@@ -7412,7 +7456,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-23T07:01:24.194Z",
+  "updated_at": "2026-10-24T00:03:43.106Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }
