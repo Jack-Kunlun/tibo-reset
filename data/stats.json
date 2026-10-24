@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-20T06:33:48.000Z",
     "last_text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
-    "days_since_last": 3.729110949074074,
+    "days_since_last": 3.815718125,
     "avg_interval_days": 6.2203877314814795,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.437522122081761,
@@ -14,19 +14,19 @@
     "reset_count": 58,
     "hit_within_avg": 0.71875
   },
-  "generated_at": "2026-10-24T00:03:43.289Z",
+  "generated_at": "2026-10-24T02:08:26.146Z",
   "collect": {
-    "mode": "incremental",
+    "mode": "full",
     "source": "browser",
     "stoppedBy": "floor",
-    "newTweets": 3,
-    "knownCount": 443,
+    "newTweets": 0,
+    "knownCount": 446,
     "reply": {
-      "mode": "incremental",
-      "stoppedBy": "known",
-      "steps": 8,
-      "harvested": 13,
-      "withContext": 5,
+      "mode": "full",
+      "stoppedBy": "floor",
+      "steps": 14,
+      "harvested": 16,
+      "withContext": 8,
       "authorsMissing": 0
     },
     "replyError": null,
@@ -87,13 +87,13 @@
     "updated": 0,
     "removed": 0,
     "upstreamCount": 65,
-    "refreshedAt": "2026-10-24T00:03:08.920Z",
+    "refreshedAt": "2026-10-24T02:07:46.713Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
     "changed": false,
     "patchedTexts": 0
   },
-  "last_full_at": "2026-10-21T01:19:08.163Z",
+  "last_full_at": "2026-10-24T02:08:26.146Z",
   "errors": []
 }
