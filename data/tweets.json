@@ -1,6 +1,18 @@
 {
   "tweets": [
     {
+      "id": "2113838156193894447",
+      "text": "The difference between having a tool and being a tool is subtle these days and it’s easy to accidentally build yourself into being a tool. Don’t be a tool.",
+      "created_at": "2026-10-24T03:41:04.000Z",
+      "url": "https://x.com/thsottiaux/status/2113838156193894447",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-24T04:02:28.656Z"
+    },
+    {
       "id": "2113771215433392478",
       "text": "Fun game",
       "created_at": "2026-10-23T23:15:04.000Z",
@@ -7456,7 +7468,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-24T02:08:25.960Z",
+  "updated_at": "2026-10-24T04:02:28.658Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }
