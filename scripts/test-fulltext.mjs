@@ -61,6 +61,12 @@ function sourceModule(source) {
   return import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
 }
 
+async function rejectBrowserMutation(name, source, expectedBehavior) {
+  const mutated = await sourceModule(source);
+  assert.equal(await expectedBehavior(mutated), false, `隔离源码反例必须被行为断言拦截：${name}`);
+  check(`隔离源码反例被拦截：${name}`, true);
+}
+
 function fakeProbeReader(waitForProbe, responses) {
   let elapsed = 0;
   let calls = 0;
@@ -134,6 +140,18 @@ console.log('\n【1】候选筛选');
     check(`功能进度或否定句不进落地候选：${text}`,
       pickFullTextCandidates([{ tweets: [{ id: 'not-reset-done', text }] }]).candidates.length === 0);
   }
+  const deadline = { id: 'by-midnight', text: 'By midnight PST' };
+  const propagated = { id: 'all-propagated', text: 'It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too.' };
+  check('By midnight PST 短截止预告进入详情候选',
+    pickFullTextCandidates([{ tweets: [deadline] }]).candidates.includes(deadline.id));
+  check('末尾媒体链接不阻止锚定截止短句入选',
+    pickFullTextCandidates([{ tweets: [{ id: 'by-midnight-link', text: 'By midnight PST https://t.co/example' }] }]).candidates.includes('by-midnight-link'));
+  check('It is all propagated 后续完成公告进入详情候选',
+    pickFullTextCandidates([{ tweets: [propagated] }]).candidates.includes(propagated.id));
+  check('仅锚定截止句入选，普通功能进度不入选',
+    pickFullTextCandidates([{ tweets: [{ id: 'feature-deadline', text: 'The feature ships by midnight PST.' }] }]).candidates.length === 0);
+  check('13:30 @theo 普通回复不成为完成候选',
+    pickFullTextCandidates([{ tweets: [{ id: 'theo-reply', text: 'Great progress on the Codex launch, thanks for the update.' }] }]).candidates.length === 0);
 
   const browserSource = await readFile(resolve(ROOT, 'src/lib/browser.mjs'), 'utf8');
   const before = sha256(browserSource);
@@ -146,14 +164,24 @@ console.log('\n【1】候选筛选');
   check('隔离变异：漏掉裸 Done 候选会被正例断言拦住',
     !noLinkedDoneCandidate.pickFullTextCandidates([{ tweets: [{ id: 'bare-done', text: 'Done' }] }]).candidates.includes('bare-done'));
 
+  const deadlineRule = '/^by\\s+(?:midnight|noon|\\d{1,2}(?::\\d{2})?(?:\\s*[ap]m)?)\\s*(?:PST|PDT|PT|UTC(?:[+-]\\d{1,2})?)?[.!]?$/i.test(shortText)';
+  assert.ok(browserSource.includes(deadlineRule), '短截止时间候选规则的变异点存在');
+  await rejectBrowserMutation(
+    '移除 By midnight 短句规则',
+    browserSource.replace(deadlineRule, 'false'),
+    (module) => module.pickFullTextCandidates([{ tweets: [deadline] }]).candidates.includes(deadline.id)
+  );
+
   const broadLinkedDoneRule = browserSource.replace(
-    "return /^(?:it[’']s\\s+|it is\\s+)?done(?:\\s+and\\s+dusted)?[.!]?$/i.test(value);",
-    'return /\\bdone\\b/i.test(value);',
+    'if (!flagged.has(t.id) && text.length < minLength && !needsContext) continue;',
+    'if (!flagged.has(t.id) && text.length < minLength && !needsContext && !/\\bdone\\b/i.test(text)) continue;',
   );
   assert.notEqual(broadLinkedDoneRule, browserSource, '宽泛完成句变异点存在');
-  const broadDoneCandidate = await sourceModule(broadLinkedDoneRule);
-  check('隔离变异：把 feature prose 当完成回复会被负例断言拦住',
-    broadDoneCandidate.pickFullTextCandidates([{ tweets: [{ id: 'feature-done', text: 'The API feature is done.' }] }]).candidates.includes('feature-done'));
+  await rejectBrowserMutation(
+    '宽泛完成句规则不得把功能进度送入候选',
+    broadLinkedDoneRule,
+    (module) => !module.pickFullTextCandidates([{ tweets: [{ id: 'feature-done', text: 'The API feature is done.' }] }]).candidates.includes('feature-done')
+  );
   check('完成短句候选变异仅在内存中执行', sha256(await readFile(resolve(ROOT, 'src/lib/browser.mjs'), 'utf8')) === before);
 }
 
@@ -250,6 +278,20 @@ console.log('\n【4】延迟回复上下文与可见诊断');
   check('短句始终没有父帖时明确报告上下文缺失',
     standaloneResult?.replyContextStatus === 'missing' && standaloneResult.needsReplyContext === true);
   check('没有父帖证据时不合成自回复关系', standaloneResult?.inReplyTo == null);
+  const byMidnight = fakeProbeReader(waitForDetailProbe, [{ dom: 'By midnight PST' }]);
+  check('By midnight PST 需等父链并在无证据时标缺失',
+    (await byMidnight.result)?.replyContextStatus === 'missing' && byMidnight.calls > 1);
+  const domVerifiedDeadline = fakeProbeReader(waitForDetailProbe, [{ dom: 'By midnight PST', inReplyTo: verifiedParent }]);
+  check('By-clock 的 DOM verified 邻接关系不能让等待提前成功',
+    (await domVerifiedDeadline.result)?.replyContextStatus === 'missing' && domVerifiedDeadline.calls > 1);
+  const allPropagated = fakeProbeReader(waitForDetailProbe, [
+    { dom: 'It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too.' },
+  ]);
+  check('all propagated 完成帖需等父链并在无证据时标缺失',
+    (await allPropagated.result)?.replyContextStatus === 'missing' && allPropagated.calls > 1);
+  const featureDeadline = fakeProbeReader(waitForDetailProbe, [{ dom: 'The feature ships by midnight PST.' }]);
+  check('非锚定截止时间的功能进度不等待',
+    (await featureDeadline.result)?.replyContextStatus === 'not-required' && featureDeadline.calls === 1);
   const report = makeFullTextReport(2, 2, 0, [
     { id: 'standalone-short', replyContextStatus: standaloneResult.replyContextStatus },
     { id: 'verified-reply', replyContextStatus: 'verified' },
@@ -275,8 +317,8 @@ console.log('\n【4】延迟回复上下文与可见诊断');
   const browserSource = await readFile(resolve(ROOT, 'src/lib/browser.mjs'), 'utf8');
   const before = sha256(browserSource);
   const waitMutant = browserSource.replace(
-    'if (!contextExpected || latest.replyContextStatus === \'verified\') return latest;',
-    'if (!contextExpected || latest.replyContextStatus === \'verified\' || contextDeadline === null) return latest;',
+    'if ((!contextExpected && !exactNetworkContext) || (!exactNetworkContext && latest.replyContextStatus === \'verified\')) return latest;',
+    'if ((!contextExpected && !exactNetworkContext) || (!exactNetworkContext && latest.replyContextStatus === \'verified\') || contextDeadline === null) return latest;',
   );
   assert.notEqual(waitMutant, browserSource, '延迟祖先变异点存在');
   const brokenWait = await sourceModule(waitMutant);
@@ -309,6 +351,239 @@ console.log('\n【4】延迟回复上下文与可见诊断');
   check('浏览器源码变异仅在内存中执行', sha256(await readFile(resolve(ROOT, 'src/lib/browser.mjs'), 'utf8')) === before);
 }
 
+/* 详情 API 的焦点推文与真实父 ID 必须在当前 CDP session 内核验。 */
+{
+  const account = 'thsottiaux';
+  const root = {
+    id: '2114200152701575656', account, author_verified: true,
+    text: 'Day 20 / reset update', created_at: '2026-10-22T10:00:00.000Z',
+    url: 'https://x.com/thsottiaux/status/2114200152701575656',
+  };
+  const deadline = {
+    id: '2114200291319124163', account, author_verified: true,
+    text: 'By midnight PST', created_at: '2026-10-22T11:40:00.000Z',
+  };
+  const completion = {
+    id: '2114237083652882932', account, author_verified: true,
+    text: 'It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ',
+    created_at: '2026-10-22T14:06:00.000Z',
+  };
+  const makePayload = (tweet, { author = account, replyId = null, quoteId = null } = {}) => ({
+    data: { threaded_conversation_with_injections_v2: { instructions: [{ entries: [{
+      content: { itemContent: { tweet_results: { result: {
+        rest_id: tweet.id,
+        core: { user_results: { result: { core: { screen_name: author } } } },
+        legacy: {
+          id_str: tweet.id, full_text: tweet.text,
+          created_at: tweet.created_at === deadline.created_at
+            ? 'Thu Oct 22 11:40:00 +0000 2026'
+            : tweet.created_at === completion.created_at
+              ? 'Thu Oct 22 14:06:00 +0000 2026'
+              : 'Thu Oct 22 10:00:00 +0000 2026',
+          in_reply_to_status_id_str: replyId, quoted_status_id_str: quoteId,
+        },
+      } } } },
+    }] }] } },
+  });
+  const apiBodies = new Map([
+    [completion.id, makePayload(completion, { quoteId: deadline.id })],
+    [deadline.id, makePayload(deadline, { replyId: root.id })],
+  ]);
+  const browserSource = await readFile(resolve(ROOT, 'src/lib/browser.mjs'), 'utf8');
+  const strictSourceHash = sha256(browserSource);
+  const executable = await sourceModule(browserSource.replace('async function harvestFullTexts(', 'export async function harvestFullTexts('));
+  let currentId = '';
+  let requestNumber = 0;
+  let responseBodies = 0;
+  let closedTargets = 0;
+  const cdp = {
+    sessionId: null,
+    onEvent: null,
+    send: async (method, params) => {
+      if (method === 'Target.createTarget') return { targetId: `target-${requestNumber + 1}` };
+      if (method === 'Target.attachToTarget') return { sessionId: `session-${requestNumber + 1}` };
+      if (method === 'Page.navigate') {
+        currentId = params.url.split('/').pop();
+        requestNumber++;
+        const requestId = `request-${requestNumber}`;
+        const sessionId = cdp.sessionId;
+        const operation = currentId === completion.id ? 'TweetDetail' : 'TweetResultByRestId';
+        cdp.onEvent?.({ sessionId: 'another-target', method: 'Network.responseReceived', params: {
+          requestId: `foreign-${requestNumber}`, response: { status: 200, url: `https://x.com/i/api/graphql/${operation}?secret=private` },
+        } });
+        cdp.onEvent?.({ sessionId: 'another-target', method: 'Network.loadingFinished', params: { requestId: `foreign-${requestNumber}` } });
+        cdp.onEvent?.({ sessionId, method: 'Network.responseReceived', params: {
+          requestId, response: { status: 200, url: `https://x.com/i/api/graphql/${operation}?secret=private` },
+        } });
+        cdp.onEvent?.({ sessionId, method: 'Network.loadingFinished', params: { requestId } });
+        cdp.onEvent?.({ sessionId, method: 'Network.responseReceived', params: {
+          requestId: `unrelated-${requestNumber}`, response: { status: 200, url: 'https://x.com/i/api/graphql/id/HomeTimeline' },
+        } });
+        cdp.onEvent?.({ sessionId, method: 'Network.loadingFinished', params: { requestId: `unrelated-${requestNumber}` } });
+      }
+      if (method === 'Network.getResponseBody') {
+        responseBodies++;
+        const tweetId = currentId;
+        const body = JSON.stringify(apiBodies.get(tweetId));
+        return tweetId === completion.id
+          ? { body: Buffer.from(body).toString('base64'), base64Encoded: true }
+          : { body, base64Encoded: false };
+      }
+      if (method === 'Target.closeTarget') { closedTargets++; return { success: true }; }
+      return {};
+    },
+    evalJs: async () => currentId === completion.id
+      ? { id: completion.id, author: account, time: completion.created_at, dom: completion.text, showMore: false }
+      : { id: deadline.id, author: account, time: deadline.created_at, dom: deadline.text, showMore: false },
+  };
+  const result = await executable.harvestFullTexts(cdp, [completion.id], {
+    handle: account, gapMs: 0, settleMs: 0, maxWaitMs: 50, contextWaitMs: 0,
+    networkWaitMs: 100, knownTweets: [root, deadline, completion],
+  });
+  check('单帖 API 的真实 quote/reply ID 串起 completion → By midnight → Day 20',
+    result.tweetContexts.get(completion.id)?.quotedTweet?.id === deadline.id &&
+      result.tweetContexts.get(deadline.id)?.inReplyTo?.id === root.id);
+  check('两层 API 父关系均标注详情响应来源',
+    result.tweetContexts.get(completion.id)?.quotedTweet?.verificationSource === 'tweet-detail-api' &&
+      result.tweetContexts.get(deadline.id)?.inReplyTo?.verificationSource === 'tweet-detail-api');
+  check('事件按目标 CDP session 过滤', responseBodies === 2, `读取 ${responseBodies} 个网络响应`);
+  check('详情 target 关闭且 session / 事件监听恢复',
+    cdp.sessionId === null && cdp.onEvent === null && closedTargets === 2,
+    `closed=${closedTargets}`);
+
+  const wrongAuthorCdp = {
+    ...cdp,
+    sessionId: null,
+    onEvent: null,
+    send: async (method, params) => {
+      if (method === 'Target.createTarget') return { targetId: 'bad-target' };
+      if (method === 'Target.attachToTarget') return { sessionId: 'bad-session' };
+      if (method === 'Page.navigate') {
+        wrongAuthorCdp.onEvent?.({ sessionId: 'bad-session', method: 'Network.responseReceived', params: {
+          requestId: 'bad-request', response: { status: 200, url: 'https://x.com/i/api/graphql/id/TweetDetail' },
+        } });
+        wrongAuthorCdp.onEvent?.({ sessionId: 'bad-session', method: 'Network.loadingFinished', params: { requestId: 'bad-request' } });
+      }
+      if (method === 'Network.getResponseBody') return { body: JSON.stringify(makePayload(completion, { author: 'someone', quoteId: deadline.id })) };
+      return {};
+    },
+    evalJs: async () => ({ id: completion.id, author: account, time: completion.created_at, dom: completion.text }),
+  };
+  const noContext = await executable.harvestFullTexts(wrongAuthorCdp, [completion.id], {
+    handle: account, gapMs: 0, settleMs: 0, maxWaitMs: 50, contextWaitMs: 0,
+    networkWaitMs: 10, knownTweets: [root, deadline, completion],
+  });
+  check('错作者网络响应回退为缺上下文，不让详情采集失败',
+    noContext.tweetContexts.size === 0 && noContext.scanned[0].replyContextStatus === 'missing' && !noContext.scanned[0].error);
+
+  const domRef = (tweet, relation = 'reply') => ({
+    id: tweet.id, account: tweet.account, text: tweet.text, created_at: tweet.created_at,
+    relation, verified: true,
+  });
+  async function strictCapture(module, { target = completion, body = null, domProbe, network = true }) {
+    let activeId = target.id;
+    const strictCdp = {
+      sessionId: null,
+      onEvent: null,
+      send: async (method, params) => {
+        if (method === 'Target.createTarget') return { targetId: 'strict-target' };
+        if (method === 'Target.attachToTarget') return { sessionId: 'strict-session' };
+        if (method === 'Page.navigate') {
+          activeId = params.url.split('/').pop();
+          if (network) {
+            strictCdp.onEvent?.({ sessionId: 'strict-session', method: 'Network.responseReceived', params: {
+              requestId: 'strict-request', response: { status: 200, url: 'https://x.com/i/api/graphql/id/TweetDetail' },
+            } });
+            strictCdp.onEvent?.({ sessionId: 'strict-session', method: 'Network.loadingFinished', params: { requestId: 'strict-request' } });
+          }
+        }
+        if (method === 'Network.getResponseBody') return { body: JSON.stringify(body), base64Encoded: false };
+        return {};
+      },
+      evalJs: async () => ({ ...domProbe, id: activeId }),
+    };
+    return module.harvestFullTexts(strictCdp, [target.id], {
+      handle: account, gapMs: 0, settleMs: 0, maxWaitMs: 50, contextWaitMs: 0,
+      networkWaitMs: 5, knownTweets: [root, deadline, completion],
+    });
+  }
+  const completionDomWithNeighbor = {
+    author: account, time: completion.created_at, dom: completion.text,
+    inReplyTo: domRef(root),
+    quotedTweet: domRef(root, 'quote'),
+  };
+  const strictMissedNetwork = await strictCapture(executable, {
+    domProbe: completionDomWithNeighbor, network: false,
+  });
+  check('all-propagated 缺 Network 时清除 DOM verified 邻接/引用关系',
+    strictMissedNetwork.tweetContexts.size === 0 &&
+      strictMissedNetwork.scanned[0].replyContextStatus === 'missing' && strictMissedNetwork.scanned.length === 1);
+
+  const strictByClockMissedNetwork = await strictCapture(executable, {
+    target: deadline,
+    domProbe: { author: account, time: deadline.created_at, dom: deadline.text, inReplyTo: domRef(root) },
+    network: false,
+  });
+  check('By-clock 缺 Network 时同样清除 DOM verified 邻接关系',
+    strictByClockMissedNetwork.tweetContexts.size === 0 &&
+      strictByClockMissedNetwork.scanned[0].replyContextStatus === 'missing' && strictByClockMissedNetwork.scanned.length === 1);
+
+  const wrongTargetBody = makePayload({ ...completion, id: 'wrong-focus-id' }, { quoteId: deadline.id });
+  const strictWrongTarget = await strictCapture(executable, {
+    body: wrongTargetBody, domProbe: { ...completionDomWithNeighbor, inReplyTo: undefined, quotedTweet: domRef(deadline, 'quote') },
+  });
+  check('Network body 焦点 ID 不符时不保留 DOM quote',
+    strictWrongTarget.tweetContexts.size === 0 && strictWrongTarget.scanned[0].replyContextStatus === 'missing');
+
+  const wrongSourceBody = makePayload({ ...completion, text: 'Different completion body' }, { quoteId: deadline.id });
+  const strictWrongSource = await strictCapture(executable, {
+    body: wrongSourceBody, domProbe: { ...completionDomWithNeighbor, inReplyTo: undefined, quotedTweet: domRef(deadline, 'quote') },
+  });
+  check('Network 焦点原文校验失败时不保留 DOM quote',
+    strictWrongSource.tweetContexts.size === 0 && strictWrongSource.scanned[0].replyContextStatus === 'missing');
+
+  const unknownParentBody = makePayload(completion, { quoteId: 'unknown-parent' });
+  const strictUnknownParent = await strictCapture(executable, {
+    body: unknownParentBody, domProbe: { ...completionDomWithNeighbor, inReplyTo: undefined, quotedTweet: domRef(deadline, 'quote') },
+  });
+  check('焦点 metadata 合法但父 ID 不在可信库时不保留 DOM quote',
+    strictUnknownParent.tweetContexts.size === 0 && strictUnknownParent.scanned[0].replyContextStatus === 'missing');
+
+  const actualParentBody = makePayload(completion, { quoteId: deadline.id });
+  const conflictingDom = { ...completionDomWithNeighbor, inReplyTo: undefined, quotedTweet: domRef(root, 'quote') };
+  const strictMismatch = await strictCapture(executable, { body: actualParentBody, domProbe: conflictingDom });
+  check('真实 API 父帖与 DOM quote 指向不同推文时拒绝两者',
+    strictMismatch.tweetContexts.size === 0 && strictMismatch.scanned[0].replyContextStatus === 'missing');
+
+  const noParentBody = makePayload(completion);
+  const strictNoParent = await strictCapture(executable, {
+    body: noParentBody, domProbe: { ...completionDomWithNeighbor, inReplyTo: undefined, quotedTweet: domRef(deadline, 'quote') },
+  });
+  check('Network 明确没有父 ID 时不保留 DOM quote',
+    strictNoParent.tweetContexts.size === 0 && strictNoParent.scanned[0].replyContextStatus === 'missing');
+
+  const legacyDone = { ...completion, text: 'Done.' };
+  const legacyDomQuote = await strictCapture(executable, {
+    target: legacyDone,
+    domProbe: { author: account, time: legacyDone.created_at, dom: legacyDone.text, quotedTweet: domRef(deadline, 'quote') },
+    network: false,
+  });
+  check('旧 Done 的 DOM quote 兼容仍保留',
+    legacyDomQuote.tweetContexts.get(legacyDone.id)?.quotedTweet?.id === deadline.id);
+
+  const strictGateMutant = browserSource
+    .replace('if (exactNetworkContext) {', 'if (false) {')
+    .replace('async function harvestFullTexts(', 'export async function harvestFullTexts(');
+  assert.notEqual(strictGateMutant, browserSource, '严格父关系闸门变异点存在');
+  await rejectBrowserMutation(
+    '移除严格闸门后不能让 DOM verified 关系通过',
+    strictGateMutant,
+    async (module) => (await strictCapture(module, { domProbe: completionDomWithNeighbor, network: false })).tweetContexts.size === 0
+  );
+  check('严格闸门源码反例只在内存中执行',
+    sha256(await readFile(resolve(ROOT, 'src/lib/browser.mjs'), 'utf8')) === strictSourceHash);
+}
+
 /* 完成帖可能是这轮唯一新推文，必须补齐缓存父帖到重置主帖的链。 */
 {
   const [root, reply] = JSON.parse(await readFile(resolve(ROOT, 'scripts/fixtures/reset-lifecycle-oct23.json'), 'utf8'));
@@ -331,7 +606,7 @@ console.log('\n【4】延迟回复上下文与可见诊断');
       ? { dom: completion.text, inReplyTo: ref(reply) }
       : { dom: reply.text, inReplyTo: ref(root) } };
     const { tweetContexts } = await executable.harvestFullTexts(cdp, [id], {
-      handle: 'thsottiaux', gapMs: 0, settleMs: 0, knownTweets: known,
+      handle: 'thsottiaux', gapMs: 0, settleMs: 0, networkWaitMs: 0, knownTweets: known,
     });
     const tweets = mergeTweetBatch(known, mergeTweetContexts([completion], tweetContexts, known));
     return { visited, event: confirmedResetEvent(tweets.find((t) => t.id === id), { tweets }) };

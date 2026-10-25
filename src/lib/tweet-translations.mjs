@@ -204,6 +204,33 @@ export function translationIndex(tweets) {
 }
 
 /**
+ * 有效译文内容的稳定指纹，用于缓存失效与客户端刷新。
+ *
+ * 条数相同不代表内容没变；同一条推文的译文被修订后也必须触发刷新。
+ * 这里只纳入 translationIndex 实际接受的有效译文，并按归一化原文排序，
+ * 避免不改变有效索引内容的采集数组重排造成无意义的指纹变化。
+ *
+ * @param {Array} tweets
+ * @returns {string|0} 有译文时返回 SHA-256 十六进制摘要；无译文时返回 0
+ */
+export function translationFingerprint(tweets) {
+  const index = translationIndex(tweets);
+  if (index.size === 0) return 0;
+
+  const canonical = [...index.entries()]
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([original, translation]) => [
+      original,
+      translation.sourceHash,
+      translation.text,
+      translation.language,
+      translation.provider ?? null,
+    ]);
+
+  return createHash('sha256').update(JSON.stringify(canonical)).digest('hex');
+}
+
+/**
  * 给图表数据（历史记录）补译文。
  *
  * 历史记录来自 `data/resets.json`（上游镜像），它的 `text` 与推文正文

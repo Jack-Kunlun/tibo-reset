@@ -932,6 +932,83 @@ async function exerciseProgramAssignment(handler) {
   } finally { await rm(folder, { recursive: true, force: true }); }
 }
 
+async function exerciseNotificationConfirmation(handler) {
+  const folder = await tempDir();
+  try {
+    await seed(folder, { tweets: { ...RAW_TWEETS, tweets: [...RAW_TWEETS.tweets, PROGRAM_POST] } });
+    const store = createStore(folder), getState = async () => ({ signals: PROGRAM_SIGNALS });
+    const announcedAt = Date.parse('2026-10-23T04:00:00.000Z');
+    const landedAt = Date.parse('2026-10-23T05:30:00.000Z');
+    const editedAt = Date.parse('2026-10-23T06:30:00.000Z');
+    const callbackCalls = [];
+    const onSaved = async (detail) => { callbackCalls.push(detail); return { sent: 0, failed: 0 }; };
+    const announced = await requestManage(store, { method: 'POST', handler, getState, onSaved,
+      now: announcedAt, origin: 'http://localhost:8787', body: JSON.stringify({ revision: 0, action: 'save', entry: {
+        tweetId: DAY18.id, status: 'announced', title: 'Day 18 reset announced', note: 'Time window pending.',
+        windowFrom: WINDOW_FROM, windowTo: WINDOW_TO, eventType: 'reset',
+      } }) });
+    assert.equal(announced.status, 200, JSON.stringify(announced.body));
+    assert.equal(callbackCalls.length, 0, '预告状态不调用到账通知回调');
+
+    const landed = await requestManage(store, { method: 'POST', handler, getState, onSaved,
+      now: landedAt, origin: 'http://localhost:8787', body: JSON.stringify({ revision: 1, action: 'save', entry: {
+        id: announced.body.entry.id, tweetId: DAY18.id, status: 'landed', title: 'Day 18 reset landed',
+        note: 'First confirmed arrival.', occurredAt: '2026-10-23T04:50:00.000Z', eventType: 'reset',
+      } }) });
+    assert.equal(landed.status, 200, JSON.stringify(landed.body));
+    assert.equal(callbackCalls.length, 1);
+    assert.equal(callbackCalls[0].confirmedAt, new Date(landedAt).toISOString());
+    assert.equal(callbackCalls[0].newConfirmation, true);
+    assert.notEqual(callbackCalls[0].confirmedAt, landed.body.entry.createdAt,
+      '首次到账确认时间来自 landed 历史，而不是此前创建预告的时间');
+
+    const edited = await requestManage(store, { method: 'POST', handler, getState, onSaved,
+      now: editedAt, origin: 'http://localhost:8787', body: JSON.stringify({ revision: 2, action: 'save', entry: {
+        id: announced.body.entry.id, tweetId: DAY18.id, status: 'landed', title: 'Day 18 reset landed',
+        note: 'Added program attribution after verification.', occurredAt: '2026-10-23T04:50:00.000Z',
+        eventType: 'reset', programId: PROGRAM_ID, programDay: 18,
+      } }) });
+    assert.equal(edited.status, 200, JSON.stringify(edited.body));
+    assert.equal(edited.body.entry.programDay, 18);
+    assert.equal(callbackCalls.length, 2);
+    assert.equal(callbackCalls[1].confirmedAt, new Date(landedAt).toISOString(),
+      '到账备注/归属编辑不能覆盖首次 landed 时间');
+    assert.equal(callbackCalls[1].newConfirmation, false,
+      '已到账条目的后续编辑只能重试旧 pending，不是新到账确认');
+    assert.equal(edited.body.entry.createdAt, announced.body.entry.createdAt);
+    assert.equal(edited.body.entry.updatedAt, new Date(editedAt).toISOString());
+    checks += 14;
+  } finally { await rm(folder, { recursive: true, force: true }); }
+}
+
+async function exerciseLegacyConfirmationFallback(handler) {
+  const folder = await tempDir();
+  try {
+    await seed(folder);
+    const store = createStore(folder);
+    const createdAt = Date.parse('2026-10-23T05:10:00.000Z');
+    const editedAt = Date.parse('2026-10-23T06:30:00.000Z');
+    const created = await store.manualStore.mutate({ revision: 0, action: 'save', now: createdAt,
+      entry: { tweetId: DAY18.id, status: 'landed', title: 'Legacy landed record',
+        occurredAt: '2026-10-23T05:00:00.000Z', eventType: 'reset' } });
+    const legacy = await store.manualStore.get();
+    await writeFile(store.manualStore.path, JSON.stringify({ ...legacy, history: [] }), 'utf8');
+    const callbackCalls = [];
+    const edited = await requestManage(store, { method: 'POST', handler, onSaved: async (detail) => {
+      callbackCalls.push(detail); return { sent: 0, failed: 0 };
+    }, now: editedAt, origin: 'http://localhost:8787', body: JSON.stringify({ revision: 1, action: 'save', entry: {
+      id: created.entry.id, tweetId: DAY18.id, status: 'landed', title: 'Legacy landed record corrected',
+      note: 'Added missing note.', occurredAt: created.entry.occurredAt, eventType: 'reset',
+    } }) });
+    assert.equal(edited.status, 200, JSON.stringify(edited.body));
+    assert.equal(callbackCalls.length, 1);
+    assert.equal(callbackCalls[0].confirmedAt, new Date(createdAt).toISOString(),
+      '旧账本没有 landed 转换历史时回落到 createdAt');
+    assert.equal(callbackCalls[0].newConfirmation, false);
+    checks += 4;
+  } finally { await rm(folder, { recursive: true, force: true }); }
+}
+
 async function exerciseHistoricalProgramEdit(handler) {
   const folder = await tempDir();
   try {
@@ -965,6 +1042,16 @@ async function exerciseHistoricalProgramEdit(handler) {
 
 await exerciseProgramAssignment(handleManage);
 await exerciseHistoricalProgramEdit(handleManage);
+await exerciseNotificationConfirmation(handleManage);
+await exerciseLegacyConfirmationFallback(handleManage);
+await expectMutantRejected('到账确认时刻不能随 landed 条目后续 updatedAt 漂移', 'manage', [
+  ['const confirmedAt = confirmations.length ? new Date(Math.min(...confirmations)).toISOString() : result.entry.createdAt;',
+    'const confirmedAt = result.entry.updatedAt;'],
+], async (module) => exerciseNotificationConfirmation(module.handleManage));
+await expectMutantRejected('已到账条目的后续保存不能再次声明新到账确认', 'manage', [
+  ['const newConfirmation = change?.entryId === result.entry.id && change.before?.status !== \'landed\';',
+    'const newConfirmation = true;'],
+], async (module) => exerciseNotificationConfirmation(module.handleManage));
 await expectMutantRejected('过期计划只允许续编具有可信保存历史的同一活动日', 'manage', [
   ['return manualState.history.some(', 'return false && manualState.history.some('],
 ], async (module) => exerciseHistoricalProgramEdit(module.handleManage));

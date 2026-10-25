@@ -288,7 +288,8 @@ export async function notifyNewResets({ dataDir, store, client, templateId, page
     const manualConfirmedAt = Date.parse(manualEvent?.confirmedAt ?? '');
     const explicitManual = manualRecord && Number.isFinite(manualConfirmedAt) && manualConfirmedAt <= Date.now()
       ? { record: manualRecord, source: 'manual', manualEntryId: String(manualEntryId),
-          confirmedAt: manualConfirmedAt, eventAt: eventTime(manualRecord), keys: landedEventKeys(manualRecord) }
+          confirmedAt: manualConfirmedAt, registerOnly: manualEvent.registerOnly === true,
+          eventAt: eventTime(manualRecord), keys: landedEventKeys(manualRecord) }
       : null;
     const work = await store.update((state) => {
       state.landed_event_keys = Array.isArray(state.landed_event_keys) ? state.landed_event_keys : [];
@@ -324,13 +325,22 @@ export async function notifyNewResets({ dataDir, store, client, templateId, page
         if (seen) {
           state.landed_event_keys = [...new Set([...state.landed_event_keys, ...candidate.keys])];
         }
+        if (candidate.registerOnly) {
+          state.landed_event_keys = [...new Set([...state.landed_event_keys, ...candidate.keys])];
+          manualSkipped = 'no-new-event';
+          continue;
+        }
         const at = new Date(candidate.confirmedAt).toISOString();
         const eligibleItems = state.items.filter((item) => itemKind(item) === 'landed' && item.template_id === templateId &&
           (!Number.isFinite(Date.parse(item.created_at)) || Date.parse(item.created_at) <= candidate.confirmedAt) &&
           !item.pending_event && !item.pending_event_at &&
           (!seen || candidate.source === 'manual' && sharesEventKey(item.cancelled_event_keys, candidate.keys)));
         if (!eligibleItems.length) {
-          if (candidate.source === 'manual') manualSkipped = seen ? 'already-notified' : 'no-eligible-grants';
+          if (candidate.source === 'manual') {
+            // 无授权也记住已确认的事件，补归属及后续公开别名不能消耗后来新增的授权。
+            state.landed_event_keys = [...new Set([...state.landed_event_keys, ...candidate.keys])];
+            manualSkipped = seen ? 'already-notified' : 'no-eligible-grants';
+          }
           continue;
         }
         for (const item of eligibleItems) {

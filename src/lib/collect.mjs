@@ -861,6 +861,8 @@ export function mergeTweetBatch(base = [], incoming = [], nowIso = new Date().to
   const keyOf = (t) => t.id ?? String(t.text ?? '').slice(0, 40);
   const isVerifiedReply = (context) => context?.verified === true && context.relation === 'reply' &&
     Boolean(context.id && context.account && context.text && context.created_at);
+  const isApiContext = (context) => context?.verified === true && context.verificationSource === 'tweet-detail-api' &&
+    ['reply', 'quote'].includes(context.relation) && Boolean(context.id && context.account && context.text && context.created_at);
   const merged = new Map((base ?? []).map((t) => [keyOf(t), t]));
 
   for (const t of incoming ?? []) {
@@ -875,11 +877,15 @@ export function mergeTweetBatch(base = [], incoming = [], nowIso = new Date().to
     // 后续增量常从时间线再次采到同一条回复，但邻接上下文可能因虚拟列表边缘而缺失。
     // 只有详情页核验过的关系受保护；新的已核验关系仍可纠正旧值。
     const keepPrevContext = isVerifiedReply(prev.inReplyTo) && !isVerifiedReply(t.inReplyTo);
+    const keepPrevApiReply = isApiContext(prev.inReplyTo) && !isApiContext(t.inReplyTo);
+    // 时间线引用卡常不带父 ID；后续普通采集不能覆盖详情 API 已核验的两类关系。
+    const keepPrevQuote = isApiContext(prev.quotedTweet) && !isApiContext(t.quotedTweet);
     const next = {
       ...prev,
       ...t,
       ...(keepPrevText ? { text: prev.text, text_full: true } : null),
-      ...(keepPrevContext ? { inReplyTo: prev.inReplyTo } : null),
+      ...(keepPrevContext || keepPrevApiReply ? { inReplyTo: prev.inReplyTo } : null),
+      ...(keepPrevQuote ? { quotedTweet: prev.quotedTweet } : null),
       first_seen: prev.first_seen ?? nowIso,
     };
     if (isVerifiedReply(next.inReplyTo)) next.role = 'reply';

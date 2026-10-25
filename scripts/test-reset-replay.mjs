@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { runInNewContext } from 'node:vm';
 import { analyzeTweet, detectSignals, latestEventMs } from '../src/lib/signals.mjs';
-import { mergeConfirmedResets, mergeHistory, mergeTweetContexts } from '../src/lib/collect.mjs';
+import { mergeConfirmedResets, mergeHistory, mergeTweetContexts, mergeTweetBatch } from '../src/lib/collect.mjs';
 import { harvestExpression, detailProbeExpression, normalizeTimelineItems, pickFullTextCandidates, contextParentId } from '../src/lib/browser.mjs';
 import { buildResetCalendar } from '../src/lib/reset-calendar.mjs';
 import { buildChartData } from '../src/lib/chart-data.js';
@@ -167,6 +169,109 @@ for (const timed of [true, false]) {
     check(`无可信原帖时第三方复述不能新增落地：${url}`,
       mergeHistory([oct17], [{ ...upstreamCompletion, url }], { tweets: [] }).added === 0);
   }
+}
+
+{
+  const root = tweet('2114200152701575656', '2026-10-25T03:39:31.000Z', 'Day 20/ Rest and reset');
+  const deadline = tweet('2114200291319124163', '2026-10-25T03:40:04.000Z', 'By midnight PST', {
+    inReplyTo: { id: root.id, account, text: root.text, created_at: root.created_at, url: root.url, relation: 'reply', verified: true, verificationSource: 'tweet-detail-api' },
+  });
+  const done = tweet('2114237083652882932', '2026-10-25T06:06:16.000Z',
+    'It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ', {
+      quotedTweet: { id: deadline.id, account, text: deadline.text, created_at: deadline.created_at, relation: 'quote', verified: true, verificationSource: 'tweet-detail-api' },
+    });
+  const posts = [root, deadline, done];
+  const now = Date.parse('2026-10-25T07:10:00.000Z');
+  const before = mergeConfirmedResets(base, posts.slice(0, 2), { now });
+  check('Day 20 仅截止时间的自回复借用已核验重置语境', analyzeTweet(deadline, { tweets: posts }).level === 'explicit');
+  const deadlineWindow = analyzeTweet(deadline, { tweets: posts }).window;
+  check('By midnight PST 按UTC-8保留截止语义，从发帖到午夜而非午夜起一小时',
+    deadlineWindow.deadline === true && deadlineWindow.from === deadline.created_at && deadlineWindow.to === '2026-10-25T08:00:00.000Z');
+  check('Day 20 预告与午夜截止时间都不提前记到账', before.added === 0);
+  const domDeadline = { ...deadline, inReplyTo: { ...deadline.inReplyTo, verificationSource: undefined } };
+  const domDone = { ...done, quotedTweet: { ...done.quotedTweet, verificationSource: undefined } };
+  const recollected = mergeTweetBatch(posts, [domDeadline, domDone]);
+  check('后续时间线 DOM 不能覆盖详情 API 已核验的回复和引用',
+    recollected.find(t => t.id === deadline.id).inReplyTo.verificationSource === 'tweet-detail-api' &&
+    recollected.find(t => t.id === done.id).quotedTweet.verificationSource === 'tweet-detail-api');
+  check('保留的 API 父链在下一轮重算仍能识别完成',
+    analyzeTweet(recollected.find(t => t.id === done.id), { tweets: recollected }).level === 'occurred');
+  for (const [name, relation] of [['显式空值', null], ['不完整API标记', { verified: true, verificationSource: 'tweet-detail-api' }]]) {
+    const incomplete = mergeTweetBatch(posts, [{ ...deadline, inReplyTo: relation }, { ...done, quotedTweet: relation }]);
+    check(`${name}不能抹掉已核验父关系`,
+      incomplete.find(t => t.id === deadline.id).inReplyTo.id === root.id &&
+      incomplete.find(t => t.id === done.id).quotedTweet.id === deadline.id);
+  }
+  const corrected = mergeTweetBatch(posts, [
+    { ...deadline, inReplyTo: { ...deadline.inReplyTo, id: 'new-api-root' } },
+    { ...done, quotedTweet: { ...done.quotedTweet, id: 'new-api-deadline' } },
+  ]);
+  check('新的 API 核验结果仍可纠正两类旧父关系',
+    corrected.find(t => t.id === deadline.id).inReplyTo.id === 'new-api-root' &&
+    corrected.find(t => t.id === done.id).quotedTweet.id === 'new-api-deadline');
+  check('遗留 DOM verified 标记不能独自提供新短截止预告的重置语境',
+    analyzeTweet(domDeadline, { tweets: [root, domDeadline] }).level !== 'explicit');
+  const merged = mergeConfirmedResets(base, posts, { now });
+  check('Day 20 全部传播完成沿官方父链入库，时间取14:06完成帖', merged.added === 1 &&
+    merged.records[0].id === done.id && merged.records[0].announced_at === done.created_at &&
+    merged.records[0].context_evidence?.some(item => item.id === root.id));
+  check('Day 20 完成帖的寒暄明天不生成新预告',
+    detectSignals(posts, { now, lastResetAt: latestEventMs(merged.records) }).forecasts.length === 0);
+  const first = tweet('2107158998495748264', '2026-10-05T06:00:00.000Z', 'Day 1/ Improvements');
+  const sig = detectSignals(posts, { now, lastResetAt: latestEventMs(merged.records) });
+  const calendar = buildResetCalendar({ records: merged.records, tweets: [first, ...posts], now,
+    signals: { ...sig, program: { id: '2106845241357824205', days: 28, announcedAt: '2026-10-04T20:33:43.000Z' } } });
+  const row = calendar.plan.rows.find(item => item.day === 20);
+  check('Day 20 日计划自动确认且撤下待落地', row.confirmedCount === 1 && row.status === 'confirmed' &&
+    row.entries.every(item => !item.awaitingVerification && item.kind !== 'announcement'));
+  check('重复采集 Day 20 完成帖不新增记录', mergeConfirmedResets(merged.records, posts, { now }).added === 0);
+  for (const [name, input] of [
+    ['缺父链', [root, { ...deadline, inReplyTo: undefined }, done]],
+    ['伪造父ID', [root, { ...deadline, inReplyTo: { ...deadline.inReplyTo, id: '999' } }, done]],
+    ['未核验父关系', [root, { ...deadline, inReplyTo: { ...deadline.inReplyTo, verified: false } }, done]],
+    ['仅DOM链即使两跳verified也不确认', [root, domDeadline, domDone]],
+    ['完成到时间回复仅DOM', [root, deadline, domDone]],
+    ['时间回复到原帖仅DOM', [root, domDeadline, done]],
+    ['错误作者', [root, deadline, { ...done, account: 'someone' }]],
+    ['错引文', [root, deadline, { ...done, quotedTweet: { ...done.quotedTweet, text: 'An unrelated feature' } }]],
+    ['引用时刻不符', [root, deadline, { ...done, quotedTweet: { ...done.quotedTweet, created_at: '2026-10-25T03:40:05.000Z' } }]],
+    ['超过24小时', [root, deadline, { ...done, created_at: '2026-10-26T04:00:00.000Z' }]],
+    ['否定完成', [root, deadline, { ...done, text: 'It is not all propagated.' }]],
+    ['部分完成', [root, deadline, { ...done, text: 'It is all propagated for some users only.' }]],
+    ['13:30回复theo', [root, deadline, tweet('2114228044072403055', '2026-10-25T05:30:20.000Z',
+      'Not a real improvement, put the reset in the bag', { inReplyTo: { account: 'theo', text: 'Improvements to T3 Code' } })]],
+  ]) {
+    check(`Day 20 ${name}不能自动落地`, mergeConfirmedResets(base, input, { now: Date.parse('2026-10-26T07:10:00Z') }).added === 0);
+  }
+  const file = new URL('../src/lib/signals.mjs', import.meta.url);
+  const source = await readFile(file, 'utf8');
+  const hash = value => createHash('sha256').update(value).digest('hex');
+  const mutated = source.replace('const linkedDone = Boolean(linked && RE_LINKED_DONE.test(withoutUrls(text)));', 'const linkedDone = false;');
+  assert.notEqual(mutated, source, '关联完成识别变异锚点存在');
+  const portable = mutated.replace(/from (['"])(\.[^'"]+)\1/g, (_, q, path) => `from ${q}${new URL(path, file).href}${q}`);
+  const broken = await import('data:text/javascript;base64,' + Buffer.from(portable).toString('base64'));
+  check('关闭实际关联完成分支会漏掉 Day 20 正例', broken.analyzeTweet(done, { tweets: posts }).level !== 'occurred');
+  const apiGuard = "if (requiresApiContext && (ref.verified !== true || ref.verificationSource !== 'tweet-detail-api')) return null;";
+  assert.ok(source.includes(apiGuard), '逐跳API证明闸门的变异锚点存在');
+  const noGuard = source.replace(apiGuard, '').replace(/from (['"])(\.[^'"]+)\1/g, (_, q, path) => `from ${q}${new URL(path, file).href}${q}`);
+  const brokenGuard = await import('data:text/javascript;base64,' + Buffer.from(noGuard).toString('base64'));
+  check('移除逐跳API闸门会误把仅DOM完整链升为完成',
+    brokenGuard.analyzeTweet(domDone, { tweets: [root, domDeadline, domDone] }).level === 'occurred');
+  assert.equal(hash(await readFile(file, 'utf8')), hash(source), 'Day 20 变异不改正式源码');
+  const collectFile = new URL('../src/lib/collect.mjs', import.meta.url);
+  const collectSource = await readFile(collectFile, 'utf8');
+  for (const [name, anchor] of [
+    ['回复', 'isApiContext(prev.inReplyTo) && !isApiContext(t.inReplyTo)'],
+    ['引用', 'isApiContext(prev.quotedTweet) && !isApiContext(t.quotedTweet)'],
+  ]) {
+    assert.ok(collectSource.includes(anchor), `${name}持久化变异锚点存在`);
+    const mutant = collectSource.replace(anchor, 'false').replace(/from (['"])(\.[^'"]+)\1/g, (_, q, path) => `from ${q}${new URL(path, collectFile).href}${q}`);
+    const brokenMerge = await import('data:text/javascript;base64,' + Buffer.from(mutant).toString('base64'));
+    const brokenPosts = brokenMerge.mergeTweetBatch(posts, [domDeadline, domDone]);
+    check(`去除${name}API关系保护会在增量合并后丢失完成链`,
+      analyzeTweet(brokenPosts.find(t => t.id === done.id), { tweets: brokenPosts }).level !== 'occurred');
+  }
+  assert.equal(hash(await readFile(collectFile, 'utf8')), hash(collectSource), '增量合并变异不改正式源码');
 }
 
 console.log(`✓ 重置全链路回放 ${passed} 项通过`);

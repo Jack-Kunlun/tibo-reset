@@ -27,16 +27,17 @@
  */
 
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile, realpath, mkdtemp, rm, mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runInNewContext } from 'node:vm';
-import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import { spawnSync } from 'node:child_process';
 
 import {
   sourceHash,
+  translationFingerprint,
   hasValidTranslation,
   translationFor,
   withTranslations,
@@ -89,6 +90,27 @@ section('1. 原文与译文的 sha256 绑定');
   check('同一原文哈希稳定，空白差异不算原文被编辑',
     sourceHash('a  b\n c') === sourceHash('a b c') && sourceHash(ORIGIN) === sourceHash(ORIGIN));
   check('空原文没有哈希（无从绑定）', sourceHash('') === null && sourceHash(null) === null && sourceHash('   ') === null);
+
+  const first = withZh(tweet('fp-1', 'First original.'), '第一条译文');
+  const second = withZh(tweet('fp-2', 'Second original.'), '第二条译文');
+  const fingerprint = translationFingerprint([first, second]);
+  check('有效译文内容生成 64 位 SHA-256 指纹', /^[0-9a-f]{64}$/.test(fingerprint));
+  check('同一批译文重排后指纹稳定', translationFingerprint([second, first]) === fingerprint);
+  const duplicateA = withZh(tweet('fp-duplicate-a', 'Repeated source.'), '重复译文');
+  const duplicateB = withZh(tweet('fp-duplicate-b', 'Repeated source.'), '重复译文');
+  check('重复原文内容相同时，重排后指纹稳定',
+    translationFingerprint([duplicateA, duplicateB]) === translationFingerprint([duplicateB, duplicateA]));
+  check('条数不变但译文文本变化时指纹变化',
+    translationFingerprint([first, withZh(second, '修订后的译文')]) !== fingerprint);
+  check('无有效译文时指纹为 0', translationFingerprint([tweet('fp-3', 'No translation.')]) === 0);
+  check('原文变化会进入内容指纹',
+    translationFingerprint([withZh(tweet('fp-1', 'Edited original.'), '第一条译文')]) !==
+      translationFingerprint([first]));
+  check('语言与来源变化会进入内容指纹',
+    translationFingerprint([{ ...first, translation: { ...first.translation, language: 'zh-TW' } }]) !==
+      translationFingerprint([first]) &&
+    translationFingerprint([{ ...first, translation: { ...first.translation, provider: 'other' } }]) !==
+      translationFingerprint([first]));
 
   const good = withZh(base, ORIGIN_ZH);
   check('哈希对得上时译文有效', hasValidTranslation(good) === true && translationFor(good)?.text === ORIGIN_ZH);
@@ -176,7 +198,10 @@ section('3. 译文不参与识别与计数');
     mounted.counts.explicit === plain.counts.explicit &&
     mounted.counts.hint === plain.counts.hint &&
     mounted.forecasts.length === plain.forecasts.length);
-  check('有译文时 translationRevision 等于有效译文条数', mounted.translationRevision === 1);
+  check('有译文时 translationRevision 使用有效译文内容指纹',
+    mounted.translationRevision === translationFingerprint([zh]));
+  check('同条数译文修订会改变 translationRevision',
+    withSignalTranslations(plain, [withZh(t, '更新后的译文')]).translationRevision !== mounted.translationRevision);
   check('没有任何译文时 translationRevision 为 0（前端刷新判据不能永远认为「没变化」）',
     withSignalTranslations(plain, [t]).translationRevision === 0);
 
@@ -233,10 +258,77 @@ section('6. 写盘前逐条校验');
   const t = tweet('50', ORIGIN);
   check('哈希相符的译文通过校验', validateEntry(t, { text: ORIGIN_ZH, sourceHash: sourceHash(ORIGIN) }).ok === true);
   check('哈希不符的译文被拒绝', validateEntry(t, { text: ORIGIN_ZH, sourceHash: sourceHash('别的原文') }).ok === false);
+  check('缺少原文哈希的译文被拒绝', validateEntry(t, { text: ORIGIN_ZH }).ok === false);
+  check('null、空值、错误格式与大写哈希均被拒绝',
+    [null, '', 'xyz', 'g'.repeat(64), sourceHash(ORIGIN).toUpperCase()].every((sourceHashValue) =>
+      validateEntry(t, { text: ORIGIN_ZH, sourceHash: sourceHashValue }).ok === false));
   check('空译文被拒绝', validateEntry(t, { text: '  ', sourceHash: sourceHash(ORIGIN) }).ok === false);
   check('超长译文被拒绝', validateEntry(t, { text: 'x'.repeat(20_001), sourceHash: sourceHash(ORIGIN) }).ok === false);
   check('没有原文的推文无法绑定译文', validateEntry(tweet('51', ''), { text: ORIGIN_ZH, sourceHash: sourceHash(ORIGIN) }).ok === false);
   check('译文条目不是对象时被拒绝', validateEntry(t, null).ok === false);
+}
+
+/* ===================== 6b. 隔离 CLI：采集时刻与哈希身份 ===================== */
+
+section('6b. 隔离 CLI 不伪造采集时间且拒绝无哈希译文');
+
+{
+  const dir = await mkdtemp(resolve(tmpdir(), 'tibo-apply-translations-'));
+  try {
+    const scriptPath = await realpath(resolve(ROOT, 'scripts/apply-translations.mjs'));
+    const fixture = {
+      tweets: [tweet('cli-1', ORIGIN, { signal: { status: 'forecast', level: 'explicit' } })],
+      updated_at: '2026-10-20T08:00:00.000Z',
+    };
+    const tweetsPath = resolve(dir, 'tweets.json');
+    const translationsPath = resolve(dir, 'translations.json');
+    await writeFile(tweetsPath, `${JSON.stringify(fixture)}\n`);
+
+    const runCli = (entries) => {
+      return writeFile(translationsPath, `${JSON.stringify(entries)}\n`).then(() => spawnSync(
+        process.execPath,
+        [scriptPath, '--data-dir', dir, '--file', translationsPath],
+        { encoding: 'utf8' },
+      ));
+    };
+
+    const validRun = await runCli({ 'cli-1': { text: ORIGIN_ZH, sourceHash: sourceHash(ORIGIN) } });
+    assert.equal(validRun.status, 0, validRun.stderr || validRun.stdout);
+    const appliedFile = JSON.parse(await readFile(tweetsPath, 'utf8'));
+    check('有效隔离回填保留原 updated_at（成功采集时间不被推进）',
+      appliedFile.updated_at === fixture.updated_at);
+    check('有效隔离回填写入输入中已校验的原文哈希',
+      appliedFile.tweets[0].translation?.sourceHash === sourceHash(ORIGIN));
+    check('有效隔离回填不改原文及事件状态',
+      appliedFile.tweets.length === fixture.tweets.length &&
+      appliedFile.tweets[0].text === fixture.tweets[0].text &&
+      JSON.stringify(appliedFile.tweets[0].signal) === JSON.stringify(fixture.tweets[0].signal));
+
+    const noTimestampDir = resolve(dir, 'without-timestamp');
+    await mkdir(noTimestampDir);
+    const noTimestampPath = resolve(noTimestampDir, 'tweets.json');
+    await writeFile(noTimestampPath, `${JSON.stringify({ tweets: [tweet('cli-1', ORIGIN)] })}\n`);
+    const noTimestampValidRun = await writeFile(translationsPath,
+      `${JSON.stringify({ 'cli-1': { text: ORIGIN_ZH, sourceHash: sourceHash(ORIGIN) } })}\n`)
+      .then(() => spawnSync(process.execPath,
+        [scriptPath, '--data-dir', noTimestampDir, '--file', translationsPath], { encoding: 'utf8' }));
+    assert.equal(noTimestampValidRun.status, 0, noTimestampValidRun.stderr || noTimestampValidRun.stdout);
+    const noTimestampApplied = JSON.parse(await readFile(noTimestampPath, 'utf8'));
+    check('原数据没有 updated_at 时，成功回填也不新增该字段',
+      !Object.hasOwn(noTimestampApplied, 'updated_at') &&
+      noTimestampApplied.tweets[0].translation?.sourceHash === sourceHash(ORIGIN));
+
+    await writeFile(noTimestampPath, `${JSON.stringify({ tweets: [tweet('cli-1', ORIGIN)] })}\n`);
+    const missingHashRun = await writeFile(translationsPath, `${JSON.stringify({ 'cli-1': { text: ORIGIN_ZH } })}\n`)
+      .then(() => spawnSync(process.execPath, [scriptPath, '--data-dir', noTimestampDir, '--file', translationsPath], { encoding: 'utf8' }));
+    assert.equal(missingHashRun.status, 0, missingHashRun.stderr || missingHashRun.stdout);
+    const rejectedFile = JSON.parse(await readFile(noTimestampPath, 'utf8'));
+    check('缺哈希 CLI 条目不写入，也不凭空生成合法 sourceHash',
+      rejectedFile.tweets[0].translation === undefined && rejectedFile.updated_at === undefined &&
+      missingHashRun.stdout.includes('应用：0 条｜拒绝：1 条'));
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 }
 
 /* ===================== 7. 端到端：译文随 tweets 载荷上线 ===================== */
@@ -297,7 +389,8 @@ section('7. 译文随 tweets 载荷进 ingest 并落盘（D-080 死因的反面�
       data.tweets.tweets,
     );
     check('线上读到的数据同样能挂上译文（数据层到展示层不断链）',
-      signals.translationRevision === 1 && signals.forecasts[0]?.evidence?.[0]?.translation?.text === ORIGIN_ZH);
+      signals.translationRevision === translationFingerprint(data.tweets.tweets) &&
+      signals.forecasts[0]?.evidence?.[0]?.translation?.text === ORIGIN_ZH);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -458,7 +551,7 @@ const libImport = (rel) => [`'./${rel}'`, resolve(ROOT, 'src/lib', rel)];
 {
   // 变异⑥：写盘校验不再比对哈希
   const mutated = applyText.replace(
-    'if (entry.sourceHash && entry.sourceHash !== expected) {',
+    'if (entry.sourceHash !== expected) {',
     'if (false) {',
   );
   assert.notEqual(mutated, applyText, '变异⑥目标存在');
@@ -475,6 +568,21 @@ const libImport = (rel) => [`'./${rel}'`, resolve(ROOT, 'src/lib', rel)];
   const validateEntryMutant = runInNewContext(`(() => { ${body}; return validateEntry; })()`, { sourceHash });
   const result = validateEntryMutant(tweet('79', ORIGIN), { text: ORIGIN_ZH, sourceHash: sourceHash('别的原文') });
   check('变异⑥（写盘不校验哈希）会让「哈希不符被拒绝」的断言变红', result.ok === true);
+}
+
+{
+  // 变异⑥b：恢复旧的「有哈希才比对」逻辑 —— 缺哈希也会被接受。
+  const mutated = applyText.replace(
+    "if (typeof entry.sourceHash !== 'string' || !/^[0-9a-f]{64}$/.test(entry.sourceHash)) {\n    return { ok: false, reason: '缺少有效的原文 sha256（必须是 64 位小写十六进制）' };\n  }\n  if (entry.sourceHash !== expected) {",
+    'if (entry.sourceHash && entry.sourceHash !== expected) {',
+  );
+  assert.notEqual(mutated, applyText, '变异⑥b目标存在');
+  const fnSource = mutated.match(/export function validateEntry\(tweet, entry\) \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(fnSource, '抠出 validateEntry 源码');
+  const body = fnSource.replace('export function validateEntry', 'function validateEntry');
+  const validateEntryMutant = runInNewContext(`(() => { ${body}; return validateEntry; })()`, { sourceHash });
+  const result = validateEntryMutant(tweet('79b', ORIGIN), { text: ORIGIN_ZH });
+  check('变异⑥b（恢复可选哈希旧逻辑）会接受缺少原文哈希的译文', result.ok === true);
 }
 
 {

@@ -26,7 +26,7 @@
  */
 
 import { dualZone, partsIn, offsetHours } from './chart-data.js';
-import { attachTranslations, translationIndex } from './tweet-translations.mjs';
+import { attachTranslations, translationIndex, translationFingerprint } from './tweet-translations.mjs';
 
 export const USER_ZONE = 'Asia/Shanghai';
 export const SOURCE_ZONE = 'America/Los_Angeles'; // 公开报道称 Tibo 常驻旧金山，可配置
@@ -282,7 +282,8 @@ const RE_OWN_RESET_DONE = /^what would you like with your side of reset\?\s*it[�
 // 10/20 已核实为随帖落地：cooking 讲功能开发，不能据此推断 reset 仍未完成。
 // 只接纳完整的已核实句式；不把任意「and reset」或 Enjoy 升格成完成公告。
 const RE_SCHEDULE_RESET_DONE = /^day\s+\d+\s*\/\s*nevermind,?\s+we[’']re\s+still\s+cooking(?:\.{3}|…)\s+and\s+reset[.!]?(?:\s+enjoy[.!]?)?$/i;
-const RE_LINKED_DONE = /^(?:it[’']s\s+|it is\s+)?done(?:\s+and\s+dusted)?[.!]?$/i;
+const RE_LINKED_DONE = /^(?:(?:it[’']s\s+|it is\s+)?done(?:\s+and\s+dusted)?[.!]?|(?:it[’']s|it is)\s+all\s+propagated[.!](?:\s+enjoy\s+some\s+mad\s+codexing\s+tomorrow[.!])?(?:\s+fun\s+week\s+ahead\s+too[.!])?)$/i;
+const RE_LINKED_DEADLINE = /^by\s+(?:midnight|noon|\d{1,2}(?::\d{2})?(?:\s*[ap]m)?)\s*(?:PST|PDT|PT|UTC(?:[+-]\d{1,2})?)?[.!]?$/i;
 
 // 否定完成与无关对象也必须挡住预告分支，不能只给 occurred 扣分。
 const RE_NEGATED_COMPLETION = /\bresets?\s+(?:(?:has|have|is|are|was|were)\s+)?(?:not|never|hasn[’']t|haven[’']t|isn[’']t)\s+(?:been\s+|yet\s+)?(?:propagated|completed?|done|finished|landed|happened|live|available)\b/i;
@@ -809,8 +810,13 @@ function parseTimes(text, refTs, zone) {
   // midnight / noon 是钟点的命名形式。只在没有数字钟点时兜底，
   // 免得 "midnight" 与 "12am" 同时出现时产出两个一模一样的窗口。
   if (!clocks.length) {
-    if (/\bmidnight\b/.test(t)) clocks.push({ hh: 0, mm: 0, word: 'midnight' });
-    else if (/\bnoon\b/.test(t)) clocks.push({ hh: 12, mm: 0, word: 'noon' });
+    const named = t.match(/\b(midnight|noon)\b/);
+    if (named) {
+      const before = /\b(?:before|by)\s*$/.test(t.slice(0, named.index));
+      const tz = t.slice(named.index + named[0].length).match(/^\s*(pt|pst|pdt|mt|mst|mdt|ct|cst|cdt|et|est|edt|utc|gmt)\b/);
+      clocks.push({ hh: named[1] === 'midnight' ? 0 : 12, mm: 0, word: named[0], before,
+        zone: tz ? CLOCK_TZ_ALIAS[tz[1]] : zone, abbreviation: tz?.[1] });
+    }
   }
 
   if (clocks.length) {
@@ -827,10 +833,12 @@ function parseTimes(text, refTs, zone) {
         ? '原文 PST 按 UTC-8 换算；若泛指洛杉矶当地夏令时（UTC-7），则比此时间早 1 小时。'
         : null;
       if (c.before) {
-        const dn = date?.dayNum ?? lp.dayNum;
+        let dn = date?.dayNum ?? localParts(refTs, z).dayNum;
+        if (date && c.word === 'midnight') dn += 1;
+        if (!date && at(dn, c.hh, c.mm, z) < refTs) dn += 1;
         if (dated && out.includes(dated)) out.splice(out.indexOf(dated), 1);
         // before/by 是截止点，不能变成「该钟点起的一小时」。
-        push({ from: Math.max(refTs, at(dn, 0, 0, z)), to: at(dn, c.hh, c.mm, z),
+        push({ from: date ? Math.max(refTs, at(date.dayNum, 0, 0, z)) : refTs, to: at(dn, c.hh, c.mm, z),
           precision: 'instant', dayNum: dn, deadline: true,
           ...(c.abbreviation ? { clockZone: z, clockAbbreviation: c.abbreviation.toUpperCase() } : {}) },
         c.word, timezoneNote, Math.max(SPEC.clockInDay, dated?.spec ?? 0) + 1);
@@ -1027,6 +1035,9 @@ function linkedResetContext(tweet, opts) {
   const trusted = (t) => t?.author_verified === true && String(t.account).toLowerCase() === account &&
     ['timeline-browser', 'with-replies'].includes(t.foundVia);
   if (!trusted(tweet)) return null;
+  const ownText = withoutUrls(tweet.text);
+  const requiresApiContext = RE_LINKED_DEADLINE.test(ownText) ||
+    (RE_LINKED_DONE.test(ownText) && /\ball\s+propagated\b/i.test(ownText));
   const pool = opts.tweets ?? [];
   const seen = new Set([tweet.id]);
   const chain = [];
@@ -1034,6 +1045,8 @@ function linkedResetContext(tweet, opts) {
   for (let depth = 0; depth < 4; depth++) {
     const ref = node.quotedTweet ?? (node.inReplyTo?.verified === true ? node.inReplyTo : null);
     if (!ref || String(ref.account).toLowerCase() !== account) return null;
+    // 新增的省略主语短句必须逐跳有官方父 ID 依据；旧 DOM 邻接标记不能补造会话。
+    if (requiresApiContext && (ref.verified !== true || ref.verificationSource !== 'tweet-detail-api')) return null;
     const matches = pool.filter((t) => trusted(t) && (ref.id ? t.id === ref.id :
       t.created_at === ref.created_at && withoutUrls(t.text) === withoutUrls(ref.text)));
     if (matches.length !== 1) return null;
@@ -1173,7 +1186,8 @@ export function analyzeTweet(tweet, opts = {}) {
     ctxText && RE_RESET.test(ctxText) && (RE_SCOPE.test(ctxText) || linked)
       ? 3 + (RE_GENEROUS.test(ctxText) ? 1 : 0)
       : 0;
-  const hasContinue = RE_CONTINUE.test(text) || Boolean(linked && /^(?:lands?|landing)\s+(?:tomorrow|today|before|by)\b/i.test(text));
+  const hasContinue = RE_CONTINUE.test(text) || Boolean(linked && /^(?:lands?|landing)\s+(?:tomorrow|today|before|by)\b/i.test(text)) ||
+    Boolean(linked && RE_LINKED_DEADLINE.test(withoutUrls(text)));
   const viaContext = ownIntent < 2 && ctxIntent >= 2 && (hasContinue || linkedDone);
   const intent = viaContext ? Math.max(ownIntent, 3) : ownIntent;
 
@@ -2137,5 +2151,5 @@ export function withSignalTranslations(signals, tweets) {
     // 前端刷新判据会因此永远认为「没变化」。
     return { ...signals, translationRevision: 0 };
   }
-  return { ...attachTranslations(signals, index), translationRevision: index.size };
+  return { ...attachTranslations(signals, index), translationRevision: translationFingerprint(tweets) };
 }

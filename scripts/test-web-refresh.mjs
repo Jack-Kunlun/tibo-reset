@@ -13,7 +13,7 @@ const script = template.match(/<script id="state-refresh">([\s\S]*?)<\/script>/)
 const at = '2026-10-15T06:00:00.000Z';
 const next = '2026-10-15T07:00:00.000Z';
 const settle = async () => { for (let i = 0; i < 8; i++) await Promise.resolve(); };
-function boot({ state = { dataUpdatedAt: at }, errors = [], digestRevision = '', manualRevision = 0, scriptOverride = script, stored = null, hidden = false, pending = false } = {}) {
+function boot({ state = { dataUpdatedAt: at }, errors = [], digestRevision = '', manualRevision = 0, translationRevision = 0, scriptOverride = script, stored = null, hidden = false, pending = false } = {}) {
   const boxes = { '.sig-prog': { open: true }, '.am-more': { open: false } };
   const calls = [], timers = [], intervals = [], events = {}, removed = [];
   const store = new Map(stored ? [['reset-observatory-reading', JSON.stringify(stored)]] : []);
@@ -21,7 +21,7 @@ function boot({ state = { dataUpdatedAt: at }, errors = [], digestRevision = '',
   let outcome = state;
   const document = {
     hidden,
-    getElementById: () => ({ textContent: JSON.stringify({ dataUpdatedAt: at, builtAt: next, accountObservationRevision: digestRevision, manualRevision, collectErrors: errors }) }),
+    getElementById: () => ({ textContent: JSON.stringify({ dataUpdatedAt: at, builtAt: next, accountObservationRevision: digestRevision, manualRevision, translationRevision, collectErrors: errors }) }),
     querySelector: selector => boxes[selector],
     addEventListener: (name, callback) => { events[name] = callback; },
   };
@@ -74,6 +74,17 @@ assert.notEqual(disabledManual, script, '手工修订刷新变异点存在');
 const missedManual = boot({ scriptOverride: disabledManual, manualRevision: 3, state: { dataUpdatedAt: at, signals: { manualRevision: 4 } } });
 await settle();
 check('关闭手工修订分支的隔离反例会漏刷新', missedManual.reloaded === 0);
+const sameTranslation = boot({ translationRevision: 'content-a', state: { dataUpdatedAt: at, signals: { translationRevision: 'content-a' } } });
+await settle();
+check('译文内容指纹相同不重载', sameTranslation.reloaded === 0);
+sameTranslation.outcome({ dataUpdatedAt: at, signals: { translationRevision: 'content-b' } });
+await sameTranslation.intervals[0].fn();
+check('成功采集时间未变、同条数改译也能刷新', sameTranslation.reloaded === 1);
+const disabledTranslation = script.replace(/var translationChanged = [^;]+;/, 'var translationChanged = false;');
+assert.notEqual(disabledTranslation, script, '译文刷新变异锚点存在');
+const missedTranslation = boot({ scriptOverride: disabledTranslation, translationRevision: 'content-a', state: { dataUpdatedAt: at, signals: { translationRevision: 'content-b' } } });
+await settle();
+check('关闭译文刷新分支的隔离反例会漏掉补译', missedTranslation.reloaded === 0);
 same.outcome({ dataUpdatedAt: next });
 await same.intervals[0].fn();
 check('新一轮数据到达会重载服务端页面', same.reloaded === 1);

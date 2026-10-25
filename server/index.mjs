@@ -69,7 +69,7 @@ import { predictAll, DEFAULT_CONFIG } from '../src/lib/predict.mjs';
 import { analyzeTweet, detectSignals, latestEventMs, withSignalTranslations, USER_ZONE, SOURCE_ZONE } from '../src/lib/signals.mjs';
 import { buildChartData } from '../src/lib/chart-data.js';
 import { buildResetCalendar, withCalendarTranslations } from '../src/lib/reset-calendar.mjs';
-import { withChartTranslations } from '../src/lib/tweet-translations.mjs';
+import { withChartTranslations, translationFingerprint } from '../src/lib/tweet-translations.mjs';
 import { derive, logoDataUri, renderPage } from '../src/lib/page.mjs';
 import { createStore } from './store.mjs';
 import { handleManage } from './manage.mjs';
@@ -176,10 +176,8 @@ async function getSignals(data) {
   const now = Date.now();
   const hourBucket = Math.floor(now / 3_600_000);
   const observationKey = JSON.stringify(tweets.filter((t) => t.accountObservation).map((t) => [t.id, t.accountObservation]));
-  // ⚠ 译文变更也必须让缓存失效：译文挂在推文对象上，而推文数组的内容变了
-  // （tweets.length 可能不变、updated_at 也不一定变）⇒ 光看这两个字段不够。
-  // 用「有译文的推文条数」做维度：译文数量变了就是内容变了。
-  const translationKey = tweets.filter((t) => t?.translation?.text).length;
+  // 补译不推进成功采集时刻；同条数的改译也要刷新，不能只用译文数量作缓存依据。
+  const translationKey = translationFingerprint(tweets);
   const key = `${file.updated_at ?? ''}|${tweets.length}|${file.manualRevision ?? 0}|${observationKey}|${translationKey}|${JSON.stringify(resets.records)}|${hourBucket}|${SOURCE_ACCOUNT}|${SOURCE_ZONE}|${USER_ZONE}`;
   if (sigCache.key === key) return sigCache.value;
   const value = withSignalTranslations(detectSignals(tweets, { now, account: SOURCE_ACCOUNT, lastResetAt }), tweets);
@@ -539,7 +537,7 @@ async function handleApi(req, res, url) {
   if (url.pathname === '/api/manage') {
     return handleManage(req, res, { store, send, account: SOURCE_ACCOUNT,
       getState: async () => { const data = await store.getData(); return { signals: await getSignals(data) }; },
-      onSaved: async ({ entry, manualEntryId }) => {
+      onSaved: async ({ entry, manualEntryId, confirmedAt, newConfirmation }) => {
         const notifyOptions = {
           dataDir: DATA_DIR,
           store: subs,
@@ -549,7 +547,7 @@ async function handleApi(req, res, url) {
           page: WX_SUBSCRIBE_PAGE,
           getRecords: async () => (await store.getResets()).records.filter((record) => !record.manual),
           getNotificationRecords,
-          manualEvent: { manualEntryId, confirmedAt: entry.updatedAt },
+          manualEvent: { manualEntryId, confirmedAt, registerOnly: !newConfirmation },
         };
         const result = await notifyNewResets({ ...notifyOptions, queueOnly: true });
         if (result.pendingCount > 0) setImmediate(() => notifyNewResets(notifyOptions).catch((error) =>

@@ -1037,7 +1037,7 @@ section('6. 手动确认到账通知');
   const client = { configured: true, sendSubscribeMessage: async (message) => messages.push(message) };
   const options = { dataDir, store, client, templateId: 'T', templateSpec: subscriptionTemplate.data, log: silence,
     getRecords: async () => [base], getNotificationRecords: async () => [base, manualRecord],
-    manualEvent: { manualEntryId: manualId, confirmedAt } };
+    manualEvent: { manualEntryId: manualId, confirmedAt, registerOnly: false } };
   const result = await notifyNewResets(options);
   check('手动到账早于自动水位仍按人工确认时刻发送，且只消耗落地授权', result.sent === 1 && messages.length === 1 &&
     messages[0].openid === 'EARLY' && messages[0].data.thing13.value === '重置已到账｜手动确认' &&
@@ -1069,6 +1069,109 @@ section('6. 手动确认到账通知');
     manualEvent: { id: newManualRecord.id, confirmedAt: new Date(now - 2 * 60_000).toISOString() } });
   check('不同活动日的新到账仍通知确认时刻前的所有有效落地授权', newEvent.sent === 4 && messages.at(-1).openid === 'NEW-EVENT' &&
     messages.at(-1).data.thing13.value === '重置已到账｜手动确认');
+}
+
+{
+  const dataDir = await makeDir(), store = createSubscriptionStore(dataDir);
+  const now = Date.now();
+  const baseAt = new Date(now - 90 * 60_000).toISOString();
+  const eventAt = new Date(now - 60 * 60_000).toISOString();
+  const confirmedAt = new Date(now - 30 * 60_000).toISOString();
+  const publicAt = new Date(now - 10 * 60_000).toISOString();
+  const manualId = '00000000-0000-4000-8000-000000000089';
+  const base = { id: 'late-grant-base', type: 'reset', announced_at: baseAt, first_confirmed_at: baseAt };
+  let manualRecord = { id: `manual-${manualId}`, manualEntryId: manualId, manual: true, type: 'reset',
+    announced_at: eventAt, first_confirmed_at: eventAt };
+  await store.write({ last_event_at: baseAt, items: [] });
+  let sends = 0;
+  const client = { configured: true, sendSubscribeMessage: async () => { sends++; } };
+  const options = { dataDir, store, templateId: 'T', log: silence, client, getRecords: async () => [base],
+    getNotificationRecords: async () => [base, manualRecord] };
+  const confirmedWithoutGrant = await notifyNewResets({ ...options,
+    manualEvent: { manualEntryId: manualId, confirmedAt, registerOnly: false } });
+  const confirmedState = await store.read();
+  check('首次确认到账时没有符合条件的授权，会登记事件别名但不创建 pending',
+    confirmedWithoutGrant.skipped === 'no-eligible-grants' && confirmedWithoutGrant.pendingCount === 0 && sends === 0 &&
+    confirmedState.landed_event_keys.includes(`manual:${manualId}`) &&
+    confirmedState.landed_event_keys.includes(`manual-event:reset:${Date.parse(eventAt)}`));
+
+  await store.update((state) => { state.items.push({ id: 'late-grant', openid: 'LATE-GRANT', template_id: 'T', kind: 'landed',
+    created_at: new Date(Date.parse(confirmedAt) + 60_000).toISOString() }); });
+  manualRecord = { ...manualRecord, programId: '190', programDay: 18 };
+  const attributionEdit = await notifyNewResets({ ...options, getNotificationRecords: async () => [base, manualRecord],
+    manualEvent: { manualEntryId: manualId, confirmedAt, registerOnly: true } });
+  const attributedState = await store.read();
+  check('到账后的计划日补录只登记 program 别名，晚授权保持 active 且不排队',
+    attributionEdit.skipped === 'no-new-event' && attributionEdit.pendingCount === 0 && sends === 0 &&
+    attributedState.items.length === 1 && !attributedState.items[0].pending_event &&
+    attributedState.landed_event_keys.includes('program:190:18') && (await status(store, 'LATE-GRANT')).active);
+
+  const publicRecord = { id: 'late-grant-public-day18', type: 'reset', announced_at: publicAt, first_confirmed_at: publicAt,
+    programId: '190', programDay: 18, url: 'https://x.com/thsottiaux/status/2113492187770175603' };
+  const publicAlias = await notifyNewResets({ ...options, getRecords: async () => [base, publicRecord],
+    getNotificationRecords: async () => [base, manualRecord, publicRecord], manualEvent: undefined });
+  check('同一 Day 的后续公开到账别名不会消费晚授权', publicAlias.skipped === 'no-new-event' && sends === 0 &&
+    (await status(store, 'LATE-GRANT')).active && (await store.read()).landed_event_keys.includes('source:2113492187770175603'));
+}
+
+{
+  const dataDir = await makeDir(), store = createSubscriptionStore(dataDir);
+  const now = Date.now();
+  const baseAt = new Date(now - 90 * 60_000).toISOString();
+  const eventAt = new Date(now - 60 * 60_000).toISOString();
+  const confirmedAt = new Date(now - 30 * 60_000).toISOString();
+  const manualId = '00000000-0000-4000-8000-000000000090';
+  const base = { id: 'config-later-base', type: 'reset', announced_at: baseAt, first_confirmed_at: baseAt };
+  const record = { id: `manual-${manualId}`, manualEntryId: manualId, manual: true, type: 'reset',
+    announced_at: eventAt, first_confirmed_at: eventAt };
+  await store.write({ last_event_at: baseAt, items: [{ id: 'preexisting-grant', openid: 'PREEXISTING', template_id: 'T', kind: 'landed',
+    created_at: new Date(now - 2 * 60 * 60_000).toISOString() }] });
+  let sends = 0;
+  const records = { getRecords: async () => [base], getNotificationRecords: async () => [base, record] };
+  const first = await notifyNewResets({ dataDir, store, templateId: 'T', log: silence,
+    client: { configured: false, sendSubscribeMessage: async () => { sends++; } }, ...records,
+    manualEvent: { manualEntryId: manualId, confirmedAt, registerOnly: false } });
+  const stateBeforeEdit = await store.read();
+  const edit = await notifyNewResets({ dataDir, store, templateId: 'T', log: silence,
+    client: { configured: true, sendSubscribeMessage: async () => { sends++; } }, ...records,
+    manualEvent: { manualEntryId: manualId, confirmedAt, registerOnly: true } });
+  const stateAfterEdit = await store.read();
+  check('首次服务未配置时到账事件未记账，后续 registerOnly 编辑也不排队或消耗旧授权',
+    first.skipped === 'wechat-not-configured' && stateBeforeEdit.landed_event_keys.length === 0 &&
+    edit.skipped === 'no-new-event' && edit.pendingCount === 0 && sends === 0 &&
+    stateAfterEdit.items.length === 1 && !stateAfterEdit.items[0].pending_event &&
+    (await status(store, 'PREEXISTING')).active);
+}
+
+{
+  const dataDir = await makeDir(), store = createSubscriptionStore(dataDir);
+  const now = Date.now();
+  const baseAt = new Date(now - 3 * 60 * 60_000).toISOString();
+  const eventAt = new Date(now - 2 * 60 * 60_000).toISOString();
+  const confirmedAt = new Date(now - 60 * 60_000).toISOString();
+  const manualId = '00000000-0000-4000-8000-000000000091';
+  const base = { id: 'register-pending-base', type: 'reset', announced_at: baseAt, first_confirmed_at: baseAt };
+  let record = { id: `manual-${manualId}`, manualEntryId: manualId, manual: true, type: 'reset',
+    announced_at: eventAt, first_confirmed_at: eventAt };
+  await store.write({ last_event_at: baseAt, items: [{ id: 'original-pending-grant', openid: 'ORIGINAL-PENDING', template_id: 'T', kind: 'landed',
+    created_at: new Date(now - 4 * 60 * 60_000).toISOString() }] });
+  const recipients = [];
+  const client = { configured: true, sendSubscribeMessage: async ({ openid }) => { recipients.push(openid); } };
+  const options = { dataDir, store, templateId: 'T', log: silence, client, getRecords: async () => [base],
+    getNotificationRecords: async () => [base, record] };
+  const queued = await notifyNewResets({ ...options, manualEvent: { manualEntryId: manualId, confirmedAt, registerOnly: false }, queueOnly: true });
+  await store.update((state) => { state.items.push({ id: 'late-register-grant', openid: 'LATE-REGISTER', template_id: 'T', kind: 'landed',
+    created_at: new Date(Date.parse(confirmedAt) + 60_000).toISOString() }); });
+  record = { ...record, programId: '190', programDay: 18 };
+  const attribution = await notifyNewResets({ ...options, manualEvent: { manualEntryId: manualId, confirmedAt, registerOnly: true }, queueOnly: true });
+  const attributed = await store.read();
+  const drained = await notifyNewResets({ ...options, manualEvent: { manualEntryId: manualId, confirmedAt, registerOnly: true } });
+  const final = await store.read();
+  check('registerOnly 补归属仍保留已有 pending 可 drain，且只消耗原 pending 授权',
+    queued.queued === 1 && attribution.queued === 1 && attribution.pendingCount === 1 && recipients.length === 1 &&
+    attributed.landed_event_keys.includes('program:190:18') && drained.sent === 1 &&
+    recipients.join(',') === 'ORIGINAL-PENDING' && final.items.length === 1 && final.items[0].openid === 'LATE-REGISTER' &&
+    (await status(store, 'LATE-REGISTER')).active);
 }
 
 {
@@ -1223,9 +1326,9 @@ section('6. 手动确认到账通知');
     getRecords: async () => [], getNotificationRecords: async () => [record],
     manualEvent: { manualEntryId: id, confirmedAt: new Date(now - 10 * 60_000).toISOString() }, queueOnly: true };
   const result = await notifyNewResets(options);
-  check('旧事件 pending 不冒充本次手动到账已入队且本次无授权时明确跳过', result.queued === 0 && result.pendingCount === 1 &&
+  check('旧事件 pending 不冒充本次 queued；本次无授权时跳过并登记自身别名', result.queued === 0 && result.pendingCount === 1 &&
     result.status === 'pending' && result.skipped === 'no-eligible-grants' &&
-    !(await store.read()).landed_event_keys.includes(`manual-event:reset:${Date.parse(eventAt)}`));
+    (await store.read()).landed_event_keys.includes(`manual-event:reset:${Date.parse(eventAt)}`));
 }
 
 for (const permanent of [false, true]) {
@@ -1318,6 +1421,41 @@ for (const permanent of [false, true]) {
   const sourceUrl = new URL('../server/subscribe.mjs', import.meta.url);
   const source = await readFile(sourceUrl, 'utf8');
   const originalHash = createHash('sha256').update(source).digest('hex');
+  const runUnconfiguredRegisterOnlyEdit = async (implementation) => {
+    const dataDir = await makeDir(), store = implementation.createSubscriptionStore(dataDir);
+    const now = Date.now();
+    const baseAt = new Date(now - 90 * 60_000).toISOString();
+    const eventAt = new Date(now - 60 * 60_000).toISOString();
+    const confirmedAt = new Date(now - 30 * 60_000).toISOString();
+    const id = '00000000-0000-4000-8000-000000000092';
+    const base = { id: 'register-only-mutant-base', type: 'reset', announced_at: baseAt, first_confirmed_at: baseAt };
+    const record = { id: `manual-${id}`, manualEntryId: id, manual: true, type: 'reset',
+      announced_at: eventAt, first_confirmed_at: eventAt, programId: '190', programDay: 18 };
+    await store.write({ last_event_at: baseAt, items: [{ id: 'register-only-old-grant', openid: 'REGISTER-ONLY',
+      template_id: 'T', kind: 'landed', created_at: new Date(now - 2 * 60 * 60_000).toISOString() }] });
+    let sends = 0;
+    const getRecords = async () => [base], getNotificationRecords = async () => [base, record];
+    const first = await implementation.notifyNewResets({ dataDir, store, templateId: 'T', log: silence,
+      client: { configured: false }, getRecords, getNotificationRecords,
+      manualEvent: { manualEntryId: id, confirmedAt, registerOnly: false } });
+    const edit = await implementation.notifyNewResets({ dataDir, store, templateId: 'T', log: silence,
+      client: { configured: true, sendSubscribeMessage: async () => { sends++; } }, getRecords, getNotificationRecords,
+      manualEvent: { manualEntryId: id, confirmedAt, registerOnly: true } });
+    return { first, edit, sends, state: await store.read() };
+  };
+  const registerOnlyMutationText = source.replace('if (candidate.registerOnly) {', 'if (false && candidate.registerOnly) {')
+    .replace(/from (['"])(\.\.?\/[^'"]+)\1/g, (_, quote, path) => `from ${quote}${new URL(path, sourceUrl).href}${quote}`);
+  assert.notEqual(registerOnlyMutationText, source, 'registerOnly guard 源码变异锚点存在');
+  const registerOnlyMutant = await import(`data:text/javascript;base64,${Buffer.from(registerOnlyMutationText).toString('base64')}`);
+  const registerOnlyControlResult = await runUnconfiguredRegisterOnlyEdit({ createSubscriptionStore, notifyNewResets });
+  const registerOnlyMutantResult = await runUnconfiguredRegisterOnlyEdit(registerOnlyMutant);
+  check('移除 registerOnly guard 的隔离反例会把旧授权错误地补发并消耗',
+    registerOnlyControlResult.first.skipped === 'wechat-not-configured' &&
+    registerOnlyControlResult.edit.skipped === 'no-new-event' && registerOnlyControlResult.sends === 0 &&
+    registerOnlyControlResult.state.items.length === 1 &&
+    registerOnlyMutantResult.edit.sent === 1 && registerOnlyMutantResult.sends === 1 &&
+    registerOnlyMutantResult.state.items.length === 0);
+
   const runNoIdProgramAlias = async (implementation) => {
     const dataDir = await makeDir(), store = implementation.createSubscriptionStore(dataDir);
     const base = { type: 'reset', announced_at: '2026-09-01T00:00:00.000Z' };

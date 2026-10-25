@@ -703,13 +703,11 @@ async function harvestStream(cdp, o) {
  * 「焦点推文」的判据是 article 内含指向**本 id** 的链接 —— 详情页第一条 article 就是
  * 主推文，但回复里也可能引用同一个 id（自引用），所以按链接认，而不是按位置认。
  *
- * 为什么只走 DOM、不去翻 RSC payload：payload 那一路**实现过又删掉了**。
+ * 正文仍从页面 DOM 读取；RSC payload 那一路**实现过又删掉了**。
  * 实测（2026-09-29）详情页的 `document.documentElement.outerHTML` 里
  * `client:` / `full_text` / base64 键**一个都不出现** —— 详情页是纯客户端渲染，
- * payload 不在序列化出来的 DOM 里。留着一路恒为 0 的「备份」不是安全网，
- * 是虚假的信心：真正的失效（DOM 选择器变了）它一样兜不住，还会让报告里
- * 多出一个永远为 0 的数字。真需要结构化数据时正确的路是 CDP 的
- * `Network.getResponseBody` 去接 TweetDetail 的响应，不是猜 DOM 里有没有 payload。
+ * payload 不在序列化出来的 DOM 里。需要补充真实回复/引用 ID 时，由详情采集器
+ * 定向读取当前推文的 X 网络响应，不从 HTML 猜 payload，也不改变 DOM 原文。
  *
  * 已知边界：实测最长的一条（1917 字符）在详情页完整渲染、无折叠；
  * 极端长的「Long Post」是否仍会折叠，等真遇到再处理（`showMore` 会在报告里露出来）。
@@ -717,11 +715,12 @@ async function harvestStream(cdp, o) {
 export function detailProbeExpression(id, handle = 'thsottiaux') {
   const idLit = JSON.stringify(String(id ?? ''));
   return `(function(){var ID=${idLit};
-    var out={url:location.href,dom:'',showMore:false};
+    var out={url:location.href,id:'',author:'',time:'',dom:'',showMore:false};
     if(location.href.indexOf('/status/'+ID)<0)return out;
     var rows=${harvestExpression(handle)};
     for(var i=0;i<rows.length;i++){
       var row=rows[i];if(row.id!==ID)continue;
+      out.id=row.id;out.author=row.author;out.time=row.time;
       out.dom=row.text;out.showMore=row.truncated;out.quotedTweet=row.quotedTweet;
       // 详情页中焦点帖子之前的是会话祖先；不再跨过自我回复去借陌生人的话。
       var parent=rows[i-1];
@@ -733,22 +732,163 @@ export function detailProbeExpression(id, handle = 'thsottiaux') {
     return out;})()`;
 }
 
+function identityText(text) {
+  return String(text ?? '').replace(/https?:\/\/\S+/gi, '').replace(/\s+/g, ' ').trim();
+}
+
+function sameInstant(left, right) {
+  const a = Date.parse(left ?? '');
+  const b = Date.parse(right ?? '');
+  return Number.isFinite(a) && Number.isFinite(b) && a === b;
+}
+
+/**
+ * 只从 X 单帖详情 API 的对象树里取焦点推文。TweetDetail 会同时带祖先和引用帖，
+ * 因此不能取「第一个 tweet」；必须按服务端 rest_id 精确匹配目标 ID。
+ */
+export function extractTweetDetailMetadata(payload, targetId) {
+  let root = payload;
+  if (typeof root === 'string') {
+    try { root = JSON.parse(root); } catch { return null; }
+  }
+  const id = String(targetId ?? '');
+  if (!id || !root || typeof root !== 'object') return null;
+  const found = [];
+  const seen = new WeakSet();
+  const visit = (node) => {
+    if (!node || typeof node !== 'object' || seen.has(node)) return;
+    seen.add(node);
+    if (Array.isArray(node)) {
+      for (const value of node) visit(value);
+      return;
+    }
+    const legacy = node.legacy;
+    const candidateId = String(node.rest_id ?? legacy?.id_str ?? '');
+    if (legacy && candidateId === id) {
+      const user = node.core?.user_results?.result;
+      const fullText = node.note_tweet?.note_tweet_results?.result?.text ??
+        legacy.full_text ?? legacy.text ?? null;
+      found.push({
+        id: candidateId,
+        author: user?.core?.screen_name ?? user?.legacy?.screen_name ?? null,
+        fullText: typeof fullText === 'string' ? fullText : null,
+        createdAt: legacy.created_at ?? null,
+        inReplyToId: legacy.in_reply_to_status_id_str ?? null,
+        quotedId: legacy.quoted_status_id_str ?? null,
+      });
+    }
+    for (const value of Object.values(node)) visit(value);
+  };
+  visit(root);
+  if (!found.length) return null;
+  const signature = (item) => JSON.stringify(item);
+  const unique = [...new Map(found.map((item) => [signature(item), item])).values()];
+  return unique.length === 1 ? unique[0] : null;
+}
+
+function metadataMatchesSource(metadata, source) {
+  if (String(source?.id ?? '') !== metadata.id ||
+      String(source?.author ?? source?.account ?? '').toLowerCase() !== metadata.author.toLowerCase() ||
+      !sameInstant(source?.time ?? source?.created_at, metadata.createdAt)) return false;
+  const sourceText = identityText(source?.text ?? source?.dom);
+  const apiText = identityText(metadata.fullText);
+  if (!sourceText || !apiText) return false;
+  if (sourceText === apiText) return true;
+  // 只有时间线正文明确带「展开」标记或达到 X 的长文截断区间时，才接受 API 全文包含它。
+  const mayBeTruncated = source?.truncated === true || source?.showMore === true ||
+    (source?.text_full !== true && sourceText.length >= 200);
+  return mayBeTruncated && apiText.startsWith(sourceText);
+}
+
+function sameVerifiedContext(left, right) {
+  if (!left) return true;
+  return String(left.account ?? '').toLowerCase() === String(right.account ?? '').toLowerCase() &&
+    (!left.id || String(left.id) === String(right.id)) &&
+    sameInstant(left.created_at ?? left.time, right.created_at) &&
+    identityText(left.text) === identityText(right.text);
+}
+
+function trustedParentContext(parentId, metadata, knownTweets, relation, maxAgeMs) {
+  if (!parentId) return null;
+  const candidates = (knownTweets ?? []).filter((tweet) =>
+    tweet?.author_verified === true && String(tweet.id) === String(parentId) &&
+    String(tweet.account ?? '').toLowerCase() === metadata.author.toLowerCase() &&
+    Boolean(String(tweet.text ?? '').trim())
+  );
+  if (candidates.length !== 1) return null;
+  const parent = candidates[0];
+  const childTime = Date.parse(metadata.createdAt);
+  const parentTime = Date.parse(parent.created_at ?? '');
+  if (!Number.isFinite(childTime) || !Number.isFinite(parentTime) ||
+      parentTime >= childTime || childTime - parentTime > maxAgeMs) return null;
+  return {
+    id: String(parent.id),
+    account: parent.account,
+    text: parent.text,
+    created_at: parent.created_at,
+    url: parent.url ?? `https://x.com/${parent.account}/status/${parent.id}`,
+    relation,
+    verified: true,
+    verificationSource: 'tweet-detail-api',
+  };
+}
+
+/**
+ * 把网络响应与页面/已采集原文交叉核对，再用真实父 ID 查可信同作者历史帖。
+ * 任何字段缺失、矛盾或超出 24 小时都只返回未验证，不推断最近邻关系。
+ */
+export function verifyTweetDetailMetadata(metadata, opts = {}) {
+  const targetId = String(opts.targetId ?? '');
+  const handle = String(opts.handle ?? '').toLowerCase();
+  const result = { verified: false, inReplyTo: null, quotedTweet: null };
+  if (!metadata || metadata.id !== targetId || typeof metadata.author !== 'string' ||
+      metadata.author.toLowerCase() !== handle || !metadata.fullText || !metadata.createdAt ||
+      !Number.isFinite(Date.parse(metadata.createdAt))) return result;
+
+  const sources = [];
+  const dom = opts.domProbe;
+  if (dom?.id === targetId && dom.author && dom.time && dom.dom) {
+    sources.push({ id: dom.id, author: dom.author, time: dom.time, text: dom.dom, showMore: dom.showMore });
+  }
+  for (const tweet of opts.knownTweets ?? []) {
+    if (tweet?.author_verified === true && String(tweet.id) === targetId) {
+      sources.push({ id: tweet.id, account: tweet.account, created_at: tweet.created_at,
+        text: tweet.text, text_full: tweet.text_full });
+    }
+  }
+  if (!sources.length || sources.some((source) => !metadataMatchesSource(metadata, source))) return result;
+
+  const maxAgeMs = Number(opts.maxAgeMs ?? 24 * 60 * 60 * 1000);
+  result.verified = true;
+  result.inReplyTo = trustedParentContext(metadata.inReplyToId, metadata, opts.knownTweets, 'reply', maxAgeMs);
+  result.quotedTweet = trustedParentContext(metadata.quotedId, metadata, opts.knownTweets, 'quote', maxAgeMs);
+  return result;
+}
+
 function needsReplyContext(text) {
   const value = String(text ?? '').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
   const hasOwnResetScope = /\b(?:reset|quota|allowance|usage|credits?|limits?)\b/i.test(value);
   const isFutureLanding = /\b(?:lands?|landing)\b[\s\S]{0,100}\b(?:today|tomorrow|before|by|within|next)\b/i.test(value);
+  const isDeadlineShortText = /^by\s+(?:midnight|noon|\d{1,2}(?::\d{2})?(?:\s*[ap]m)?)\s*(?:PST|PDT|PT|UTC(?:[+-]\d{1,2})?)?[.!]?$/i.test(value);
   const isCompletionFollowup = isLinkedCompletionText(value);
-  return !hasOwnResetScope && (isFutureLanding || isCompletionFollowup);
+  return !hasOwnResetScope && (isFutureLanding || isDeadlineShortText || isCompletionFollowup);
+}
+
+function requiresExactNetworkContext(text) {
+  const value = identityText(text);
+  const propagated = /^(?:it[’']s|it is)\s+all\s+propagated[.!](?:\s+enjoy\s+some\s+mad\s+codexing\s+tomorrow[.!])?(?:\s+fun\s+week\s+ahead\s+too[.!])?$/i;
+  const byClock = /^by\s+(?:midnight|noon|\d{1,2}(?::\d{2})?(?:\s*[ap]m)?)\s*(?:PST|PDT|PT|UTC(?:[+-]\d{1,2})?)?[.!]?$/i;
+  return propagated.test(value) || byClock.test(value);
 }
 
 function isLinkedCompletionText(text) {
   // 必须与 signals.mjs 的 RE_LINKED_DONE 保持同一锚定短句，避免把功能进度里的 done 当重置跟进。
   const value = String(text ?? '').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
-  return /^(?:it[’']s\s+|it is\s+)?done(?:\s+and\s+dusted)?[.!]?$/i.test(value);
+  return /^(?:(?:it[’']s\s+|it is\s+)?done(?:\s+and\s+dusted)?[.!]?|(?:it[’']s|it is)\s+all\s+propagated[.!](?:\s+enjoy\s+some\s+mad\s+codexing\s+tomorrow[.!])?(?:\s+fun\s+week\s+ahead\s+too[.!])?)$/i.test(value);
 }
 
 function verifiedReplyContext(context) {
-  return context?.verified === true && context.relation === 'reply' &&
+  return context?.verified === true && ['reply', 'quote'].includes(context.relation) &&
     Boolean(context.id && context.account && context.text && context.created_at);
 }
 
@@ -773,14 +913,16 @@ export async function waitForDetailProbe(readProbe, opts = {}) {
       if (!probe?.dom) continue;
 
       const contextExpected = needsReplyContext(probe.dom);
+      const exactNetworkContext = requiresExactNetworkContext(probe.dom);
       latest = {
         ...probe,
         needsReplyContext: contextExpected,
-        replyContextStatus: verifiedReplyContext(probe.inReplyTo)
-          ? 'verified'
-          : contextExpected ? 'missing' : 'not-required',
+        requiresExactNetworkContext: exactNetworkContext,
+        replyContextStatus: exactNetworkContext
+          ? 'missing'
+          : verifiedReplyContext(probe.inReplyTo) ? 'verified' : contextExpected ? 'missing' : 'not-required',
       };
-      if (!contextExpected || latest.replyContextStatus === 'verified') return latest;
+      if ((!contextExpected && !exactNetworkContext) || (!exactNetworkContext && latest.replyContextStatus === 'verified')) return latest;
 
       contextDeadline ??= Math.min(deadline, now() + contextWaitMs);
       if (now() >= contextDeadline) return latest;
@@ -789,6 +931,95 @@ export async function waitForDetailProbe(readProbe, opts = {}) {
     }
   }
   return latest;
+}
+
+/** 仅暂存焦点推文详情查询的响应体，不保留请求 URL 或协议元数据。 */
+function startTweetDetailNetworkCapture(cdp, sessionId, targetId) {
+  const requests = new Map();
+  const metadata = [];
+  const tasks = [];
+  let wakeMetadata = null;
+  let nextMetadata = new Promise((resolve) => { wakeMetadata = resolve; });
+  const previousHandler = cdp.onEvent;
+  const handler = (event) => {
+    if (event?.sessionId !== sessionId) return;
+    if (event.method === 'Network.responseReceived') {
+      const response = event.params?.response;
+      if (!response || response.status !== 200) return;
+      let operation = '';
+      try {
+        operation = new URL(response.url).pathname.match(/\/(TweetResultByRestId|TweetDetail)\/?$/)?.[1] ?? '';
+      } catch { return; }
+      if (operation) requests.set(event.params.requestId, operation);
+      return;
+    }
+    if (event.method === 'Network.loadingFailed') {
+      requests.delete(event.params?.requestId);
+      return;
+    }
+    if (event.method !== 'Network.loadingFinished') return;
+    const requestId = event.params?.requestId;
+    if (!requests.has(requestId)) return;
+    requests.delete(requestId);
+    const task = (async () => {
+      try {
+        const response = await cdp.send('Network.getResponseBody', { requestId }, 2_500);
+        const body = response.base64Encoded
+          ? Buffer.from(response.body ?? '', 'base64').toString('utf8')
+          : String(response.body ?? '');
+        const extracted = extractTweetDetailMetadata(body, targetId);
+        if (!extracted) return;
+        metadata.push(extracted);
+        const wake = wakeMetadata;
+        nextMetadata = new Promise((resolve) => { wakeMetadata = resolve; });
+        wake?.();
+      } catch {
+        // 单个详情 API 请求失败只丢弃该响应，DOM 结果仍可用。
+      }
+    })();
+    tasks.push(task);
+  };
+  cdp.onEvent = handler;
+  return {
+    async waitForVerified(opts = {}) {
+      const timeoutMs = Math.max(0, Number(opts.timeoutMs ?? 1_200));
+      const end = Date.now() + timeoutMs;
+      let checked = 0;
+      while (true) {
+        while (checked < metadata.length) {
+          const candidate = metadata[checked++];
+          const verified = verifyTweetDetailMetadata(candidate, {
+            targetId,
+            handle: opts.handle,
+            domProbe: opts.domProbe,
+            knownTweets: opts.knownTweets,
+          });
+          if (verified.verified) return { metadata: candidate, ...verified };
+        }
+        const remaining = end - Date.now();
+        if (remaining <= 0) break;
+        await Promise.race([nextMetadata, sleep(Math.min(remaining, 60))]);
+      }
+      while (checked < metadata.length) {
+        const candidate = metadata[checked++];
+        const verified = verifyTweetDetailMetadata(candidate, {
+          targetId,
+          handle: opts.handle,
+          domProbe: opts.domProbe,
+          knownTweets: opts.knownTweets,
+        });
+        if (verified.verified) return { metadata: candidate, ...verified };
+      }
+      return null;
+    },
+    async drain() {
+      await Promise.allSettled(tasks);
+    },
+    restore() {
+      if (cdp.onEvent === handler) cdp.onEvent = previousHandler;
+      requests.clear();
+    },
+  };
 }
 
 /**
@@ -811,22 +1042,79 @@ async function harvestFullTexts(cdp, ids, opts = {}) {
   for (const id of queue) {
     const rec = { id, length: 0, showMore: false };
     const prevSession = cdp.sessionId;
+    const prevHandler = cdp.onEvent;
     let targetId = null;
+    let networkCapture = null;
     try {
       ({ targetId } = await cdp.send('Target.createTarget', { url: 'about:blank' }));
       const attached = await cdp.send('Target.attachToTarget', { targetId, flatten: true });
       cdp.sessionId = attached.sessionId;
       await cdp.send('Page.enable');
       await cdp.send('Runtime.enable');
+      try {
+        await cdp.send('Network.enable');
+        networkCapture = startTweetDetailNetworkCapture(cdp, attached.sessionId, id);
+      } catch {
+        // 详情网络不可用时仍保留 DOM 正文与其可见上下文。
+      }
       await cdp.send('Page.navigate', { url: `https://x.com/${handle}/status/${id}` });
 
       // 正文与会话祖先不是同一时刻渲染；关键短回复要等到已核验上下文出现，
       // 或达到小的额外上限后显式报告缺失，不能把「正文已挂载」当成完整成功。
-      const probe = await waitForDetailProbe(
+      let probe = await waitForDetailProbe(
         () => cdp.evalJs(detailProbeExpression(id, handle)),
         { settleMs, maxWaitMs, contextWaitMs },
       );
       if (!probe) throw new Error('详情页未渲染出正文');
+
+      const exactNetworkContext = requiresExactNetworkContext(probe.dom);
+      const networkResult = networkCapture
+        ? await networkCapture.waitForVerified({
+            timeoutMs: opts.networkWaitMs ?? 1_200,
+            handle,
+            domProbe: probe,
+            knownTweets: opts.knownTweets,
+          })
+        : null;
+      if (exactNetworkContext) {
+        const parentRelationsAgree = Boolean(networkResult?.verified &&
+          (networkResult.inReplyTo || networkResult.quotedTweet) &&
+          (!probe.inReplyTo || (networkResult.inReplyTo && sameVerifiedContext(probe.inReplyTo, networkResult.inReplyTo))) &&
+          (!probe.quotedTweet || (networkResult.quotedTweet && sameVerifiedContext(probe.quotedTweet, networkResult.quotedTweet))));
+        // 这两类新锚句不能沿用 DOM 的相邻文章或引用卡关系；它们只认 API 父 ID。
+        // 若可见 DOM 关系与 API 核验出来的 ID/作者/原文/时刻不一致，也整条拒绝。
+        probe = {
+          ...probe,
+          inReplyTo: null,
+          quotedTweet: null,
+          replyContextStatus: 'missing',
+        };
+        if (parentRelationsAgree) {
+          probe = {
+            ...probe,
+            ...(networkResult.inReplyTo ? { inReplyTo: networkResult.inReplyTo } : {}),
+            ...(networkResult.quotedTweet ? { quotedTweet: networkResult.quotedTweet } : {}),
+            replyContextStatus: 'verified',
+          };
+        }
+        rec.networkMetadataStatus = parentRelationsAgree ? 'verified' : 'missing';
+      } else if (networkResult) {
+        rec.networkMetadataStatus = 'verified';
+        // 网络关系用真实父 ID 核验；DOM 已有的关系只有在身份字段一致时才接受补全。
+        probe = {
+          ...probe,
+          ...(networkResult.inReplyTo && sameVerifiedContext(probe.inReplyTo, networkResult.inReplyTo)
+            ? { inReplyTo: { ...probe.inReplyTo, ...networkResult.inReplyTo } } : {}),
+          ...(networkResult.quotedTweet && sameVerifiedContext(probe.quotedTweet, networkResult.quotedTweet)
+            ? { quotedTweet: { ...probe.quotedTweet, ...networkResult.quotedTweet } } : {}),
+        };
+        if (probe.needsReplyContext &&
+            (verifiedReplyContext(probe.inReplyTo) || verifiedReplyContext(probe.quotedTweet))) {
+          probe.replyContextStatus = 'verified';
+        }
+      } else {
+        rec.networkMetadataStatus = 'missing';
+      }
 
       const text = String(probe.dom ?? '')
         .replace(/\s+/g, ' ')
@@ -854,6 +1142,12 @@ async function harvestFullTexts(cdp, ids, opts = {}) {
     } catch (err) {
       rec.error = err.message;
     } finally {
+      if (networkCapture) {
+        await networkCapture.drain();
+        networkCapture.restore();
+      } else {
+        cdp.onEvent = prevHandler;
+      }
       if (targetId) await cdp.send('Target.closeTarget', { targetId }).catch(() => {});
       cdp.sessionId = prevSession;
     }
@@ -889,9 +1183,11 @@ export function contextParentId(ref, tweets = []) {
 }
 
 function isFullTextContextCandidate(text) {
+  const shortText = identityText(text);
   return /^(?:landing\s+within)\b/i.test(text) || isLinkedCompletionText(text) ||
     /\breset\s+day\b/i.test(text) ||
-    /\b(?:land|lands|landing)\b[\s\S]{0,100}\b(?:today|tomorrow|before|by)\b/i.test(text);
+    /\b(?:land|lands|landing)\b[\s\S]{0,100}\b(?:today|tomorrow|before|by)\b/i.test(text) ||
+    /^by\s+(?:midnight|noon|\d{1,2}(?::\d{2})?(?:\s*[ap]m)?)\s*(?:PST|PDT|PT|UTC(?:[+-]\d{1,2})?)?[.!]?$/i.test(shortText);
 }
 
 export function pickFullTextCandidates(streams, opts = {}) {

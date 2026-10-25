@@ -16,6 +16,7 @@
  *   node scripts/apply-translations.mjs                  # 应用 data/translations.json
  *   node scripts/apply-translations.mjs --dry-run        # 只校验，不写盘
  *   node scripts/apply-translations.mjs --file <路径>     # 指定译文文件
+ *   node scripts/apply-translations.mjs --data-dir <目录> # 指定 tweets.json 所在目录（隔离验证）
  */
 
 import { readFile, writeFile } from 'node:fs/promises';
@@ -38,7 +39,10 @@ export function validateEntry(tweet, entry) {
 
   const expected = sourceHash(tweet.text);
   if (!expected) return { ok: false, reason: '推文没有原文，无法绑定' };
-  if (entry.sourceHash && entry.sourceHash !== expected) {
+  if (typeof entry.sourceHash !== 'string' || !/^[0-9a-f]{64}$/.test(entry.sourceHash)) {
+    return { ok: false, reason: '缺少有效的原文 sha256（必须是 64 位小写十六进制）' };
+  }
+  if (entry.sourceHash !== expected) {
     return { ok: false, reason: 'sha256 与当前原文对不上（原文被编辑过，或译文张冠李戴）' };
   }
   return { ok: true };
@@ -48,8 +52,20 @@ async function main() {
   const argv = process.argv.slice(2);
   const dryRun = argv.includes('--dry-run');
   const fileArg = argv.indexOf('--file');
+  const dataDirArg = argv.indexOf('--data-dir');
+  if (fileArg >= 0 && !argv[fileArg + 1]) {
+    console.error('--file 后需要指定译文文件路径');
+    process.exitCode = 1;
+    return;
+  }
+  if (dataDirArg >= 0 && !argv[dataDirArg + 1]) {
+    console.error('--data-dir 后需要指定数据目录');
+    process.exitCode = 1;
+    return;
+  }
   const translationsPath = resolve(ROOT, fileArg >= 0 ? argv[fileArg + 1] : 'data/translations.json');
-  const tweetsPath = resolve(ROOT, 'data/tweets.json');
+  const dataDir = resolve(ROOT, dataDirArg >= 0 ? argv[dataDirArg + 1] : 'data');
+  const tweetsPath = resolve(dataDir, 'tweets.json');
 
   let entries;
   try {
@@ -81,7 +97,7 @@ async function main() {
     }
     const translation = {
       text: entry.text.trim(),
-      sourceHash: sourceHash(tweet.text),
+      sourceHash: entry.sourceHash,
       language: entry.language ?? 'zh-CN',
       provider: entry.provider ?? 'agent',
     };
@@ -109,12 +125,10 @@ async function main() {
     return;
   }
 
-  // ⚠ 落盘必须推进 updated_at —— 它的变化是**服务端信号缓存失效**的依据
-  // （server/index.mjs 的 getSignals 缓存 key 里含 file.updated_at）。
-  // 不推进的话，线上页面会一直显示旧的信号缓存 ⇒ 译文「推了但看不到」。
-  const next = { ...file, tweets: nextTweets, updated_at: new Date().toISOString() };
+  // 补译不代表采集成功。缓存失效由译文内容指纹处理，不能借此伪造成功采集时刻。
+  const next = { ...file, tweets: nextTweets };
   await writeFile(tweetsPath, `${JSON.stringify(next, null, 2)}\n`, 'utf8');
-  console.log(`已写盘 ${tweetsPath}（updated_at → ${next.updated_at}）`);
+  console.log(`已写盘 ${tweetsPath}（保留原成功采集时刻）`);
 
   // 自检：写完再读一遍，确认译文确实挂上且仍有效
   const reread = JSON.parse(await readFile(tweetsPath, 'utf8'));

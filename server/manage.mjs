@@ -434,7 +434,13 @@ export async function handleManage(req, res, { store, send, account = 'thsottiau
       const result = await manualStore.mutate({ revision: body.revision, action: 'save', entry, now: currentNow, account });
       let notification;
       if (result.entry.status === 'landed' && typeof onSaved === 'function') {
-        try { notification = await onSaved({ entry: result.entry, manualEntryId: result.entry.id }); }
+        // 编辑归属或备注仍可重试原待发队列，但不能把编辑时刻变成一次新的到账确认。
+        const confirmations = result.history.filter((item) => item.action === 'save' && item.entryId === result.entry.id &&
+          item.after?.status === 'landed' && item.before?.status !== 'landed').map((item) => Date.parse(item.at)).filter(Number.isFinite);
+        const confirmedAt = confirmations.length ? new Date(Math.min(...confirmations)).toISOString() : result.entry.createdAt;
+        const change = result.history.at(-1);
+        const newConfirmation = change?.entryId === result.entry.id && change.before?.status !== 'landed';
+        try { notification = await onSaved({ entry: result.entry, manualEntryId: result.entry.id, confirmedAt, newConfirmation }); }
         catch (error) { notification = { sent: 0, failed: 1, error: String(error?.message ?? 'notification failed') }; }
       }
       return reply(200, { revision: result.revision, entry: result.entry, entries: result.entries, history: result.history,

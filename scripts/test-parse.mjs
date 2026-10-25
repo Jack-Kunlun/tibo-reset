@@ -35,6 +35,8 @@ import {
   pairReplyContext,
   harvestExpression,
   pickFullTextCandidates,
+  extractTweetDetailMetadata,
+  verifyTweetDetailMetadata,
 } from '../src/lib/browser.mjs';
 import { runInNewContext } from 'node:vm';
 
@@ -654,6 +656,127 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
 
   check('空输入不抛错', pairReplyContext(undefined, H).length === 0);
   check('undefined 也不抛错', pairReplyContext([null, undefined], H).length === 2, '应原样透传');
+}
+
+/* ==================== 单帖网络关系必须按 ID 与可信记录核验 ==================== */
+
+section('详情网络元数据：精确目标、来源与父帖校验');
+
+{
+  const account = 'thsottiaux';
+  const root = {
+    id: '2114200152701575656', account, author_verified: true,
+    text: 'Day 20 / reset update', created_at: '2026-10-22T10:00:00.000Z',
+    url: 'https://x.com/thsottiaux/status/2114200152701575656',
+  };
+  const deadline = {
+    id: '2114200291319124163', account, author_verified: true,
+    text: 'By midnight PST', created_at: '2026-10-22T11:40:00.000Z',
+  };
+  const completion = {
+    id: '2114237083652882932', account, author_verified: true,
+    text: 'It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ',
+    created_at: '2026-10-22T14:06:00.000Z',
+  };
+  const apiTweet = ({ id, author = account, text, createdAt, inReplyToId = null, quotedId = null }) => ({
+    data: { tweetResult: { result: { __typename: 'TweetWithVisibilityResults', tweet: {
+      rest_id: id,
+      core: { user_results: { result: { core: { screen_name: author } } } },
+      legacy: {
+        id_str: id,
+        full_text: text,
+        created_at: createdAt,
+        in_reply_to_status_id_str: inReplyToId,
+        quoted_status_id_str: quotedId,
+      },
+    } } } },
+  });
+  const deadlinePayload = apiTweet({
+    id: deadline.id, text: deadline.text, createdAt: 'Thu Oct 22 11:40:00 +0000 2026',
+    inReplyToId: root.id,
+  });
+  const deadlineMeta = extractTweetDetailMetadata(deadlinePayload, deadline.id);
+  check('TweetResult/TweetDetail 包装内按目标 rest_id 抽字段',
+    deadlineMeta?.id === deadline.id && deadlineMeta.author === account &&
+      deadlineMeta.inReplyToId === root.id && deadlineMeta.fullText === deadline.text);
+  check('响应只包含错误目标 ID 时不冒认成焦点推文',
+    extractTweetDetailMetadata(apiTweet({ ...deadline, id: 'wrong-id', text: deadline.text,
+      createdAt: 'Thu Oct 22 11:40:00 +0000 2026' }), deadline.id) === null);
+
+  const known = [root, deadline, completion];
+  const deadlineVerification = verifyTweetDetailMetadata(deadlineMeta, {
+    targetId: deadline.id, handle: account, knownTweets: known,
+    domProbe: { id: deadline.id, author: account, time: deadline.created_at, dom: deadline.text },
+  });
+  check('真实父 ID 解析成 By midnight → Day 20 已核验回复',
+    deadlineVerification.verified && deadlineVerification.inReplyTo?.id === root.id &&
+      deadlineVerification.inReplyTo.relation === 'reply');
+  check('网络核验关系携带可供新句式消费的来源标记',
+    deadlineVerification.inReplyTo?.verificationSource === 'tweet-detail-api');
+
+  const completionMeta = extractTweetDetailMetadata(apiTweet({
+    id: completion.id, text: completion.text, createdAt: 'Thu Oct 22 14:06:00 +0000 2026',
+    quotedId: deadline.id,
+  }), completion.id);
+  const completionVerification = verifyTweetDetailMetadata(completionMeta, {
+    targetId: completion.id, handle: account, knownTweets: known,
+    domProbe: { id: completion.id, author: account, time: completion.created_at, dom: completion.text },
+  });
+  check('真实引用 ID 解析成完成公告 → By midnight 已核验引用',
+    completionVerification.verified && completionVerification.quotedTweet?.id === deadline.id &&
+      completionVerification.quotedTweet.relation === 'quote');
+  check('网络核验引用也携带同一来源标记',
+    completionVerification.quotedTweet?.verificationSource === 'tweet-detail-api');
+
+  check('错误作者的焦点响应被拒绝',
+    !verifyTweetDetailMetadata({ ...deadlineMeta, author: 'other' }, {
+      targetId: deadline.id, handle: account, knownTweets: known,
+      domProbe: { id: deadline.id, author: account, time: deadline.created_at, dom: deadline.text },
+    }).verified);
+  check('原文不匹配的焦点响应被拒绝',
+    !verifyTweetDetailMetadata({ ...deadlineMeta, fullText: 'A different post' }, {
+      targetId: deadline.id, handle: account, knownTweets: known,
+      domProbe: { id: deadline.id, author: account, time: deadline.created_at, dom: deadline.text },
+    }).verified);
+  check('时间不匹配的焦点响应被拒绝',
+    !verifyTweetDetailMetadata({ ...deadlineMeta, createdAt: 'Thu Oct 22 11:41:00 +0000 2026' }, {
+      targetId: deadline.id, handle: account, knownTweets: known,
+      domProbe: { id: deadline.id, author: account, time: deadline.created_at, dom: deadline.text },
+    }).verified);
+
+  const noParent = verifyTweetDetailMetadata({ ...deadlineMeta, inReplyToId: 'unknown-parent' }, {
+    targetId: deadline.id, handle: account, knownTweets: known,
+    domProbe: { id: deadline.id, author: account, time: deadline.created_at, dom: deadline.text },
+  });
+  check('未知父 ID 不合成关系', noParent.verified && noParent.inReplyTo === null);
+  const wrongAuthorParent = verifyTweetDetailMetadata(deadlineMeta, {
+    targetId: deadline.id, handle: account,
+    knownTweets: [deadline, { ...root, account: 'other' }],
+    domProbe: { id: deadline.id, author: account, time: deadline.created_at, dom: deadline.text },
+  });
+  check('不同作者的同 ID 父帖不形成关系', wrongAuthorParent.verified && wrongAuthorParent.inReplyTo === null);
+  const oldParent = { ...root, created_at: '2026-10-21T11:39:59.999Z' };
+  const staleParent = verifyTweetDetailMetadata(deadlineMeta, {
+    targetId: deadline.id, handle: account,
+    knownTweets: [deadline, { ...oldParent, author_verified: true }],
+    domProbe: { id: deadline.id, author: account, time: deadline.created_at, dom: deadline.text },
+  });
+  check('超过 24 小时的父帖不形成关系', staleParent.verified && staleParent.inReplyTo === null);
+
+  const before = sha256(browserSource);
+  const wrongIdMutant = browserSource.replace(
+    'if (legacy && candidateId === id) {',
+    'if (legacy) {'
+  );
+  assert.notEqual(wrongIdMutant, browserSource, '焦点 ID 核验变异点存在');
+  await rejectBrowserMutation(
+    '隔离变异：移除焦点 ID 匹配后错帖响应会被行为断言拦住',
+    wrongIdMutant,
+    (module) => module.extractTweetDetailMetadata(
+      apiTweet({ id: 'wrong-id', text: deadline.text, createdAt: 'Thu Oct 22 11:40:00 +0000 2026' }), deadline.id
+    ) === null
+  );
+  check('详情元数据源码变异只在内存中执行', sha256(await readFile(new URL('../src/lib/browser.mjs', import.meta.url), 'utf8')) === before);
 }
 
 /* ==================== 关键短句优先补全文 ==================== */

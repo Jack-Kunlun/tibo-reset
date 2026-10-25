@@ -142,6 +142,24 @@ async function replay(serverText, probeOnly = false) {
     assert.match(await page.text(), /观测数据管理/);
     const rawBytes = await readFile(resolve(folder, 'tweets.json'), 'utf8');
     await request('/api/state');
+    let priorTranslationRevision;
+    let delivery = 0;
+    for (const text of ['明天将重置使用额度。', '使用额度将在明天重置。']) {
+      const translated = { ...tweet, translation: { text, language: 'zh-CN', sourceHash: hash(tweet.text), provider: 'agent' } };
+      const accepted = await request('/api/ingest', { generatedAt: iso(-0.75 + delivery++ * 0.01), resets: { records },
+        tweets: { ...raw, tweets: [translated] }, stats: { errors: [] } },
+      { headers: { authorization: 'Bearer isolated-test-token' } });
+      assert.equal(accepted.status, 200);
+      assert.equal(accepted.data.status, 'accepted');
+      const translatedState = (await request('/api/state')).data;
+      assert.equal(translatedState.dataUpdatedAt, raw.updated_at, '补译不能推进成功采集时刻');
+      assert.ok(translatedState.signals.forecasts.flatMap(item => item.evidence ?? [])
+        .some(item => item.translation?.text === text), '同条数改译必须立即刷新 API 缓存');
+      assert.match(translatedState.signals.translationRevision, /^[a-f0-9]{64}$/);
+      if (priorTranslationRevision) assert.notEqual(translatedState.signals.translationRevision, priorTranslationRevision);
+      priorTranslationRevision = translatedState.signals.translationRevision;
+    }
+    await writeFile(resolve(folder, 'tweets.json'), rawBytes);
     const save = await request('/api/manage', { revision: 0, action: 'save', entry: {
       tweetId: tweet.id, status: 'landed', title: '额度重置已到账', occurredAt: iso(-0.5), eventType: 'reset' } });
     assert.equal(save.status, 200, JSON.stringify(save));
@@ -199,13 +217,16 @@ await replay(source);
 const brokenRoute = source.replace("url.pathname === '/api/manage'", "url.pathname === '/api/manage-disabled'");
 assert.notEqual(brokenRoute, source);
 assert.equal((await replay(brokenRoute, true)).status, 404, '隔离路由反例可发现管理入口未接入');
-const notificationDisconnected = source.replace(/onSaved: async \(\{ entry, manualEntryId \}\) => \{[\s\S]*?\n      \},\n    \}\);/,
+const notificationDisconnected = source.replace(/onSaved: async \(\{ entry, manualEntryId, confirmedAt, newConfirmation \}\) => \{[\s\S]*?\n      \},\n    \}\);/,
   "onSaved: async () => ({ sent: 0, failed: 0, skipped: 'no-template-id' }),\n    });");
 assert.notEqual(notificationDisconnected, source);
 await assert.rejects(replay(notificationDisconnected), /已保存到账通过管理回调进入通知链路/);
 const brokenOg = source.replace('if ((await store.getData()).resets.records.some((record) => record.manual)) return null;', 'if ((await store.getManualState()).entries.length) return null;');
 assert.notEqual(brokenOg, source);
 await assert.rejects(replay(brokenOg), /也不能输出旧分享图/);
+const staleTranslationCache = source.replace('const translationKey = translationFingerprint(tweets);', 'const translationKey = tweets.filter(item => item.translation?.text).length;');
+assert.notEqual(staleTranslationCache, source, '同条数译文缓存的隔离变异锚点存在');
+await assert.rejects(replay(staleTranslationCache), /同条数改译必须立即刷新 API 缓存/);
 assert.equal(hash(await readFile(file)), before, '反例不改变实际源文件');
 const subscribeUrl = new URL('../server/subscribe.mjs', import.meta.url);
 const subscribeSource = await readFile(subscribeUrl, 'utf8');
