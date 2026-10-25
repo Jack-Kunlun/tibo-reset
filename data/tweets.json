@@ -1,6 +1,25 @@
 {
   "tweets": [
     {
+      "id": "2114365873049993364",
+      "text": "Love to see it!!",
+      "created_at": "2026-10-25T14:38:01.000Z",
+      "url": "https://x.com/thsottiaux/status/2114365873049993364",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "I made t3 code faster again btw",
+        "created_at": "2026-10-25T13:48:20.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-25T16:01:28.353Z"
+    },
+    {
       "id": "2114237441250828563",
       "text": ".com",
       "created_at": "2026-10-25T06:07:41.000Z",
@@ -8313,7 +8332,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-25T08:01:34.283Z",
+  "updated_at": "2026-10-25T16:01:28.355Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }

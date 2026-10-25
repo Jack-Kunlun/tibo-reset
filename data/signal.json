@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-25T08:01:34.296Z",
-  "checkedTweets": 461,
+  "generatedAt": "2026-10-25T16:01:28.377Z",
+  "checkedTweets": 462,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-26T08:01:34.296Z",
-  "windowTo": "2026-10-25T08:01:34.296Z",
+  "windowFrom": "2026-08-26T16:01:28.377Z",
+  "windowTo": "2026-10-25T16:01:28.377Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -87,10 +87,10 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.10.25",
-      "weekday": "周日",
-      "time": "16:01",
-      "text": "2026.10.25（周日）16:01",
+      "date": "2026.10.26",
+      "weekday": "周一",
+      "time": "00:01",
+      "text": "2026.10.26（周一）00:01",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,27 +98,27 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.25",
       "weekday": "周日",
-      "time": "01:01",
-      "text": "2026.10.25（周日）01:01",
+      "time": "09:01",
+      "text": "2026.10.25（周日）09:01",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2114237441250828563",
+    "id": "2114365873049993364",
     "account": "thsottiaux",
-    "text": ".com",
-    "createdAt": "2026-10-25T06:07:41.000Z",
-    "url": "https://x.com/thsottiaux/status/2114237441250828563",
+    "text": "Love to see it!!",
+    "createdAt": "2026-10-25T14:38:01.000Z",
+    "url": "https://x.com/thsottiaux/status/2114365873049993364",
     "reasons": [
-      "上下文：回复 @ScriptedAlchemy「poteto…」"
+      "上下文：回复 @theo「I made t3 code faster again btw…」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "ScriptedAlchemy",
+      "account": "theo",
       "id": "",
-      "text": "poteto"
+      "text": "I made t3 code faster again btw"
     },
     "createdZones": {
       "a": {
@@ -126,17 +126,17 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.25",
         "weekday": "周日",
-        "time": "14:07",
-        "text": "2026.10.25（周日）14:07",
+        "time": "22:38",
+        "text": "2026.10.25（周日）22:38",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.10.24",
-        "weekday": "周六",
-        "time": "23:07",
-        "text": "2026.10.24（周六）23:07",
+        "date": "2026.10.25",
+        "weekday": "周日",
+        "time": "07:38",
+        "text": "2026.10.25（周日）07:38",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -3004,7 +3004,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-10-25T08:01:34.296Z"
+        "checkedAt": "2026-10-25T16:01:28.377Z"
       }
     },
     {
@@ -3779,6 +3779,48 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2114365873049993364",
+      "account": "thsottiaux",
+      "text": "Love to see it!!",
+      "createdAt": "2026-10-25T14:38:01.000Z",
+      "url": "https://x.com/thsottiaux/status/2114365873049993364",
+      "reasons": [
+        "上下文：回复 @theo「I made t3 code faster again btw…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "I made t3 code faster again btw"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.25",
+          "weekday": "周日",
+          "time": "22:38",
+          "text": "2026.10.25（周日）22:38",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.25",
+          "weekday": "周日",
+          "time": "07:38",
+          "text": "2026.10.25（周日）07:38",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2114237441250828563",
       "account": "thsottiaux",
@@ -11965,50 +12007,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2106227571088392653",
-      "account": "thsottiaux",
-      "text": "Pretty bad for the GPUs. We’re going to need more compute",
-      "createdAt": "2026-10-03T03:39:19.000Z",
-      "url": "https://x.com/thsottiaux/status/2106227571088392653",
-      "reasons": [
-        "命中「新额度」类词 fresh/new/top up",
-        "含未来语气",
-        "上下文：回复 @atelicinvest「Man how bad is the adoption…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "atelicinvest",
-        "id": "",
-        "text": "Man how bad is the adoption"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.03",
-          "weekday": "周六",
-          "time": "11:39",
-          "text": "2026.10.03（周六）11:39",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.02",
-          "weekday": "周五",
-          "time": "20:39",
-          "text": "2026.10.02（周五）20:39",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 1,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12085,12 +12083,12 @@
   },
   "forecasts": [],
   "counts": {
-    "scanned": 461,
+    "scanned": 462,
     "explicit": 2,
     "occurred": 12,
     "hint": 64,
-    "none": 365,
-    "rejected": 365
+    "none": 366,
+    "rejected": 366
   },
   "truncated": true
 }
