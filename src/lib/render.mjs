@@ -753,6 +753,14 @@ export function renderOutlook(o, m, prediction, signals, collect) {
   const announcement = o.announcement;
   const pending = announcement?.pending;
   const hasEstimate = Number.isFinite(o.etaAt);
+  // 「公告原文」块要显示译文 —— 它是主卡上**第一眼**看到的原文，
+  // 而依据区（第二层，要展开）里那条同源推文才带译文。
+  // ⇒ 这里补上，否则主卡只剩一段没译文的英文。
+  //
+  // ⚠ 译文块放在 `<a>` **之后**、作为同级元素（不能塞进 `<a>` 里）：
+  // `<details>` 是 flow content，`<a>` 只能含 phrasing content；且浏览器**不会**
+  // 纠正这个违规（Chrome 155 实测 `details_parentTag = "A"`）⇒ 点「中文翻译」
+  // 展开译文会**连带触发外层链接跳转**。详见 D-083。
   const eta = hasEstimate ? etaStamp(o.etaDate) : { wd: '', md: '', hm: '' };
   const over = o.etaAt - o.now <= 0;
 
@@ -792,7 +800,11 @@ export function renderOutlook(o, m, prediction, signals, collect) {
       </div>
 
       ${band}
-      ${announcement?.text ? `<a class="pc-announcement" href="${attr(announcement.url)}" target="_blank" rel="noopener noreferrer"><span>公告原文${announcement.createdAt ? ` · ${esc(fmtMDHM(Date.parse(announcement.createdAt)))} 北京` : ''}<i aria-hidden="true">↗</i></span><p>${esc(announcement.text)}</p></a>` : ''}
+      ${
+        announcement?.text
+          ? `<a class="pc-announcement" href="${attr(announcement.url)}" target="_blank" rel="noopener noreferrer"><span>公告原文${announcement.createdAt ? ` · ${esc(fmtMDHM(Date.parse(announcement.createdAt)))} 北京` : ''}<i aria-hidden="true">↗</i></span><p>${esc(announcement.text)}</p></a>${translationDetails(announcement)}`
+          : ''
+      }
 
       <p class="pc-brief am-sr-only">${esc(briefLine(o))}</p>
       <div class="am-ripple-field" aria-hidden="true"></div>

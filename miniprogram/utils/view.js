@@ -250,6 +250,15 @@ function observedForecastView(f) {
     evMix: '',
     evNote: '',
     text: f.text || '',
+    // 译文由数据层挂在推文对象上（sha256 绑原文，原文一改就自动失效）。
+    // 这里只做「有就显示」，不判断「凭什么有」。
+    //
+    // ⚠ 这一行不能少（2026-10-25 实测修正）：账号实测档走的是**无证据**分支
+    // （evCount 恒为 0），于是页面按 `!signal.evCount && signal.translation`
+    // 决定要不要渲染译文块 —— 少这一行，这一档就会只显示一段**没有译文的
+    // 英文原文**（实测 signal.text="Day 20/ Rest and reset"、
+    // signal.translation=null），是全站唯一一处「有原文却看不到译文」的位置。
+    translation: f.translation?.language === 'zh-CN' ? f.translation.text : '',
     observationText: `${when} · ${sourceLabel}`,
     scopeNote: '仅代表单个账号；公开完成状态与其他账号到账情况仍待更新。',
     timeNote: `${sourceLabel} · 仅代表单个账号`,

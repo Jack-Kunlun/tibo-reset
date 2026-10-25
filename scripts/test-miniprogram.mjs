@@ -1294,6 +1294,114 @@ const staleProg = detectSignals(
 check('窗口走完后不再出现', staleProg.program === null, JSON.stringify(staleProg.program));
 check('它确实被判过（不是被扫描窗挡掉）', staleProg.checkedTweets === 1, `checked=${staleProg.checkedTweets}`);
 
+/* ----------------- 8d. 译文：六个提取点都得真拿到译文 ----------------- */
+
+console.log('\n【8d】译文提取（数据层挂了译文，端上必须拿得到、渲染得出）');
+
+// 译文由数据层挂在推文对象上（sha256 绑原文）。这里直接构造带译文的对象，
+// 验证**端上的六个提取点**都能把它取出来 —— 少一处就是一处「有原文、
+// 看不到译文」的静默缺口（2026-10-25 实测：账号实测档就漏了一处）。
+const zh = (text) => ({ text, sourceHash: 'sha256:' + text.length, language: 'zh-CN' });
+
+// ① 预告档（forecastView）
+const fcVm = buildSignal({
+  forecasts: [{
+    text: 'Day 20/ Rest and reset',
+    url: 'https://x.com/a/1',
+    createdAt: '2026-10-20T00:00:00.000Z',
+    timing: 'pending',
+    window: { fromTs: now + 86400_000, toTs: now + 2 * 86400_000 },
+    evidence: [{
+      id: 'e1',
+      text: 'Day 20/ Rest and reset',
+      url: 'https://x.com/a/1',
+      weight: 'hard',
+      createdAt: '2026-10-20T00:00:00.000Z',
+      translation: zh('Day 20/ Rest and reset'),
+    }],
+    translation: zh('Day 20/ Rest and reset'),
+  }],
+  observedForecasts: [],
+  activeHints: [],
+  overdueForecasts: [],
+});
+check('预告档：证据条目拿到译文', fcVm.ev[0]?.translation === 'Day 20/ Rest and reset', JSON.stringify(fcVm.ev[0] || {}));
+check('预告档：预告自身拿到译文', fcVm.translation === 'Day 20/ Rest and reset', String(fcVm.translation));
+
+// ② 账号实测档（observedForecastView）—— ⚠ 这一处曾经漏掉。
+// 账号实测走**无证据**分支（evCount 恒为 0），页面按
+// `!signal.evCount && signal.translation` 决定要不要渲染译文块，
+// 所以少了提取这一行 ⇒ 整档只剩一段没有译文的英文原文。
+const obVm = buildSignal({
+  forecasts: [],
+  observedForecasts: [{
+    text: 'Day 20/ Rest and reset',
+    url: 'https://x.com/a/1',
+    createdAt: '2026-10-20T00:00:00.000Z',
+    accountObservation: { observedAt: '2026-10-23T17:45:00.000Z', precision: 'approximate-minute', sourceLabel: '账号实测' },
+    translation: zh('Day 20/ Rest and reset'),
+  }],
+  activeHints: [],
+  overdueForecasts: [],
+});
+check('账号实测档：拿到译文（曾经漏了 ⇒ 只剩无译文的英文原文）',
+  obVm.translation === 'Day 20/ Rest and reset', String(obVm.translation));
+check('账号实测档：仍然不渲染证据（evCount 恒为 0）', obVm.evCount === 0, String(obVm.evCount));
+
+// ③ 线索档（signalView）
+const hintVm = buildSignal({
+  forecasts: [],
+  observedForecasts: [],
+  overdueForecasts: [],
+  activeHints: [{
+    text: 'Reset sometime around 11pm on a Tuesday',
+    url: 'https://x.com/a/2',
+    createdAt: '2026-10-21T00:00:00.000Z',
+    precision: 'instant',
+    intent: 3,
+    window: { fromTs: now, toTs: now + 3600_000 },
+    translation: zh('Reset sometime around 11pm on a Tuesday'),
+  }],
+});
+check('线索档：拿到译文', hintVm.translation === 'Reset sometime around 11pm on a Tuesday', String(hintVm.translation));
+
+// ④ 28 天计划条目（planEntryView）
+const { buildProgramPlanView, buildCalendarView } = await import(resolve(ROOT, 'miniprogram/utils/view.js'));
+const planVm = buildProgramPlanView({
+  title: 'Tibo 28 天计划',
+  days: 28,
+  latestDay: 1,
+  rows: [{
+    day: 1,
+    status: 'updated',
+    statusLabel: '功能更新',
+    entries: [{
+      id: 'p1',
+      kind: 'update',
+      text: 'Day 1/ Better filters',
+      url: 'https://x.com/a/3',
+      createdAt: '2026-10-01T00:00:00.000Z',
+      translation: zh('Day 1/ Better filters'),
+    }],
+  }],
+});
+check('28 天计划条目：拿到译文',
+  planVm.days[0]?.entries[0]?.translation === 'Day 1/ Better filters',
+  JSON.stringify(planVm.days[0]?.entries[0] || {}));
+
+// ⑤⑥ 记录与日历明细在 dashboard.js 里（recordRows / calendarSelection 是模块内函数，
+// 不导出）⇒ 这里用它们的**渲染产物**反查：小程序端 history 页的译文由
+// `chart.records[].translation` 与 `calendar.cells[].details[].translation` 供给。
+const detailHasZh = buildCalendarView({
+  cells: [{
+    date: '2026-10-20',
+    status: 'confirmed',
+    statusLabel: '重置已确认',
+    details: [{ id: 'd1', text: 'Day 20/ Rest and reset', roles: ['confirmed'], translation: zh('Day 20/ Rest and reset') }],
+  }],
+}).cells[0].details[0].translation?.language === 'zh-CN';
+check('日历明细：原文与译文同在（history 页靠它渲染）', detailHasZh);
+
 /* --------------------- 9. F9 一次性订阅提醒 --------------------- */
 
 console.log('\n【9】F9 一次性订阅提醒');

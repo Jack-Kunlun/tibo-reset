@@ -454,6 +454,10 @@
   #observatory .pc-announcement>span{display:flex;justify-content:space-between;gap:8px;color:#929bb8;font-size:10px}
   #observatory .pc-announcement i{font-style:normal;color:#a6edce}
   #observatory .pc-announcement p{margin:7px 0 0;font-size:12px;line-height:1.65;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+  /* 公告原文的译文块在 <a> **之后**、作为同级元素（<details> 不能放进 <a>：
+     点展开会连带触发外层链接跳转，见 D-083）。原文块的下边距原本是给
+     「公告原文」这一段留的呼吸位，紧跟着译文块时收紧一点。 */
+  #observatory .pc-announcement+.tweet-translation{margin-top:-6px;padding-bottom:15px}
   #observatory .am-orbit-field{inset:-16px -25px 0;mask-image:linear-gradient(transparent,#000 25%,#000 75%,transparent)}
   #observatory .am-orbit-plane{width:470px;opacity:.5;top:49%}
   #observatory .am-orbit-plane.am-inner{width:315px;opacity:.65}

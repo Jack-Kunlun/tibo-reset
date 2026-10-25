@@ -567,15 +567,58 @@ section('9. 网页端渲染：两处展示位与 <details> 结构');
   //
   // 判据用「`<a ...>` 到 `</a>` 的区间里有没有 `<details`」——
   // 不依赖 DOM 解析器（HTML 解析器**不会**纠正这个违规），纯文本即可判。
-  const anchorsWithDetails = (html.match(/<a\b[^>]*>(?:(?!<\/a>)[\s\S])*?<details\b/gi) ?? []).length;
+  //
+  // ⚠ **必须先剥掉 <style> 区块**（2026-10-25 实测踩到）：
+  // CSS 注释里会出现 `<a>` 与 `<details>` 这两个词（本项目那条注释就写了
+  // 「<details> 不能放进 <a>」）⇒ 不剥样式就会**假阳性**。
+  // 这是判据本身的缺陷，不是页面有违规 —— 别把真违规当假警报放过。
+  const bodyOnly = html.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '');
+  const anchorsWithDetails = (bodyOnly.match(/<a\b[^>]*>(?:(?!<\/a>)[\s\S])*?<details\b/gi) ?? []).length;
   check('页面里没有把 <details> 放进 <a>（点展开不会连带跳转）', anchorsWithDetails === 0,
     `违规处数=${anchorsWithDetails}`);
 
   // 「最近记录」的卡片里，链接与译文块必须是**同级**（译文在 <a> 之外）。
-  const recordBlock = html.match(/<div class="am-record">[\s\S]*?<\/div><\/div>/)?.[0] ?? '';
+  const recordBlock = bodyOnly.match(/<div class="am-record">[\s\S]*?<\/div><\/div>/)?.[0] ?? '';
   check('「最近记录」卡片：链接与译文块同级（译文不在 <a> 内）',
     /<a\b[^>]*>[\s\S]*?<\/a><details\b/.test(recordBlock) && !/<a\b[^>]*>(?:(?!<\/a>)[\s\S])*?<details\b/.test(recordBlock),
     recordBlock.slice(0, 160));
+
+  // ---- ④ 第四个展示位：「公告原文」块（主卡上第一眼看到的原文）----
+  //
+  // 这一处曾经漏掉，根因在**数据层**：`outlook.announcement` 是
+  // `buildOutlook` 在渲染期派生的新对象（`announcement = f ?? pending`），
+  // 那个字面量只抄了 4 个字段（pending/text/url/createdAt），**把译文漏掉了**
+  // ⇒ 主卡上只剩一段没有译文的英文原文，
+  // 而同一条推文在依据区（第二层，要展开）里是有译文的。
+  //
+  // 两段判据：
+  //   ① 数据层：outlook.announcement 必须带上译文（不许丢）；
+  //   ② 展示层：主卡「公告原文」块后面必须跟着译文块。
+  const { buildOutlook } = await import('../src/lib/outlook.mjs');
+  const outlook = buildOutlook({
+    chart: model.chart,
+    prediction: model.prediction,
+    signals: model.signals,
+    now: Date.now(),
+  });
+  const ann = outlook?.announcement;
+  check('数据层：outlook.announcement 带上了译文字段（没被抄字段时丢掉）',
+    Boolean(ann) && 'translation' in ann,
+    ann ? `keys=${Object.keys(ann).join(',')}` : 'announcement=null');
+  check('数据层：outlook.announcement 的译文与信号里的原文对得上',
+    Boolean(ann?.translation) === Boolean(model.signals?.forecasts?.[0]?.translation)
+      && (!ann?.translation || ann.translation.language === 'zh-CN'),
+    `ann=${ann?.translation?.language ?? 'null'} fc=${model.signals?.forecasts?.[0]?.translation?.language ?? 'null'}`);
+
+  const annZone = (() => {
+    const i = bodyOnly.indexOf('class="pc-announcement"');
+    return i < 0 ? '' : bodyOnly.slice(i, i + 1200);
+  })();
+  check('展示层：「公告原文」块后面跟着译文块', annZone.includes('<details class="tweet-translation">'),
+    annZone.slice(0, 160));
+  check('展示层：公告原文块与译文块同级（译文不在 <a> 内）',
+    /<\/a><details\b/.test(annZone) && !/<a\b[^>]*>(?:(?!<\/a>)[\s\S])*?<details\b/.test(annZone),
+    annZone.slice(0, 200));
 }
 
 console.log(`\n${passed} 项通过；9 个隔离变异全部被对应断言拦住，源码哈希未变`);

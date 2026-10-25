@@ -220,11 +220,22 @@ export function buildOutlook({ chart, prediction, signals, now }) {
     bandLabel: bandKind === 'official-window' ? '公告窗口' : bandKind === 'sample-range' ? '历史到账范围' : '80% 预测区间',
     arrival,
     // 预告必须成为主卡状态，不能只在下面的原文详情中才看得见。
+    //
+    // ⚠ `translation` 必须一起带出来（2026-10-25 实测修正）：
+    // 这里的 `announcement` 是 `f ?? pending` —— **直接引用**信号里的预告对象，
+    // 译文就挂在它上面（`withSignalTranslations` 挂的），但这个字面量只抄了
+    // 4 个字段，把译文漏掉了 ⇒ 网页端主卡「公告原文」块只剩一段没有译文的
+    // 英文原文（实测 announcement.text="Day 20/ Rest and reset"、
+    // announcement.translation=null，而同一条推文在依据区是有译文的）。
+    //
+    // 这里**只带出、不判断** —— 译文合不合法由数据层（sha256 绑原文）负责，
+    // 展示层只负责「有就显示」。
     announcement: announcement ? {
       pending: pendingAnnouncement,
       text: announcement.text ?? '',
       url: announcement.url ?? '',
       createdAt: announcement.createdAt ?? null,
+      translation: announcement.translation ?? null,
     } : null,
 
     status,
