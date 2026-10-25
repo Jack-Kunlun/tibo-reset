@@ -1,6 +1,25 @@
 {
   "tweets": [
     {
+      "id": "2114228044072403055",
+      "text": "Not a real improvement, put the reset in the bag",
+      "created_at": "2026-10-25T05:30:20.000Z",
+      "url": "https://x.com/thsottiaux/status/2114228044072403055",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "Just realized we've pretty much maintained pace with the \"28 days of improvements to Codex\". We've had at least one solid improvement every day of the month. Let's make it official. Gonna ship one meaningful improvement to T3 Code every day for however long I'm capable :)",
+        "created_at": "2026-10-25T04:54:47.000Z",
+        "url": ""
+      },
+      "kind": "reset",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-25T06:01:51.836Z"
+    },
+    {
       "id": "2114200291319124163",
       "text": "By midnight PST",
       "created_at": "2026-10-25T03:40:04.000Z",
@@ -8234,7 +8253,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-25T05:00:48.888Z",
+  "updated_at": "2026-10-25T06:01:51.840Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }

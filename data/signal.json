@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-25T05:00:48.907Z",
-  "checkedTweets": 458,
+  "generatedAt": "2026-10-25T06:01:51.890Z",
+  "checkedTweets": 459,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-26T05:00:48.907Z",
-  "windowTo": "2026-10-25T05:00:48.907Z",
+  "windowFrom": "2026-08-26T06:01:51.890Z",
+  "windowTo": "2026-10-25T06:01:51.890Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.25",
       "weekday": "周日",
-      "time": "13:00",
-      "text": "2026.10.25（周日）13:00",
+      "time": "14:01",
+      "text": "2026.10.25（周日）14:01",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,30 +98,38 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.24",
       "weekday": "周六",
-      "time": "22:00",
-      "text": "2026.10.24（周六）22:00",
+      "time": "23:01",
+      "text": "2026.10.24（周六）23:01",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2114200291319124163",
+    "id": "2114228044072403055",
     "account": "thsottiaux",
-    "text": "By midnight PST",
-    "createdAt": "2026-10-25T03:40:04.000Z",
-    "url": "https://x.com/thsottiaux/status/2114200291319124163",
-    "reasons": [],
+    "text": "Not a real improvement, put the reset in the bag",
+    "createdAt": "2026-10-25T05:30:20.000Z",
+    "url": "https://x.com/thsottiaux/status/2114228044072403055",
+    "reasons": [
+      "命中重置词 reset",
+      "命中「A/the reset」名词化陈述",
+      "上下文：回复 @theo「Just realized we've pretty much main…」"
+    ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "theo",
+      "id": "",
+      "text": "Just realized we've pretty much maintained pace with the \"28 days of improvements to Codex\". We've had at least one solid improvement every day of the month. Let's make it official. Gonna ship one meaningful improvement to T3 Code every day for however long I'm capable :)"
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.10.25",
         "weekday": "周日",
-        "time": "11:40",
-        "text": "2026.10.25（周日）11:40",
+        "time": "13:30",
+        "text": "2026.10.25（周日）13:30",
         "offset": "UTC+8"
       },
       "b": {
@@ -129,25 +137,18 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.24",
         "weekday": "周六",
-        "time": "20:40",
-        "text": "2026.10.24（周六）20:40",
+        "time": "22:30",
+        "text": "2026.10.24（周六）22:30",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "hint",
-    "rejected": "含时间表达「midnight」但没有额度相关词，不作为重置信号",
-    "intent": 0,
+    "level": "occurred",
+    "rejected": null,
+    "intent": 3,
+    "occurredAt": "2026-10-25T05:30:20.000Z",
     "window": null,
-    "candidateWindow": {
-      "word": "midnight",
-      "precision": "instant",
-      "from": "2026-10-25T07:00:00.000Z",
-      "to": "2026-10-25T07:59:00.000Z",
-      "dayNum": 20751,
-      "spec": 96,
-      "note": null
-    }
+    "confidence": 0.6799999999999999
   },
   "signals": [
     {
@@ -317,6 +318,51 @@
     }
   ],
   "occurred": [
+    {
+      "id": "2114228044072403055",
+      "account": "thsottiaux",
+      "text": "Not a real improvement, put the reset in the bag",
+      "createdAt": "2026-10-25T05:30:20.000Z",
+      "url": "https://x.com/thsottiaux/status/2114228044072403055",
+      "reasons": [
+        "命中重置词 reset",
+        "命中「A/the reset」名词化陈述",
+        "上下文：回复 @theo「Just realized we've pretty much main…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "Just realized we've pretty much maintained pace with the \"28 days of improvements to Codex\". We've had at least one solid improvement every day of the month. Let's make it official. Gonna ship one meaningful improvement to T3 Code every day for however long I'm capable :)"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.25",
+          "weekday": "周日",
+          "time": "13:30",
+          "text": "2026.10.25（周日）13:30",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.24",
+          "weekday": "周六",
+          "time": "22:30",
+          "text": "2026.10.24（周六）22:30",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "occurred",
+      "rejected": null,
+      "intent": 3,
+      "occurredAt": "2026-10-25T05:30:20.000Z",
+      "window": null,
+      "confidence": 0.6799999999999999
+    },
     {
       "id": "2112432076767289678",
       "account": "thsottiaux",
@@ -2984,7 +3030,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-10-25T05:00:48.907Z"
+        "checkedAt": "2026-10-25T06:01:51.890Z"
       }
     },
     {
@@ -12391,9 +12437,9 @@
     }
   ],
   "counts": {
-    "scanned": 458,
+    "scanned": 459,
     "explicit": 3,
-    "occurred": 10,
+    "occurred": 11,
     "hint": 65,
     "none": 364,
     "rejected": 364
