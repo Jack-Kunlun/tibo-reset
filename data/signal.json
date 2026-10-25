@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-25T16:01:28.377Z",
-  "checkedTweets": 462,
+  "generatedAt": "2026-10-25T20:01:30.955Z",
+  "checkedTweets": 464,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-26T16:01:28.377Z",
-  "windowTo": "2026-10-25T16:01:28.377Z",
+  "windowFrom": "2026-08-26T20:01:30.955Z",
+  "windowTo": "2026-10-25T20:01:30.955Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.26",
       "weekday": "周一",
-      "time": "00:01",
-      "text": "2026.10.26（周一）00:01",
+      "time": "04:01",
+      "text": "2026.10.26（周一）04:01",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,36 +98,36 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.25",
       "weekday": "周日",
-      "time": "09:01",
-      "text": "2026.10.25（周日）09:01",
+      "time": "13:01",
+      "text": "2026.10.25（周日）13:01",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2114365873049993364",
+    "id": "2114435873857028129",
     "account": "thsottiaux",
-    "text": "Love to see it!!",
-    "createdAt": "2026-10-25T14:38:01.000Z",
-    "url": "https://x.com/thsottiaux/status/2114365873049993364",
+    "text": "Did you?",
+    "createdAt": "2026-10-25T19:16:11.000Z",
+    "url": "https://x.com/thsottiaux/status/2114435873857028129",
     "reasons": [
-      "上下文：回复 @theo「I made t3 code faster again btw…」"
+      "上下文：回复 @himanshutwtxs「did you buy https:// poteto.com?…」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "theo",
+      "account": "himanshutwtxs",
       "id": "",
-      "text": "I made t3 code faster again btw"
+      "text": "did you buy https:// poteto.com?"
     },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.10.25",
-        "weekday": "周日",
-        "time": "22:38",
-        "text": "2026.10.25（周日）22:38",
+        "date": "2026.10.26",
+        "weekday": "周一",
+        "time": "03:16",
+        "text": "2026.10.26（周一）03:16",
         "offset": "UTC+8"
       },
       "b": {
@@ -135,8 +135,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.25",
         "weekday": "周日",
-        "time": "07:38",
-        "text": "2026.10.25（周日）07:38",
+        "time": "12:16",
+        "text": "2026.10.25（周日）12:16",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -3004,7 +3004,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-10-25T16:01:28.377Z"
+        "checkedAt": "2026-10-25T20:01:30.955Z"
       }
     },
     {
@@ -3779,6 +3779,90 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2114435873857028129",
+      "account": "thsottiaux",
+      "text": "Did you?",
+      "createdAt": "2026-10-25T19:16:11.000Z",
+      "url": "https://x.com/thsottiaux/status/2114435873857028129",
+      "reasons": [
+        "上下文：回复 @himanshutwtxs「did you buy https:// poteto.com?…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "himanshutwtxs",
+        "id": "",
+        "text": "did you buy https:// poteto.com?"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.26",
+          "weekday": "周一",
+          "time": "03:16",
+          "text": "2026.10.26（周一）03:16",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.25",
+          "weekday": "周日",
+          "time": "12:16",
+          "text": "2026.10.25（周日）12:16",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2114435715605885396",
+      "account": "thsottiaux",
+      "text": "Reality",
+      "createdAt": "2026-10-25T19:15:33.000Z",
+      "url": "https://x.com/thsottiaux/status/2114435715605885396",
+      "reasons": [
+        "上下文：回复 @kirtandopamine「holy shit, i'm failing to understand…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "kirtandopamine",
+        "id": "",
+        "text": "holy shit, i'm failing to understand if he is actually serious"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.26",
+          "weekday": "周一",
+          "time": "03:15",
+          "text": "2026.10.26（周一）03:15",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.25",
+          "weekday": "周日",
+          "time": "12:15",
+          "text": "2026.10.25（周日）12:15",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2114365873049993364",
       "account": "thsottiaux",
@@ -11931,82 +12015,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2106239435461579088",
-      "account": "thsottiaux",
-      "text": "All fixed. Surprising number of Pro 500 users on here.",
-      "createdAt": "2026-10-03T04:26:28.000Z",
-      "url": "https://x.com/thsottiaux/status/2106239435461579088",
-      "reasons": [],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.03",
-          "weekday": "周六",
-          "time": "12:26",
-          "text": "2026.10.03（周六）12:26",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.02",
-          "weekday": "周五",
-          "time": "21:26",
-          "text": "2026.10.02（周五）21:26",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2106233145163141249",
-      "account": "thsottiaux",
-      "text": "Seeing some reports that the Pro 500 didn’t get the reset as expected earlier. Investigating and will make up for it",
-      "createdAt": "2026-10-03T04:01:28.000Z",
-      "url": "https://x.com/thsottiaux/status/2106233145163141249",
-      "reasons": [
-        "命中重置词 reset",
-        "含未来语气",
-        "命中「A/the reset」名词化陈述"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.03",
-          "weekday": "周六",
-          "time": "12:01",
-          "text": "2026.10.03（周六）12:01",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.02",
-          "weekday": "周五",
-          "time": "21:01",
-          "text": "2026.10.02（周五）21:01",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "重置被否定或对象并非使用额度",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12083,12 +12091,12 @@
   },
   "forecasts": [],
   "counts": {
-    "scanned": 462,
+    "scanned": 464,
     "explicit": 2,
     "occurred": 12,
     "hint": 64,
-    "none": 366,
-    "rejected": 366
+    "none": 368,
+    "rejected": 368
   },
   "truncated": true
 }

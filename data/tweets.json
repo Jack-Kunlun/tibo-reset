@@ -1,6 +1,44 @@
 {
   "tweets": [
     {
+      "id": "2114435873857028129",
+      "text": "Did you?",
+      "created_at": "2026-10-25T19:16:11.000Z",
+      "url": "https://x.com/thsottiaux/status/2114435873857028129",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "himanshutwtxs",
+        "id": "",
+        "text": "did you buy https:// poteto.com?",
+        "created_at": "2026-10-25T08:51:02.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-25T20:01:30.946Z"
+    },
+    {
+      "id": "2114435715605885396",
+      "text": "Reality",
+      "created_at": "2026-10-25T19:15:33.000Z",
+      "url": "https://x.com/thsottiaux/status/2114435715605885396",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "kirtandopamine",
+        "id": "",
+        "text": "holy shit, i'm failing to understand if he is actually serious",
+        "created_at": "2026-10-25T08:08:35.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-25T20:01:30.946Z"
+    },
+    {
       "id": "2114365873049993364",
       "text": "Love to see it!!",
       "created_at": "2026-10-25T14:38:01.000Z",
@@ -8332,7 +8370,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-25T16:01:28.355Z",
+  "updated_at": "2026-10-25T20:01:30.947Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
