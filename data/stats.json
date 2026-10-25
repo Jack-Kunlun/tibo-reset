@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-20T06:33:48.000Z",
     "last_text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
-    "days_since_last": 4.729004074074074,
+    "days_since_last": 4.814244143518518,
     "avg_interval_days": 6.2203877314814795,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.437522122081761,
@@ -14,26 +14,26 @@
     "reset_count": 58,
     "hit_within_avg": 0.71875
   },
-  "generated_at": "2026-10-25T00:03:34.068Z",
+  "generated_at": "2026-10-25T02:06:18.809Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
     "stoppedBy": "known",
-    "newTweets": 3,
-    "knownCount": 452,
+    "newTweets": 0,
+    "knownCount": 455,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 9,
-      "harvested": 12,
-      "withContext": 8,
+      "steps": 1,
+      "harvested": 2,
+      "withContext": 2,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 3,
-      "attempted": 3,
-      "fetched": 3,
+      "candidates": 2,
+      "attempted": 2,
+      "fetched": 2,
       "skipped": 0,
       "missingReplyContext": [],
       "scanned": [
@@ -45,18 +45,11 @@
           "replyContextStatus": "verified"
         },
         {
-          "id": "2113162277688070445",
-          "length": 210,
-          "showMore": false,
-          "needsReplyContext": false,
-          "replyContextStatus": "not-required"
-        },
-        {
           "id": "2113770862860222611",
           "length": 285,
           "showMore": false,
           "needsReplyContext": false,
-          "replyContextStatus": "verified"
+          "replyContextStatus": "not-required"
         }
       ]
     }
@@ -66,7 +59,7 @@
     "updated": 0,
     "removed": 0,
     "upstreamCount": 66,
-    "refreshedAt": "2026-10-25T00:03:09.602Z",
+    "refreshedAt": "2026-10-25T02:06:03.152Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
