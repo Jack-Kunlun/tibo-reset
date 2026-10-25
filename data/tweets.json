@@ -1,6 +1,61 @@
 {
   "tweets": [
     {
+      "id": "2114200291319124163",
+      "text": "By midnight PST",
+      "created_at": "2026-10-25T03:40:04.000Z",
+      "url": "https://x.com/thsottiaux/status/2114200291319124163",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-25T04:03:01.063Z",
+      "translation": {
+        "text": "太平洋标准时间午夜前到账。",
+        "sourceHash": "a7094de21c518d36d89afaf1272dd1426334e40421c4844d3fa4e44251a8b7ad",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
+      "id": "2114200152701575656",
+      "text": "Day 20/ Rest and reset",
+      "created_at": "2026-10-25T03:39:31.000Z",
+      "url": "https://x.com/thsottiaux/status/2114200152701575656",
+      "author_verified": true,
+      "kind": "reset",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-25T04:03:01.063Z",
+      "translation": {
+        "text": "第 20 天 / 休整并重置",
+        "sourceHash": "dddab42cb13a0a06365e3e8a7ad96f1bdc4a22f170feb6ed71aa57d0050aaafd",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
+      "id": "2114199013176303641",
+      "text": "Congrats, that’s not a butt",
+      "created_at": "2026-10-25T03:34:59.000Z",
+      "url": "https://x.com/thsottiaux/status/2114199013176303641",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "alexandr_wang",
+        "id": "",
+        "text": "someone should check in on tibo. hope everything is ok",
+        "created_at": "2026-10-25T02:10:57.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-25T04:03:01.063Z"
+    },
+    {
       "id": "2114125878804545940",
       "text": "I doubt they are on twitter",
       "created_at": "2026-10-24T22:44:22.000Z",
@@ -185,7 +240,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "reply",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-24T00:03:43.104Z",
       "translation": {
         "text": "Codex CLI 更新：我们新增了可复用的提示词预设、内联模型与权限设置，以及企业版 MCP 登录。同时修复了恢复长会话时的失败问题，并加入了 Windows 企业代理认证。出人意料的是，自 DevDay 以来 CLI 的使用量翻了一倍。",
@@ -8179,7 +8234,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-25T02:06:18.612Z",
+  "updated_at": "2026-10-25T04:04:53.124Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }
