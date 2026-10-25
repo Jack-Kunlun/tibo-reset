@@ -1,26 +1,26 @@
 {
   "stats": {
-    "total": 65,
+    "total": 66,
     "first_at": "2025-09-17T04:02:52.000Z",
-    "last_at": "2026-10-20T06:33:48.000Z",
-    "last_text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
-    "days_since_last": 5.0194288310185184,
-    "avg_interval_days": 6.2203877314814795,
+    "last_at": "2026-10-25T06:06:16.000Z",
+    "last_text": "It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ https://t.co/xKaK95EAly",
+    "days_since_last": 0.08007395833333333,
+    "avg_interval_days": 6.201318376068373,
     "median_interval_days": 3.011273148148148,
-    "sd_interval_days": 10.437522122081761,
+    "sd_interval_days": 10.358045775625218,
     "longest_wait_days": 67.74240740740741,
     "shortest_wait_days": 0.15936342592592592,
     "credit_count": 7,
-    "reset_count": 58,
-    "hit_within_avg": 0.71875
+    "reset_count": 59,
+    "hit_within_avg": 0.7230769230769231
   },
-  "generated_at": "2026-10-25T07:01:46.840Z",
+  "generated_at": "2026-10-25T08:01:34.552Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
     "stoppedBy": "floor",
-    "newTweets": 2,
-    "knownCount": 459,
+    "newTweets": 0,
+    "knownCount": 461,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
@@ -31,53 +31,27 @@
     },
     "replyError": null,
     "fullText": {
-      "candidates": 6,
-      "attempted": 6,
-      "fetched": 6,
+      "candidates": 2,
+      "attempted": 2,
+      "fetched": 2,
       "skipped": 0,
       "missingReplyContext": [],
       "scanned": [
         {
-          "id": "2113492502355562875",
-          "length": 60,
+          "id": "2114237083652882932",
+          "length": 75,
           "showMore": false,
+          "networkMetadataStatus": "verified",
           "needsReplyContext": true,
           "replyContextStatus": "verified"
         },
         {
-          "id": "2113162413008884099",
-          "length": 31,
+          "id": "2114200291319124163",
+          "length": 15,
           "showMore": false,
+          "networkMetadataStatus": "verified",
           "needsReplyContext": true,
           "replyContextStatus": "verified"
-        },
-        {
-          "id": "2113162277688070445",
-          "length": 210,
-          "showMore": false,
-          "needsReplyContext": false,
-          "replyContextStatus": "not-required"
-        },
-        {
-          "id": "2113770862860222611",
-          "length": 285,
-          "showMore": false,
-          "needsReplyContext": false,
-          "replyContextStatus": "not-required"
-        },
-        {
-          "id": "2112712984644784534",
-          "length": 251,
-          "showMore": false,
-          "needsReplyContext": false,
-          "replyContextStatus": "not-required"
-        },
-        {
-          "id": "2112592264686149749",
-          "length": 442,
-          "showMore": false,
-          "needsReplyContext": false,
-          "replyContextStatus": "not-required"
         }
       ]
     }
@@ -87,12 +61,12 @@
     "updated": 0,
     "removed": 0,
     "upstreamCount": 67,
-    "refreshedAt": "2026-10-25T07:01:09.317Z",
+    "refreshedAt": "2026-10-25T08:01:09.913Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
     "changed": false,
-    "patchedTexts": 1
+    "patchedTexts": 0
   },
   "last_full_at": "2026-10-24T02:08:26.146Z",
   "errors": []

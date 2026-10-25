@@ -1,6 +1,31 @@
 {
   "records": [
     {
+      "id": "2114237083652882932",
+      "announced_at": "2026-10-25T06:06:16.000Z",
+      "type": "reset",
+      "text": "It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ https://t.co/xKaK95EAly",
+      "url": "https://x.com/thsottiaux/status/2114237083652882932",
+      "attribution": "x.com/thsottiaux",
+      "context_evidence": [
+        {
+          "id": "2114200291319124163",
+          "createdAt": "2026-10-25T03:40:04.000Z",
+          "text": "By midnight PST",
+          "url": "https://x.com/thsottiaux/status/2114200291319124163"
+        },
+        {
+          "id": "2114200152701575656",
+          "createdAt": "2026-10-25T03:39:31.000Z",
+          "text": "Day 20/ Rest and reset",
+          "url": "https://x.com/thsottiaux/status/2114200152701575656"
+        }
+      ],
+      "confirmation_urls": [
+        "https://x.com/thsottiaux/status/2114237083652882932"
+      ]
+    },
+    {
       "id": "2112432076767289678",
       "announced_at": "2026-10-20T06:33:48.000Z",
       "type": "reset",
@@ -533,5 +558,5 @@
     }
   ],
   "bootstrapped_at": "2026-10-20T12:00:57.133Z",
-  "refreshed_at": "2026-10-25T07:01:09.317Z"
+  "refreshed_at": "2026-10-25T08:01:09.913Z"
 }
