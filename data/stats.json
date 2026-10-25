@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-20T06:33:48.000Z",
     "last_text": "Day 15/ Nevermind, we're still cooking... and reset. Enjoy. https://t.co/RZ9WhtI802",
-    "days_since_last": 4.977824479166666,
+    "days_since_last": 5.0194288310185184,
     "avg_interval_days": 6.2203877314814795,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.437522122081761,
@@ -14,32 +14,67 @@
     "reset_count": 58,
     "hit_within_avg": 0.71875
   },
-  "generated_at": "2026-10-25T06:01:52.448Z",
+  "generated_at": "2026-10-25T07:01:46.840Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
-    "stoppedBy": "known",
-    "newTweets": 1,
-    "knownCount": 458,
+    "stoppedBy": "floor",
+    "newTweets": 2,
+    "knownCount": 459,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
       "steps": 8,
-      "harvested": 10,
-      "withContext": 8,
+      "harvested": 11,
+      "withContext": 9,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 1,
-      "attempted": 1,
-      "fetched": 1,
+      "candidates": 6,
+      "attempted": 6,
+      "fetched": 6,
       "skipped": 0,
       "missingReplyContext": [],
       "scanned": [
         {
+          "id": "2113492502355562875",
+          "length": 60,
+          "showMore": false,
+          "needsReplyContext": true,
+          "replyContextStatus": "verified"
+        },
+        {
+          "id": "2113162413008884099",
+          "length": 31,
+          "showMore": false,
+          "needsReplyContext": true,
+          "replyContextStatus": "verified"
+        },
+        {
+          "id": "2113162277688070445",
+          "length": 210,
+          "showMore": false,
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
+        },
+        {
           "id": "2113770862860222611",
           "length": 285,
+          "showMore": false,
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
+        },
+        {
+          "id": "2112712984644784534",
+          "length": 251,
+          "showMore": false,
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
+        },
+        {
+          "id": "2112592264686149749",
+          "length": 442,
           "showMore": false,
           "needsReplyContext": false,
           "replyContextStatus": "not-required"
@@ -51,13 +86,13 @@
     "added": 0,
     "updated": 0,
     "removed": 0,
-    "upstreamCount": 66,
-    "refreshedAt": "2026-10-25T06:01:30.839Z",
+    "upstreamCount": 67,
+    "refreshedAt": "2026-10-25T07:01:09.317Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
     "changed": false,
-    "patchedTexts": 0
+    "patchedTexts": 1
   },
   "last_full_at": "2026-10-24T02:08:26.146Z",
   "errors": []

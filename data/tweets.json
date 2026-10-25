@@ -1,6 +1,50 @@
 {
   "tweets": [
     {
+      "id": "2114237441250828563",
+      "text": ".com",
+      "created_at": "2026-10-25T06:07:41.000Z",
+      "url": "https://x.com/thsottiaux/status/2114237441250828563",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ScriptedAlchemy",
+        "id": "",
+        "text": "poteto",
+        "created_at": "2026-10-25T00:53:52.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-25T07:01:46.489Z"
+    },
+    {
+      "id": "2114237083652882932",
+      "text": "It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ https://t.co/xKaK95EAly",
+      "created_at": "2026-10-25T06:06:16.000Z",
+      "url": "https://x.com/thsottiaux/status/2114237083652882932",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "thsottiaux",
+        "text": "By midnight PST",
+        "created_at": "2026-10-25T03:40:04.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-25T07:01:46.489Z",
+      "text_full": true,
+      "translation": {
+        "text": "全部都生效了。明天尽情疯狂写代码吧，接下来这周也很有意思。https://t.co/qOrzwSeIZZ https://t.co/xKaK95EAly",
+        "sourceHash": "9412e6c5e429a1b1a027dca14eea86c79ac4f720005becef3f19b38737a77dcf",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
       "id": "2114228044072403055",
       "text": "Not a real improvement, put the reset in the bag",
       "created_at": "2026-10-25T05:30:20.000Z",
@@ -8253,7 +8297,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-25T06:01:51.840Z",
+  "updated_at": "2026-10-25T07:01:46.493Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }
