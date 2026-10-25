@@ -240,7 +240,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "reply",
-      "foundVia": "with-replies",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-24T00:03:43.104Z",
       "translation": {
         "text": "Codex CLI 更新：我们新增了可复用的提示词预设、内联模型与权限设置，以及企业版 MCP 登录。同时修复了恢复长会话时的失败问题，并加入了 Windows 企业代理认证。出人意料的是，自 DevDay 以来 CLI 的使用量翻了一倍。",
@@ -8234,7 +8234,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-25T04:04:53.124Z",
+  "updated_at": "2026-10-25T05:00:48.888Z",
   "source": "browser",
   "coverage_since": "2026-10-19T06:33:48.000Z"
 }
