@@ -9,6 +9,7 @@ import { dirname, resolve } from 'node:path';
 
 import { buildStats } from './collect.mjs';
 import { confirmedResetEvent, readAccountObservation } from './signals.mjs';
+import { buildResetCalendar } from './reset-calendar.mjs';
 
 export const MANUAL_STATE_FILE = 'manual-state.json';
 export const MAX_MANUAL_STATE_BYTES = 2 * 1024 * 1024;
@@ -653,13 +654,32 @@ export function projectManualData({ resets = { records: [] }, tweets = { tweets:
     }
   }
 
-  const effectiveRecords = [...filteredRecords, ...observations, ...manualRecords]
+  let effectiveRecords = [...filteredRecords, ...observations, ...manualRecords]
     .sort((a, b) => Date.parse(b.announced_at) - Date.parse(a.announced_at));
   const effectiveTweetsFile = {
     ...jsonClone(tweets ?? {}),
     tweets: [...effectiveTweets, ...syntheticTweets],
     manualRevision: state.revision,
   };
+  if (manualRecords.length) {
+    // 计划、主卡与通知共用一份事件归属；只投影，不把推导结果写回维护者账本或采集文件。
+    const plan = buildResetCalendar({ records: effectiveRecords, tweets: effectiveTweetsFile.tweets,
+      now: nowMs, account: sourceAccount })?.plan;
+    if (plan?.programId) {
+      const assignments = new Map((plan.eventAssignments ?? []).map((item) => [item.recordId, item]));
+      const aliases = plan.eventAliases ?? [];
+      const covered = new Set(aliases.map((item) => item.recordId));
+      effectiveRecords = effectiveRecords.filter((record) => !covered.has(String(record.id))).map((record) => {
+        const assignment = assignments.get(String(record.id));
+        if (!record.manual || !assignment) return record;
+        const urls = aliases.filter((item) => item.manualEntryId === record.manualEntryId).flatMap((item) => item.urls)
+          .filter((url) => officialStatusIdentity(url, sourceAccount));
+        return { ...record, programId: String(plan.programId), programDay: assignment.day,
+          ...(assignment.source !== 'manual' ? { programAssignmentSource: assignment.source, programAnchorId: assignment.anchorId } : {}),
+          confirmation_urls: [...new Set([...(record.confirmation_urls ?? []), ...urls])] };
+      });
+    }
+  }
   const effectiveResetsFile = { ...jsonClone(resets ?? {}), records: effectiveRecords };
   const effectiveStatsFile = {
     ...jsonClone(statsFile ?? {}),

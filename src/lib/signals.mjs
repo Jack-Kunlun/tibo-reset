@@ -268,7 +268,7 @@ function hasResetDayAnnouncement(text) {
 function hasScheduledResetDeclaration(text) {
   if (!RE_SCHEDULE_PREFIX.test(text)) return false;
   return splitSentences(text).some((s) =>
-    /\b(?:that[’']s|that is|it[’']s|it is)\s+(?:a\s+)?reset[.!]*$/i.test(s.trim()) &&
+    /\b(?:that[’']s|that is|it[’']s|it is|today is)\s+(?:a\s+)?reset[.!]*$/i.test(s.trim()) &&
     !blockedResetSentence(s) && !RE_HYPOTHETICAL.test(s) &&
     !/\b(?:maybe|hope|wish|demand|want|yesterday|previously)\b/i.test(s) && !s.trim().endsWith('?'));
 }

@@ -233,7 +233,7 @@
           <form id="entry-form" novalidate>
               <div class="field" id="new-title-field"><label for="title-input">事件内容 <small><span id="title-count">0</span> / 500</small></label><input id="title-input" maxlength="500" required placeholder="会根据状态自动填写"></div>
             <div class="field"><div class="field-label" id="status-label">记录状态 <small>选择后保存</small></div><div class="status-options" role="radiogroup" aria-labelledby="status-label"><button class="status-option" type="button" data-status="announced" aria-pressed="true">预告</button><button class="status-option" type="button" data-status="landed" aria-pressed="false">已到账</button><button class="status-option" type="button" data-status="ignored" aria-pressed="false">排除</button></div></div>
-            <div class="field" id="program-day-field" hidden><label for="program-day">对应 28 天计划 <small>可选</small></label><select id="program-day"><option value="">不关联计划日</option></select><div class="field-hint">无关联推文时，选择计划日可同步当天状态。</div></div>
+            <div class="field" id="program-day-field" hidden><label for="program-day">对应 28 天计划 <small>可选</small></label><select id="program-day"><option value="">自动识别计划日</option></select><div class="field-hint">到账会自动同步计划，识别有误时可在此修正。</div></div>
             <div class="field" id="landed-time-field"><label for="occurred-at">实际到账时间（北京时间）</label><input id="occurred-at" type="datetime-local" required><div class="field-hint">默认填入当前时间，可按你确认额度恢复的时刻调整。</div></div>
             <div class="field" id="window-field" hidden><div class="field-label">预告时间范围 <small>可留空</small></div><div class="time-pair"><input id="window-from" type="datetime-local" aria-label="预告开始时间（北京时间）"><input id="window-to" type="datetime-local" aria-label="预告结束时间（北京时间）"></div><div class="field-hint">时间均按北京时间；填写时请同时填写开始与结束。</div></div>
             <details class="optional-details" id="optional-details"><summary>补充信息（选填）<small>推文关联、类型、来源、备注</small></summary><div class="optional-body">
@@ -583,7 +583,7 @@
       }
       function renderProgramOptions(selected,programId=state.data?.programPlan?.programId) {
         const plan=state.data?.programPlan;
-        const select=$('#program-day');select.replaceChildren(new Option('不关联计划日',''));
+        const select=$('#program-day');select.replaceChildren(new Option('自动识别计划日',''));
         const historical=programId && programId!==plan?.programId;
         select.disabled=Boolean(historical);
         $('#program-day-field').hidden=(!plan?.programId && !historical) || state.draft?.status!=='landed';
@@ -595,10 +595,6 @@
         if(entry)return entry.programId===state.data?.programPlan?.programId ? entry.programDay : '';
         const ownDay=/\bDay\s*(\d+)(?:\.\d+|\s*\([^)]*\))?\s*\//i.exec(target?.tweet?.text || '');
         if(ownDay)return Number(ownDay[1]);
-        if(target?.kind==='new'){
-          const pending=(state.data?.programPlan?.rows ?? []).filter(row=>row.status==='pending');
-          if(pending.length===1)return pending[0].day;
-        }
         return '';
       }
       function currentFormValue() {

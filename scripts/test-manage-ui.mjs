@@ -45,14 +45,14 @@ assert.equal(autoAnnounce({kind:'tweet',status:'none'},null,null),'announced','�
 const dayStart=html.indexOf('      function suggestedProgramDay(');
 const dayEnd=html.indexOf('      function currentFormValue(',dayStart);
 const pendingPlan={programId:'123',rows:[{day:18,status:'pending'},{day:19,status:'noted'}]};
-const suggested=(source,plan,target,entry)=>runInNewContext(source.slice(dayStart,dayEnd)+';suggestedProgramDay(target,entry)',{state:{data:{programPlan:plan}},target,entry});
-assert.equal(suggested(html,pendingPlan,{kind:'new'},null),18,'唯一待落地日建议显示在可更改的选择框');
+const suggested=(source,plan,target,entry)=>runInNewContext(source.slice(source.indexOf('      function suggestedProgramDay('),source.indexOf('      function currentFormValue('))+';suggestedProgramDay(target,entry)',{state:{data:{programPlan:plan}},target,entry});
+assert.equal(suggested(html,pendingPlan,{kind:'new'},null),'','无原帖补录留给服务端按事件事实自动关联，不凭当前待落地日数量预选');
 assert.equal(suggested(html,{...pendingPlan,rows:[...pendingPlan.rows,{day:17,status:'pending'}]},{kind:'new'},null),'','多个待落地日不能猜');
 assert.equal(suggested(html,pendingPlan,{kind:'entry'},{id:'legacy'}),'','既有无关联条目不静默补归属');
 assert.equal(suggested(html,pendingPlan,{kind:'entry'},{programId:'other',programDay:18}),'','不同活动不得沿用日序');
-const guessAmbiguous=html.replace('if(pending.length===1)return pending[0].day;','if(pending.length)return pending[0].day;');
+const guessAmbiguous=html.replace('function suggestedProgramDay(target,entry) {',"function suggestedProgramDay(target,entry) {if(target?.kind==='new')return 18;");
 assert.notEqual(guessAmbiguous,html);
-assert.equal(suggested(guessAmbiguous,{...pendingPlan,rows:[...pendingPlan.rows,{day:17,status:'pending'}]},{kind:'new'},null),18,'去掉唯一性约束的隔离反例会猜错归属');
+assert.equal(suggested(guessAmbiguous,{...pendingPlan,rows:[...pendingPlan.rows,{day:17,status:'pending'}]},{kind:'new'},null),18,'客户端绕过服务端自动匹配的隔离反例会猜错归属');
 const renderDayStart=html.indexOf('      function renderProgramOptions(');
 const renderDayEnd=html.indexOf('      function suggestedProgramDay(',renderDayStart);
 function renderedDays(source){

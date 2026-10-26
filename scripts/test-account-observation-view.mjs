@@ -188,8 +188,10 @@ assert.match(webCalendar, /约2026\.10\.23 01:10 北京 · 维护者账号实测
 assert.match(webCalendar, /已确认到账<\/span><b>7<small> 次/);
 
 const recordsFile = JSON.parse(await readFile(new URL('../data/resets.json', import.meta.url), 'utf8'));
-const model = { ...buildChartData(recordsFile.records, now), now, generatedAt: '2026-10-22T17:30:00.000Z' };
-const prediction = predictAll(recordsFile.records, { now });
+// 固定在观察发生时回放，不能把后来采集的重置带进这个历史时钟。
+const recordsAtNow = recordsFile.records.filter(record => Date.parse(record.announced_at) <= now);
+const model = { ...buildChartData(recordsAtNow, now), now, generatedAt: '2026-10-22T17:30:00.000Z' };
+const prediction = predictAll(recordsAtNow, { now });
 const webTokens = renderAll(model, prediction, {
   ...detectSignals([], { now, account: 'thsottiaux' }),
   ...signalFixture(false),

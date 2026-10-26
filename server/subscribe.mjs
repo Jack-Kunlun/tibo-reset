@@ -207,11 +207,23 @@ export function fmtWeChatTime(ts) {
 function landedEventKeys(record) {
   const keys = new Set();
   const add = (key) => { if (key) keys.add(key); };
+  const autoProgramAssignment = record?.programAssignmentSource === 'source' || record?.programAssignmentSource === 'announcement-window';
+  const programId = String(record?.programId ?? '');
+  const programDay = record?.programDay;
+  const hasProgramDay = /^[1-9]\d{0,31}$/.test(programId) && Number.isInteger(programDay) && programDay >= 1 && programDay <= 62;
+  const rawAnchorId = record?.programAnchorId;
+  const anchorId = typeof rawAnchorId === 'string' ? rawAnchorId.trim()
+    : Number.isSafeInteger(rawAnchorId) && rawAnchorId > 0 ? String(rawAnchorId) : '';
+  const hasProgramAnchor = /^[1-9]\d{0,31}$/.test(anchorId);
   if (record?.id != null && String(record.id).trim()) add(`record:${String(record.id).trim()}`);
   if (record?.manualEntryId) add(`manual:${String(record.manualEntryId)}`);
-  if (/^[1-9]\d{0,31}$/.test(String(record?.programId ?? '')) &&
-      Number.isInteger(record?.programDay) && record.programDay >= 1 && record.programDay <= 62) {
-    add(`program:${record.programId}:${record.programDay}`);
+  if (hasProgramDay) {
+    if (autoProgramAssignment) {
+      if (hasProgramAnchor) add(`program:${programId}:${programDay}:anchor:${anchorId}`);
+    } else {
+      add(`program:${programId}:${programDay}`);
+      if (record?.manual === true) add(`program-override:${programId}:${programDay}`);
+    }
   }
   for (const url of [record?.url, ...(Array.isArray(record?.confirmation_urls) ? record.confirmation_urls : [])]) {
     if (typeof url !== 'string') continue;
@@ -219,7 +231,7 @@ function landedEventKeys(record) {
     if (match) add(`source:${match[1]}`);
   }
   // 独立人工到账可能没有推文、记录 ID 或计划日；同类型与精确到账时刻是它唯一可复核的稳定身份。
-  if (record?.manual === true && (record.type === 'reset' || record.type === 'credit') && Number.isFinite(eventTime(record))) {
+  if (record?.manual === true && !autoProgramAssignment && (record.type === 'reset' || record.type === 'credit') && Number.isFinite(eventTime(record))) {
     add(`manual-event:${record.type}:${eventTime(record)}`);
   }
   if (!keys.size) add(`time:${record?.type ?? ''}:${eventTime(record)}`);
@@ -227,8 +239,38 @@ function landedEventKeys(record) {
 }
 
 function sharesEventKey(a, b) {
-  const keys = new Set(a ?? []);
-  return (b ?? []).some((key) => keys.has(key));
+  const left = a ?? [];
+  const right = b ?? [];
+  const keys = new Set(left);
+  if (right.some((key) => keys.has(key))) return true;
+
+  const overrideMatchesAnchor = (overrideKeys, anchorKeys) => {
+    for (const overrideKey of overrideKeys) {
+      const override = /^program-override:([1-9]\d{0,31}):([1-9]\d{0,1})$/.exec(overrideKey);
+      if (!override || Number(override[2]) > 62) continue;
+      for (const anchorKey of anchorKeys) {
+        const anchor = /^program:([1-9]\d{0,31}):([1-9]\d{0,1}):anchor:[1-9]\d{0,31}$/.exec(anchorKey);
+        if (anchor && Number(anchor[2]) <= 62 && anchor[1] === override[1] && anchor[2] === override[2]) return true;
+      }
+    }
+    return false;
+  };
+  return overrideMatchesAnchor(left, right) || overrideMatchesAnchor(right, left);
+}
+
+function migrateManualProgramOverrides(state, records) {
+  const keys = new Set(state.landed_event_keys ?? []);
+  for (const record of records ?? []) {
+    if (record?.manual !== true || record.programAssignmentSource === 'source' || record.programAssignmentSource === 'announcement-window') continue;
+    const programId = String(record.programId ?? '');
+    const programDay = record.programDay;
+    if (!/^[1-9]\d{0,31}$/.test(programId) || !Number.isInteger(programDay) || programDay < 1 || programDay > 62) continue;
+    const stableKeys = [];
+    if (record.manualEntryId) stableKeys.push(`manual:${String(record.manualEntryId)}`);
+    if (record.id != null && String(record.id).trim()) stableKeys.push(`record:${String(record.id).trim()}`);
+    if (stableKeys.some((key) => keys.has(key))) keys.add(`program-override:${programId}:${programDay}`);
+  }
+  state.landed_event_keys = [...keys];
 }
 
 function findPendingRecord(records, pending, legacyAt) {
@@ -293,6 +335,7 @@ export async function notifyNewResets({ dataDir, store, client, templateId, page
       : null;
     const work = await store.update((state) => {
       state.landed_event_keys = Array.isArray(state.landed_event_keys) ? state.landed_event_keys : [];
+      migrateManualProgramOverrides(state, notificationRecords);
       const hadWatermark = Boolean(state.last_event_at);
       if (!state.last_event_at && maxAt !== null) {
         state.last_event_at = new Date(maxAt).toISOString();
@@ -321,7 +364,7 @@ export async function notifyNewResets({ dataDir, store, client, templateId, page
           if (candidate.source === 'manual') queuedForManual += matchingPending.length;
           continue;
         }
-        const seen = state.landed_event_keys.some((key) => candidate.keys.includes(key));
+        const seen = sharesEventKey(state.landed_event_keys, candidate.keys);
         if (seen) {
           state.landed_event_keys = [...new Set([...state.landed_event_keys, ...candidate.keys])];
         }

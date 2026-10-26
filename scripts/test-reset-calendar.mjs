@@ -222,7 +222,7 @@ const planCases = [
     name: '没有归属的歧义事件不能撤下原帖的待核实标签',
     input: planFixture([resetPost, aliasPost],
       [{ id: '999', type: 'reset', announced_at: '2026-10-07T02:00:00Z', confirmation_urls: [resetPost.url, aliasPost.url] }]),
-    verify: c => c.plan.rows[1].entries[0].kind === 'reset-unconfirmed' && c.plan.rows[2].entries[0].kind === 'reset-unconfirmed',
+    verify: c => c.plan.rows[1].entries[0].kind === 'announcement' && c.plan.rows[2].entries[0].kind === 'announcement',
     from: 'const assignedEvents = posts.flatMap((post) => post.events);', to: 'const assignedEvents = events;',
   },
   {
@@ -282,7 +282,8 @@ const planCases = [
     name: 'Day 2 子编号收全四项更新，汇总帖不重复计更新',
     input: realPlanInput,
     verify: c => c.plan.rows[1].updateCount === 4 && c.plan.rows[1].entries.filter(e => e.kind === 'roundup').length === 1,
-    from: String.raw`(?:\.\d+|\s*\([^)]*\))?`, to: '',
+    from: String.raw`match(/\bDay\s*(\d+)(?:\.\d+|\s*\([^)]*\))?\s*\/`,
+    to: String.raw`match(/\bDay\s*(\d+)\s*\/`,
   },
   {
     name: '跨 UTC 日的 Day 3 补充仍归 Day 3，更新与发券并存',
@@ -329,10 +330,10 @@ const planCases = [
     from: 'new Set(candidates.map((post) => post.day)).size === 1 ? candidates[0] : null', to: 'candidates[0] ?? posts[0]',
   },
   {
-    name: '仅原文声称已发生但未入确认记录时，标提及重置待核实',
+    name: '仅原文声称重置但未入确认记录时统一显示预告，不提前确认',
     input: planFixture([resetPost]),
-    verify: c => c.plan.rows[1].confirmedCount === 0 && c.plan.rows[1].entries[0].kind === 'reset-unconfirmed',
-    from: "else if (analysis.level === 'occurred') kind = 'reset-unconfirmed';", to: "else if (analysis.level === 'occurred') kind = 'reset';",
+    verify: c => c.plan.rows[1].confirmedCount === 0 && c.plan.rows[1].entries[0].kind === 'announcement' && c.plan.rows[1].status === 'pending',
+    from: "else if (analysis.level === 'occurred') kind = 'announcement';", to: "else if (analysis.level === 'occurred') kind = 'reset';",
   },
   {
     name: '预告即使误入历史也不能成为活动到账',
@@ -345,7 +346,7 @@ const planCases = [
     name: '同一确认事件跨来源别名不重复计到不同活动日',
     input: planFixture([resetPost, aliasPost], [{ id: resetPost.id, type: 'reset', announced_at: resetPost.created_at, confirmation_urls: [aliasPost.url] }]),
     verify: c => c.plan.rows[1].confirmedCount === 1 && c.plan.rows[2].confirmedCount === 0,
-    from: 'if (primary) primary.events.push(event);', to: 'for (const post of matches) post.events.push(event);',
+    from: 'primary.events.push(event);', to: 'for (const post of matches) post.events.push(event);',
   },
   {
     name: '闲聊提到明天 Day 17 不作为第 17 天的交付公告',
@@ -386,8 +387,8 @@ const planCases = [
     input: manualProgramFixture,
     verify: c => c.confirmedCount === 1 && c.cells.find((cell) => cell.date === '2026-10-07')?.confirmedCount === 1 &&
       c.plan.rows[1].confirmedCount === 1 && c.plan.rows[1].resetCount === 1,
-    from: 'if (!isAssignedManualEvent(event)) event.suppressedByManualProgramDay = true;',
-    to: 'if (!isAssignedManualEvent(event)) event.suppressedByManualProgramDay = false;',
+    from: 'event.suppressedByManualProgramDay = true;',
+    to: 'event.suppressedByManualProgramDay = false;',
   },
   {
     name: '人工无推文归属可确认活动日，但不冒充最新原帖 Day 或有原帖日期',
@@ -415,8 +416,8 @@ const planCases = [
     input: manualProgramDedupeFixture,
     verify: c => c.confirmedCount === 1 && c.cells.find((cell) => cell.date === '2026-10-07')?.confirmedCount === 1 &&
       c.plan.rows[1].confirmedCount === 1,
-    from: 'if (!isAssignedManualEvent(event)) event.suppressedByManualProgramDay = true;',
-    to: 'if (!isAssignedManualEvent(event)) event.suppressedByManualProgramDay = false;',
+    from: 'event.suppressedByManualProgramDay = true;',
+    to: 'event.suppressedByManualProgramDay = false;',
   },
   {
     name: '无可信同日/回复归属时不能按到账日期合并另一 Day 的公开完成',

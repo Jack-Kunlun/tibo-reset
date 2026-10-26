@@ -77,6 +77,12 @@
   #observatory .am-signal{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:7px 15px;background:#fafaff;border:1px solid #e0d9f0;border-radius:14px;padding:14px 18px;margin-top:15px;font-size:12px}
   #observatory .am-signal>span:first-child{display:flex;align-items:center;gap:9px}
   #observatory .am-signal svg{width:15px;height:15px;color:var(--am-accent)}
+  #observatory .am-today-reset{box-sizing:border-box;display:flex;align-items:center;flex-wrap:wrap;gap:9px;min-width:0;margin:0 0 10px;padding:12px 15px;border:1px solid #b7e5d3;border-radius:12px;background:#eff9f4;color:#328775;font-size:13px;line-height:1.4}
+  #observatory .am-today-reset[hidden]{display:none!important}
+  #observatory .am-today-reset svg{width:16px;height:16px;flex:none}
+  #observatory .am-today-reset strong{font-weight:600}
+  #observatory .am-today-reset time{margin-left:auto;color:#557b70;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  @media(max-width:700px){#observatory .am-today-reset{gap:8px;padding:10px 12px;font-size:11px}#observatory .am-today-reset time{font-size:10px}}
   #observatory .am-main{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:17px;margin-top:20px;align-items:stretch}
   #observatory .am-panel{position:relative;border:1px solid #e3ddef;border-radius:18px;padding:20px;background:#fff;box-shadow:0 3px 14px -12px #6b5ba83d;min-width:0;transition:transform .25s,box-shadow .25s,border-color .25s}
   #observatory .am-panel h2{font-size:14px;font-weight:600}
@@ -397,6 +403,8 @@
   #observatory .am-pause,#observatory .am-live{background:#151b2d;border:0;box-shadow:none}
   #observatory .am-live{color:#a3cbbb}
   #observatory .am-dot{background:#83e6c7;box-shadow:0 0 12px #83e6c755}
+  #observatory .am-today-reset{border-color:#70c7a966;background:#8de4c915;color:#8de4c9}
+  #observatory .am-today-reset time{color:#a4d9c9}
   #observatory .am-context{padding:4px 0 22px;gap:8px;font-size:11px}
   #observatory .am-context-left{align-items:center;gap:12px}
   #observatory .hero-v{font-size:13px;letter-spacing:.015em}
@@ -685,7 +693,7 @@
   </section>
   <main>
     <div class="am-main">
-      <div class="am-signal-slot"><!--__SIGNAL__--></div>
+      <div class="am-signal-slot"><!--__TODAY_RESET__--><!--__SIGNAL__--></div>
       <div class="am-focus">
         <!--__OUTLOOK__-->
         <!--__PROGRAM__-->
@@ -803,6 +811,7 @@
   var freshAt = cstale && cstale.dataset.at ? Date.parse(cstale.dataset.at) : NaN;
   var staleAfterMs = cstale ? Number(cstale.dataset.staleAfter) * 60000 : NaN;
   var freshOk = isFinite(freshAt) && isFinite(staleAfterMs) && staleAfterMs > 0;
+  var todayReset = document.getElementById('today-reset');
 
   // 距今多久。数据已经陈旧到这个程度，小时比分钟更有信息量；过了一天就换成天。
   function fmtAge(ms) {
@@ -852,6 +861,11 @@
 
   function tick() {
     var now = Date.now();
+
+    // 数据快照可能跨过北京时间午夜仍在缓存中；到新的一天立即撤下昨天的到账提示。
+    if (todayReset && todayReset.dataset.day !== new Date(now + 8 * 3600000).toISOString().slice(0, 10)) {
+      todayReset.hidden = true;
+    }
 
     // ④ 当前北京时间。与三块倒数共用同一次 tick，不额外开定时器。
     if (bjClock) upd.textContent = bjClock.format(now);

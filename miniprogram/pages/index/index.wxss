@@ -1,2 +1,41 @@
 @import "../../styles/dashboard.wxss";
 @import "../../styles/design.wxss";
+
+.design .tr-today-reset {
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10rpx;
+  min-width:0;
+  margin:-20rpx 0 18rpx;
+  padding:14rpx 18rpx;
+  border:2rpx solid #70c7a966;
+  border-radius:18rpx;
+  background:#8de4c915;
+  color:#8de4c9;
+  font-size:24rpx;
+  line-height:1.4;
+}
+.design .tr-today-reset-icon {
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 32rpx;
+  width:32rpx;
+  height:32rpx;
+  border:2rpx solid #8de4c966;
+  border-radius:50%;
+  background:#8de4c91a;
+  color:#8de4c9;
+}
+.design .tr-today-reset-icon .tr-text { font-size:20rpx; line-height:1; font-weight:600; }
+.design .tr-today-reset-title { min-width:0; font-size:24rpx; font-weight:600; }
+.design .tr-today-reset-time { margin-left:auto; color:#a4d9c9; font-size:22rpx; font-variant-numeric:tabular-nums; white-space:nowrap; }
+
+@media (max-width: 360px) {
+  .design .tr-today-reset { gap:8rpx; padding:12rpx 14rpx; }
+  .design .tr-today-reset-title { font-size:22rpx; }
+  .design .tr-today-reset-time { font-size:20rpx; }
+}

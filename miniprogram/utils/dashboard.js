@@ -11,7 +11,7 @@ import config from '../config.js';
 import { loadState, snapshotState } from './api.js';
 import { copyText } from './clipboard.js';
 import { indexShareTitle, historyShareTitle, isSinglePage } from './share.js';
-import { buildGauge, buildSignal, buildMetrics, buildForecast, buildOutlookView, buildCalendarView, buildProgramPlanView, buildObservationSignal, predCountdown, readoutParts } from './view.js';
+import { buildGauge, buildSignal, buildMetrics, buildForecast, buildOutlookView, buildCalendarView, buildProgramPlanView, buildObservationSignal, buildTodayResetView, predCountdown, readoutParts } from './view.js';
 import { survivalScene, stripScene, histogramScene, rhythmScene } from './scene.js';
 import { drawScene, setupCanvas } from './draw.js';
 import { elapsed, reelGroups, verdict as makeVerdict, fmtDateTime, fmtClock, fmtClockSec, fmtSpan, toTs, beijingParts } from './format.js';
@@ -176,6 +176,7 @@ export function createDashboardPage(view = 'observe') {
     elapsedGroups: [],
     expandedRecord: '',
     todayLabel: '',
+    todayReset: null,
     signalAge: '',
     elapsedLabel: '距上次重置',
     accountObservationText: '',
@@ -323,9 +324,10 @@ export function createDashboardPage(view = 'observe') {
 
   apply({ state, degraded, reason, preserveUi = false }) {
     const chart = state.chart;
+    const currentNow = Date.now();
     const lastAt = chart ? toTs(chart.lastAt) : null;
     const parsedGenTs = toTs(state.generatedAt);
-    const genTs = Number.isFinite(parsedGenTs) ? parsedGenTs : Date.now();
+    const genTs = Number.isFinite(parsedGenTs) ? parsedGenTs : currentNow;
 
     // 预测总览的**锚点**：取预测自己的 `asOf`，不用 `Date.now()`。
     // `q50` 是按 `asOf` 那一刻算出来的，换个时刻当锚点就会得到另一个 ETA ——
@@ -375,7 +377,8 @@ export function createDashboardPage(view = 'observe') {
     const accountObservationText = Number.isFinite(observedAt)
       ? `${latestObservation.precision === 'approximate-minute' ? '约' : ''}${fmtDateTime(observedAt)} 北京 · ${latestObservation.sourceLabel || '账号实测'} · 仅代表单个账号`
       : '';
-    const today = beijingParts(Date.now());
+    const today = beijingParts(currentNow);
+    const todayReset = buildTodayResetView(chart, currentNow);
     const gaps = (chart?.gapDays || []).slice(-12);
     const maxGap = Math.max(1, ...gaps);
 
@@ -385,6 +388,7 @@ export function createDashboardPage(view = 'observe') {
         signal,
         signalAge: ageMinutes === null ? '' : ageMinutes < 1 ? '刚刚' : ageMinutes < 60 ? `${ageMinutes} 分钟前` : ageMinutes < 1440 ? `${Math.floor(ageMinutes / 60)} 小时前` : `${Math.floor(ageMinutes / 1440)} 天前`,
         todayLabel: `${today.month}.${today.day} ${today.weekday}`,
+        todayReset,
         elapsedLabel: hasNewerAccountObservation ? '距上次公开确认' : '距上次重置',
         accountObservationText,
         trendBars: gaps.map((value, index) => ({ key: index, height: Math.max(4, value / maxGap * 100), latest: index === gaps.length - 1, value: value.toFixed(1) })),
@@ -427,7 +431,7 @@ export function createDashboardPage(view = 'observe') {
         dataText: Number.isFinite(toTs(state.dataUpdatedAt)) ? fmtDateTime(toTs(state.dataUpdatedAt)).slice(5) : '未知',
         // 「观测中」后面是**当前北京时间**，由 tick 每秒推进（见 tick）。
         // 降级态是例外：那时要传达的正是「这是什么时候的快照」，显示数据时刻才有信息量。
-        updText: degraded ? `快照 · ${fmtClock(genTs)}` : `观测中 · ${fmtClockSec(Date.now())}`,
+        updText: degraded ? `快照 · ${fmtClock(genTs)}` : `观测中 · ${fmtClockSec(currentNow)}`,
         account: state.account || 'thsottiaux',
         degraded: !!degraded,
         notice: degraded ? reason || '当前展示的不是实时数据' : '',
@@ -464,6 +468,17 @@ export function createDashboardPage(view = 'observe') {
     }
     const now = Date.now();
     const patch = {};
+
+    const today = beijingParts(now);
+    const todayLabel = `${today.month}.${today.day} ${today.weekday}`;
+    if (todayLabel !== this.data.todayLabel) patch.todayLabel = todayLabel;
+    const todayReset = buildTodayResetView(this.chart, now);
+    const currentReset = this.data.todayReset;
+    if ((currentReset?.dayKey || '') !== (todayReset?.dayKey || '') ||
+        (currentReset?.at ?? null) !== (todayReset?.at ?? null) ||
+        (currentReset?.time || '') !== (todayReset?.time || '')) {
+      patch.todayReset = todayReset;
+    }
 
     if (this.lastAt) {
       const groups = reelGroups(elapsed(this.lastAt, now));

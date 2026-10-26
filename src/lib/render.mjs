@@ -17,7 +17,7 @@
  */
 
 import { fmtDateIn, fmtDateTimeIn, partsIn, dualZone } from './chart-data.js';
-import { buildOutlook } from './outlook.mjs';
+import { buildOutlook, buildTodayReset } from './outlook.mjs';
 import { survivalScene, stripScene, histogramScene, rhythmScene } from './scene.js';
 import { sceneToSvgTag } from './svg.mjs';
 
@@ -1417,17 +1417,35 @@ export function renderFreshness(info, nowMs) {
   ].join('\n');
 }
 
+/** 首页事实状态：只显示北京时间当天的公开到账时刻。 */
+export function renderTodayReset(todayReset) {
+  if (!todayReset || !Number.isFinite(todayReset.at) || !todayReset.dayKey) return '';
+  const time = fmtTime(new Date(todayReset.at).toISOString());
+  return `<div class="am-today-reset" id="today-reset" role="status" data-day="${attr(todayReset.dayKey)}">
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="8.25" stroke="currentColor" stroke-width="1.5"/><path d="m6.1 10.1 2.5 2.5 5.3-5.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <strong>今日重置已到账</strong>
+    <time datetime="${new Date(todayReset.at).toISOString()}">${esc(time)} 北京时间</time>
+  </div>`;
+}
+
 /* ------------------------------ 汇总 ------------------------------ */
 
 /** 逐日内容直接渲染到 HTML；浏览器只切换可见日，不另算活动状态。 */
 export function renderProgramPlan(plan, program) {
   if (!plan?.rows?.length) return renderProgram(program);
   const selected = plan.rows.find((row) => row.day === plan.latestDay) ?? plan.rows[0];
-  const markers = { updated: '更', mixed: '双', confirmed: '重', observed: '实', pending: '预', noted: '提', missing: '—', future: '·' };
+  const markers = { updated: '更', mixed: '双', confirmed: '重', observed: '实', pending: '预', noted: '动', missing: '—', future: '·' };
   const entryLabels = { update: '功能更新', roundup: '当日汇总', note: '当日动态', reset: '重置确认',
-    credit: '发券确认', announcement: '重置预告', 'reset-unconfirmed': '提及重置·待核实' };
-  const cells = plan.rows.map((row) => `<a class="plan-cell plan-${attr(row.status)}${row === selected ? ' is-selected' : ''}" href="#program-day-${row.day}" data-plan-select="${row.day}"${row === selected ? ' aria-current="true"' : ''} aria-label="Day ${row.day} · ${attr(row.statusLabel)}"><span>Day <b>${row.day}</b></span><small>${esc(row.statusLabel)}</small><i aria-hidden="true">${markers[row.status] || '·'}</i></a>`).join('');
+    credit: '发券确认', announcement: '重置预告', 'reset-unconfirmed': '重置预告·待落地' };
+  const cells = plan.rows.map((row) => {
+    const legacyResetMention = row.status === 'noted' && (row.entries || []).some((entry) => entry.kind === 'reset-unconfirmed');
+    const status = legacyResetMention ? 'pending' : row.status;
+    const statusLabel = legacyResetMention ? '重置预告·待落地' : row.statusLabel;
+    return `<a class="plan-cell plan-${attr(status)}${row === selected ? ' is-selected' : ''}" href="#program-day-${row.day}" data-plan-select="${row.day}"${row === selected ? ' aria-current="true"' : ''} aria-label="Day ${row.day} · ${attr(statusLabel)}"><span>Day <b>${row.day}</b></span><small>${esc(statusLabel)}</small><i aria-hidden="true">${markers[status] || '·'}</i></a>`;
+  }).join('');
   const rows = plan.rows.map((row) => {
+    const legacyResetMention = row.status === 'noted' && (row.entries || []).some((entry) => entry.kind === 'reset-unconfirmed');
+    const statusLabel = legacyResetMention ? '重置预告·待落地' : row.statusLabel;
     const entries = row.entries.map((entry) => {
       const labels = [...new Set([entry.isUpdate ? '功能更新' : '', entry.isAccountObserved ? '已有账号实测到账' : entry.awaitingVerification ? '落地待核实' : entryLabels[entry.kind],entry.manual || entry.sourceLabel === '手动确认' ? '手动确认' : ''].filter(Boolean))];
       const observation = entry.isAccountObserved
@@ -1442,7 +1460,7 @@ export function renderProgramPlan(plan, program) {
       </article>`;
     }).join('');
     return `<details class="plan-day${row === selected ? ' is-selected' : ''}" id="program-day-${row.day}" data-plan-day="${row.day}"${row === selected ? ' open' : ''}>
-      <summary><b>Day ${row.day}</b><span>${esc(row.statusLabel)}</span></summary>
+      <summary><b>Day ${row.day}</b><span>${esc(statusLabel)}</span></summary>
       <div class="plan-day-body">${entries || `<p class="plan-empty">${row.status === 'future' ? '原帖尚未更新到这一天。' : '尚未采集到这一天的原帖。'}</p>`}</div>
     </details>`;
   }).join('');
@@ -1488,6 +1506,7 @@ export function renderAll(m, prediction, signals, opts = {}) {
   // 首屏那三个结论（预计时间 / 状态 / 置信度）只在一处算出来，主卡、依据区、
   // 内联摘要三方都读它 —— 否则「页面上的预计时间」会有三个各自漂移的版本。
   const outlook = buildOutlook({ chart: m, prediction, signals, now: m.now });
+  const todayReset = buildTodayReset(m, m.now);
   if (outlook?.announcement) outlook.announcement.manual = (signals?.forecasts ?? []).some((f) => f.manual && f.text === outlook.announcement.text && (f.url || '') === (outlook.announcement.url || ''));
   const signalHtml = renderSignal(signals, { inlineProgram: false });
   const latestObservation = signals?.latestAccountObservation;
@@ -1505,6 +1524,7 @@ export function renderAll(m, prediction, signals, opts = {}) {
     // 「数据未更新」条。与上面那条**互斥**：errors 非空时 renderFreshness 直接返回空串。
     // 它接手的是原先 CI 定时那轮心跳的职责（见 STALE_AFTER_MINUTES 的注释）。
     FRESHNESS: renderFreshness(opts.collect, m.now),
+    TODAY_RESET: renderTodayReset(todayReset),
 
     // 第一层：预测结论。首屏只有它是「结论」，其余都是支撑材料。
     OUTLOOK: renderOutlook(outlook, m, prediction, signals, opts.collect),

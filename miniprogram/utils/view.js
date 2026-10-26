@@ -10,7 +10,7 @@
 import { beijingParts, countdown, countdownGroups, fmtDate, fmtClock, fmtDateTime, fmtDay, fmtSpan, pct1, spanOf, toTs, trim1 } from './format.js';
 // 与网页端**逐字同一份**（`src/lib/outlook.mjs` 由 scripts/build.mjs 同步过来）。
 // 「下一次什么时候 / 可不可信 / 凭什么」这三件事的判据只该有一份实现。
-import { buildOutlook } from './outlook.js';
+import { buildOutlook, buildTodayReset } from './outlook.js';
 
 const PRECISION_TEXT = {
   day: '全天',
@@ -48,13 +48,21 @@ export function buildCalendarView(calendar) {
   };
 }
 
+/**
+ * 首页今日到账状态独立于预测锚点：预测可能来自旧快照，到账日期必须按当前时刻判断。
+ */
+export function buildTodayResetView(chart, now = Date.now()) {
+  const reset = buildTodayReset(chart, now);
+  return reset ? { ...reset, time: fmtClock(reset.at) } : null;
+}
+
 const PLAN_STATUS_VIEW = {
   updated: { cls: 'updated', marker: '更', fallback: '功能更新' },
   confirmed: { cls: 'confirmed', marker: '重', fallback: '重置已确认' },
   observed: { cls: 'observed', marker: '实', fallback: '已有账号实测到账' },
   mixed: { cls: 'mixed', marker: '双', fallback: '更新与重置' },
   pending: { cls: 'pending', marker: '预', fallback: '重置预告' },
-  noted: { cls: 'noted', marker: '提', fallback: '当日动态' },
+  noted: { cls: 'noted', marker: '动', fallback: '当日动态' },
   missing: { cls: 'missing', marker: '—', fallback: '未见公告' },
   future: { cls: 'future', marker: '·', fallback: '尚未到此日' },
 };
@@ -66,7 +74,7 @@ const PLAN_ENTRY_LABELS = {
   reset: { text: '重置确认', cls: 'reset' },
   credit: { text: '发券确认', cls: 'credit' },
   announcement: { text: '重置预告', cls: 'announcement' },
-  'reset-unconfirmed': { text: '提及重置·待核实', cls: 'pending' },
+  'reset-unconfirmed': { text: '重置预告·待落地', cls: 'pending' },
 };
 
 function planEntryView(entry, day, index) {
@@ -113,8 +121,10 @@ export function buildProgramPlanView(plan) {
   const days = Array.from({ length: 28 }, (_, index) => {
     const day = index + 1;
     const row = rowsByDay.get(day) || null;
-    const status = PLAN_STATUS_VIEW[row?.status] ? row.status : day > latestDay ? 'future' : 'missing';
+    const legacyResetMention = row?.status === 'noted' && (row.entries || []).some((entry) => entry.kind === 'reset-unconfirmed');
+    const status = legacyResetMention ? 'pending' : PLAN_STATUS_VIEW[row?.status] ? row.status : day > latestDay ? 'future' : 'missing';
     const statusView = PLAN_STATUS_VIEW[status];
+    const statusLabel = legacyResetMention ? '重置预告·待落地' : row?.statusLabel || statusView.fallback;
     return {
       ...(row || {}),
       day,
@@ -122,8 +132,8 @@ export function buildProgramPlanView(plan) {
       status,
       statusClass: statusView.cls,
       marker: statusView.marker,
-      statusLabel: row?.statusLabel || statusView.fallback,
-      accessibleLabel: `Day ${day} · ${row?.statusLabel || statusView.fallback}`,
+      statusLabel,
+      accessibleLabel: `Day ${day} · ${statusLabel}`,
       entries: (row?.entries || []).map((entry, entryIndex) => planEntryView(entry, day, entryIndex)),
     };
   });

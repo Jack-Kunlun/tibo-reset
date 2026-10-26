@@ -1513,7 +1513,7 @@ for (const permanent of [false, true]) {
   const aliasMutantSends = await runRecreatedManualEvent(aliasMutation);
   check('删除精确人工事件别名的隔离反例会对撤回重建事件重复发送', aliasControlSends === 1 && aliasMutantSends === 2);
 
-  const mutated = source.replace('const seen = state.landed_event_keys.some((key) => candidate.keys.includes(key));',
+  const mutated = source.replace('const seen = sharesEventKey(state.landed_event_keys, candidate.keys);',
     'const seen = false;')
     .replace(/from (['"])(\.\.?\/[^'"]+)\1/g, (_, quote, path) => `from ${quote}${new URL(path, sourceUrl).href}${quote}`);
   assert.notEqual(mutated, source, '事件去重 guard 变异锚点存在');

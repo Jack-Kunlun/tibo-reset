@@ -23,6 +23,8 @@
  */
 
 const DAY = 86_400_000;
+const BEIJING_OFFSET_MS = 8 * 60 * 60_000;
+const WEEKDAYS_CN = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
 /* ------------------------------ 判据常量 ------------------------------ */
 
@@ -51,6 +53,42 @@ export const STATUS_NOTE = {
 /* ------------------------------ 工具 ------------------------------ */
 
 const finite = (v) => typeof v === 'number' && Number.isFinite(v);
+
+/**
+ * 判断最近一笔已确认重置或发券记录是否发生在北京时间今天。
+ * 页面上的到账事实只看 chart.lastAt；不从公告窗口或预测 ETA 推导到账。
+ */
+export function buildTodayReset(chart, now) {
+  const rawLastAt = chart?.lastAt;
+  const lastAt = finite(rawLastAt)
+    ? rawLastAt
+    : typeof rawLastAt === 'string' && rawLastAt
+      ? Date.parse(rawLastAt)
+      : NaN;
+  if (!finite(now) || !finite(lastAt) || lastAt > now) return null;
+
+  // 固定 +08:00 后只用 UTC 字段比较，避免系统时区与小程序 Intl 能力影响结果。
+  const eventDate = new Date(lastAt + BEIJING_OFFSET_MS);
+  const currentDate = new Date(now + BEIJING_OFFSET_MS);
+  const year = currentDate.getUTCFullYear();
+  const month = currentDate.getUTCMonth();
+  const day = currentDate.getUTCDate();
+  if (
+    eventDate.getUTCFullYear() !== year ||
+    eventDate.getUTCMonth() !== month ||
+    eventDate.getUTCDate() !== day
+  ) return null;
+
+  const monthText = String(month + 1).padStart(2, '0');
+  const dayText = String(day).padStart(2, '0');
+  const nextMidnight = Date.UTC(year, month, day + 1) - BEIJING_OFFSET_MS;
+  return {
+    at: lastAt,
+    dayKey: `${year}-${monthText}-${dayText}`,
+    dayLabel: `${monthText}.${dayText} ${WEEKDAYS_CN[currentDate.getUTCDay()]}`,
+    expiresAt: nextMidnight,
+  };
+}
 
 /* ------------------------------ 主函数 ------------------------------ */
 
@@ -207,6 +245,7 @@ export function buildOutlook({ chart, prediction, signals, now }) {
 
   return {
     now: at,
+    todayReset: buildTodayReset(chart, at),
     /** 结论 */
     etaAt,
     etaKind,

@@ -212,6 +212,7 @@ async function getNotificationRecords() {
   const signals = await getSignals(data);
   const plan = signals.calendar?.plan;
   if (!plan?.programId || !Array.isArray(plan.rows)) return data.resets.records;
+  const assignmentByRecordId = new Map((plan.eventAssignments ?? []).map((assignment) => [assignment.recordId, assignment]));
   const tweets = data.tweets.tweets ?? [];
   const tweetById = new Map(tweets.map((tweet) => [String(tweet.id), tweet]));
   const dayByTweetId = new Map();
@@ -226,6 +227,9 @@ async function getNotificationRecords() {
   }
   return data.resets.records.map((record) => {
     if (record.manual && record.programId && Number.isInteger(record.programDay)) return record;
+    const assignment = assignmentByRecordId.get(String(record.id));
+    if (Number.isInteger(assignment?.day)) return { ...record, programId: String(plan.programId), programDay: assignment.day,
+      programAssignmentSource: assignment.source, programAnchorId: assignment.anchorId };
     const ids = new Set();
     if (/^\d+$/.test(String(record.id ?? ''))) ids.add(String(record.id));
     for (const url of [record.url, ...(Array.isArray(record.confirmation_urls) ? record.confirmation_urls : [])]) {
