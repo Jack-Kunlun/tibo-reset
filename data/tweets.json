@@ -1,6 +1,112 @@
 {
   "tweets": [
     {
+      "id": "2114599388454481930",
+      "text": "Not enough resets",
+      "created_at": "2026-10-26T06:05:56.000Z",
+      "url": "https://x.com/thsottiaux/status/2114599388454481930",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "larsencc",
+        "id": "",
+        "text": "Sunday @bot feedback thread. Whats the most annoying thing about grok bot right now? Be honest and brutal.",
+        "created_at": "2026-10-25T21:02:57.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-26T06:10:46.826Z"
+    },
+    {
+      "id": "2114598675930296518",
+      "text": "Absolutely",
+      "created_at": "2026-10-26T06:03:06.000Z",
+      "url": "https://x.com/thsottiaux/status/2114598675930296518",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "Sisymiro",
+        "id": "",
+        "text": "Could you add Claude's default color scheme?",
+        "created_at": "2026-10-26T05:56:25.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-26T06:10:46.826Z"
+    },
+    {
+      "id": "2114598609245126731",
+      "text": "10/10 soothed",
+      "created_at": "2026-10-26T06:02:50.000Z",
+      "url": "https://x.com/thsottiaux/status/2114598609245126731",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "bijanbowen",
+        "id": "",
+        "text": "thx for the tip, this is soothing to me",
+        "created_at": "2026-10-26T05:54:31.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-26T06:10:46.826Z"
+    },
+    {
+      "id": "2114595002210783279",
+      "text": "Reminder you can customize the appearance of chatgpt on web and make it soothing https:// chatgpt.com/settings/appea rance …",
+      "created_at": "2026-10-26T05:48:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2114595002210783279",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-26T06:10:46.826Z"
+    },
+    {
+      "id": "2114588845874491691",
+      "text": "Me too, me too",
+      "created_at": "2026-10-26T05:24:02.000Z",
+      "url": "https://x.com/thsottiaux/status/2114588845874491691",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "Aoakudotcom",
+        "id": "",
+        "text": "Nice! I am going to miss this when it’s over.",
+        "created_at": "2026-10-26T05:22:11.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-26T06:10:46.826Z"
+    },
+    {
+      "id": "2114588174249071102",
+      "text": "Day 21/ Wonder what happens the remaining seven days. But today is a reset.",
+      "created_at": "2026-10-26T05:21:22.000Z",
+      "url": "https://x.com/thsottiaux/status/2114588174249071102",
+      "author_verified": true,
+      "kind": "reset",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-26T06:10:46.826Z",
+      "translation": {
+        "text": "第 21 天 / 好奇剩下的七天会发生什么。不过今天是重置日。",
+        "sourceHash": "00bea276356bdb1bdf10a9a8d4d1e6a9c833a5a2e04bf2c686914319568846c1",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
       "id": "2114435873857028129",
       "text": "Did you?",
       "created_at": "2026-10-25T19:16:11.000Z",
@@ -8370,7 +8476,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-25T20:01:30.947Z",
+  "updated_at": "2026-10-26T06:10:46.830Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
