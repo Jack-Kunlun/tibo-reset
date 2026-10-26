@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-25T06:06:16.000Z",
     "last_text": "It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ https://t.co/xKaK95EAly",
-    "days_since_last": 1.0798675,
+    "days_since_last": 1.5796650925925926,
     "avg_interval_days": 6.201318376068373,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.358045775625218,
@@ -14,12 +14,12 @@
     "reset_count": 59,
     "hit_within_avg": 0.7230769230769231
   },
-  "generated_at": "2026-10-26T08:01:16.805Z",
+  "generated_at": "2026-10-26T20:00:59.167Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
-    "stoppedBy": "known",
-    "newTweets": 0,
+    "stoppedBy": "floor",
+    "newTweets": 1,
     "knownCount": 470,
     "reply": {
       "mode": "incremental",
@@ -31,9 +31,9 @@
     },
     "replyError": null,
     "fullText": {
-      "candidates": 2,
-      "attempted": 2,
-      "fetched": 2,
+      "candidates": 3,
+      "attempted": 3,
+      "fetched": 3,
       "skipped": 0,
       "missingReplyContext": [],
       "scanned": [
@@ -52,6 +52,14 @@
           "networkMetadataStatus": "verified",
           "needsReplyContext": true,
           "replyContextStatus": "verified"
+        },
+        {
+          "id": "2114800277677092936",
+          "length": 256,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
         }
       ]
     }
@@ -61,7 +69,7 @@
     "updated": 0,
     "removed": 0,
     "upstreamCount": 68,
-    "refreshedAt": "2026-10-26T08:00:52.754Z",
+    "refreshedAt": "2026-10-26T20:00:36.729Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,

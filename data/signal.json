@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-26T08:01:16.385Z",
-  "checkedTweets": 470,
+  "generatedAt": "2026-10-26T20:00:59.014Z",
+  "checkedTweets": 471,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-27T08:01:16.385Z",
-  "windowTo": "2026-10-26T08:01:16.385Z",
+  "windowFrom": "2026-08-27T20:00:59.014Z",
+  "windowTo": "2026-10-26T20:00:59.014Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -87,10 +87,10 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.10.26",
-      "weekday": "周一",
-      "time": "16:01",
-      "text": "2026.10.26（周一）16:01",
+      "date": "2026.10.27",
+      "weekday": "周二",
+      "time": "04:00",
+      "text": "2026.10.27（周二）04:00",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,53 +98,50 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.26",
       "weekday": "周一",
-      "time": "01:01",
-      "text": "2026.10.26（周一）01:01",
+      "time": "13:00",
+      "text": "2026.10.26（周一）13:00",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2114599388454481930",
+    "id": "2114800277677092936",
     "account": "thsottiaux",
-    "text": "Not enough resets",
-    "createdAt": "2026-10-26T06:05:56.000Z",
-    "url": "https://x.com/thsottiaux/status/2114599388454481930",
+    "text": "Day 22/ Terra is back! Our first model that is significantly better at writing, personality and nuanced understanding of requests. Packs a punch across the board, very good at computer use, and gives 2X more usage than 6.1 Sol across API and subscriptions.",
+    "createdAt": "2026-10-26T19:24:11.000Z",
+    "url": "https://x.com/thsottiaux/status/2114800277677092936",
     "reasons": [
-      "命中重置词 reset",
-      "上下文：回复 @larsencc「Sunday @bot feedback thread. Whats t…」"
+      "命中额度词 limits/usage/credits",
+      "命中「新额度」类词 fresh/new/top up",
+      "含发布/宣传语境（下调置信度）"
     ],
     "viaContext": false,
-    "inReplyTo": {
-      "account": "larsencc",
-      "id": "",
-      "text": "Sunday @bot feedback thread. Whats the most annoying thing about grok bot right now? Be honest and brutal."
-    },
+    "inReplyTo": null,
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.10.26",
-        "weekday": "周一",
-        "time": "14:05",
-        "text": "2026.10.26（周一）14:05",
+        "date": "2026.10.27",
+        "weekday": "周二",
+        "time": "03:24",
+        "text": "2026.10.27（周二）03:24",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.10.25",
-        "weekday": "周日",
-        "time": "23:05",
-        "text": "2026.10.25（周日）23:05",
+        "date": "2026.10.26",
+        "weekday": "周一",
+        "time": "12:24",
+        "text": "2026.10.26（周一）12:24",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "none",
-    "rejected": "重置被否定或对象并非使用额度",
-    "intent": 0,
+    "level": "hint",
+    "rejected": "有额度意图但没给出时间，只能作线索",
+    "intent": 3,
     "window": null,
     "candidateWindow": null
   },
@@ -806,6 +803,46 @@
     }
   ],
   "hints": [
+    {
+      "id": "2114800277677092936",
+      "account": "thsottiaux",
+      "text": "Day 22/ Terra is back! Our first model that is significantly better at writing, personality and nuanced understanding of requests. Packs a punch across the board, very good at computer use, and gives 2X more usage than 6.1 Sol across API and subscriptions.",
+      "createdAt": "2026-10-26T19:24:11.000Z",
+      "url": "https://x.com/thsottiaux/status/2114800277677092936",
+      "reasons": [
+        "命中额度词 limits/usage/credits",
+        "命中「新额度」类词 fresh/new/top up",
+        "含发布/宣传语境（下调置信度）"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.27",
+          "weekday": "周二",
+          "time": "03:24",
+          "text": "2026.10.27（周二）03:24",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.26",
+          "weekday": "周一",
+          "time": "12:24",
+          "text": "2026.10.26（周一）12:24",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "hint",
+      "rejected": "有额度意图但没给出时间，只能作线索",
+      "intent": 3,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2114030784625647855",
       "account": "thsottiaux",
@@ -3005,7 +3042,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-10-26T08:01:16.385Z"
+        "checkedAt": "2026-10-26T20:00:59.014Z"
       }
     },
     {
@@ -12096,10 +12133,10 @@
   },
   "forecasts": [],
   "counts": {
-    "scanned": 470,
+    "scanned": 471,
     "explicit": 2,
     "occurred": 12,
-    "hint": 64,
+    "hint": 65,
     "none": 373,
     "rejected": 373
   },

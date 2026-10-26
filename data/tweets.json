@@ -1,6 +1,30 @@
 {
   "tweets": [
     {
+      "id": "2114800277677092936",
+      "text": "Day 22/ Terra is back! Our first model that is significantly better at writing, personality and nuanced understanding of requests. Packs a punch across the board, very good at computer use, and gives 2X more usage than 6.1 Sol across API and subscriptions.",
+      "created_at": "2026-10-26T19:24:11.000Z",
+      "url": "https://x.com/thsottiaux/status/2114800277677092936",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "OpenAI",
+        "text": "GPT-6.1 Terra: delivering fast and capable computer use at a lower price. GPT-6.1 Terra understands what’s on screen, takes action across apps, writes naturally, and is a more capable model for your whole workday with the efficiency to take on more of it.",
+        "created_at": "2026-10-26T18:06:27.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-26T20:00:58.982Z",
+      "translation": {
+        "text": "第 22 天 / Terra 回来了！这是我们第一个在写作、人格化以及对需求的细致理解上都有明显提升的模型。各项能力都很强，电脑操作尤其出色，而且无论 API 还是订阅，用量都是 6.1 Sol 的两倍。",
+        "sourceHash": "cdb0744a751e96496ba383e4474f3dde48ed091175992fc524f6ff097739e8d6",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
       "id": "2114599388454481930",
       "text": "Not enough resets",
       "created_at": "2026-10-26T06:05:56.000Z",
@@ -8476,7 +8500,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-26T08:01:16.332Z",
+  "updated_at": "2026-10-26T20:00:58.985Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
