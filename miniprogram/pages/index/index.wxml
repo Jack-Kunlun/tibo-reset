@@ -67,8 +67,8 @@
         </view>
       </view>
       <view class="tr-view tr-plan-legend">
-        <view class="tr-view tr-plan-legend-primary"><view class="tr-view tr-plan-legend-item"><view class="tr-view tr-plan-legend-mark updated">更</view><text class="tr-text">更新</text></view><view class="tr-view tr-plan-legend-item"><view class="tr-view tr-plan-legend-mark confirmed">重</view><text class="tr-text">重置确认</text></view><view class="tr-view tr-plan-legend-item"><view class="tr-view tr-plan-legend-mark mixed">双</view><text class="tr-text">更新+重置</text></view></view>
-        <text class="tr-text tr-plan-legend-note">{{planView.hasObserved ? '实 = 单账号实测（来源与时间见详情）；' : ''}}其他状态含预告、当日动态与未见公告，浅色标记表示后续日期。</text>
+        <view class="tr-view tr-plan-legend-primary"><view class="tr-view tr-plan-legend-item"><view class="tr-view tr-plan-legend-mark updated">更</view><text class="tr-text">更新</text></view><view class="tr-view tr-plan-legend-item"><view class="tr-view tr-plan-legend-mark pending">预</view><text class="tr-text">预告</text></view><view class="tr-view tr-plan-legend-item"><view class="tr-view tr-plan-legend-mark confirmed">重</view><text class="tr-text">重置到账</text></view><view class="tr-view tr-plan-legend-item"><view class="tr-view tr-plan-legend-mark mixed">双</view><text class="tr-text">更新+重置</text></view></view>
+        <text class="tr-text tr-plan-legend-note">- = 暂无更新、预告或到账记录，浅色标记表示后续日期。{{planView.hasObserved ? '账号到账反馈的来源与时间见详情。' : ''}}</text>
       </view>
       <view wx:if="{{selectedPlan}}" class="tr-view tr-plan-detail">
         <view class="tr-view tr-plan-detail-head"><text class="tr-text tr-plan-detail-title">Day {{selectedPlan.day}}</text><view class="tr-view tr-plan-status {{selectedPlan.statusClass}}">{{selectedPlan.statusLabel}}</view></view>

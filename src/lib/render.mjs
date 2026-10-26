@@ -1434,18 +1434,25 @@ export function renderTodayReset(todayReset) {
 export function renderProgramPlan(plan, program) {
   if (!plan?.rows?.length) return renderProgram(program);
   const selected = plan.rows.find((row) => row.day === plan.latestDay) ?? plan.rows[0];
-  const markers = { updated: '更', mixed: '双', confirmed: '重', observed: '实', pending: '预', noted: '动', missing: '—', future: '·' };
-  const entryLabels = { update: '功能更新', roundup: '当日汇总', note: '当日动态', reset: '重置确认',
+  const markers = { updated: '更', mixed: '双', confirmed: '重', pending: '预', missing: '-', future: '-' };
+  const rowView = (row) => {
+    const legacyResetMention = row.status === 'noted' && (row.entries || []).some((entry) => entry.kind === 'reset-unconfirmed');
+    const status = legacyResetMention ? 'pending'
+      : row.status === 'observed' ? (row.updateCount > 0 ? 'mixed' : 'confirmed')
+      : row.status === 'noted' || !markers[row.status] ? 'missing' : row.status;
+    const statusLabel = status === 'missing' || status === 'future' ? '-'
+      : legacyResetMention ? '重置预告·待落地'
+      : row.status === 'observed' ? (status === 'mixed' ? '更新与重置' : '重置已确认') : row.statusLabel;
+    return { status, statusLabel };
+  };
+  const entryLabels = { update: '功能更新', roundup: '当日汇总', note: '原帖', reset: '重置确认',
     credit: '发券确认', announcement: '重置预告', 'reset-unconfirmed': '重置预告·待落地' };
   const cells = plan.rows.map((row) => {
-    const legacyResetMention = row.status === 'noted' && (row.entries || []).some((entry) => entry.kind === 'reset-unconfirmed');
-    const status = legacyResetMention ? 'pending' : row.status;
-    const statusLabel = legacyResetMention ? '重置预告·待落地' : row.statusLabel;
-    return `<a class="plan-cell plan-${attr(status)}${row === selected ? ' is-selected' : ''}" href="#program-day-${row.day}" data-plan-select="${row.day}"${row === selected ? ' aria-current="true"' : ''} aria-label="Day ${row.day} · ${attr(statusLabel)}"><span>Day <b>${row.day}</b></span><small>${esc(statusLabel)}</small><i aria-hidden="true">${markers[status] || '·'}</i></a>`;
+    const { status, statusLabel } = rowView(row);
+    return `<a class="plan-cell plan-${attr(status)}${row === selected ? ' is-selected' : ''}" href="#program-day-${row.day}" data-plan-select="${row.day}"${row === selected ? ' aria-current="true"' : ''} aria-label="Day ${row.day} · ${attr(statusLabel)}"><span>Day <b>${row.day}</b></span><small>${esc(statusLabel)}</small><i aria-hidden="true">${markers[status] || '-'}</i></a>`;
   }).join('');
   const rows = plan.rows.map((row) => {
-    const legacyResetMention = row.status === 'noted' && (row.entries || []).some((entry) => entry.kind === 'reset-unconfirmed');
-    const statusLabel = legacyResetMention ? '重置预告·待落地' : row.statusLabel;
+    const { statusLabel } = rowView(row);
     const entries = row.entries.map((entry) => {
       const labels = [...new Set([entry.isUpdate ? '功能更新' : '', entry.isAccountObserved ? '已有账号实测到账' : entry.awaitingVerification ? '落地待核实' : entryLabels[entry.kind],entry.manual || entry.sourceLabel === '手动确认' ? '手动确认' : ''].filter(Boolean))];
       const observation = entry.isAccountObserved
@@ -1468,7 +1475,7 @@ export function renderProgramPlan(plan, program) {
     <div class="plan-heading"><div><span class="plan-kicker">每天发布改进，或重置额度</span><h2>${esc(plan.title)}</h2></div><span class="plan-latest">最新原帖 <b>Day ${plan.latestDay} / ${plan.days}</b></span></div>
     <p class="plan-stats"><span><b>${plan.reportedDays}</b> 天有原帖</span><span><b>${plan.updatedDays}</b> 天有功能更新</span><span><b>${plan.resetDays}</b> 天确认重置</span></p>
     <nav class="plan-grid" aria-label="按活动日查看">${cells}</nav>
-    <p class="plan-legend"><span>● 功能更新</span>${plan.rows.some((row) => row.observedCount) ? '<span>◇ 单账号实测</span>' : ''}<span>● 重置确认</span><span>预 · 重置预告 · 待落地</span><span>日序取原帖 Day 编号</span></p>
+    <p class="plan-legend"><span>更 · 功能更新</span><span>预 · 重置预告</span><span>重 · 重置到账</span><span>双 · 更新+重置</span><span>- · 暂无更新、预告或到账记录</span>${plan.rows.some((row) => row.observedCount) ? '<span>账号到账反馈的来源与时间见详情</span>' : ''}<span>日序取原帖 Day 编号</span></p>
     <div class="plan-days">${rows}</div>
     ${renderProgram(program, { title: '活动时段与原始规则' })}
   </section>`;

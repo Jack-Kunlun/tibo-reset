@@ -59,18 +59,16 @@ export function buildTodayResetView(chart, now = Date.now()) {
 const PLAN_STATUS_VIEW = {
   updated: { cls: 'updated', marker: '更', fallback: '功能更新' },
   confirmed: { cls: 'confirmed', marker: '重', fallback: '重置已确认' },
-  observed: { cls: 'observed', marker: '实', fallback: '已有账号实测到账' },
   mixed: { cls: 'mixed', marker: '双', fallback: '更新与重置' },
   pending: { cls: 'pending', marker: '预', fallback: '重置预告' },
-  noted: { cls: 'noted', marker: '动', fallback: '当日动态' },
-  missing: { cls: 'missing', marker: '—', fallback: '未见公告' },
-  future: { cls: 'future', marker: '·', fallback: '尚未到此日' },
+  missing: { cls: 'missing', marker: '-', fallback: '-' },
+  future: { cls: 'future', marker: '-', fallback: '-' },
 };
 
 const PLAN_ENTRY_LABELS = {
   update: { text: '功能更新', cls: 'update' },
   roundup: { text: '当日汇总', cls: 'roundup' },
-  note: { text: '当日动态', cls: 'note' },
+  note: { text: '原帖', cls: 'note' },
   reset: { text: '重置确认', cls: 'reset' },
   credit: { text: '发券确认', cls: 'credit' },
   announcement: { text: '重置预告', cls: 'announcement' },
@@ -122,9 +120,15 @@ export function buildProgramPlanView(plan) {
     const day = index + 1;
     const row = rowsByDay.get(day) || null;
     const legacyResetMention = row?.status === 'noted' && (row.entries || []).some((entry) => entry.kind === 'reset-unconfirmed');
-    const status = legacyResetMention ? 'pending' : PLAN_STATUS_VIEW[row?.status] ? row.status : day > latestDay ? 'future' : 'missing';
+    // 普通原帖不增加业务状态；到账来源留在详情，格子统一使用重置状态。
+    const status = legacyResetMention ? 'pending'
+      : row?.status === 'observed' ? (row.updateCount > 0 ? 'mixed' : 'confirmed')
+      : row?.status === 'noted' ? 'missing'
+      : PLAN_STATUS_VIEW[row?.status] ? row.status : day > latestDay ? 'future' : 'missing';
     const statusView = PLAN_STATUS_VIEW[status];
-    const statusLabel = legacyResetMention ? '重置预告·待落地' : row?.statusLabel || statusView.fallback;
+    const statusLabel = status === 'missing' || status === 'future' ? '-'
+      : legacyResetMention ? '重置预告·待落地'
+      : row?.status === 'observed' ? statusView.fallback : row?.statusLabel || statusView.fallback;
     return {
       ...(row || {}),
       day,
