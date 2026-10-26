@@ -7,6 +7,7 @@ import vm from 'node:vm';
 import { renderProgramPlan, renderAll, renderRecentRhythm } from '../src/lib/render.mjs';
 import { rhythmScene, sceneBounds } from '../src/lib/scene.js';
 import { derive } from '../src/lib/page.mjs';
+import { buildProgramPlanView } from '../miniprogram/utils/view.js';
 
 const template = await readFile(new URL('../src/index.html', import.meta.url), 'utf8');
 const rendererSource = await readFile(new URL('../src/lib/render.mjs', import.meta.url), 'utf8');
@@ -28,7 +29,7 @@ const cases = [
   ['完整保留28日投影，不把日历日期当活动编号', render => {
     const html = render(plan, program);
     assert.deepEqual([...html.matchAll(/data-plan-select="(\d+)"/g)].map(m => Number(m[1])), rows.map(row => row.day));
-  }, 'plan.rows.map((row) => `<a', 'plan.rows.slice(0, 27).map((row) => `<a'],
+  }, 'const cells = plan.rows.map((row) => {', 'const cells = plan.rows.slice(0, 27).map((row) => {'],
   ['默认选择最新原帖日', render => {
     const html = render(plan, program);
     assert.equal(html.match(/class="plan-day is-selected" id="program-day-(\d+)"/)[1], '2');
@@ -55,6 +56,42 @@ const cases = [
   }, "row.status === 'future'", 'false'],
 ];
 for (const [name, run] of cases) check(name, () => run(renderProgramPlan));
+
+check('双端只显示更新、预告、到账及组合，空状态统一为短横线', () => {
+  const examples = [
+    { status: 'updated', marker: '更' },
+    { status: 'pending', marker: '预' },
+    { status: 'confirmed', marker: '重' },
+    { status: 'mixed', marker: '双' },
+    { status: 'noted', marker: '-', entries: [{ kind: 'note', text: 'Ordinary discussion' }] },
+    { status: 'missing', marker: '-' },
+    { status: 'future', marker: '-' },
+    { status: 'unknown', marker: '-' },
+    { status: 'noted', marker: '预', entries: [{ kind: 'reset-unconfirmed', text: 'A reset is coming' }] },
+    { status: 'observed', marker: '重', updateCount: 0 },
+    { status: 'observed', marker: '双', updateCount: 1 },
+  ];
+  const fixture = { ...plan, latestDay: 6, rows: examples.map((example, i) => ({
+    ...example, day: i + 1, statusLabel: '旧版状态文案', entries: example.entries || [],
+  })) };
+  const before = JSON.stringify(fixture);
+  const mini = buildProgramPlanView(fixture);
+  const html = renderProgramPlan(fixture, program);
+  const cells = [...html.matchAll(/<a class="plan-cell [^>]*data-plan-select="(\d+)"[^>]*>([\s\S]*?)<\/a>/g)];
+  assert.equal(cells.length, examples.length);
+  for (const [i, example] of examples.entries()) {
+    assert.equal(mini.days[i].marker, example.marker);
+    assert.equal(cells[i][2].match(/<i[^>]*>([^<]*)<\/i>/)[1], example.marker);
+    if (example.marker === '-') {
+      assert.equal(mini.days[i].statusLabel, '-');
+      assert.match(cells[i][2], /<small>-<\/small>/);
+      assert.match(html, new RegExp(`id="program-day-${i + 1}"[\\s\\S]*?<summary><b>Day ${i + 1}</b><span>-</span>`));
+    }
+  }
+  assert.equal(mini.days[27].marker, '-');
+  assert.ok(!/[动提实—·]/.test(mini.days.map((day) => day.marker).join('')));
+  assert.equal(JSON.stringify(fixture), before);
+});
 
 // 隔离源码变异，不触碰实际文件；每个新增用例都须能拦住对应反例。
 for (const [index, [name, run, from, to]] of cases.entries()) {

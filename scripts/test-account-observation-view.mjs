@@ -138,8 +138,8 @@ assert.equal(calendarView.gridCells.find((cell) => cell.date === '2026-10-22').d
 assert.equal(calendarView.observedCount, 1);
 assert.equal(calendarView.confirmedCount, 7);
 const planView = buildProgramPlanView(calendar.plan);
-assert.equal(planView.days[16].status, 'observed');
-assert.equal(planView.days[16].marker, '实');
+assert.equal(planView.days[16].status, 'mixed');
+assert.equal(planView.days[16].marker, '双');
 assert.equal(planView.days[16].entries[0].labels[0].text, '已有账号实测到账');
 assert.match(planView.days[16].entries[0].observationText, /约2026\.10\.23 01:10 北京 · 维护者账号实测 · 仅代表单个账号/);
 assert.equal(planView.resetDays, 6);
@@ -176,8 +176,8 @@ assert.ok(webExplicit.includes('data-level="explicit"'));
 assert.ok(!webExplicit.includes('class="sig-observed"'));
 
 const webPlan = renderProgramPlan(calendar.plan);
-assert.match(webPlan, /plan-observed/);
-assert.match(webPlan, /◇ 单账号实测/);
+assert.match(webPlan, /plan-mixed/);
+assert.match(webPlan, /账号到账反馈的来源与时间见详情/);
 assert.match(webPlan, /约2026\.10\.23 01:10 北京 · 维护者账号实测 · 仅代表单个账号/);
 assert.ok(!webPlan.includes('class="plan-label is-confirmed"'));
 const webCalendar = renderResetCalendar(calendar);
@@ -209,7 +209,7 @@ const [webTemplate, indexWxml, historyWxml] = await Promise.all([
 ]);
 assert.ok(webTemplate.includes('<!--__ACCOUNT_OBSERVATION__-->'));
 assert.ok(indexWxml.includes("signal.status === 'observed' ? '已有账号实测到账'"));
-assert.ok(indexWxml.includes('实 = 单账号实测（来源与时间见详情）'));
+assert.ok(indexWxml.includes('账号到账反馈的来源与时间见详情'));
 assert.ok(historyWxml.includes('{{calendar.observedCount}}'));
 assert.ok(historyWxml.includes("item.observedCount ? '实测'"));
 
