@@ -1,6 +1,25 @@
 {
   "tweets": [
     {
+      "id": "2114922374978277786",
+      "text": "Interesting",
+      "created_at": "2026-10-27T03:29:22.000Z",
+      "url": "https://x.com/thsottiaux/status/2114922374978277786",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "TokenGremlin",
+        "id": "",
+        "text": "I have no idea what OpenAI did with GPT-6.1 Terra, but this thing runs like it's in Ultrafast mode when you enable Fast. And even at normal speed, it's ridiculously fast. I genuinely wasn't expecting this. It caught me completely off guard, and I think OpenAI has pulled off some",
+        "created_at": "2026-10-27T00:26:00.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-27T04:03:09.734Z"
+    },
+    {
       "id": "2114839845604667840",
       "text": "传说准确的蒂博",
       "created_at": "2026-10-26T22:01:25.000Z",
@@ -8519,7 +8538,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-27T00:06:05.068Z",
+  "updated_at": "2026-10-27T04:03:09.743Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
