@@ -1,6 +1,25 @@
 {
   "tweets": [
     {
+      "id": "2115148258372964831",
+      "text": "A sign of great things to come",
+      "created_at": "2026-10-27T18:26:57.000Z",
+      "url": "https://x.com/thsottiaux/status/2115148258372964831",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "BrenBuilds",
+        "id": "",
+        "text": "GPT-6.1 Terra fixed all 20 bugs in my app for about $.06 a run GPT-6.1 SOL did the same for $.22 and opus 5.5 for $.78 GPT-6 Luna and Haiku 5.5 cost less but missed bugs in every run",
+        "created_at": "2026-10-27T12:13:51.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-27T20:00:56.130Z"
+    },
+    {
       "id": "2114922374978277786",
       "text": "Interesting",
       "created_at": "2026-10-27T03:29:22.000Z",
@@ -8538,7 +8557,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-27T07:01:39.945Z",
+  "updated_at": "2026-10-27T20:00:56.132Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
