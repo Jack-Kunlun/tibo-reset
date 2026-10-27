@@ -122,6 +122,27 @@ const COPIES = {
   }
 };
 
+const PROGRAM_DAY = /^\s*Day\s*\d+(?:\.\d+|\s*\([^)]*\))?\s*\//i;
+const UPDATE_SUBJECT = /\b(?:models?|api|cli|codex|chatgpt|apps?|desktop|mobile|features?|performance|speed|cache|context|threads?|composer|review|steering|routing|usage|tokens?|latency|storage|disk|compute|improvements?)\b/i;
+const UPDATE_DELIVERY = /\b(?:(?:we(?:'ve| have)?|i(?:'ve| have)?)\s+(?:just\s+)?(?:shipped|launched|released|added|enabled|improved|optimized|reduced|increased|removed|updated|made|rolled out)|(?:we're|we are)\s+(?:shipping|launching|releasing|rolling out)|(?:is|are)\s+(?:(?:now|generally)\s+)?(?:available|live|back|ga)\b|you can now\s+(?:use|create|edit|run|cache|connect|access|enable)|(?:also |now )?(?:releasing|introducing)\b)/i;
+const UPDATE_UNCERTAIN = /\b(?:if|wish|hope|hopefully|would|could|should|might|maybe|planning|planned|want|expect|will|tomorrow|soon|next (?:week|month|day)|last (?:week|month)|yesterday)\b/i;
+const UPDATE_NEGATED = /\b(?:not|never|no|isn't|aren't|haven't|hasn't|didn't|don't|won't|can't)\b/i;
+const UPDATE_WITHDRAWN = /\b(?:cancelled|canceled|rolled back|reverted|withdrawn)\b/i;
+
+function inferredProgramKind(text, body) {
+  // 编号本身不代表交付；只读本人正文里的明确发布语句，不能借引用或译文补结论。
+  if (!PROGRAM_DAY.test(text) || UPDATE_WITHDRAWN.test(body)) return 'note';
+  const clauses = body.replace(/[’‘]/g, "'").split(/(?<=[.!?;])\s+|\n+/);
+  const opening = clauses[0] ?? '';
+  if (/\b(?:roundup|recap|summary)\b/i.test(opening)) return 'roundup';
+  if (clauses.some((clause) => UPDATE_SUBJECT.test(clause) && UPDATE_DELIVERY.test(clause) &&
+    !clause.includes('?') && !UPDATE_UNCERTAIN.test(clause) && !UPDATE_NEGATED.test(clause))) return 'update';
+  // 回归发布常把产品名放首句、具体能力放次句，两句必须同时成立。
+  return /\bis back\b/i.test(opening) && !opening.includes('?') && !UPDATE_UNCERTAIN.test(opening) && !UPDATE_NEGATED.test(opening) &&
+      clauses.slice(1).some((clause) => /\bmodel\b/i.test(clause) && /\b(?:better|faster|more capable)\b/i.test(clause) &&
+        !clause.includes('?') && !UPDATE_UNCERTAIN.test(clause) && !UPDATE_NEGATED.test(clause)) ? 'update' : 'note';
+}
+
 export function programPostCopy(tweet) {
   const text = String(tweet?.text ?? '');
   const copy = COPIES[String(tweet?.id)];
@@ -129,7 +150,7 @@ export function programPostCopy(tweet) {
     return { title: copy.title, kind: copy.kind };
   }
   const body = text.replace(/\bDay\s*\d+(?:\.\d+|\s*\([^)]*\))?\s*\//i, '').replace(/https?:\/\/\S+/g, '').trim();
-  return { title: body.length > 90 ? body.slice(0, 90) + '…' : body || '当日动态', kind: 'note' };
+  return { title: body.length > 90 ? body.slice(0, 90) + '…' : body || '当日动态', kind: inferredProgramKind(text, body) };
 }
 
 // 已逐组核对的活动跟进帖；只补展示归属，到账仍须有现存确认记录。
