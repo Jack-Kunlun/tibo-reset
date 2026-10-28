@@ -10,7 +10,7 @@
     "to": "2026-11-01T06:59:00.000Z",
     "fromDayNum": 20730,
     "throughDayNum": 20757,
-    "daysLeft": 5,
+    "daysLeft": 4,
     "createdZones": {
       "a": {
         "label": "北京时间",
@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-28T06:38:33.700Z",
+  "generatedAt": "2026-10-28T07:01:40.659Z",
   "checkedTweets": 484,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-29T06:38:33.700Z",
-  "windowTo": "2026-10-28T06:38:33.700Z",
+  "windowFrom": "2026-08-29T07:01:40.659Z",
+  "windowTo": "2026-10-28T07:01:40.659Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,17 +89,17 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.28",
       "weekday": "周三",
-      "time": "14:38",
-      "text": "2026.10.28（周三）14:38",
+      "time": "15:01",
+      "text": "2026.10.28（周三）15:01",
       "offset": "UTC+8"
     },
     "b": {
       "label": "Tibo 当地时间",
       "zone": "America/Los_Angeles",
-      "date": "2026.10.27",
-      "weekday": "周二",
-      "time": "23:38",
-      "text": "2026.10.27（周二）23:38",
+      "date": "2026.10.28",
+      "weekday": "周三",
+      "time": "00:01",
+      "text": "2026.10.28（周三）00:01",
       "offset": "UTC-7"
     },
     "diffHours": 15,
@@ -282,90 +282,6 @@
         }
       },
       "confidence": 0.51
-    },
-    {
-      "id": "2115273064481218829",
-      "account": "thsottiaux",
-      "text": "Day 23/ Much requested iCloud Main & Calendar plugins. Just kidding, today is a reset. Still much requested though!",
-      "createdAt": "2026-10-28T02:42:53.000Z",
-      "url": "https://x.com/thsottiaux/status/2115273064481218829",
-      "reasons": [
-        "命中重置词 reset",
-        "命中「A/the reset」名词化陈述"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.28",
-          "weekday": "周三",
-          "time": "10:42",
-          "text": "2026.10.28（周三）10:42",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.27",
-          "weekday": "周二",
-          "time": "19:42",
-          "text": "2026.10.27（周二）19:42",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "explicit",
-      "rejected": null,
-      "intent": 3,
-      "timeWord": "today",
-      "timeNote": null,
-      "precision": "day",
-      "candidateWindow": null,
-      "window": {
-        "from": "2026-10-27T07:00:00.000Z",
-        "to": "2026-10-28T06:59:00.000Z",
-        "dayNum": 20753,
-        "fromTs": 1793084400000,
-        "toTs": 1793170740000,
-        "userFrom": {
-          "y": "2026",
-          "m": "10",
-          "d": "27",
-          "hh": "15",
-          "mm": "00",
-          "weekdayCN": "周二"
-        },
-        "sourceZone": "2026.10.27（周二） 全天",
-        "userZone": "2026.10.27（周二）15:00 起",
-        "openText": "2026.10.27（周二）15:00",
-        "rangeNote": "窗口到北京 2026.10.28（周三）14:59 为止",
-        "crossesUserDay": true,
-        "zones": {
-          "a": {
-            "label": "北京时间",
-            "zone": "Asia/Shanghai",
-            "date": "2026.10.27",
-            "weekday": "周二",
-            "time": "15:00",
-            "text": "2026.10.27（周二）15:00",
-            "offset": "UTC+8"
-          },
-          "b": {
-            "label": "Tibo 当地时间",
-            "zone": "America/Los_Angeles",
-            "date": "2026.10.27",
-            "weekday": "周二",
-            "time": "00:00",
-            "text": "2026.10.27（周二）00:00",
-            "offset": "UTC-7"
-          },
-          "diffHours": 15,
-          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-        }
-      },
-      "confidence": 0.69
     },
     {
       "id": "2113492187770175603",
@@ -3331,7 +3247,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-10-28T06:38:33.700Z"
+        "checkedAt": "2026-10-28T07:01:40.659Z"
       }
     },
     {
@@ -12610,7 +12526,7 @@
   ],
   "counts": {
     "scanned": 484,
-    "explicit": 4,
+    "explicit": 3,
     "occurred": 12,
     "hint": 66,
     "none": 383,

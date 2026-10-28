@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-25T06:06:16.000Z",
     "last_text": "It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ https://t.co/xKaK95EAly",
-    "days_since_last": 3.0224277430555557,
+    "days_since_last": 3.0384807986111113,
     "avg_interval_days": 6.201318376068373,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.358045775625218,
@@ -14,48 +14,32 @@
     "reset_count": 59,
     "hit_within_avg": 0.7230769230769231
   },
-  "generated_at": "2026-10-28T06:38:33.951Z",
+  "generated_at": "2026-10-28T07:01:40.878Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
     "stoppedBy": "known",
-    "newTweets": 2,
-    "knownCount": 482,
+    "newTweets": 0,
+    "knownCount": 484,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 6,
-      "harvested": 8,
-      "withContext": 6,
+      "steps": 1,
+      "harvested": 3,
+      "withContext": 3,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 4,
-      "attempted": 4,
-      "fetched": 4,
+      "candidates": 2,
+      "attempted": 2,
+      "fetched": 2,
       "skipped": 0,
       "missingReplyContext": [],
       "scanned": [
         {
           "id": "2115273253711409208",
           "length": 22,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": true,
-          "replyContextStatus": "verified"
-        },
-        {
-          "id": "2114237083652882932",
-          "length": 75,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": true,
-          "replyContextStatus": "verified"
-        },
-        {
-          "id": "2114200291319124163",
-          "length": 15,
           "showMore": false,
           "networkMetadataStatus": "verified",
           "needsReplyContext": true,
@@ -77,12 +61,12 @@
     "updated": 0,
     "removed": 0,
     "upstreamCount": 69,
-    "refreshedAt": "2026-10-28T06:37:56.024Z",
+    "refreshedAt": "2026-10-28T07:01:23.864Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
     "changed": false,
-    "patchedTexts": 1
+    "patchedTexts": 0
   },
   "last_full_at": "2026-10-27T02:13:54.208Z",
   "errors": []

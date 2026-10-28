@@ -17,7 +17,13 @@
       "role": "post",
       "foundVia": "timeline-browser",
       "first_seen": "2026-10-28T06:38:33.639Z",
-      "text_full": true
+      "text_full": true,
+      "translation": {
+        "text": "搞定了。明天见，会有好消息。https://t.co/WhJle2cWRG",
+        "sourceHash": "87c74ce2a6d4593d7cd167fdd5458dd073afe85aaecbb924378b9b148a73b59d",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2115329600897319076",
@@ -8754,7 +8760,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-28T06:38:33.643Z",
+  "updated_at": "2026-10-28T07:01:40.610Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
