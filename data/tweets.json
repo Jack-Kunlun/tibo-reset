@@ -1,6 +1,44 @@
 {
   "tweets": [
     {
+      "id": "2115330127886463244",
+      "text": "And it's done. See you tomorrow for some good news. https://t.co/WhJle2cWRG",
+      "created_at": "2026-10-28T06:29:38.000Z",
+      "url": "https://x.com/thsottiaux/status/2115330127886463244",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "thsottiaux",
+        "text": "Lands by midnight PST.",
+        "created_at": "2026-10-28T02:43:38.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-28T06:38:33.639Z",
+      "text_full": true
+    },
+    {
+      "id": "2115329600897319076",
+      "text": "Pretty crazy but we have this thing called GPT and it just does stuff when you ask",
+      "created_at": "2026-10-28T06:27:32.000Z",
+      "url": "https://x.com/thsottiaux/status/2115329600897319076",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "BenjaminDEKR",
+        "id": "",
+        "text": "do you guys ever do any work",
+        "created_at": "2026-10-28T05:06:04.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-28T06:38:33.639Z"
+    },
+    {
       "id": "2115299029294920189",
       "text": "Taking notes",
       "created_at": "2026-10-28T04:26:03.000Z",
@@ -8716,7 +8754,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-28T05:01:14.697Z",
+  "updated_at": "2026-10-28T06:38:33.643Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }

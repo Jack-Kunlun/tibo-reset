@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-25T06:06:16.000Z",
     "last_text": "It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ https://t.co/xKaK95EAly",
-    "days_since_last": 2.954847384259259,
+    "days_since_last": 3.0224277430555557,
     "avg_interval_days": 6.201318376068373,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.358045775625218,
@@ -14,19 +14,19 @@
     "reset_count": 59,
     "hit_within_avg": 0.7230769230769231
   },
-  "generated_at": "2026-10-28T05:01:14.949Z",
+  "generated_at": "2026-10-28T06:38:33.951Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
-    "stoppedBy": "floor",
+    "stoppedBy": "known",
     "newTweets": 2,
-    "knownCount": 480,
+    "knownCount": 482,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 7,
-      "harvested": 9,
-      "withContext": 7,
+      "steps": 6,
+      "harvested": 8,
+      "withContext": 6,
       "authorsMissing": 0
     },
     "replyError": null,
@@ -76,13 +76,13 @@
     "added": 0,
     "updated": 0,
     "removed": 0,
-    "upstreamCount": 68,
-    "refreshedAt": "2026-10-28T05:00:41.115Z",
+    "upstreamCount": 69,
+    "refreshedAt": "2026-10-28T06:37:56.024Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
     "changed": false,
-    "patchedTexts": 0
+    "patchedTexts": 1
   },
   "last_full_at": "2026-10-27T02:13:54.208Z",
   "errors": []
