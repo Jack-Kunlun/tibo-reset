@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-28T01:05:40.019Z",
-  "checkedTweets": 474,
+  "generatedAt": "2026-10-28T03:02:43.479Z",
+  "checkedTweets": 477,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-29T01:05:40.019Z",
-  "windowTo": "2026-10-28T01:05:40.019Z",
+  "windowFrom": "2026-08-29T03:02:43.479Z",
+  "windowTo": "2026-10-28T03:02:43.479Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.28",
       "weekday": "周三",
-      "time": "09:05",
-      "text": "2026.10.28（周三）09:05",
+      "time": "11:02",
+      "text": "2026.10.28（周三）11:02",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,27 +98,38 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.27",
       "weekday": "周二",
-      "time": "18:05",
-      "text": "2026.10.27（周二）18:05",
+      "time": "20:02",
+      "text": "2026.10.27（周二）20:02",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2115148258372964831",
+    "id": "2115273253711409208",
     "account": "thsottiaux",
-    "text": "A sign of great things to come",
-    "createdAt": "2026-10-27T18:26:57.000Z",
-    "url": "https://x.com/thsottiaux/status/2115148258372964831",
+    "text": "Lands by midnight PST.",
+    "createdAt": "2026-10-28T02:43:38.000Z",
+    "url": "https://x.com/thsottiaux/status/2115273253711409208",
     "reasons": [
-      "上下文：回复 @BrenBuilds「GPT-6.1 Terra fixed all 20 bugs in m…」"
+      "上下文：回复 @thsottiaux「Day 23/ Much requested iCloud Main &…」",
+      "本条不含额度词，额度语境借自上下文 + 延续语气 → 判为预告"
     ],
-    "viaContext": false,
+    "contextEvidence": [
+      {
+        "id": "2115273064481218829",
+        "createdAt": "2026-10-28T02:42:53.000Z",
+        "text": "Day 23/ Much requested iCloud Main & Calendar plugins. Just kidding, today is a reset. Still much requested though!",
+        "url": "https://x.com/thsottiaux/status/2115273064481218829"
+      }
+    ],
+    "linkedCompletion": false,
+    "contextRelation": "reply",
+    "viaContext": true,
     "inReplyTo": {
-      "account": "BrenBuilds",
-      "id": "",
-      "text": "GPT-6.1 Terra fixed all 20 bugs in my app for about $.06 a run GPT-6.1 SOL did the same for $.22 and opus 5.5 for $.78 GPT-6 Luna and Haiku 5.5 cost less but missed bugs in every run"
+      "account": "thsottiaux",
+      "id": "2115273064481218829",
+      "text": "Day 23/ Much requested iCloud Main & Calendar plugins. Just kidding, today is a reset. Still much requested though!"
     },
     "createdZones": {
       "a": {
@@ -126,8 +137,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.28",
         "weekday": "周三",
-        "time": "02:26",
-        "text": "2026.10.28（周三）02:26",
+        "time": "10:43",
+        "text": "2026.10.28（周三）10:43",
         "offset": "UTC+8"
       },
       "b": {
@@ -135,19 +146,268 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.27",
         "weekday": "周二",
-        "time": "11:26",
-        "text": "2026.10.27（周二）11:26",
+        "time": "19:43",
+        "text": "2026.10.27（周二）19:43",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "none",
-    "rejected": "无额度相关词",
-    "intent": 0,
-    "window": null,
-    "candidateWindow": null
+    "level": "explicit",
+    "rejected": null,
+    "intent": 3,
+    "timeWord": "midnight",
+    "timeNote": "原文 PST 按 UTC-8 换算；若泛指洛杉矶当地夏令时（UTC-7），则比此时间早 1 小时。",
+    "precision": "instant",
+    "candidateWindow": null,
+    "window": {
+      "from": "2026-10-28T02:43:38.000Z",
+      "to": "2026-10-28T08:00:00.000Z",
+      "dayNum": 20754,
+      "fromTs": 1793155418000,
+      "toTs": 1793174400000,
+      "deadline": true,
+      "deadlineText": "2026.10.28（周三）16:00",
+      "userDeadline": {
+        "y": "2026",
+        "m": "10",
+        "d": "28",
+        "hh": "16",
+        "mm": "00",
+        "weekdayCN": "周三"
+      },
+      "userFrom": {
+        "y": "2026",
+        "m": "10",
+        "d": "28",
+        "hh": "10",
+        "mm": "43",
+        "weekdayCN": "周三"
+      },
+      "sourceZone": "2026.10.28（周三）00:00 前",
+      "sourceLabel": "原文 PST",
+      "userZone": "2026.10.28（周三）16:00 前",
+      "openText": "2026.10.28（周三）10:43",
+      "rangeNote": "公告给出最晚时间，尚未确认落地",
+      "crossesUserDay": false,
+      "zones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.28",
+          "weekday": "周三",
+          "time": "10:43",
+          "text": "2026.10.28（周三）10:43",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "原文 PST",
+          "zone": "Etc/GMT+8",
+          "date": "2026.10.27",
+          "weekday": "周二",
+          "time": "18:43",
+          "text": "2026.10.27（周二）18:43",
+          "offset": "UTC-8"
+        },
+        "diffHours": 16,
+        "diffText": "北京时间比原文 PST快 16 小时"
+      }
+    },
+    "confidence": 0.51
   },
   "signals": [
+    {
+      "id": "2115273253711409208",
+      "account": "thsottiaux",
+      "text": "Lands by midnight PST.",
+      "createdAt": "2026-10-28T02:43:38.000Z",
+      "url": "https://x.com/thsottiaux/status/2115273253711409208",
+      "reasons": [
+        "上下文：回复 @thsottiaux「Day 23/ Much requested iCloud Main &…」",
+        "本条不含额度词，额度语境借自上下文 + 延续语气 → 判为预告"
+      ],
+      "contextEvidence": [
+        {
+          "id": "2115273064481218829",
+          "createdAt": "2026-10-28T02:42:53.000Z",
+          "text": "Day 23/ Much requested iCloud Main & Calendar plugins. Just kidding, today is a reset. Still much requested though!",
+          "url": "https://x.com/thsottiaux/status/2115273064481218829"
+        }
+      ],
+      "linkedCompletion": false,
+      "contextRelation": "reply",
+      "viaContext": true,
+      "inReplyTo": {
+        "account": "thsottiaux",
+        "id": "2115273064481218829",
+        "text": "Day 23/ Much requested iCloud Main & Calendar plugins. Just kidding, today is a reset. Still much requested though!"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.28",
+          "weekday": "周三",
+          "time": "10:43",
+          "text": "2026.10.28（周三）10:43",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.27",
+          "weekday": "周二",
+          "time": "19:43",
+          "text": "2026.10.27（周二）19:43",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "explicit",
+      "rejected": null,
+      "intent": 3,
+      "timeWord": "midnight",
+      "timeNote": "原文 PST 按 UTC-8 换算；若泛指洛杉矶当地夏令时（UTC-7），则比此时间早 1 小时。",
+      "precision": "instant",
+      "candidateWindow": null,
+      "window": {
+        "from": "2026-10-28T02:43:38.000Z",
+        "to": "2026-10-28T08:00:00.000Z",
+        "dayNum": 20754,
+        "fromTs": 1793155418000,
+        "toTs": 1793174400000,
+        "deadline": true,
+        "deadlineText": "2026.10.28（周三）16:00",
+        "userDeadline": {
+          "y": "2026",
+          "m": "10",
+          "d": "28",
+          "hh": "16",
+          "mm": "00",
+          "weekdayCN": "周三"
+        },
+        "userFrom": {
+          "y": "2026",
+          "m": "10",
+          "d": "28",
+          "hh": "10",
+          "mm": "43",
+          "weekdayCN": "周三"
+        },
+        "sourceZone": "2026.10.28（周三）00:00 前",
+        "sourceLabel": "原文 PST",
+        "userZone": "2026.10.28（周三）16:00 前",
+        "openText": "2026.10.28（周三）10:43",
+        "rangeNote": "公告给出最晚时间，尚未确认落地",
+        "crossesUserDay": false,
+        "zones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.10.28",
+            "weekday": "周三",
+            "time": "10:43",
+            "text": "2026.10.28（周三）10:43",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "原文 PST",
+            "zone": "Etc/GMT+8",
+            "date": "2026.10.27",
+            "weekday": "周二",
+            "time": "18:43",
+            "text": "2026.10.27（周二）18:43",
+            "offset": "UTC-8"
+          },
+          "diffHours": 16,
+          "diffText": "北京时间比原文 PST快 16 小时"
+        }
+      },
+      "confidence": 0.51
+    },
+    {
+      "id": "2115273064481218829",
+      "account": "thsottiaux",
+      "text": "Day 23/ Much requested iCloud Main & Calendar plugins. Just kidding, today is a reset. Still much requested though!",
+      "createdAt": "2026-10-28T02:42:53.000Z",
+      "url": "https://x.com/thsottiaux/status/2115273064481218829",
+      "reasons": [
+        "命中重置词 reset",
+        "命中「A/the reset」名词化陈述"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.28",
+          "weekday": "周三",
+          "time": "10:42",
+          "text": "2026.10.28（周三）10:42",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.27",
+          "weekday": "周二",
+          "time": "19:42",
+          "text": "2026.10.27（周二）19:42",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "explicit",
+      "rejected": null,
+      "intent": 3,
+      "timeWord": "today",
+      "timeNote": null,
+      "precision": "day",
+      "candidateWindow": null,
+      "window": {
+        "from": "2026-10-27T07:00:00.000Z",
+        "to": "2026-10-28T06:59:00.000Z",
+        "dayNum": 20753,
+        "fromTs": 1793084400000,
+        "toTs": 1793170740000,
+        "userFrom": {
+          "y": "2026",
+          "m": "10",
+          "d": "27",
+          "hh": "15",
+          "mm": "00",
+          "weekdayCN": "周二"
+        },
+        "sourceZone": "2026.10.27（周二） 全天",
+        "userZone": "2026.10.27（周二）15:00 起",
+        "openText": "2026.10.27（周二）15:00",
+        "rangeNote": "窗口到北京 2026.10.28（周三）14:59 为止",
+        "crossesUserDay": true,
+        "zones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.10.27",
+            "weekday": "周二",
+            "time": "15:00",
+            "text": "2026.10.27（周二）15:00",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "Tibo 当地时间",
+            "zone": "America/Los_Angeles",
+            "date": "2026.10.27",
+            "weekday": "周二",
+            "time": "00:00",
+            "text": "2026.10.27（周二）00:00",
+            "offset": "UTC-7"
+          },
+          "diffHours": 15,
+          "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+        }
+      },
+      "confidence": 0.69
+    },
     {
       "id": "2113492187770175603",
       "account": "thsottiaux",
@@ -3044,7 +3304,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-10-28T01:05:40.019Z"
+        "checkedAt": "2026-10-28T03:02:43.479Z"
       }
     },
     {
@@ -3819,6 +4079,48 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2115272201922572627",
+      "account": "thsottiaux",
+      "text": "What's going on",
+      "createdAt": "2026-10-28T02:39:27.000Z",
+      "url": "https://x.com/thsottiaux/status/2115272201922572627",
+      "reasons": [
+        "上下文：回复 @Xanderwow_A「Perhaps, in another universe, their …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "Xanderwow_A",
+        "id": "",
+        "text": "Perhaps, in another universe, their story is about more than Reset, Bot, and Code."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.28",
+          "weekday": "周三",
+          "time": "10:39",
+          "text": "2026.10.28（周三）10:39",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.27",
+          "weekday": "周二",
+          "time": "19:39",
+          "text": "2026.10.27（周二）19:39",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2115148258372964831",
       "account": "thsottiaux",
@@ -12021,130 +12323,249 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2106541589007114420",
-      "account": "thsottiaux",
-      "text": "Glad you like it! Anything we can improve?",
-      "createdAt": "2026-10-04T00:27:07.000Z",
-      "url": "https://x.com/thsottiaux/status/2106541589007114420",
-      "reasons": [
-        "上下文：回复 @Voxyz_ai「dots is 𝗵𝗮𝗻𝗱𝘀 𝗱𝗼𝘄𝗻 𝗺𝘆 𝗳\ud835…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "Voxyz_ai",
-        "id": "",
-        "text": "dots is 𝗵𝗮𝗻𝗱𝘀 𝗱𝗼𝘄𝗻 𝗺𝘆 𝗳𝗮𝘃𝗼𝗿𝗶𝘁𝗲 𝗮𝗴𝗲𝗻𝘁 right now. Over the past few days it's become my main one. Especially when it's open on my desktop and talking to it feels like talking to a real person, it feels incredibly futuristic. I care a lot about how things"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.04",
-          "weekday": "周日",
-          "time": "08:27",
-          "text": "2026.10.04（周日）08:27",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.03",
-          "weekday": "周六",
-          "time": "17:27",
-          "text": "2026.10.03（周六）17:27",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
-    "dayNum": 20747,
-    "day": "2026.10.21（周三）",
-    "precision": "day",
+    "dayNum": 20754,
+    "day": "2026.10.28（周三）",
+    "precision": "instant",
     "window": {
-      "from": "2026-10-21T07:00:00.000Z",
-      "to": "2026-10-22T06:59:00.000Z",
-      "dayNum": 20747,
-      "fromTs": 1792566000000,
-      "toTs": 1792652340000,
-      "userFrom": {
+      "from": "2026-10-28T02:43:38.000Z",
+      "to": "2026-10-28T08:00:00.000Z",
+      "dayNum": 20754,
+      "fromTs": 1793155418000,
+      "toTs": 1793174400000,
+      "deadline": true,
+      "deadlineText": "2026.10.28（周三）16:00",
+      "userDeadline": {
         "y": "2026",
         "m": "10",
-        "d": "21",
-        "hh": "15",
+        "d": "28",
+        "hh": "16",
         "mm": "00",
         "weekdayCN": "周三"
       },
-      "sourceZone": "2026.10.21（周三） 全天",
-      "userZone": "2026.10.21（周三）15:00 起",
-      "openText": "2026.10.21（周三）15:00",
-      "rangeNote": "窗口到北京 2026.10.22（周四）14:59 为止",
-      "crossesUserDay": true,
+      "userFrom": {
+        "y": "2026",
+        "m": "10",
+        "d": "28",
+        "hh": "10",
+        "mm": "43",
+        "weekdayCN": "周三"
+      },
+      "sourceZone": "2026.10.28（周三）00:00 前",
+      "sourceLabel": "原文 PST",
+      "userZone": "2026.10.28（周三）16:00 前",
+      "openText": "2026.10.28（周三）10:43",
+      "rangeNote": "公告给出最晚时间，尚未确认落地",
+      "crossesUserDay": false,
       "zones": {
         "a": {
           "label": "北京时间",
           "zone": "Asia/Shanghai",
-          "date": "2026.10.21",
+          "date": "2026.10.28",
           "weekday": "周三",
-          "time": "15:00",
-          "text": "2026.10.21（周三）15:00",
+          "time": "10:43",
+          "text": "2026.10.28（周三）10:43",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "原文 PST",
+          "zone": "Etc/GMT+8",
+          "date": "2026.10.27",
+          "weekday": "周二",
+          "time": "18:43",
+          "text": "2026.10.27（周二）18:43",
+          "offset": "UTC-8"
+        },
+        "diffHours": 16,
+        "diffText": "北京时间比原文 PST快 16 小时"
+      },
+      "precision": "instant"
+    },
+    "counts": {
+      "hard": 1,
+      "soft": 0,
+      "clockHints": 1,
+      "clockAdopted": 1
+    },
+    "evidence": [
+      {
+        "id": "2115273253711409208",
+        "createdAt": "2026-10-28T02:43:38.000Z",
+        "text": "Lands by midnight PST.",
+        "url": "https://x.com/thsottiaux/status/2115273253711409208",
+        "via": "回复 @thsottiaux",
+        "weight": "hard",
+        "contributes": "承诺了这一天",
+        "timeWord": "midnight",
+        "precision": "instant",
+        "ambiguous": false,
+        "note": null,
+        "from": "2026-10-28T02:43:38.000Z",
+        "to": "2026-10-28T08:00:00.000Z"
+      }
+    ],
+    "clockHints": [
+      {
+        "word": "midnight",
+        "from": "2026-10-28T02:43:38.000Z",
+        "to": "2026-10-28T08:00:00.000Z",
+        "adopted": true,
+        "why": "本条含额度承诺",
+        "ambiguous": false,
+        "id": "2115273253711409208",
+        "via": "回复 @thsottiaux"
+      }
+    ]
+  },
+  "forecasts": [
+    {
+      "level": "explicit",
+      "manual": false,
+      "day": "2026.10.28（周三）",
+      "precision": "instant",
+      "window": {
+        "from": "2026-10-28T02:43:38.000Z",
+        "to": "2026-10-28T08:00:00.000Z",
+        "dayNum": 20754,
+        "fromTs": 1793155418000,
+        "toTs": 1793174400000,
+        "deadline": true,
+        "deadlineText": "2026.10.28（周三）16:00",
+        "userDeadline": {
+          "y": "2026",
+          "m": "10",
+          "d": "28",
+          "hh": "16",
+          "mm": "00",
+          "weekdayCN": "周三"
+        },
+        "userFrom": {
+          "y": "2026",
+          "m": "10",
+          "d": "28",
+          "hh": "10",
+          "mm": "43",
+          "weekdayCN": "周三"
+        },
+        "sourceZone": "2026.10.28（周三）00:00 前",
+        "sourceLabel": "原文 PST",
+        "userZone": "2026.10.28（周三）16:00 前",
+        "openText": "2026.10.28（周三）10:43",
+        "rangeNote": "公告给出最晚时间，尚未确认落地",
+        "crossesUserDay": false,
+        "zones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.10.28",
+            "weekday": "周三",
+            "time": "10:43",
+            "text": "2026.10.28（周三）10:43",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "原文 PST",
+            "zone": "Etc/GMT+8",
+            "date": "2026.10.27",
+            "weekday": "周二",
+            "time": "18:43",
+            "text": "2026.10.27（周二）18:43",
+            "offset": "UTC-8"
+          },
+          "diffHours": 16,
+          "diffText": "北京时间比原文 PST快 16 小时"
+        },
+        "precision": "instant"
+      },
+      "text": "Lands by midnight PST.",
+      "url": "https://x.com/thsottiaux/status/2115273253711409208",
+      "reasons": [
+        "上下文：回复 @thsottiaux「Day 23/ Much requested iCloud Main &…」",
+        "本条不含额度词，额度语境借自上下文 + 延续语气 → 判为预告"
+      ],
+      "timeNote": "原文 PST 按 UTC-8 换算；若泛指洛杉矶当地夏令时（UTC-7），则比此时间早 1 小时。",
+      "createdAt": "2026-10-28T02:43:38.000Z",
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.28",
+          "weekday": "周三",
+          "time": "10:43",
+          "text": "2026.10.28（周三）10:43",
           "offset": "UTC+8"
         },
         "b": {
           "label": "Tibo 当地时间",
           "zone": "America/Los_Angeles",
-          "date": "2026.10.21",
-          "weekday": "周三",
-          "time": "00:00",
-          "text": "2026.10.21（周三）00:00",
+          "date": "2026.10.27",
+          "weekday": "周二",
+          "time": "19:43",
+          "text": "2026.10.27（周二）19:43",
           "offset": "UTC-7"
         },
-        "diffHours": 15,
         "diffText": "北京时间比 Tibo 当地时间快 15 小时"
       },
-      "precision": "day"
-    },
-    "counts": {
-      "hard": 1,
-      "soft": 0,
-      "clockHints": 0,
-      "clockAdopted": 0
-    },
-    "evidence": [
-      {
-        "id": "2113162277688070445",
-        "createdAt": "2026-10-22T06:55:22.000Z",
-        "text": "Day 17/ Bet you thought we forgot, but no, it’s reset day today. Also good time to remind you to get Daybreak Blue access, it only takes 15 mins and you don’t want to have to do it in the middle of an incident.",
-        "url": "https://x.com/thsottiaux/status/2113162277688070445",
-        "via": "原创",
-        "weight": "hard",
-        "contributes": "承诺了这一天",
-        "timeWord": "today",
-        "precision": "day",
-        "ambiguous": false,
-        "note": null,
-        "from": "2026-10-21T07:00:00.000Z",
-        "to": "2026-10-22T06:59:00.000Z"
-      }
-    ],
-    "clockHints": []
-  },
-  "forecasts": [],
+      "sources": 1,
+      "evidence": [
+        {
+          "id": "2115273253711409208",
+          "createdAt": "2026-10-28T02:43:38.000Z",
+          "text": "Lands by midnight PST.",
+          "url": "https://x.com/thsottiaux/status/2115273253711409208",
+          "via": "回复 @thsottiaux",
+          "weight": "hard",
+          "contributes": "承诺了这一天",
+          "timeWord": "midnight",
+          "precision": "instant",
+          "ambiguous": false,
+          "note": null,
+          "from": "2026-10-28T02:43:38.000Z",
+          "to": "2026-10-28T08:00:00.000Z"
+        },
+        {
+          "id": "2115273064481218829",
+          "createdAt": "2026-10-28T02:42:53.000Z",
+          "text": "Day 23/ Much requested iCloud Main & Calendar plugins. Just kidding, today is a reset. Still much requested though!",
+          "url": "https://x.com/thsottiaux/status/2115273064481218829",
+          "via": "原创",
+          "weight": "hard",
+          "contributes": "自回复所指的重置预告",
+          "timeWord": null,
+          "precision": null,
+          "ambiguous": false,
+          "note": null,
+          "from": null,
+          "to": null
+        }
+      ],
+      "counts": {
+        "hard": 2,
+        "soft": 0
+      },
+      "clockHints": [
+        {
+          "word": "midnight",
+          "from": "2026-10-28T02:43:38.000Z",
+          "to": "2026-10-28T08:00:00.000Z",
+          "adopted": true,
+          "why": "本条含额度承诺",
+          "ambiguous": false,
+          "id": "2115273253711409208",
+          "via": "回复 @thsottiaux"
+        }
+      ]
+    }
+  ],
   "counts": {
-    "scanned": 474,
-    "explicit": 2,
+    "scanned": 477,
+    "explicit": 4,
     "occurred": 12,
     "hint": 65,
-    "none": 376,
-    "rejected": 376
+    "none": 377,
+    "rejected": 377
   },
   "truncated": true
 }

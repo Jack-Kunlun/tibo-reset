@@ -1,6 +1,77 @@
 {
   "tweets": [
     {
+      "id": "2115273253711409208",
+      "text": "Lands by midnight PST.",
+      "created_at": "2026-10-28T02:43:38.000Z",
+      "url": "https://x.com/thsottiaux/status/2115273253711409208",
+      "author_verified": true,
+      "inReplyTo": {
+        "id": "2115273064481218829",
+        "account": "thsottiaux",
+        "text": "Day 23/ Much requested iCloud Main & Calendar plugins. Just kidding, today is a reset. Still much requested though!",
+        "created_at": "2026-10-28T02:42:53.000Z",
+        "url": "https://x.com/thsottiaux/status/2115273064481218829",
+        "relation": "reply",
+        "verified": true,
+        "verificationSource": "tweet-detail-api"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-28T03:02:43.419Z",
+      "translation": {
+        "text": "太平洋标准时间午夜前到账。",
+        "sourceHash": "4916e8646f299899706e1b921b5b28523d6ad3d22872621e15f82694f167a38a",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
+      "id": "2115273064481218829",
+      "text": "Day 23/ Much requested iCloud Main & Calendar plugins. Just kidding, today is a reset. Still much requested though!",
+      "created_at": "2026-10-28T02:42:53.000Z",
+      "url": "https://x.com/thsottiaux/status/2115273064481218829",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "ChatGPT",
+        "text": "Much requested, and now yours to connect: iCloud Mail and Calendar plugins are available in ChatGPT. Ask ChatGPT to find that email, catch up on your inbox, check what’s next, or update a calendar event. Phew. Available on all ChatGPT plans on web, desktop, and iOS.",
+        "created_at": "2026-10-27T17:51:08.000Z",
+        "relation": "quote"
+      },
+      "kind": "reset",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-28T03:02:43.419Z",
+      "translation": {
+        "text": "第 23 天 / 大家一直催的 iCloud 邮件与日历插件。开玩笑的，今天其实是重置日。不过大家还是真的很想要！",
+        "sourceHash": "fe8ab6f273b339f05df2396d9b7a02a3e20883d4be061cbe5194f3c6ec3a24c6",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
+      "id": "2115272201922572627",
+      "text": "What's going on",
+      "created_at": "2026-10-28T02:39:27.000Z",
+      "url": "https://x.com/thsottiaux/status/2115272201922572627",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "Xanderwow_A",
+        "id": "",
+        "text": "Perhaps, in another universe, their story is about more than Reset, Bot, and Code.",
+        "created_at": "2026-10-27T15:14:20.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-28T03:02:43.419Z"
+    },
+    {
       "id": "2115148258372964831",
       "text": "A sign of great things to come",
       "created_at": "2026-10-27T18:26:57.000Z",
@@ -8557,7 +8628,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-28T01:05:39.975Z",
+  "updated_at": "2026-10-28T03:02:43.422Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }

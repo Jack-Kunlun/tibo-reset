@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-25T06:06:16.000Z",
     "last_text": "It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ https://t.co/xKaK95EAly",
-    "days_since_last": 2.791250821759259,
+    "days_since_last": 2.8725410300925924,
     "avg_interval_days": 6.201318376068373,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.358045775625218,
@@ -14,32 +14,48 @@
     "reset_count": 59,
     "hit_within_avg": 0.7230769230769231
   },
-  "generated_at": "2026-10-28T01:05:40.174Z",
+  "generated_at": "2026-10-28T03:02:43.670Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
-    "stoppedBy": "known",
-    "newTweets": 0,
+    "stoppedBy": "floor",
+    "newTweets": 3,
     "knownCount": 474,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 1,
-      "harvested": 2,
-      "withContext": 2,
+      "steps": 8,
+      "harvested": 11,
+      "withContext": 9,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 2,
-      "attempted": 3,
-      "fetched": 3,
+      "candidates": 4,
+      "attempted": 4,
+      "fetched": 4,
       "skipped": 0,
       "missingReplyContext": [],
       "scanned": [
         {
+          "id": "2115273253711409208",
+          "length": 22,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": true,
+          "replyContextStatus": "verified"
+        },
+        {
           "id": "2114237083652882932",
           "length": 75,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": true,
+          "replyContextStatus": "verified"
+        },
+        {
+          "id": "2114200291319124163",
+          "length": 15,
           "showMore": false,
           "networkMetadataStatus": "verified",
           "needsReplyContext": true,
@@ -52,14 +68,6 @@
           "networkMetadataStatus": "verified",
           "needsReplyContext": false,
           "replyContextStatus": "not-required"
-        },
-        {
-          "id": "2114200291319124163",
-          "length": 15,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": true,
-          "replyContextStatus": "verified"
         }
       ]
     }
@@ -69,7 +77,7 @@
     "updated": 0,
     "removed": 0,
     "upstreamCount": 68,
-    "refreshedAt": "2026-10-28T01:05:15.582Z",
+    "refreshedAt": "2026-10-28T03:02:05.248Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
