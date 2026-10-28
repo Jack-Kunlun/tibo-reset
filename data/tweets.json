@@ -1,6 +1,37 @@
 {
   "tweets": [
     {
+      "id": "2115299029294920189",
+      "text": "Taking notes",
+      "created_at": "2026-10-28T04:26:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2115299029294920189",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "mark_k",
+        "id": "",
+        "text": "I'm going to say this: The model I really want from @OpenAI is neither Terra nor Astra. Terra is crap, and Astra is expensive and slow. What we really need is a more capable Sol that can compete with Opus 5.5 on price and speed. Bring on GPT 6.2 Sol (or maybe 6.5?).",
+        "created_at": "2026-10-27T17:48:30.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-28T05:01:14.694Z"
+    },
+    {
+      "id": "2115297093879472332",
+      "text": "https:// poteto.com has landed",
+      "created_at": "2026-10-28T04:18:22.000Z",
+      "url": "https://x.com/thsottiaux/status/2115297093879472332",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-28T05:01:14.694Z"
+    },
+    {
       "id": "2115290318652444729",
       "text": "Maybe it’s because I have bad long term memory.",
       "created_at": "2026-10-28T03:51:26.000Z",
@@ -8685,7 +8716,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-28T04:03:50.495Z",
+  "updated_at": "2026-10-28T05:01:14.697Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
