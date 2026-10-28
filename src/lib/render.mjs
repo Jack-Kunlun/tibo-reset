@@ -1483,9 +1483,10 @@ export function renderProgramPlan(plan, program) {
 
 export function renderResetCalendar(c) {
   if (!c) return '';
+  const zoneLabel = c.zone === 'Asia/Shanghai' ? '北京时间' : 'UTC 实际日期';
   const blanks = Array.from({ length: c.startWeekday ?? 0 }, () => '<span class="rc-empty" aria-hidden="true"></span>').join('');
   return `<section class="reset-calendar am-panel" aria-label="重置月日历">
-    <div class="rc-heading"><div><h2>重置月日历</h2><p>${esc(c.fromDate)} — ${esc(c.toDate)} · UTC 实际日期</p></div><span class="rc-caption">非官方整理</span></div>
+    <div class="rc-heading"><div><h2>重置月日历</h2><p>${esc(c.fromDate)} — ${esc(c.toDate)} · ${zoneLabel}</p></div><span class="rc-caption">非官方整理</span></div>
     <div class="rc-layout"><div class="rc-summary">
       <span class="rc-muted">日历进度</span><strong class="rc-progress">${c.progressDay}<small> / ${c.days}</small></strong>
       <div class="rc-stat"><span>已确认到账</span><b>${c.confirmedCount}<small> 次</small></b></div>
@@ -1503,7 +1504,7 @@ export function renderResetCalendar(c) {
         const title = [cell.date, cell.statusLabel, manualTime, cell.confirmedCount ? `${c.hasManual ? '已到账' : '公开确认到账'} ${cell.confirmedCount} 次` : '', cell.observedCount ? `账号实测 ${cell.observedCount} 次` : '', observedAt, cell.pendingCount + cell.datedCount ? `待落地 ${cell.pendingCount + cell.datedCount} 条` : ''].filter(Boolean).join(' · ');
         return `<${tag} class="rc-cell rc-${esc(cell.status)}${cell.isToday ? ' is-today' : ''}"${cell.sourceUrl ? ` href="${attr(cell.sourceUrl)}" target="_blank" rel="noopener noreferrer"` : ''} title="${attr(title)}"><b>${esc(cell.label)}</b><span>${esc(cell.status === 'pending' ? '预' : cell.status === 'updated' ? '更新' : cell.status === 'observed' ? '实测' : cell.status === 'elapsed-no-record' ? '无记录' : cell.statusLabel)}</span>${cell.confirmedCount && cell.pendingCount + cell.datedCount ? '<i>另有预告</i>' : ''}</${tag}>`;
       }).join('')}</div>
-      <p class="rc-legend"><span>● ${c.hasManual ? '已到账' : '公开确认到账'}</span>${c.observedCount ? '<span>◇ 单账号实测</span>' : ''}<span>预 · 重置预告 · 待落地</span><span>● 日程更新</span><span>暂无记录 ≠ 当日没有重置</span></p>
+      <p class="rc-legend"><span>● ${c.hasManual ? '已到账' : '公开确认到账'}</span>${c.observedCount ? '<span>◇ 单账号实测</span>' : ''}<span>预 · 重置预告 · 待落地</span><span>● 功能更新</span><span>暂无记录 ≠ 当日没有重置</span></p>
     </div></div>
   </section>`;
 }

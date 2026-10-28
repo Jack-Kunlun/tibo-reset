@@ -664,7 +664,7 @@ check(
   check('近期节奏行复用最新分段均值', rows[2].value === `${phase.mean}${phase.unit.replace(/\s+/g, '')}`, rows[2].value);
   }
   const calendar=d.calendar;
-  check('日历接入首页且格子保留实际日期与状态',calendar?.zone==='UTC' && calendar.cells.length===calendar.days && calendar.cells.every(c=>/^\d{2}\/\d{2}$/.test(c.label) && c.statusLabel));
+  check('日历接入首页且格子保留北京日期与状态',calendar?.zone==='Asia/Shanghai' && calendar.cells.length===calendar.days && calendar.cells.every(c=>/^\d{2}\/\d{2}$/.test(c.label) && c.statusLabel));
   check('日历确认数与预告条数分别保留，格内合计不混淆',calendar.confirmedCount===calendar.cells.reduce((n,c)=>n+c.confirmedCount,0) && calendar.awaitingCount===calendar.cells.reduce((n,c)=>n+c.pendingCount+c.datedCount,0));
   const plan=d.planView;
   check('首页显示28格业务Day计划，最新进度取原帖编号而非日历日期',plan?.show && plan.days.length===28 && plan.days.every((row,index)=>row.day===index+1) && plan.latestLabel===`最新原帖 Day ${plan.latestDay} / ${plan.dayCount}` && d.selectedPlanDay===plan.latestDay);
@@ -2358,14 +2358,16 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
     const freshness = markup.indexOf('planView.freshnessText');
     return freshness >= 0 && freshness < markup.indexOf('class="tr-view tr-plan-grid"') &&
       freshness < markup.indexOf('class="tr-view tr-plan-explain"') &&
-      (markup.match(/class="tr-view tr-plan-legend-item"/g) || []).length === 3 &&
-      markup.includes('更新+重置') && markup.includes('tr-plan-legend-note') &&
+      (markup.match(/class="tr-view tr-plan-legend-item"/g) || []).length === 4 &&
+      ['updated">更', 'pending">预', 'confirmed">重', 'mixed">双'].every(label => markup.includes(label)) &&
+      markup.includes('更新+重置') && markup.includes('- = 暂无更新、预告或到账记录') && markup.includes('tr-plan-legend-note') &&
       markup.includes('<view wx:if="{{item.hasText}}" class="tr-view tr-plan-action"') &&
       markup.includes('<view wx:if="{{item.url && !singlePage}}" class="tr-view tr-plan-action"');
   };
-  check('计划保留三类主图例、其他状态说明、常驻快照时刻和可用操作', planDisplayContract(home));
+  check('计划保留更新、预告、到账与组合图例，空状态说明和快照时刻可见', planDisplayContract(home));
   check('计划快照时刻移出首屏摘要会被断言拦截', !planDisplayContract(home.replace('        <text class="tr-text tr-plan-freshness">{{planView.freshnessText}}</text>\n', '')));
   check('移除更新+重置主图例会被断言拦截', !planDisplayContract(home.replace('更新+重置', '更新')));
+  check('预告图例被改为未知状态会被断言拦截', !planDisplayContract(home.replace('pending">预', 'pending">?')));
   check('移除计划其他状态说明会被断言拦截', !planDisplayContract(home.replace('tr-plan-legend-note', 'tr-plan-legend-detail')));
   check('计划操作不再承载于不可控基线的文本节点', !planDisplayContract(home.replace('<view wx:if="{{item.hasText}}" class="tr-view tr-plan-action"', '<text wx:if="{{item.hasText}}" class="tr-text tr-plan-action"')));
   check('首页不再堆叠日历、历史记录和完整图表', !/reset-calendar|id="trend"|id="hist"|id="survival"|id="strip"/.test(h));

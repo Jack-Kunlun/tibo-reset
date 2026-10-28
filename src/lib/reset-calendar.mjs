@@ -8,7 +8,7 @@ const STATUS_LABELS = {
   confirmed: '已到账',
   observed: '实测到账',
   pending: '待落地',
-  updated: '日程更新',
+  updated: '功能更新',
   'elapsed-no-record': '暂无记录',
   future: '待观察',
 };
@@ -19,15 +19,15 @@ function timestamp(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function utcDate(ms) {
-  return new Date(ms).toISOString().slice(0, 10);
+function beijingDate(ms) {
+  return new Date(ms + 8 * 3_600_000).toISOString().slice(0, 10);
 }
 
-function utcMidnight(date) {
-  return Date.parse(`${date}T00:00:00.000Z`);
+function beijingMidnight(date) {
+  return Date.parse(`${date}T00:00:00.000+08:00`);
 }
 
-function utcLabel(date) {
+function dateLabel(date) {
   return date.slice(5).replace('-', '/');
 }
 
@@ -332,7 +332,7 @@ function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne
         isAccountObserved: Boolean(observation),
         ...(observation ? { observedAt: observation.observedAt, observationPrecision: observation.precision, sourceLabel: observation.sourceLabel } : {}),
         createdAt: tweet.created_at, day, kind, title: confirmed.length && followup ? followup.title : copy.title,
-        isUpdate: copy.kind === 'update',
+        isUpdate: copy.kind === 'update' && tweet.manualDecision?.status !== 'ignored',
         confirmedAt: confirmed.length ? new Date(Math.min(...confirmed.map((event) => event.at))).toISOString() : null,
         resetCount: confirmed.filter((event) => event.record.type === 'reset').length,
         creditCount: confirmed.filter((event) => event.record.type === 'credit').length,
@@ -378,8 +378,8 @@ function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne
     updatedDays: rows.filter((row) => row.updateCount).length,
     resetDays: rows.filter((row) => row.confirmedCount).length,
     sourceUrl: program.url ?? null,
-    fromDate: utcDate(timestamp(dayOne.created_at)),
-    toDate: utcDate(utcMidnight(utcDate(timestamp(dayOne.created_at))) + (Number(program.days) - 1) * DAY_MS),
+    fromDate: beijingDate(timestamp(dayOne.created_at)),
+    toDate: beijingDate(beijingMidnight(beijingDate(timestamp(dayOne.created_at))) + (Number(program.days) - 1) * DAY_MS),
     eventAssignments: events.flatMap((event) => {
       const days = new Set(posts.filter((post) => post.events.includes(event)).map((post) => post.day));
       const explicitDay = event.record.programId === programId ? event.record.programDay : null;
@@ -399,7 +399,7 @@ function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne
 }
 
 /**
- * 预告、完成与日程帖常跨日发布，按真实 UTC 日期落格，不凭 Day N 猜完成归属。
+ * 预告、完成与日程帖常跨日发布，按真实北京时间日期落格，不凭 Day N 猜完成归属。
  */
 export function buildResetCalendar({ records = [], tweets = [], signals, now = Date.now(), account = 'thsottiaux' } = {}) {
   const currentTime = timestamp(now);
@@ -419,16 +419,16 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     .sort((a, b) => timestamp(a.created_at) - timestamp(b.created_at) || String(a.id).localeCompare(String(b.id)))[0];
   if (!dayOne) return null;
 
-  const fromDate = utcDate(timestamp(dayOne.created_at));
-  const toDate = utcDate(utcMidnight(fromDate) + (days - 1) * DAY_MS);
+  const fromDate = beijingDate(timestamp(dayOne.created_at));
+  const toDate = beijingDate(beijingMidnight(fromDate) + (days - 1) * DAY_MS);
   const startWeekday = weekday(fromDate);
   const dateToIndex = new Map();
   const builders = Array.from({ length: days }, (_, index) => {
-    const date = utcDate(utcMidnight(fromDate) + index * DAY_MS);
+    const date = beijingDate(beijingMidnight(fromDate) + index * DAY_MS);
     dateToIndex.set(date, index);
     return {
       date,
-      label: utcLabel(date),
+      label: dateLabel(date),
       weekday: weekday(date),
       status: null,
       statusLabel: null,
@@ -456,7 +456,7 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
   const plan = buildProgramPlan({ trusted, allTweets, events, account: normalizedAccount, program, dayOne, signals });
   const calendarEvents = events.filter((event) => !event.suppressedByManualProgramDay);
   for (const event of calendarEvents) {
-    const index = dateToIndex.get(utcDate(event.at));
+    const index = dateToIndex.get(beijingDate(event.at));
     if (index == null) continue;
     const cell = builders[index];
     cell.confirmedCount++;
@@ -483,7 +483,7 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     const tweet = trusted.find((t) => String(t.id) === String(observation.announcementId));
     const observedAt = timestamp(observation.observedAt);
     if (!tweet || observedAt == null || observedAt > currentTime) continue;
-    const index = dateToIndex.get(utcDate(observedAt));
+    const index = dateToIndex.get(beijingDate(observedAt));
     if (index == null) continue;
     const cell = builders[index];
     cell.observedCount++; observedCount++;
@@ -510,7 +510,7 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
       if (seenForecasts.has(deDupeKey)) continue;
       seenForecasts.add(deDupeKey);
       const createdAt = timestamp(tweet.created_at);
-      const index = dateToIndex.get(utcDate(createdAt));
+      const index = dateToIndex.get(beijingDate(createdAt));
       if (index == null) continue;
       const cell = builders[index];
       if (forecast.status === 'overdue') cell.overdueCount++;
@@ -535,31 +535,30 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
   }
 
   let updatedCount = 0;
-  const dayPost = /\bDay\s*(\d+)\s*\//i;
-  for (const tweet of trusted) {
-    const match = String(tweet.text ?? '').match(dayPost);
-    if (!match) continue;
-    const createdAt = timestamp(tweet.created_at);
-    const index = dateToIndex.get(utcDate(createdAt));
+  // 功能更新与活动计划共用结论；有 Day 编号的普通讨论和纯重置不冒充功能交付。
+  for (const entry of plan.rows.flatMap((row) => row.entries)) {
+    if (!entry.isUpdate) continue;
+    const createdAt = timestamp(entry.createdAt);
+    const index = dateToIndex.get(beijingDate(createdAt));
     if (index == null) continue;
     const cell = builders[index];
-    const key = detailKey(tweet, normalizedAccount);
+    const key = detailKey(entry, normalizedAccount);
     const alreadyUpdated = cell.detailMap.get(key)?.roles.includes('updated');
     if (!alreadyUpdated) {
       cell.updatedCount++;
       updatedCount++;
     }
     addDetail(cell, {
-      id: String(tweet.id),
-      url: tweet.url ?? null,
-      text: tweet.text ?? '',
+      id: String(entry.id),
+      url: entry.url ?? null,
+      text: entry.text ?? '',
       createdAt: new Date(createdAt).toISOString(),
-      dayNumber: Number(match[1]),
+      dayNumber: entry.day,
       roles: ['updated'],
     }, normalizedAccount);
   }
 
-  const today = utcDate(currentTime);
+  const today = beijingDate(currentTime);
   const todayIndex = dateToIndex.get(today);
   const progressDay = todayIndex == null ? (today < fromDate ? 0 : days) : todayIndex + 1;
   const cells = builders.map((cell) => {
@@ -571,7 +570,7 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     else if (cell.observedCount) plain.status = 'observed';
     else if (cell.datedCount || cell.pendingCount) plain.status = 'pending';
     else if (cell.updatedCount) plain.status = 'updated';
-    else if (utcMidnight(cell.date) + DAY_MS <= currentTime) plain.status = 'elapsed-no-record';
+    else if (beijingMidnight(cell.date) + DAY_MS <= currentTime) plain.status = 'elapsed-no-record';
     else plain.status = 'future';
     plain.statusLabel = plain.status === 'pending' && cell.overdueCount === cell.datedCount + cell.pendingCount ? '落地待核实' : STATUS_LABELS[plain.status];
     plain.isToday = cell.date === today;
@@ -586,7 +585,7 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
   return {
     title: `${days}天重置日历`,
     hasManual: records.some((record) => record.manual),
-    zone: 'UTC',
+    zone: 'Asia/Shanghai',
     fromDate,
     toDate,
     days,

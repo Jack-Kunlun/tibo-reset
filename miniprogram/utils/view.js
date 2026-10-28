@@ -36,6 +36,7 @@ export function buildCalendarView(calendar) {
   const freshness = snapshot ? '日历快照' : calendar.source === 'cache' ? '日历缓存' : '日历数据';
   return {
     ...calendar,
+    zoneLabel: calendar.zone === 'Asia/Shanghai' ? '北京时间' : 'UTC 日期',
     observedCount: calendar.observedCount ?? 0,
     awaitingCount: calendar.pendingCount + (calendar.datedCount ?? 0),
     snapshot,

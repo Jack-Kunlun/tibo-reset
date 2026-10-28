@@ -10,7 +10,7 @@
   </view>
   <view class="tr-view tr-main">
     <view wx:if="{{notice}}" class="tr-view notice">{{notice}}</view>
-    <view class="tr-view tr-page-heading"><view class="tr-view"><text class="tr-text tr-eyebrow">{{pageEyebrow}}</text><text class="tr-text tr-h2">{{pageTitle}}</text></view><text class="tr-text tr-day">{{view === 'records' ? 'UTC 日期' : view === 'analysis' ? '仅供参考' : todayLabel}}</text></view>
+    <view class="tr-view tr-page-heading"><view class="tr-view"><text class="tr-text tr-eyebrow">{{pageEyebrow}}</text><text class="tr-text tr-h2">{{pageTitle}}</text></view><text class="tr-text tr-day">{{view === 'records' ? calendar.zoneLabel : view === 'analysis' ? '仅供参考' : todayLabel}}</text></view>
     <view wx:if="{{todayReset && todayReset.dayLabel === todayLabel}}" class="tr-view tr-today-reset" role="status"><view class="tr-view tr-today-reset-icon"><text class="tr-text">✓</text></view><text class="tr-text tr-today-reset-title">今日重置已到账</text><text class="tr-text tr-today-reset-time">{{todayReset.time}} 北京时间</text></view>
     <view class="tr-view tr-signal {{signal.show ? signal.level : 'idle'}}" data-level="{{signal.level}}">
       <view class="tr-view tr-row"><view class="tr-view tr-chip"><view class="tr-view tr-chip-dot"></view><text class="tr-text">{{signal.show ? signal.status === 'observed' ? '已有账号实测到账' : signal.status === 'overdue' ? '落地待核实' : signal.level === 'explicit' ? signal.manual ? '手动补录预告' : 'TIBO 已预告' : '线索 · 未确认' : '持续观测中'}}</text></view><text class="tr-text tr-secondary">{{signal.show ? signalAge : '持续检查'}}</text></view>

@@ -66,8 +66,8 @@ await check('实测观察不被误发成未来预告通知','subscribe',m=>{
   const hypothetical={...sig.observedForecasts[0],window:{...sig.observedForecasts[0].window,toTs:now+3600000,to:new Date(now+3600000).toISOString()}};
   assert.equal(m.announcementEventsFromForecasts([hypothetical],now).length,0);
 }," || forecast.status === 'observed'",'');
-await check('UTC日历按实际观测归格，详情保留北京时间可还原的原始时间','calendar',m=>{
-  const c=m.buildResetCalendar(calInput),cell=c.cells.find(x=>x.date==='2026-10-22');assert.equal(cell.status,'observed');assert.equal(cell.observedCount,1);assert.equal(cell.confirmedCount,0);
+await check('日历按北京实际观测日期归格，详情保留原始时间','calendar',m=>{
+  const c=m.buildResetCalendar(calInput),cell=c.cells.find(x=>x.date==='2026-10-23');assert.equal(cell.status,'observed');assert.equal(cell.observedCount,1);assert.equal(cell.confirmedCount,0);
   assert.equal(cell.details.find(x=>x.roles.includes('observed')).observedAt,observedAt);
 },"else if (cell.observedCount) plain.status = 'observed';",'');
 await check('Day17同步实测状态，Day18仍保持预告，统计不冒充全量确认','calendar',m=>{

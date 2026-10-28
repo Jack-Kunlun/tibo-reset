@@ -30,16 +30,16 @@ const current = buildResetCalendar({
   signals,
   now: NOW,
 });
-check('真实 Day 1 锚定 UTC 10/05，而非 program.from 的 10/04', current?.fromDate === '2026-10-05');
-check('当前 28 天格覆盖 10/05–11/01', current?.days === 28 && current.toDate === '2026-11-01');
+check('真实 Day 1 锚定北京 10/06，而非 UTC 日期或 program.from', current?.fromDate === '2026-10-06');
+check('当前 28 天格按北京时间覆盖 10/06–11/02', current?.days === 28 && current.toDate === '2026-11-02');
 check('真实快照计 7 条已确认事件（6 reset + 1 credit）',
   current?.confirmedCount === 7 && current.resetCount === 6 && current.creditCount === 1);
-check('Day 15 随帖落地在 UTC 10/20，只增加一次确认而非待落地预告',
+check('Day 15 随帖落地在北京 10/20，只增加一次确认而非待落地预告',
   current?.pendingCount === 0 && current.confirmedCount === 7 &&
   current.cells.find((cell) => cell.date === '2026-10-20')?.status === 'confirmed' &&
   current.cells.find((cell) => cell.date === '2026-10-20')?.confirmedCount === 1);
-check('真实快照 Day 1 来源可追溯且进度按 UTC 日期计算',
-  current?.sourceUrl === 'https://x.com/thsottiaux/status/2107158998495748264' && current.progressDay === 16);
+check('真实快照 Day 1 来源可追溯且进度按北京日期计算',
+  current?.sourceUrl === 'https://x.com/thsottiaux/status/2107158998495748264' && current.progressDay === 15);
 
 /* ------------------------- 固定夹具 ------------------------- */
 
@@ -60,9 +60,9 @@ const program = {
   url: 'https://x.com/thsottiaux/status/190',
 };
 const day1 = tweet('100', '2026-10-05T23:59:59.999Z', 'Day 1/ Starting the 28 day program', { author_verified: undefined });
-const day2 = tweet('102', '2026-10-06T04:00:00.000Z', 'Day 2/ An improvement shipped');
+const day2 = tweet('102', '2026-10-06T04:00:00.000Z', 'Day 2/ We shipped API improvements.');
 const day3 = tweet('103', '2026-10-08T02:00:00.000Z', 'Day 3/ A clear improvement is now available');
-const dated = tweet('305', '2026-10-07T22:00:00.000Z', "We'll reset everyone's usage limits in 2 hours.");
+const dated = tweet('305', '2026-10-07T15:55:00.000Z', "We'll reset everyone's usage limits in 2 hours.");
 const pending = tweet('306', '2026-10-08T03:00:00.000Z', 'A reset is coming soon.');
 const trustedComplete = tweet('201', '2026-10-07T00:00:30.000Z', 'Reset all propagated.');
 const otherAccountDay1 = tweet('90', '2026-10-05T09:00:00.000Z', 'Day 1/ not the account', { account: 'someone' });
@@ -100,11 +100,11 @@ const fixtureSignals = {
 const fixture = buildResetCalendar({ records, tweets: fixtureTweets, signals: fixtureSignals, now: '2026-10-10T12:00:00.000Z' });
 const cell = (date) => fixture.cells.find((item) => item.date === date);
 
-check('缺 author_verified 的可信浏览器 Day 1 可用，UTC 午夜边界不挪日',
-  fixture?.fromDate === '2026-10-05' && fixture.cells[0].date === '2026-10-05' && fixture.startWeekday === 0);
-check('Day N 按实际 UTC 发布日标更新，不按名义日序移格',
+check('缺 author_verified 的可信浏览器 Day 1 可用，跨日按北京时间归格',
+  fixture?.fromDate === '2026-10-06' && fixture.cells[0].date === '2026-10-06' && fixture.startWeekday === 1);
+check('Day N 按实际北京发布日标更新，不按名义日序移格',
   cell('2026-10-08')?.details.some((item) => item.id === day3.id && item.dayNumber === 3 && item.createdAt.startsWith('2026-10-08')));
-check('确认事件按 UTC 确认日入格，别名只计一次且同日多个事件保留',
+check('确认事件按北京确认日入格，别名只计一次且同日多个事件保留',
   cell('2026-10-07')?.confirmedCount === 3 && cell('2026-10-07')?.resetCount === 2 && cell('2026-10-07')?.creditCount === 1);
 check('未来确认记录不会提前入格', fixture.confirmedCount === 3);
 check('带窗口预告与未定时预告独立计数，重复来源只计一次',
@@ -129,14 +129,14 @@ const fakeCompletion = buildResetCalendar({records:[{id:pending.id,type:'reset',
 check('已采原文明示预告时，误标历史不能变成已到账',fakeCompletion.confirmedCount===0 && fakeCompletion.cells.find(c=>c.date==='2026-10-08').status==='pending');
 check('进行中、取消和尚未可用的原帖均不能显示已到账', ['The reset is in progress.', 'The reset is cancelled.', 'A reset is planned but not available yet.'].every(text =>
   buildResetCalendar({records:[{id:pending.id,type:'reset',announced_at:pending.created_at,url:pending.url}],tweets:[day1,{...pending,text}],signals:{program},now:'2026-10-10T12:00:00Z'}).confirmedCount===0));
-const firstConfirmation = buildResetCalendar({records:[{id:'500',type:'credit',announced_at:'2026-10-07T01:00:00Z',first_confirmed_at:'2026-10-06T23:00:00Z'}],tweets:[day1],signals:{program},now:'2026-10-10T12:00:00Z'});
-check('首次确认跨UTC午夜时落在首次确认日，发券仍计一次',firstConfirmation.cells.find(c=>c.date==='2026-10-06').creditCount===1 && firstConfirmation.cells.find(c=>c.date==='2026-10-07').confirmedCount===0);
+const firstConfirmation = buildResetCalendar({records:[{id:'500',type:'credit',announced_at:'2026-10-06T16:01:00Z',first_confirmed_at:'2026-10-06T15:59:00Z'}],tweets:[day1],signals:{program},now:'2026-10-10T12:00:00Z'});
+check('首次确认跨北京午夜时落在首次确认日，发券仍计一次',firstConfirmation.cells.find(c=>c.date==='2026-10-06').creditCount===1 && firstConfirmation.cells.find(c=>c.date==='2026-10-07').confirmedCount===0);
 const bridgeRecords=[{id:'501',type:'reset',announced_at:'2026-10-07T01:00:00Z'},{id:'502',type:'reset',announced_at:'2026-10-07T02:00:00Z'},{id:'503',type:'reset',announced_at:'2026-10-07T03:00:00Z',confirmation_urls:['https://x.com/thsottiaux/status/501','https://x.com/thsottiaux/status/502']}];
 check('晚到桥接别名与输入顺序不重复计到账', [bridgeRecords,[...bridgeRecords].reverse()].every(records=>buildResetCalendar({records,tweets:[day1],signals:{program},now:'2026-10-10T12:00:00Z'}).confirmedCount===1));
-const finalDay = Date.parse('2026-11-01T08:00:00Z');
+const finalDay = Date.parse('2026-11-02T08:00:00Z');
 const finalSignals = detectSignals(tweetsData.tweets,{now:finalDay,lastResetAt:latestEventMs(recordsData.records),account:ACCOUNT});
 const lastCalendar = buildResetCalendar({records:recordsData.records,tweets:tweetsData.tweets,signals:finalSignals,now:finalDay});
-check('洛杉矶活动规则到期后，UTC末日日历仍保留',!finalSignals.program && lastCalendar?.toDate==='2026-11-01' && lastCalendar.progressDay===28);
+check('洛杉矶活动规则到期后，北京末日日历仍保留',!finalSignals.program && lastCalendar?.toDate==='2026-11-02' && lastCalendar.progressDay===28);
 const serverSource = await readFile(resolve(ROOT,'server/index.mjs'),'utf8');
 const getSignalsSource = serverSource.match(/async function getSignals\(data\) \{[\s\S]*?\n\}/)?.[0];
 const cacheRecords=[{id:'700',type:'reset',announced_at:'2026-10-06T00:00:00Z'},{id:'701',type:'reset',announced_at:'2026-10-07T00:00:00Z'}];
@@ -272,9 +272,9 @@ const planCases = [
     from: 'if (matches.length !== 1) return null;', to: 'if (!matches.length) return null;',
   },
   {
-    name: '计划原帖最新 Day 16 与 UTC 日历进度 17 独立，固定保留 28 天',
+    name: '计划原帖最新 Day 16 与日历进度独立，固定保留 28 天',
     input: realPlanInput,
-    verify: c => c.plan.latestDay === 16 && c.progressDay === 17 && c.plan.rows.length === 28,
+    verify: c => c.plan.latestDay === 16 && c.progressDay === 16 && c.plan.rows.length === 28,
     from: 'const latestDay = Math.max(0, ...posts.map((post) => post.day));',
     to: 'const latestDay = Math.max(0, ...posts.map((post) => post.day)) + 1;',
   },

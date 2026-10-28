@@ -144,7 +144,8 @@ function calendarSelection(calendar, date) {
       key: String(detail.id || `${date}-${index}`),
       title: detail.roles.includes('observed') ? '已有账号实测到账'
         : detail.roles.includes('confirmed') ? detail.type === 'credit' ? '发券型已确认' : '重置已确认'
-        : detail.roles.includes('forecast') ? detail.awaitingVerification ? '预告窗口已结束 · 落地待核实' : '明确预告 · 尚未确认落地' : '日程更新',
+        : detail.roles.includes('forecast') ? detail.awaitingVerification ? '预告窗口已结束 · 落地待核实' : '明确预告 · 尚未确认落地'
+        : detail.roles.includes('updated') ? '功能更新' : '原帖',
       when: detail.roles.includes('observed')
         ? `${detail.observationPrecision === 'approximate-minute' ? '约' : ''}${Number.isFinite(toTs(detail.observedAt)) ? fmtDateTime(toTs(detail.observedAt)) + ' 北京' : '时间未知'} · ${detail.sourceLabel || '账号实测'} · 仅代表单个账号`
         : `${detail.timePrecision === 'approximate-minute' ? '约' : ''}${fmtDateTime(toTs(detail.confirmedAt || detail.createdAt))} 北京${detail.manual ? ' · 手动补录' : ''}`,
