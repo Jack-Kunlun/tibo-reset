@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-28T03:02:43.479Z",
-  "checkedTweets": 477,
+  "generatedAt": "2026-10-28T04:03:50.567Z",
+  "checkedTweets": 480,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-29T03:02:43.479Z",
-  "windowTo": "2026-10-28T03:02:43.479Z",
+  "windowFrom": "2026-08-29T04:03:50.567Z",
+  "windowTo": "2026-10-28T04:03:50.567Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.28",
       "weekday": "周三",
-      "time": "11:02",
-      "text": "2026.10.28（周三）11:02",
+      "time": "12:03",
+      "text": "2026.10.28（周三）12:03",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,38 +98,28 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.27",
       "weekday": "周二",
-      "time": "20:02",
-      "text": "2026.10.27（周二）20:02",
+      "time": "21:03",
+      "text": "2026.10.27（周二）21:03",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2115273253711409208",
+    "id": "2115290318652444729",
     "account": "thsottiaux",
-    "text": "Lands by midnight PST.",
-    "createdAt": "2026-10-28T02:43:38.000Z",
-    "url": "https://x.com/thsottiaux/status/2115273253711409208",
+    "text": "Maybe it’s because I have bad long term memory.",
+    "createdAt": "2026-10-28T03:51:26.000Z",
+    "url": "https://x.com/thsottiaux/status/2115290318652444729",
     "reasons": [
-      "上下文：回复 @thsottiaux「Day 23/ Much requested iCloud Main &…」",
-      "本条不含额度词，额度语境借自上下文 + 延续语气 → 判为预告"
+      "上下文：回复 @AdamHoltererer「OpenAI has reset Codex limits 11 tim…」",
+      "被回复的推文含额度语境（本条无延续语气，不借意图）"
     ],
-    "contextEvidence": [
-      {
-        "id": "2115273064481218829",
-        "createdAt": "2026-10-28T02:42:53.000Z",
-        "text": "Day 23/ Much requested iCloud Main & Calendar plugins. Just kidding, today is a reset. Still much requested though!",
-        "url": "https://x.com/thsottiaux/status/2115273064481218829"
-      }
-    ],
-    "linkedCompletion": false,
-    "contextRelation": "reply",
-    "viaContext": true,
+    "viaContext": false,
     "inReplyTo": {
-      "account": "thsottiaux",
-      "id": "2115273064481218829",
-      "text": "Day 23/ Much requested iCloud Main & Calendar plugins. Just kidding, today is a reset. Still much requested though!"
+      "account": "AdamHoltererer",
+      "id": "",
+      "text": "OpenAI has reset Codex limits 11 times this month"
     },
     "createdZones": {
       "a": {
@@ -137,8 +127,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.28",
         "weekday": "周三",
-        "time": "10:43",
-        "text": "2026.10.28（周三）10:43",
+        "time": "11:51",
+        "text": "2026.10.28（周三）11:51",
         "offset": "UTC+8"
       },
       "b": {
@@ -146,73 +136,17 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.27",
         "weekday": "周二",
-        "time": "19:43",
-        "text": "2026.10.27（周二）19:43",
+        "time": "20:51",
+        "text": "2026.10.27（周二）20:51",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
-    "level": "explicit",
-    "rejected": null,
-    "intent": 3,
-    "timeWord": "midnight",
-    "timeNote": "原文 PST 按 UTC-8 换算；若泛指洛杉矶当地夏令时（UTC-7），则比此时间早 1 小时。",
-    "precision": "instant",
-    "candidateWindow": null,
-    "window": {
-      "from": "2026-10-28T02:43:38.000Z",
-      "to": "2026-10-28T08:00:00.000Z",
-      "dayNum": 20754,
-      "fromTs": 1793155418000,
-      "toTs": 1793174400000,
-      "deadline": true,
-      "deadlineText": "2026.10.28（周三）16:00",
-      "userDeadline": {
-        "y": "2026",
-        "m": "10",
-        "d": "28",
-        "hh": "16",
-        "mm": "00",
-        "weekdayCN": "周三"
-      },
-      "userFrom": {
-        "y": "2026",
-        "m": "10",
-        "d": "28",
-        "hh": "10",
-        "mm": "43",
-        "weekdayCN": "周三"
-      },
-      "sourceZone": "2026.10.28（周三）00:00 前",
-      "sourceLabel": "原文 PST",
-      "userZone": "2026.10.28（周三）16:00 前",
-      "openText": "2026.10.28（周三）10:43",
-      "rangeNote": "公告给出最晚时间，尚未确认落地",
-      "crossesUserDay": false,
-      "zones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.28",
-          "weekday": "周三",
-          "time": "10:43",
-          "text": "2026.10.28（周三）10:43",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "原文 PST",
-          "zone": "Etc/GMT+8",
-          "date": "2026.10.27",
-          "weekday": "周二",
-          "time": "18:43",
-          "text": "2026.10.27（周二）18:43",
-          "offset": "UTC-8"
-        },
-        "diffHours": 16,
-        "diffText": "北京时间比原文 PST快 16 小时"
-      }
-    },
-    "confidence": 0.51
+    "level": "none",
+    "rejected": "无额度相关词",
+    "intent": 0,
+    "window": null,
+    "candidateWindow": null
   },
   "signals": [
     {
@@ -3304,7 +3238,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-10-28T03:02:43.479Z"
+        "checkedAt": "2026-10-28T04:03:50.567Z"
       }
     },
     {
@@ -4079,6 +4013,133 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2115290318652444729",
+      "account": "thsottiaux",
+      "text": "Maybe it’s because I have bad long term memory.",
+      "createdAt": "2026-10-28T03:51:26.000Z",
+      "url": "https://x.com/thsottiaux/status/2115290318652444729",
+      "reasons": [
+        "上下文：回复 @AdamHoltererer「OpenAI has reset Codex limits 11 tim…」",
+        "被回复的推文含额度语境（本条无延续语气，不借意图）"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "AdamHoltererer",
+        "id": "",
+        "text": "OpenAI has reset Codex limits 11 times this month"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.28",
+          "weekday": "周三",
+          "time": "11:51",
+          "text": "2026.10.28（周三）11:51",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.27",
+          "weekday": "周二",
+          "time": "20:51",
+          "text": "2026.10.27（周二）20:51",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2115290111147712544",
+      "account": "thsottiaux",
+      "text": "Hi Sergio",
+      "createdAt": "2026-10-28T03:50:37.000Z",
+      "url": "https://x.com/thsottiaux/status/2115290111147712544",
+      "reasons": [
+        "上下文：回复 @matteing「Just spoke to an insider in a major …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "matteing",
+        "id": "",
+        "text": "Just spoke to an insider in a major AI lab."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.28",
+          "weekday": "周三",
+          "time": "11:50",
+          "text": "2026.10.28（周三）11:50",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.27",
+          "weekday": "周二",
+          "time": "20:50",
+          "text": "2026.10.27（周二）20:50",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2115289940233961584",
+      "account": "thsottiaux",
+      "text": "@poteto lend me some of your strength, there is still time",
+      "createdAt": "2026-10-28T03:49:56.000Z",
+      "url": "https://x.com/thsottiaux/status/2115289940233961584",
+      "reasons": [
+        "上下文：回复 @TokenGremlin「ChatGPT Pro users, don't forget that…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "TokenGremlin",
+        "id": "",
+        "text": "ChatGPT Pro users, don't forget that your usage limits are getting cut in half in just 3 days. Terrible news to be reminded of, of course. And the only way OpenAI can make this whole situation any less awful is by releasing a model that's as good as or better than Opus 5.5,"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.28",
+          "weekday": "周三",
+          "time": "11:49",
+          "text": "2026.10.28（周三）11:49",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.27",
+          "weekday": "周二",
+          "time": "20:49",
+          "text": "2026.10.27（周二）20:49",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2115272201922572627",
       "account": "thsottiaux",
@@ -12194,135 +12255,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2106546689012281771",
-      "account": "thsottiaux",
-      "text": "Interesting position you’re taking there mister Bacon. Now let’s see what someone can do with the ChatGPT subscription or the Grok subscription. 👀",
-      "createdAt": "2026-10-04T00:47:23.000Z",
-      "url": "https://x.com/thsottiaux/status/2106546689012281771",
-      "reasons": [
-        "上下文：回复 @Baconbrix「Another 50% usage cut on the pro pla…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "Baconbrix",
-        "id": "",
-        "text": "Another 50% usage cut on the pro plan"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.04",
-          "weekday": "周日",
-          "time": "08:47",
-          "text": "2026.10.04（周日）08:47",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.03",
-          "weekday": "周六",
-          "time": "17:47",
-          "text": "2026.10.03（周六）17:47",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2106544544892518815",
-      "account": "thsottiaux",
-      "text": "Dots are persistent agents that carry context across the single conversation. You can call it in the middle of work and then catch it later via slack or text in the app, it’s the same dot talking to you.",
-      "createdAt": "2026-10-04T00:38:51.000Z",
-      "url": "https://x.com/thsottiaux/status/2106544544892518815",
-      "reasons": [
-        "含未来语气",
-        "上下文：回复 @atelicinvest「Why are these ppl pretending that th…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "atelicinvest",
-        "id": "",
-        "text": "Why are these ppl pretending that there was no way to do this before today Am i losing my mind here"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.04",
-          "weekday": "周日",
-          "time": "08:38",
-          "text": "2026.10.04（周日）08:38",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.03",
-          "weekday": "周六",
-          "time": "17:38",
-          "text": "2026.10.03（周六）17:38",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2106543375088488596",
-      "account": "thsottiaux",
-      "text": "6.1 coming soon",
-      "createdAt": "2026-10-04T00:34:12.000Z",
-      "url": "https://x.com/thsottiaux/status/2106543375088488596",
-      "reasons": [
-        "含未来语气",
-        "上下文：回复 @davis7「I'm enjoying Astra on low reasoning …」",
-        "含延续语气，但被回复的推文无额度语境，不借意图"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "davis7",
-        "id": "",
-        "text": "I'm enjoying Astra on low reasoning + ultra fast way too much for a ton of little things like: - email management - one off fixes - research - quick demos Usage limits are still pretty brutal. Really want GPT-6.1 Sol ultra fast that's gonna be absurdly useful"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.04",
-          "weekday": "周日",
-          "time": "08:34",
-          "text": "2026.10.04（周日）08:34",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.03",
-          "weekday": "周六",
-          "time": "17:34",
-          "text": "2026.10.03（周六）17:34",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12560,12 +12492,12 @@
     }
   ],
   "counts": {
-    "scanned": 477,
+    "scanned": 480,
     "explicit": 4,
     "occurred": 12,
     "hint": 65,
-    "none": 377,
-    "rejected": 377
+    "none": 380,
+    "rejected": 380
   },
   "truncated": true
 }

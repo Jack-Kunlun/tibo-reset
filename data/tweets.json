@@ -1,6 +1,63 @@
 {
   "tweets": [
     {
+      "id": "2115290318652444729",
+      "text": "Maybe it’s because I have bad long term memory.",
+      "created_at": "2026-10-28T03:51:26.000Z",
+      "url": "https://x.com/thsottiaux/status/2115290318652444729",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "AdamHoltererer",
+        "id": "",
+        "text": "OpenAI has reset Codex limits 11 times this month",
+        "created_at": "2026-10-27T14:36:30.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-28T04:03:50.488Z"
+    },
+    {
+      "id": "2115290111147712544",
+      "text": "Hi Sergio",
+      "created_at": "2026-10-28T03:50:37.000Z",
+      "url": "https://x.com/thsottiaux/status/2115290111147712544",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "matteing",
+        "id": "",
+        "text": "Just spoke to an insider in a major AI lab.",
+        "created_at": "2026-10-28T02:47:41.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-28T04:03:50.488Z"
+    },
+    {
+      "id": "2115289940233961584",
+      "text": "@poteto lend me some of your strength, there is still time",
+      "created_at": "2026-10-28T03:49:56.000Z",
+      "url": "https://x.com/thsottiaux/status/2115289940233961584",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "TokenGremlin",
+        "id": "",
+        "text": "ChatGPT Pro users, don't forget that your usage limits are getting cut in half in just 3 days. Terrible news to be reminded of, of course. And the only way OpenAI can make this whole situation any less awful is by releasing a model that's as good as or better than Opus 5.5,",
+        "created_at": "2026-10-27T22:13:05.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-28T04:03:50.488Z"
+    },
+    {
       "id": "2115273253711409208",
       "text": "Lands by midnight PST.",
       "created_at": "2026-10-28T02:43:38.000Z",
@@ -8628,7 +8685,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-28T03:02:43.422Z",
+  "updated_at": "2026-10-28T04:03:50.495Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
