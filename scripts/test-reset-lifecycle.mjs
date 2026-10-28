@@ -123,7 +123,9 @@ assert.equal(merged.added,1); assert.equal(Date.parse(merged.records[0].announce
 const settled=signals.detectSignals(completedPosts,{now:completedAt+1000,lastResetAt:completedAt});
 assert.equal(settled.forecasts.length,0); assert.equal(settled.overdueForecasts.length,0); checks++;
 const completedCal=calendar.buildResetCalendar({...calInput,records:merged.records,tweets:[...calInput.tweets,completion],signals:{...settled,program:calInput.signals.program},now:completedAt+1000});
-assert.equal(completedCal.cells.find(c=>c.date==='2026-10-23').status,'confirmed');
+// D-089：日历按北京时间归格 —— 完成帖 2026-10-23T17:00:00Z = 北京 10-24 01:00 ⇒ 落 10-24 格。
+assert.equal(completedCal.cells.find(c=>c.date==='2026-10-24').status,'confirmed');
+assert.equal(completedCal.cells.find(c=>c.date==='2026-10-23').status,'updated');
 assert.equal(completedCal.plan.rows.find(r=>r.day===18).confirmedCount,1); checks++;
 assert.equal(mergeConfirmedResets(merged.records,completedPosts,{now:completedAt+1000}).added,0); checks++;
 const events=announcementEventsFromForecasts(sig.forecasts,now); assert.equal(events.length,1); checks++;

@@ -140,7 +140,7 @@ try {
   check('小程序旧快照仅有昨日记录时不产生今日状态', buildTodayResetView({ lastAt: iso(YESTERDAY) }, NOW) === null);
   const noted = buildProgramPlanView({ days: 28, latestDay: 1, rows: [{ day: 1, status: 'noted', statusLabel: '当日动态', entries: [{ kind: 'note' }] }] }).days[0];
   const resetMention = buildProgramPlanView({ days: 28, latestDay: 1, rows: [{ day: 1, status: 'noted', statusLabel: '当日动态', entries: [{ kind: 'reset-unconfirmed' }] }] }).days[0];
-  check('普通当日动态不冒充预告，也不再用“提”标记', noted.marker === '动' && noted.status === 'noted' && !noted.statusLabel.includes('预告'));
+  check('普通当日动态不冒充预告，按新口径归入 missing 显示短横线', noted.marker === '-' && noted.status === 'missing' && !noted.statusLabel.includes('预告'));
   check('旧“提及重置”账目改显示预告标记与待落地状态', resetMention.marker === '预' && resetMention.statusClass === 'pending' && resetMention.statusLabel === '重置预告·待落地');
 
   const wxml = await readFile(resolve(ROOT, 'miniprogram/pages/index/index.wxml'), 'utf8');
@@ -256,7 +256,7 @@ const plan = { days: 1, latestDay: 1, rows: [{ day: 1, status: 'noted', statusLa
 const { renderProgramPlan } = await import('../src/lib/render.mjs');
 const legacyPlanHtml = renderProgramPlan(plan, null);
 check('网页旧重置提及映射为预告，普通note仍保持当日动态', legacyPlanHtml.includes('plan-pending') && legacyPlanHtml.includes('重置预告·待落地') && !legacyPlanHtml.includes('提及重置'));
-check('网页普通note标“动”，不标“提”或“预”', planSource.includes("noted: '动'") && !legacyPlanHtml.includes('<i aria-hidden="true">提</i>'));
+check('网页普通note归入 missing 标短横线，不标“提”', planSource.includes("'noted' || !markers[row.status] ? 'missing'") && !legacyPlanHtml.includes('<i aria-hidden="true">提</i>'));
 
 // 反例变异只改内存中的模块文本：若未来时刻过滤丢失，下面的断言应能抓住。
 const futureGuard = 'if (!finite(now) || !finite(lastAt) || lastAt > now) return null;';
