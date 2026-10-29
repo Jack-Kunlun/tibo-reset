@@ -1,6 +1,30 @@
 {
   "tweets": [
     {
+      "id": "2115622002581188681",
+      "text": "Day 24/ Text your dot just like anyone else. Makes it super easy to share/forward things, leave it voice notes or you can even go creative with \"Hey Siri, text Iggy to <INSERT WILD REQUEST>\" and sit back and relax.",
+      "created_at": "2026-10-29T01:49:26.000Z",
+      "url": "https://x.com/thsottiaux/status/2115622002581188681",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "ChatGPT",
+        "text": "By popular request, you can now text your dot. Give it a task to take off your plate or something to keep an eye on, using text, photos, or even voice notes. It will text you proactively with relevant updates. Safe, secure texting via iMessage or RCS. You’re the only one who",
+        "created_at": "2026-10-28T17:30:17.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-29T02:06:58.330Z",
+      "translation": {
+        "text": "第 24 天 / 现在就像给其他人发消息一样给 Dot 发消息。转发、分享东西变得非常方便，留语音留言也行；你甚至可以发挥创意：「嘿 Siri，给 Iggy 发条消息说 <填个离谱要求>」，然后坐等结果。",
+        "sourceHash": "be17bd65fbc6b55f6b5f20323b25ef20d0fffac0330539a39e6406f1c35c68f8",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
       "id": "2115588390414581916",
       "text": "Team is working on this but it's not rolling out just yet, sorry for any confusion. Plan is to bring together best of both Chat / Work capabilities together at some point this year, but we're going to proceed carefully here and take our time. We'll have more to share soon.",
       "created_at": "2026-10-28T23:35:52.000Z",
@@ -8815,7 +8839,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-29T00:02:53.292Z",
+  "updated_at": "2026-10-29T02:06:58.333Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }

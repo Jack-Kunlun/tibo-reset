@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-25T06:06:16.000Z",
     "last_text": "It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ https://t.co/xKaK95EAly",
-    "days_since_last": 3.7476547569444443,
+    "days_since_last": 3.8338246064814814,
     "avg_interval_days": 6.201318376068373,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.358045775625218,
@@ -14,13 +14,13 @@
     "reset_count": 59,
     "hit_within_avg": 0.7230769230769231
   },
-  "generated_at": "2026-10-29T00:02:53.480Z",
+  "generated_at": "2026-10-29T02:06:58.571Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
     "stoppedBy": "known",
     "newTweets": 1,
-    "knownCount": 486,
+    "knownCount": 487,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
@@ -31,31 +31,15 @@
     },
     "replyError": null,
     "fullText": {
-      "candidates": 5,
-      "attempted": 5,
-      "fetched": 5,
+      "candidates": 3,
+      "attempted": 3,
+      "fetched": 3,
       "skipped": 0,
       "missingReplyContext": [],
       "scanned": [
         {
           "id": "2115273253711409208",
           "length": 22,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": true,
-          "replyContextStatus": "verified"
-        },
-        {
-          "id": "2114237083652882932",
-          "length": 75,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": true,
-          "replyContextStatus": "verified"
-        },
-        {
-          "id": "2114200291319124163",
-          "length": 15,
           "showMore": false,
           "networkMetadataStatus": "verified",
           "needsReplyContext": true,
@@ -85,7 +69,7 @@
     "updated": 0,
     "removed": 0,
     "upstreamCount": 69,
-    "refreshedAt": "2026-10-29T00:02:21.091Z",
+    "refreshedAt": "2026-10-29T02:06:35.335Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
