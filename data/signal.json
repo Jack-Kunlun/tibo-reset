@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-28T16:01:26.598Z",
-  "checkedTweets": 486,
+  "generatedAt": "2026-10-29T00:02:53.316Z",
+  "checkedTweets": 487,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-29T16:01:26.598Z",
-  "windowTo": "2026-10-28T16:01:26.598Z",
+  "windowFrom": "2026-08-30T00:02:53.316Z",
+  "windowTo": "2026-10-29T00:02:53.316Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.29",
       "weekday": "周四",
-      "time": "00:01",
-      "text": "2026.10.29（周四）00:01",
+      "time": "08:02",
+      "text": "2026.10.29（周四）08:02",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,36 +98,33 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.28",
       "weekday": "周三",
-      "time": "09:01",
-      "text": "2026.10.28（周三）09:01",
+      "time": "17:02",
+      "text": "2026.10.28（周三）17:02",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2115473280677363810",
+    "id": "2115588390414581916",
     "account": "thsottiaux",
-    "text": "If only",
-    "createdAt": "2026-10-28T15:58:28.000Z",
-    "url": "https://x.com/thsottiaux/status/2115473280677363810",
+    "text": "Team is working on this but it's not rolling out just yet, sorry for any confusion. Plan is to bring together best of both Chat / Work capabilities together at some point this year, but we're going to proceed carefully here and take our time. We'll have more to share soon.",
+    "createdAt": "2026-10-28T23:35:52.000Z",
+    "url": "https://x.com/thsottiaux/status/2115588390414581916",
     "reasons": [
-      "上下文：回复 @Ananth7e「tibo: \"we've decided not to reduce $…」"
+      "命中「新额度」类词 fresh/new/top up",
+      "含未来语气"
     ],
     "viaContext": false,
-    "inReplyTo": {
-      "account": "Ananth7e",
-      "id": "",
-      "text": "tibo: \"we've decided not to reduce $200 pro plan usage limits from 20x to 10x of plus\" imagine if this is the good news he's teasing for tomorrow."
-    },
+    "inReplyTo": null,
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.10.28",
-        "weekday": "周三",
-        "time": "23:58",
-        "text": "2026.10.28（周三）23:58",
+        "date": "2026.10.29",
+        "weekday": "周四",
+        "time": "07:35",
+        "text": "2026.10.29（周四）07:35",
         "offset": "UTC+8"
       },
       "b": {
@@ -135,15 +132,15 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.28",
         "weekday": "周三",
-        "time": "08:58",
-        "text": "2026.10.28（周三）08:58",
+        "time": "16:35",
+        "text": "2026.10.28（周三）16:35",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
     },
     "level": "none",
     "rejected": "无额度相关词",
-    "intent": 0,
+    "intent": 1,
     "window": null,
     "candidateWindow": null
   },
@@ -3196,7 +3193,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-10-28T16:01:26.598Z"
+        "checkedAt": "2026-10-29T00:02:53.316Z"
       }
     },
     {
@@ -4101,6 +4098,45 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2115588390414581916",
+      "account": "thsottiaux",
+      "text": "Team is working on this but it's not rolling out just yet, sorry for any confusion. Plan is to bring together best of both Chat / Work capabilities together at some point this year, but we're going to proceed carefully here and take our time. We'll have more to share soon.",
+      "createdAt": "2026-10-28T23:35:52.000Z",
+      "url": "https://x.com/thsottiaux/status/2115588390414581916",
+      "reasons": [
+        "命中「新额度」类词 fresh/new/top up",
+        "含未来语气"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.29",
+          "weekday": "周四",
+          "time": "07:35",
+          "text": "2026.10.29（周四）07:35",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.28",
+          "weekday": "周三",
+          "time": "16:35",
+          "text": "2026.10.28（周三）16:35",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 1,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2115473280677363810",
       "account": "thsottiaux",
@@ -12289,48 +12325,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2106842998214717876",
-      "account": "thsottiaux",
-      "text": "Locked in",
-      "createdAt": "2026-10-04T20:24:48.000Z",
-      "url": "https://x.com/thsottiaux/status/2106842998214717876",
-      "reasons": [
-        "上下文：回复 @nabeelqu「OpenAI is run by X Anthropic is run …」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "nabeelqu",
-        "id": "",
-        "text": "OpenAI is run by X Anthropic is run by Claude Google is run by committee SpaceXAI is run by Elon"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.05",
-          "weekday": "周一",
-          "time": "04:24",
-          "text": "2026.10.05（周一）04:24",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.04",
-          "weekday": "周日",
-          "time": "13:24",
-          "text": "2026.10.04（周日）13:24",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12407,12 +12401,12 @@
   },
   "forecasts": [],
   "counts": {
-    "scanned": 486,
+    "scanned": 487,
     "explicit": 3,
     "occurred": 12,
     "hint": 66,
-    "none": 385,
-    "rejected": 385
+    "none": 386,
+    "rejected": 386
   },
   "truncated": true
 }
