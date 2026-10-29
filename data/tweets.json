@@ -1,6 +1,56 @@
 {
   "tweets": [
     {
+      "id": "2115649073302904875",
+      "text": "Low, but not zero",
+      "created_at": "2026-10-29T03:37:00.000Z",
+      "url": "https://x.com/thsottiaux/status/2115649073302904875",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "rezoundous",
+        "id": "",
+        "text": "What are the chances that OpenAI cancels the usage limit halving for $200 plan?",
+        "created_at": "2026-10-28T08:25:00.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-29T04:02:59.805Z"
+    },
+    {
+      "id": "2115648938149818370",
+      "text": "@alexandr_wang DM me for a free trial of Pro",
+      "created_at": "2026-10-29T03:36:28.000Z",
+      "url": "https://x.com/thsottiaux/status/2115648938149818370",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-29T04:02:59.805Z"
+    },
+    {
+      "id": "2115648685069742441",
+      "text": "Muse couldn't build a website so the man just did a redirect",
+      "created_at": "2026-10-29T03:35:28.000Z",
+      "url": "https://x.com/thsottiaux/status/2115648685069742441",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "alexandr_wang",
+        "id": "",
+        "text": "https:// thibaultsottiaux.com just dropped",
+        "created_at": "2026-10-29T01:57:53.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-29T04:02:59.805Z"
+    },
+    {
       "id": "2115622002581188681",
       "text": "Day 24/ Text your dot just like anyone else. Makes it super easy to share/forward things, leave it voice notes or you can even go creative with \"Hey Siri, text Iggy to <INSERT WILD REQUEST>\" and sit back and relax.",
       "created_at": "2026-10-29T01:49:26.000Z",
@@ -254,7 +304,7 @@
       "kind": "reset",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-28T03:02:43.419Z",
       "translation": {
         "text": "第 23 天 / 大家一直催的 iCloud 邮件与日历插件。开玩笑的，今天其实是重置日。不过大家还是真的很想要！",
@@ -8839,7 +8889,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-29T02:06:58.333Z",
+  "updated_at": "2026-10-29T04:02:59.809Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
