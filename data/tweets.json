@@ -1,6 +1,112 @@
 {
   "tweets": [
     {
+      "id": "2115890336107233347",
+      "text": "Send your kind feedback to this person",
+      "created_at": "2026-10-29T19:35:42.000Z",
+      "url": "https://x.com/thsottiaux/status/2115890336107233347",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "ajambrosino",
+        "text": "hi all, two things: 1. usage limits are back to being double – your feedback worked 2. we today kicked off an intense sprint to dramatically improve the app simplicity and performance. i will oversee this. more to come. now, send me your complaints",
+        "created_at": "2026-10-29T17:18:20.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-29T20:01:19.822Z"
+    },
+    {
+      "id": "2115851811576053881",
+      "text": "Yes",
+      "created_at": "2026-10-29T17:02:37.000Z",
+      "url": "https://x.com/thsottiaux/status/2115851811576053881",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "StefanoGPT",
+        "id": "",
+        "text": "Wait, so does it mean that the OpenAI $500 plan is getting 50x usage?",
+        "created_at": "2026-10-29T17:01:51.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-29T20:01:19.822Z"
+    },
+    {
+      "id": "2115851621137784832",
+      "text": "Graduating from The Reset Company to The Token Company.",
+      "created_at": "2026-10-29T17:01:51.000Z",
+      "url": "https://x.com/thsottiaux/status/2115851621137784832",
+      "author_verified": true,
+      "kind": "reset",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-29T20:01:19.822Z"
+    },
+    {
+      "id": "2115850175868727621",
+      "text": "Day 25/ We are doubling all usage limits for all Pro 100/200/500 tiers and Business Premium, effective today. We heard your kind feedback and won’t be reducing usage limits for Pro 200, so your Work and Codex usage will stay the same. We’re also going to continue offering extended limits for dots for now, and usage of your dot will still continue to be separate from your default usage. And we'll of course also keep shipping better models and other efficiency improvements that increase your effective usage over time.",
+      "created_at": "2026-10-29T16:56:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2115850175868727621",
+      "author_verified": true,
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-10-29T20:01:19.822Z",
+      "translation": {
+        "text": "第 25 天 / 今天起，Pro 100/200/500 各档以及 Business Premium 的全部用量上限翻倍。我们听到了大家的反馈，不会下调 Pro 200 的用量上限，所以你的 Work 和 Codex 用量保持不变。dot 的额外额度暂时也会继续给，而且 dot 的用量依旧与默认用量分开算。当然，我们也会继续推出更好的模型和更多效率改进，让你的实际可用量随时间提升。",
+        "sourceHash": "2a9eb9e30f3cd460a187c3b64b2037741474adf0b9efaf7307584c952020c9b5",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
+      "id": "2115847364670030218",
+      "text": "Bring it on",
+      "created_at": "2026-10-29T16:44:56.000Z",
+      "url": "https://x.com/thsottiaux/status/2115847364670030218",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "day 28",
+        "created_at": "2026-10-29T07:55:41.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-29T20:01:19.822Z"
+    },
+    {
+      "id": "2115847315173069025",
+      "text": "Theo, is that you?",
+      "created_at": "2026-10-29T16:44:45.000Z",
+      "url": "https://x.com/thsottiaux/status/2115847315173069025",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "GPT-6.1 Terra is honestly much better than I anticipated. Using it for a bunch of random stuff",
+        "created_at": "2026-10-29T08:55:28.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-29T20:01:19.822Z"
+    },
+    {
       "id": "2115649073302904875",
       "text": "Low, but not zero",
       "created_at": "2026-10-29T03:37:00.000Z",
@@ -304,7 +410,7 @@
       "kind": "reset",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "with-replies",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-10-28T03:02:43.419Z",
       "translation": {
         "text": "第 23 天 / 大家一直催的 iCloud 邮件与日历插件。开玩笑的，今天其实是重置日。不过大家还是真的很想要！",
@@ -8889,7 +8995,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-29T04:02:59.809Z",
+  "updated_at": "2026-10-29T20:01:19.825Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
