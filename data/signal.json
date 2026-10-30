@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-30T01:15:00.930Z",
-  "checkedTweets": 498,
+  "generatedAt": "2026-10-30T06:02:00.182Z",
+  "checkedTweets": 501,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-31T01:15:00.930Z",
-  "windowTo": "2026-10-30T01:15:00.930Z",
+  "windowFrom": "2026-08-31T06:02:00.182Z",
+  "windowTo": "2026-10-30T06:02:00.182Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.30",
       "weekday": "周五",
-      "time": "09:15",
-      "text": "2026.10.30（周五）09:15",
+      "time": "14:02",
+      "text": "2026.10.30（周五）14:02",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,30 +98,36 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.29",
       "weekday": "周四",
-      "time": "18:15",
-      "text": "2026.10.29（周四）18:15",
+      "time": "23:02",
+      "text": "2026.10.29（周四）23:02",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2115974268936712436",
+    "id": "2116046569963421719",
     "account": "thsottiaux",
-    "text": "You merge, I split",
-    "createdAt": "2026-10-30T01:09:13.000Z",
-    "url": "https://x.com/thsottiaux/status/2115974268936712436",
-    "reasons": [],
+    "text": "Yep",
+    "createdAt": "2026-10-30T05:56:31.000Z",
+    "url": "https://x.com/thsottiaux/status/2116046569963421719",
+    "reasons": [
+      "上下文：回复 @Ananth7e「i'm taking full credit for this 😂…」"
+    ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "Ananth7e",
+      "id": "",
+      "text": "i'm taking full credit for this 😂"
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.10.30",
         "weekday": "周五",
-        "time": "09:09",
-        "text": "2026.10.30（周五）09:09",
+        "time": "13:56",
+        "text": "2026.10.30（周五）13:56",
         "offset": "UTC+8"
       },
       "b": {
@@ -129,8 +135,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.10.29",
         "weekday": "周四",
-        "time": "18:09",
-        "text": "2026.10.29（周四）18:09",
+        "time": "22:56",
+        "text": "2026.10.29（周四）22:56",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -3315,7 +3321,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-10-30T01:15:00.930Z"
+        "checkedAt": "2026-10-30T06:02:00.182Z"
       }
     },
     {
@@ -4220,6 +4226,132 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2116046569963421719",
+      "account": "thsottiaux",
+      "text": "Yep",
+      "createdAt": "2026-10-30T05:56:31.000Z",
+      "url": "https://x.com/thsottiaux/status/2116046569963421719",
+      "reasons": [
+        "上下文：回复 @Ananth7e「i'm taking full credit for this 😂…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "Ananth7e",
+        "id": "",
+        "text": "i'm taking full credit for this 😂"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.30",
+          "weekday": "周五",
+          "time": "13:56",
+          "text": "2026.10.30（周五）13:56",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.29",
+          "weekday": "周四",
+          "time": "22:56",
+          "text": "2026.10.29（周四）22:56",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2116045727642366367",
+      "account": "thsottiaux",
+      "text": "Good list",
+      "createdAt": "2026-10-30T05:53:10.000Z",
+      "url": "https://x.com/thsottiaux/status/2116045727642366367",
+      "reasons": [
+        "上下文：回复 @blueemi99「Here's my plan for how OpenAI could …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "blueemi99",
+        "id": "",
+        "text": "Here's my plan for how OpenAI could make a crazy comeback: - Pretty obvious, but release Astra 6.1. I'm sure it's ready, or almost ready. They HAVE to release it, make it better than Opus 5.5, and make it at least 50% cheaper/more efficient so $200 Pro users don't feel the nerfs"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.30",
+          "weekday": "周五",
+          "time": "13:53",
+          "text": "2026.10.30（周五）13:53",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.29",
+          "weekday": "周四",
+          "time": "22:53",
+          "text": "2026.10.29（周四）22:53",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2116044153515815186",
+      "account": "thsottiaux",
+      "text": "Hi brother 👋",
+      "createdAt": "2026-10-30T05:46:55.000Z",
+      "url": "https://x.com/thsottiaux/status/2116044153515815186",
+      "reasons": [
+        "上下文：回复 @janus_of_DC「你知道的，Tibo 是我兄弟，我和 OpenAI 很早就认识。Codex…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "janus_of_DC",
+        "id": "",
+        "text": "你知道的，Tibo 是我兄弟，我和 OpenAI 很早就认识。Codex 强得不可思议，我一直都是它的忠实信徒。每月 200 美元的 Pro 订阅让我和 Codex 产生了奇妙的化学反应。经过无数个日夜的思考，我决定继续把天赋和 200 美元留给 Codex，迫不及待准备大干一场了。至于 Claude Code，祝他们在旧金山一切顺利。"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.30",
+          "weekday": "周五",
+          "time": "13:46",
+          "text": "2026.10.30（周五）13:46",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.29",
+          "weekday": "周四",
+          "time": "22:46",
+          "text": "2026.10.29（周四）22:46",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2115974268936712436",
       "account": "thsottiaux",
@@ -12296,132 +12428,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2106966244314567159",
-      "account": "thsottiaux",
-      "text": "Congrats!!",
-      "createdAt": "2026-10-05T04:34:32.000Z",
-      "url": "https://x.com/thsottiaux/status/2106966244314567159",
-      "reasons": [
-        "上下文：回复 @alexkehr「Taste grew over 100% in just a coupl…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "alexkehr",
-        "id": "",
-        "text": "Taste grew over 100% in just a couple of days last week. More people joined and started using it than in the previous four months combined. It sort of feels like I may have accidentally started a company. Which has me wondering if I should do the VC thing again and take a big"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.05",
-          "weekday": "周一",
-          "time": "12:34",
-          "text": "2026.10.05（周一）12:34",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.04",
-          "weekday": "周日",
-          "time": "21:34",
-          "text": "2026.10.04（周日）21:34",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2106963521561083946",
-      "account": "thsottiaux",
-      "text": "Everything is indeed coordinated through Slack",
-      "createdAt": "2026-10-05T04:23:43.000Z",
-      "url": "https://x.com/thsottiaux/status/2106963521561083946",
-      "reasons": [
-        "上下文：回复 @AlexBerish「i am very curious how things work at…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "AlexBerish",
-        "id": "",
-        "text": "i am very curious how things work at @openai when it comes to decisions about shipping products, because shipping speed is so fast especially things like, for example, decisions api is @sama just monitoring slack and signs off on things that way? or not involved in approving?"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.05",
-          "weekday": "周一",
-          "time": "12:23",
-          "text": "2026.10.05（周一）12:23",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.04",
-          "weekday": "周日",
-          "time": "21:23",
-          "text": "2026.10.04（周日）21:23",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2106959403782184960",
-      "account": "thsottiaux",
-      "text": "Claudex AI Space by Google",
-      "createdAt": "2026-10-05T04:07:21.000Z",
-      "url": "https://x.com/thsottiaux/status/2106959403782184960",
-      "reasons": [
-        "上下文：回复 @ai_for_success「Name the AI company.…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "ai_for_success",
-        "id": "",
-        "text": "Name the AI company."
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.05",
-          "weekday": "周一",
-          "time": "12:07",
-          "text": "2026.10.05（周一）12:07",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.04",
-          "weekday": "周日",
-          "time": "21:07",
-          "text": "2026.10.04（周日）21:07",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12498,12 +12504,12 @@
   },
   "forecasts": [],
   "counts": {
-    "scanned": 498,
+    "scanned": 501,
     "explicit": 3,
     "occurred": 13,
     "hint": 67,
-    "none": 395,
-    "rejected": 395
+    "none": 398,
+    "rejected": 398
   },
   "truncated": true
 }

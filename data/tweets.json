@@ -1,6 +1,63 @@
 {
   "tweets": [
     {
+      "id": "2116046569963421719",
+      "text": "Yep",
+      "created_at": "2026-10-30T05:56:31.000Z",
+      "url": "https://x.com/thsottiaux/status/2116046569963421719",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "Ananth7e",
+        "id": "",
+        "text": "i'm taking full credit for this 😂",
+        "created_at": "2026-10-29T17:33:56.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-30T06:02:00.132Z"
+    },
+    {
+      "id": "2116045727642366367",
+      "text": "Good list",
+      "created_at": "2026-10-30T05:53:10.000Z",
+      "url": "https://x.com/thsottiaux/status/2116045727642366367",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "blueemi99",
+        "id": "",
+        "text": "Here's my plan for how OpenAI could make a crazy comeback: - Pretty obvious, but release Astra 6.1. I'm sure it's ready, or almost ready. They HAVE to release it, make it better than Opus 5.5, and make it at least 50% cheaper/more efficient so $200 Pro users don't feel the nerfs",
+        "created_at": "2026-10-29T16:39:05.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-30T06:02:00.132Z"
+    },
+    {
+      "id": "2116044153515815186",
+      "text": "Hi brother 👋",
+      "created_at": "2026-10-30T05:46:55.000Z",
+      "url": "https://x.com/thsottiaux/status/2116044153515815186",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "janus_of_DC",
+        "id": "",
+        "text": "你知道的，Tibo 是我兄弟，我和 OpenAI 很早就认识。Codex 强得不可思议，我一直都是它的忠实信徒。每月 200 美元的 Pro 订阅让我和 Codex 产生了奇妙的化学反应。经过无数个日夜的思考，我决定继续把天赋和 200 美元留给 Codex，迫不及待准备大干一场了。至于 Claude Code，祝他们在旧金山一切顺利。",
+        "created_at": "2026-10-29T17:15:59.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-10-30T06:02:00.132Z"
+    },
+    {
       "id": "2115974268936712436",
       "text": "You merge, I split",
       "created_at": "2026-10-30T01:09:13.000Z",
@@ -9007,7 +9064,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-10-30T01:15:00.924Z",
+  "updated_at": "2026-10-30T06:02:00.138Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
