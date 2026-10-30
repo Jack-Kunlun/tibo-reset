@@ -75,11 +75,11 @@
       }
     }
   },
-  "generatedAt": "2026-10-30T07:01:19.247Z",
-  "checkedTweets": 501,
+  "generatedAt": "2026-10-30T08:01:23.840Z",
+  "checkedTweets": 502,
   "lookbackDays": 60,
-  "windowFrom": "2026-08-31T07:01:19.247Z",
-  "windowTo": "2026-10-30T07:01:19.247Z",
+  "windowFrom": "2026-08-31T08:01:23.840Z",
+  "windowTo": "2026-10-30T08:01:23.840Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -89,8 +89,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.10.30",
       "weekday": "周五",
-      "time": "15:01",
-      "text": "2026.10.30（周五）15:01",
+      "time": "16:01",
+      "text": "2026.10.30（周五）16:01",
       "offset": "UTC+8"
     },
     "b": {
@@ -98,27 +98,28 @@
       "zone": "America/Los_Angeles",
       "date": "2026.10.30",
       "weekday": "周五",
-      "time": "00:01",
-      "text": "2026.10.30（周五）00:01",
+      "time": "01:01",
+      "text": "2026.10.30（周五）01:01",
       "offset": "UTC-7"
     },
     "diffHours": 15,
     "diffText": "北京时间比 Tibo 当地时间快 15 小时"
   },
   "latest": {
-    "id": "2116046569963421719",
+    "id": "2116072117540417651",
     "account": "thsottiaux",
-    "text": "Yep",
-    "createdAt": "2026-10-30T05:56:31.000Z",
-    "url": "https://x.com/thsottiaux/status/2116046569963421719",
+    "text": "No hype, just shipping",
+    "createdAt": "2026-10-30T07:38:02.000Z",
+    "url": "https://x.com/thsottiaux/status/2116072117540417651",
     "reasons": [
-      "上下文：回复 @Ananth7e「i'm taking full credit for this 😂…」"
+      "含发布/宣传语境（下调置信度）",
+      "上下文：回复 @ajambrosino「vox populi, vox dei will ship soon…」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "Ananth7e",
+      "account": "ajambrosino",
       "id": "",
-      "text": "i'm taking full credit for this 😂"
+      "text": "vox populi, vox dei will ship soon"
     },
     "createdZones": {
       "a": {
@@ -126,17 +127,17 @@
         "zone": "Asia/Shanghai",
         "date": "2026.10.30",
         "weekday": "周五",
-        "time": "13:56",
-        "text": "2026.10.30（周五）13:56",
+        "time": "15:38",
+        "text": "2026.10.30（周五）15:38",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.10.29",
-        "weekday": "周四",
-        "time": "22:56",
-        "text": "2026.10.29（周四）22:56",
+        "date": "2026.10.30",
+        "weekday": "周五",
+        "time": "00:38",
+        "text": "2026.10.30（周五）00:38",
         "offset": "UTC-7"
       },
       "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -977,7 +978,7 @@
         "from": "2026-10-29T07:00:00.000Z",
         "to": "2026-10-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-10-30T07:01:19.247Z"
+        "checkedAt": "2026-10-30T08:01:23.840Z"
       }
     },
     {
@@ -3287,7 +3288,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-10-30T07:01:19.247Z"
+        "checkedAt": "2026-10-30T08:01:23.840Z"
       }
     },
     {
@@ -4192,6 +4193,49 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2116072117540417651",
+      "account": "thsottiaux",
+      "text": "No hype, just shipping",
+      "createdAt": "2026-10-30T07:38:02.000Z",
+      "url": "https://x.com/thsottiaux/status/2116072117540417651",
+      "reasons": [
+        "含发布/宣传语境（下调置信度）",
+        "上下文：回复 @ajambrosino「vox populi, vox dei will ship soon…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "ajambrosino",
+        "id": "",
+        "text": "vox populi, vox dei will ship soon"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.10.30",
+          "weekday": "周五",
+          "time": "15:38",
+          "text": "2026.10.30（周五）15:38",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.10.30",
+          "weekday": "周五",
+          "time": "00:38",
+          "text": "2026.10.30（周五）00:38",
+          "offset": "UTC-7"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2116046569963421719",
       "account": "thsottiaux",
@@ -12352,48 +12396,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2106967126250791091",
-      "account": "thsottiaux",
-      "text": "Facts",
-      "createdAt": "2026-10-05T04:38:03.000Z",
-      "url": "https://x.com/thsottiaux/status/2106967126250791091",
-      "reasons": [
-        "上下文：回复 @hiarun02「Wait what, Codex users get a free re…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "hiarun02",
-        "id": "",
-        "text": "Wait what, Codex users get a free reset every day for 28 days if OpenAI doesn’t ship a meaningful update?"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.05",
-          "weekday": "周一",
-          "time": "12:38",
-          "text": "2026.10.05（周一）12:38",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.04",
-          "weekday": "周日",
-          "time": "21:38",
-          "text": "2026.10.04（周日）21:38",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12470,12 +12472,12 @@
   },
   "forecasts": [],
   "counts": {
-    "scanned": 501,
+    "scanned": 502,
     "explicit": 3,
     "occurred": 13,
     "hint": 67,
-    "none": 398,
-    "rejected": 398
+    "none": 399,
+    "rejected": 399
   },
   "truncated": true
 }
