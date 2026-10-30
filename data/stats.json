@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-25T06:06:16.000Z",
     "last_text": "It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ https://t.co/xKaK95EAly",
-    "days_since_last": 4.579906423611111,
+    "days_since_last": 4.797742951388889,
     "avg_interval_days": 6.201318376068373,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.358045775625218,
@@ -14,37 +14,29 @@
     "reset_count": 59,
     "hit_within_avg": 0.7230769230769231
   },
-  "generated_at": "2026-10-29T20:01:20.026Z",
+  "generated_at": "2026-10-30T01:15:01.102Z",
   "collect": {
     "mode": "incremental",
     "source": "browser",
     "stoppedBy": "known",
-    "newTweets": 6,
-    "knownCount": 491,
+    "newTweets": 1,
+    "knownCount": 497,
     "reply": {
       "mode": "incremental",
       "stoppedBy": "known",
-      "steps": 9,
-      "harvested": 15,
-      "withContext": 11,
+      "steps": 7,
+      "harvested": 11,
+      "withContext": 7,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 4,
-      "attempted": 4,
-      "fetched": 4,
+      "candidates": 2,
+      "attempted": 2,
+      "fetched": 2,
       "skipped": 0,
       "missingReplyContext": [],
       "scanned": [
-        {
-          "id": "2115273253711409208",
-          "length": 22,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": true,
-          "replyContextStatus": "verified"
-        },
         {
           "id": "2115850175868727621",
           "length": 521,
@@ -60,14 +52,6 @@
           "networkMetadataStatus": "verified",
           "needsReplyContext": false,
           "replyContextStatus": "not-required"
-        },
-        {
-          "id": "2114800277677092936",
-          "length": 256,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": false,
-          "replyContextStatus": "not-required"
         }
       ]
     }
@@ -77,7 +61,7 @@
     "updated": 0,
     "removed": 0,
     "upstreamCount": 69,
-    "refreshedAt": "2026-10-29T20:00:49.146Z",
+    "refreshedAt": "2026-10-30T01:14:38.057Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
