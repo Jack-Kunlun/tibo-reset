@@ -44,7 +44,7 @@ export function buildCalendarView(calendar) {
     weekdays: ['一', '二', '三', '四', '五', '六', '日'],
     gridCells: [
       ...Array.from({ length: calendar.startWeekday ?? 0 }, (_, i) => ({ key: `blank-${i}`, blank: true })),
-      ...calendar.cells.map((cell) => ({ ...cell, key: cell.date, dayNumber: cell.date.slice(8), displayLabel: cell.status === 'pending' ? '预' : cell.status === 'updated' ? '更新' : cell.status === 'observed' ? '实测' : cell.status === 'elapsed-no-record' ? '无记录' : cell.statusLabel, awaitingCount: cell.pendingCount + (cell.datedCount ?? 0) })),
+      ...calendar.cells.map((cell) => ({ ...cell, key: cell.date, dayNumber: cell.date.slice(8), displayLabel: ['pending', 'announced'].includes(cell.status) ? '预' : cell.status === 'updated' ? '更新' : cell.status === 'observed' ? '实测' : cell.status === 'elapsed-no-record' ? '无记录' : cell.statusLabel, awaitingCount: cell.pendingCount + (cell.datedCount ?? 0) })),
     ],
   };
 }

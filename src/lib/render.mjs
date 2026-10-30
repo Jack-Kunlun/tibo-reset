@@ -1502,9 +1502,9 @@ export function renderResetCalendar(c) {
         const manualConfirmed = cell.details?.find((detail) => detail.manual && detail.confirmedAt);
         const manualTime = manualConfirmed ? `${manualConfirmed.timePrecision === 'approximate-minute' ? '约' : ''}${fmtDateTime(manualConfirmed.confirmedAt)} 北京 · 手动补录` : '';
         const title = [cell.date, cell.statusLabel, manualTime, cell.confirmedCount ? `${c.hasManual ? '已到账' : '公开确认到账'} ${cell.confirmedCount} 次` : '', cell.observedCount ? `账号实测 ${cell.observedCount} 次` : '', observedAt, cell.pendingCount + cell.datedCount ? `待落地 ${cell.pendingCount + cell.datedCount} 条` : ''].filter(Boolean).join(' · ');
-        return `<${tag} class="rc-cell rc-${esc(cell.status)}${cell.isToday ? ' is-today' : ''}"${cell.sourceUrl ? ` href="${attr(cell.sourceUrl)}" target="_blank" rel="noopener noreferrer"` : ''} title="${attr(title)}"><b>${esc(cell.label)}</b><span>${esc(cell.status === 'pending' ? '预' : cell.status === 'updated' ? '更新' : cell.status === 'observed' ? '实测' : cell.status === 'elapsed-no-record' ? '无记录' : cell.statusLabel)}</span>${cell.confirmedCount && cell.pendingCount + cell.datedCount ? '<i>另有预告</i>' : ''}</${tag}>`;
+        return `<${tag} class="rc-cell rc-${esc(cell.status)}${cell.isToday ? ' is-today' : ''}"${cell.sourceUrl ? ` href="${attr(cell.sourceUrl)}" target="_blank" rel="noopener noreferrer"` : ''} title="${attr(title)}"><b>${esc(cell.label)}</b><span>${esc(['pending', 'announced'].includes(cell.status) ? '预' : cell.status === 'updated' ? '更新' : cell.status === 'observed' ? '实测' : cell.status === 'elapsed-no-record' ? '无记录' : cell.statusLabel)}</span>${cell.confirmedCount && cell.pendingCount + cell.datedCount ? '<i>另有预告</i>' : ''}</${tag}>`;
       }).join('')}</div>
-      <p class="rc-legend"><span>● ${c.hasManual ? '已到账' : '公开确认到账'}</span>${c.observedCount ? '<span>◇ 单账号实测</span>' : ''}<span>预 · 重置预告 · 待落地</span><span>● 功能更新</span><span>暂无记录 ≠ 当日没有重置</span></p>
+      <p class="rc-legend"><span>● ${c.hasManual ? '已到账' : '公开确认到账'}</span>${c.observedCount ? '<span>◇ 单账号实测</span>' : ''}<span>预 · 重置预告</span><span>● 功能更新</span><span>暂无记录 ≠ 当日没有重置</span></p>
     </div></div>
   </section>`;
 }

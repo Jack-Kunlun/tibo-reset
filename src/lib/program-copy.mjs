@@ -123,11 +123,14 @@ const COPIES = {
 };
 
 const PROGRAM_DAY = /^\s*Day\s*\d+(?:\.\d+|\s*\([^)]*\))?\s*\//i;
-const UPDATE_SUBJECT = /\b(?:models?|api|cli|codex|chatgpt|apps?|desktop|mobile|features?|performance|speed|cache|context|threads?|composer|review|steering|routing|usage|tokens?|latency|storage|disk|compute|improvements?)\b/i;
+const UPDATE_SUBJECT = /\b(?:models?|api|cli|codex|chatgpt|apps?|desktop|mobile|dots?|assistants?|features?|performance|speed|cache|context|threads?|composer|review|steering|routing|usage|limits?|tokens?|latency|storage|disk|compute|improvements?)\b/i;
 const UPDATE_DELIVERY = /\b(?:(?:we(?:'ve| have)?|i(?:'ve| have)?)\s+(?:just\s+)?(?:shipped|launched|released|added|enabled|improved|optimized|reduced|increased|removed|updated|made|rolled out)|(?:we're|we are)\s+(?:shipping|launching|releasing|rolling out)|(?:is|are)\s+(?:(?:now|generally)\s+)?(?:available|live|back|ga)\b|you can now\s+(?:use|create|edit|run|cache|connect|access|enable)|(?:also |now )?(?:releasing|introducing)\b)/i;
+const UPDATE_CURRENT_CAPABILITY = /^(?:now[,!]?\s+)?(?:text|message|call)\s+your\s+(?:dot|assistant)\b|\byou can now\s+(?:text|message|call)\b/i;
+const UPDATE_EFFECTIVE_CHANGE = /\b(?:we're|we are)\s+(?:now\s+)?(?:doubling|tripling|increasing|raising|extending|reducing|lowering|improving)\b/i;
+const UPDATE_EFFECTIVE_TIME = /\b(?:effective|starting)\s+(?:today|now|immediately)\b/i;
 const UPDATE_UNCERTAIN = /\b(?:if|wish|hope|hopefully|would|could|should|might|maybe|planning|planned|want|expect|will|tomorrow|soon|next (?:week|month|day)|last (?:week|month)|yesterday)\b/i;
 const UPDATE_NEGATED = /\b(?:not|never|no|isn't|aren't|haven't|hasn't|didn't|don't|won't|can't)\b/i;
-const UPDATE_WITHDRAWN = /\b(?:cancelled|canceled|rolled back|reverted|withdrawn)\b/i;
+const UPDATE_WITHDRAWN = /\b(?:cancelled|canceled|rolled back|reverted|withdrawn|just kidding|just joking|only joking)\b/i;
 
 function inferredProgramKind(text, body) {
   // 编号本身不代表交付；只读本人正文里的明确发布语句，不能借引用或译文补结论。
@@ -135,7 +138,10 @@ function inferredProgramKind(text, body) {
   const clauses = body.replace(/[’‘]/g, "'").split(/(?<=[.!?;])\s+|\n+/);
   const opening = clauses[0] ?? '';
   if (/\b(?:roundup|recap|summary)\b/i.test(opening)) return 'roundup';
-  if (clauses.some((clause) => UPDATE_SUBJECT.test(clause) && UPDATE_DELIVERY.test(clause) &&
+  // 当前可用的能力介绍和即时生效的调整也是交付，仍逐句经过时间、否定与疑问闸门。
+  if (clauses.some((clause) => UPDATE_SUBJECT.test(clause) &&
+    (UPDATE_DELIVERY.test(clause) || UPDATE_CURRENT_CAPABILITY.test(clause) ||
+      UPDATE_EFFECTIVE_CHANGE.test(clause) && UPDATE_EFFECTIVE_TIME.test(clause)) &&
     !clause.includes('?') && !UPDATE_UNCERTAIN.test(clause) && !UPDATE_NEGATED.test(clause))) return 'update';
   // 回归发布常把产品名放首句、具体能力放次句，两句必须同时成立。
   return /\bis back\b/i.test(opening) && !opening.includes('?') && !UPDATE_UNCERTAIN.test(opening) && !UPDATE_NEGATED.test(opening) &&

@@ -3,7 +3,7 @@
  * 小程序开发预览：用真实 WXML、WXSS 和视图模型生成可交互的本地 HTML。
  *
  * 预览运行在普通浏览器里，没有微信宿主。只调用页面的 apply/setData 来铺本地数据，
- * 浏览器事件只改本地 UI state；生命周期、登录、授权、订阅和服务请求都不运行。
+ * 只读预览可刷新同一后端的状态；生命周期、登录、授权、订阅和写入接口不运行。
  */
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
@@ -17,6 +17,7 @@ import { buildResetCalendar, withCalendarTranslations } from '../src/lib/reset-c
 import { withChartTranslations } from '../src/lib/tweet-translations.mjs';
 import { createStore } from '../server/store.mjs';
 import { createDashboardPage } from '../miniprogram/utils/dashboard.js';
+import miniConfig from '../miniprogram/config.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const MINI_ROOT = resolve(ROOT, 'miniprogram');
@@ -416,6 +417,11 @@ const [{ resets, tweets, statsFile: stats }, appConfig] = await Promise.all([
 ]);
 const DEMO_SIGNAL = process.argv.includes('--demo-signal');
 const DEMO_REMINDER = process.argv.includes('--demo-reminder');
+const apiBaseArg = process.argv.find(arg => arg.startsWith('--api-base='));
+const localOnly = process.argv.includes('--local') || Boolean(dataDirArg) || DEMO_SIGNAL || DEMO_REMINDER;
+const previewApiBase = !localOnly && (apiBaseArg || miniConfig.enabled)
+  ? String(apiBaseArg ? apiBaseArg.slice('--api-base='.length) : miniConfig.apiBase).replace(/\/+$/, '') : '';
+if (previewApiBase && !/^https?:\/\/[^\s]+$/.test(previewApiBase)) throw new Error('预览 API 必须是 http(s) 地址');
 const demoTweet = {
   id: 'demo-signal',
   text: 'We will reset all usage limits next Tuesday.',
@@ -445,6 +451,7 @@ const state = {
   generatedAt: stats.generated_at || tweets.updated_at || new Date(now).toISOString(),
   dataUpdatedAt: tweets.updated_at || stats.generated_at || new Date(now).toISOString(),
   account,
+  source: 'snapshot',
 };
 
 function applyPatch(target, patch) {
@@ -475,7 +482,10 @@ function createPreviewPage(view) {
   };
 
   // 只运行无外部副作用的 apply：它复用小程序真实的数据到视图模型映射。
-  page.apply({ state, degraded: false });
+  page.apply({ state, degraded: true, reason: previewApiBase
+    ? '正在同步后端数据，当前显示本地采集快照'
+    : dataDirArg ? '隔离验收数据；不代表线上状态'
+      : '本地采集快照，可能不含后台补录；不代表线上状态' });
   page.setData({ pageVisible: true, motionEnabled: true, singlePage: false });
 
   if (view === 'observe' && DEMO_REMINDER) {
@@ -613,6 +623,7 @@ const extraCss = [
   '.preview-page[hidden],.preview-page [hidden]{display:none!important}',
   '.preview-tab[aria-selected="true"]{color:#C8B6FF}',
   '.preview-demo-notice{position:fixed;z-index:60;top:8px;left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 24px);box-sizing:border-box;padding:7px 12px;border:1px solid rgba(255,224,166,.65);border-radius:999px;background:#ffe0a6;color:#30220b;font-size:12px;font-weight:700;line-height:1.2;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.35);pointer-events:none}',
+  '.preview-data-status{box-sizing:border-box;width:375px;max-width:100%;margin:0 auto 16px;padding:0 20px;color:#a4abc4;font-size:12px;line-height:1.6}',
 ].join('');
 
 const pageJson = {};
@@ -631,12 +642,13 @@ const runtimeFactorySource = '(' + createWxmlRuntime.toString() + ')';
 const browserScript = [
   "import { rhythmScene, survivalScene, stripScene, histogramScene } from '../src/lib/scene.js';",
   "import { drawScene } from '../miniprogram/utils/draw.js';",
+  "import { createDashboardPage } from '../miniprogram/utils/dashboard.js';",
   'const bundles = JSON.parse(document.getElementById("preview-data").textContent);',
-  'const chart = JSON.parse(document.getElementById("chart-data").textContent);',
+  'let chart = JSON.parse(document.getElementById("chart-data").textContent);',
   'const runtime = ' + runtimeFactorySource + '();',
   'const root = document.getElementById("preview-page-root");',
   'const tabs = [...document.querySelectorAll(".preview-tab")];',
-  'const instances = Object.fromEntries(Object.entries(bundles).map(([view, bundle]) => [view, { data: bundle.data, setData(patch, callback) { applyPatch(this.data, patch); if (view === currentView) renderCurrent(); if (typeof callback === "function") callback(); } }]));',
+  'const instances = Object.fromEntries(Object.entries(bundles).map(([view, bundle]) => [view, { ...createDashboardPage(view), data: bundle.data, tick() {}, paint() {}, setData(patch, callback) { applyPatch(this.data, patch); if (view === currentView) renderCurrent(); if (typeof callback === "function") callback(); } }]));',
   'let currentView = "observe";',
   'function applyPatch(target, patch) { for (const [path, value] of Object.entries(patch || {})) { const parts = path.split("."); let cursor = target; for (const part of parts.slice(0, -1)) { if (!cursor[part] || typeof cursor[part] !== "object") cursor[part] = {}; cursor = cursor[part]; } cursor[parts[parts.length - 1]] = value; } }',
   'function esc(value) { return String(value ?? "").replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;"}[c])); }',
@@ -648,8 +660,8 @@ const browserScript = [
   '  if (name === "onToggleAnalysis") { const key = dataset.section; if (Object.prototype.hasOwnProperty.call(data.analysisOpen || {}, key)) setData({ ["analysisOpen." + key]: !data.analysisOpen[key] }); return; }',
   '  if (name === "onToggleSignalDetails") { if (data.signal && data.signal.show) setData({ signalDetailsOpen: !data.signalDetailsOpen }); return; }',
   '  if (name === "onToggleProgram") { const opening = !data.programOpen; setData({ programOpen: opening, ...(opening ? {} : { programHeight: 0 }) }); if (opening) requestAnimationFrame(() => { const reveal = root.querySelector(".prog-reveal"); if (reveal && reveal.scrollHeight) setData({ programHeight: Math.ceil(reveal.scrollHeight) }); }); return; }',
-  '  if (name === "onSelectCalendarDay") { const date = dataset.date, selected = bundles[currentView].calendarSelections[date]; if (selected) setData({ selectedDate: date, selectedDay: selected }); return; }',
-  '  if (name === "onSelectPlanDay") { const day = Number(dataset.day), selected = bundles[currentView].planSelections[day]; if (selected) setData({ selectedPlanDay: day, selectedPlan: selected, expandedPlanEntry: "" }); return; }',
+  '  if (name === "onSelectCalendarDay") { instances[currentView].onSelectCalendarDay(event); return; }',
+  '  if (name === "onSelectPlanDay") { instances[currentView].onSelectPlanDay(event); return; }',
   '  if (name === "onTogglePlanEntry") { const key = dataset.key; if ((data.selectedPlan?.entries || []).some((entry) => entry.key === key && entry.hasText)) setData({ expandedPlanEntry: data.expandedPlanEntry === key ? "" : key }); return; }',
   '  if (name === "onToggleRecord") { const key = dataset.key; if ((data.allRecords || []).some((row) => row.key === key)) setData({ expandedRecord: data.expandedRecord === key ? "" : key }); return; }',
   '  if (name === "onToggleDetails") { setData({ detailsOpen: !data.detailsOpen }); return; }',
@@ -665,7 +677,31 @@ const browserScript = [
   'tabs.forEach((tab) => tab.addEventListener("click", () => selectView(tab.dataset.previewView)));',
   'function paint(selector, make, layout) { const canvas = root.querySelector(selector); if (!canvas) return; const rect = canvas.getBoundingClientRect(), width = Math.round(rect.width), height = Math.round(rect.height); if (!width || !height) return; const dpr = window.devicePixelRatio || 2; canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr); const context = canvas.getContext("2d"); if (!context) return; context.scale(dpr, dpr); const scene = make(chart, { width, height, ...(layout ? { layout } : {}) }); drawScene(context, scene, dpr, "night"); }',
   'function paintCurrent() { if (currentView !== "analysis") return; paint("#hist", histogramScene, "compact"); paint("#survival", survivalScene, "compact"); paint("#strip", stripScene, "compact"); }',
+  'const previewApiBase = ' + safeJson(previewApiBase) + ';',
+  'let refreshing = false;',
+  'let lastRemote = null;',
+  'async function refreshFromApi() {',
+  '  if (!previewApiBase || refreshing || document.hidden) return;',
+  '  refreshing = true;',
+  '  const status = document.getElementById("preview-data-status");',
+  '  try {',
+  '    const response = await fetch(previewApiBase + "/api/state?tweets=0", { cache: "no-store", signal: AbortSignal.timeout(8000) });',
+  '    if (!response.ok) throw new Error("HTTP " + response.status);',
+  '    const remote = await response.json();',
+  '    if (!remote.chart || !remote.prediction || !remote.signals) throw new Error("状态接口不完整");',
+  '    chart = remote.chart;',
+  '    const state = { ...remote, account: remote.account || "thsottiaux", source: "api" };',
+  '    lastRemote = state;',
+  '    for (const page of Object.values(instances)) page.apply({ state, degraded: false, preserveUi: true });',
+  '    status.textContent = "数据来源：后端接口（只读，含后台补录） · 每分钟同步";',
+  '  } catch (error) {',
+  '    status.textContent = "后端同步失败，保留当前数据 · " + error.message;',
+  '    if (lastRemote) for (const page of Object.values(instances)) page.apply({ state: { ...lastRemote, source: "cache" }, degraded: true, reason: "后端同步失败，当前保留上次联网数据", preserveUi: true });',
+  '  } finally { refreshing = false; }',
+  '}',
   'renderCurrent();',
+  'refreshFromApi();',
+  'if (previewApiBase) { setInterval(refreshFromApi, 60000); document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshFromApi(); }); }',
 ].join('\n');
 const checkedBrowserScript = browserScript.replace(/^import[^\n]*\n/gm, '');
 new Function(checkedBrowserScript);
@@ -676,7 +712,7 @@ const demoNotice = DEMO_REMINDER
   : '';
 const html = '<!DOCTYPE html>\n<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
   '<title>小程序三 Tab 预览 · 等 TIBO 按按钮</title><style>' + appCss + extraCss + '</style></head><body>' +
-  demoNotice + '<main class="design preview-design-scope"><div class="tr-phone preview-phone">' +
+  demoNotice + '<div id="preview-data-status" class="preview-data-status">' + (previewApiBase ? '正在只读同步后端数据…' : '数据来源：本地采集快照 · 不代表线上状态') + '</div><main class="design preview-design-scope"><div class="tr-phone preview-phone">' +
   '<div class="tr-capsule preview-capsule" aria-hidden="true"><text>•••</text><text>◉</text></div>' +
   '<div id="preview-page-root"><page class="preview-page">' + initialMarkup.observe + '</page></div></div>' +
   '<nav class="tr-tabbar preview-tabbar" role="tablist" aria-label="小程序页面">' + tabHtml + '</nav></main>' +

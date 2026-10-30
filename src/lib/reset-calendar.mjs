@@ -8,6 +8,7 @@ const STATUS_LABELS = {
   confirmed: '已到账',
   observed: '实测到账',
   pending: '待落地',
+  announced: '重置预告 · 已落地',
   updated: '功能更新',
   'elapsed-no-record': '暂无记录',
   future: '待观察',
@@ -229,6 +230,7 @@ function assignUnlinkedProgramEvents({ events, posts, trusted, allTweets, accoun
 
 function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne, signals }) {
   const programId = String(program.id ?? dayOne.id ?? '');
+  const originalTweets = allTweets.map(({ manualDecision, ...tweet }) => tweet);
   const observations = new Map((signals?.accountObservations ?? []).map((o) => [String(o.announcementId), o]));
   const overdueIds = new Set((signals?.overdueForecasts ?? []).flatMap((f) => (f.evidence ?? []).map((e) => String(e.id))));
   // 原帖编号是活动日序；补发、跨 UTC 日与子编号都不能被日期运算挪到另一天。
@@ -320,6 +322,10 @@ function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne
       const observation = !confirmed.length && !settledPosts.has(String(tweet.id)) ? observations.get(String(tweet.id)) : null;
       let kind = copy.kind;
       const programSettled = settledProgramDays.has(day);
+      const originalAnalysis = tweet.manualDecision
+        ? analyzeTweet({ ...tweet, manualDecision: undefined }, { account, tweets: originalTweets }) : analysis;
+      const fulfilledAnnouncement = tweet.foundVia !== 'manual' && tweet.manualDecision?.status !== 'ignored' &&
+        originalAnalysis.level === 'explicit' && Boolean(confirmed.length || settledPosts.has(String(tweet.id)) || programSettled);
       if (confirmed.length) kind = confirmed.some((event) => event.record.type === 'reset') ? 'reset' : 'credit';
       else if (analysis.level === 'explicit') kind = 'announcement';
       else if (analysis.level === 'occurred') kind = 'announcement';
@@ -333,6 +339,7 @@ function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne
         ...(observation ? { observedAt: observation.observedAt, observationPrecision: observation.precision, sourceLabel: observation.sourceLabel } : {}),
         createdAt: tweet.created_at, day, kind, title: confirmed.length && followup ? followup.title : copy.title,
         isUpdate: copy.kind === 'update' && tweet.manualDecision?.status !== 'ignored',
+        ...(fulfilledAnnouncement ? { announcementStatus: 'fulfilled' } : {}),
         confirmedAt: confirmed.length ? new Date(Math.min(...confirmed.map((event) => event.at))).toISOString() : null,
         resetCount: confirmed.filter((event) => event.record.type === 'reset').length,
         creditCount: confirmed.filter((event) => event.record.type === 'credit').length,
@@ -439,6 +446,7 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
       datedCount: 0,
       pendingCount: 0,
       overdueCount: 0,
+      fulfilledForecastCount: 0,
       updatedCount: 0,
       detailMap: new Map(),
     };
@@ -534,6 +542,20 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     }
   }
 
+  // 当前预告会在兑现后撤下，历史日历仍保留发布当天的预告；兑现身份复用计划归属。
+  let fulfilledForecastCount = 0;
+  for (const entry of plan.rows.flatMap((row) => row.entries)) {
+    if (entry.announcementStatus !== 'fulfilled') continue;
+    const index = dateToIndex.get(beijingDate(timestamp(entry.createdAt)));
+    if (index == null) continue;
+    const cell = builders[index];
+    if (cell.detailMap.get(detailKey(entry, normalizedAccount))?.roles.includes('forecast')) continue;
+    cell.fulfilledForecastCount++;
+    fulfilledForecastCount++;
+    addDetail(cell, { id: entry.id, url: entry.url, text: entry.text, createdAt: entry.createdAt,
+      dayNumber: entry.day, forecastStatus: 'fulfilled', roles: ['forecast'] }, normalizedAccount);
+  }
+
   let updatedCount = 0;
   // 功能更新与活动计划共用结论；有 Day 编号的普通讨论和纯重置不冒充功能交付。
   for (const entry of plan.rows.flatMap((row) => row.entries)) {
@@ -570,6 +592,7 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     else if (cell.observedCount) plain.status = 'observed';
     else if (cell.datedCount || cell.pendingCount) plain.status = 'pending';
     else if (cell.updatedCount) plain.status = 'updated';
+    else if (cell.fulfilledForecastCount) plain.status = 'announced';
     else if (beijingMidnight(cell.date) + DAY_MS <= currentTime) plain.status = 'elapsed-no-record';
     else plain.status = 'future';
     plain.statusLabel = plain.status === 'pending' && cell.overdueCount === cell.datedCount + cell.pendingCount ? '落地待核实' : STATUS_LABELS[plain.status];
@@ -597,6 +620,7 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     creditCount,
     datedCount,
     pendingCount,
+    fulfilledForecastCount,
     updatedCount,
     weeks: Array.from({ length: Math.ceil(days / 7) }, (_, index) => cells.slice(index * 7, (index + 1) * 7)),
     cells,

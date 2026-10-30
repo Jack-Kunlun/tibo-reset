@@ -40,6 +40,12 @@ const input = {
 };
 const before = JSON.stringify(input);
 const cell = (calendar, date) => calendar.cells.find(c => c.date === date);
+const historyInput = {
+  tweets: [posts[0], tweet('20', '2026-10-26T16:01:00Z', "Day 2/ It's reset day today.")],
+  records: [{ id: '20', type: 'reset', announced_at: '2026-10-27T16:02:00Z', manual: true }],
+  signals: { program: input.signals.program, forecasts: [] },
+  now: Date.parse('2026-10-29T01:00:00Z'),
+};
 const cases = [
   ['北京午夜两侧的功能更新落到不同日期，原始时间保持 UTC', build => {
     const c = build(input);
@@ -69,7 +75,7 @@ const cases = [
     const c = build(input);
     assert.equal(c.plan.rows[6].updateCount, 0);
     assert.equal(cell(c, '2026-10-27').updatedCount, 3);
-  }, " && tweet.manualDecision?.status !== 'ignored'", ''],
+  }, "isUpdate: copy.kind === 'update' && tweet.manualDecision?.status !== 'ignored'", "isUpdate: copy.kind === 'update'"],
   ['更新、预告、实际确认及观察均按北京日期归格，角色与计数保持独立', build => {
     const c = build(input);
     assert.equal(cell(c, '2026-10-26').resetCount, 1);
@@ -87,6 +93,26 @@ const cases = [
     assert.equal(buildCalendarView({ ...c, zone: 'UTC' }).zoneLabel, 'UTC 日期');
     assert.ok(renderResetCalendar({ ...c, zone: 'UTC' }).includes('· UTC 实际日期'));
   }, "zone: 'Asia/Shanghai'", "zone: 'UTC'"],
+  ['跨日到账后保留发布日预告，不重复记到账或待落地', build => {
+    const c = build(historyInput);
+    const published = cell(c, '2026-10-27');
+    assert.equal(published.status, 'announced');
+    assert.equal(published.statusLabel, '重置预告 · 已落地');
+    assert.equal(published.fulfilledForecastCount, 1);
+    assert.equal(published.confirmedCount, 0);
+    assert.equal(published.pendingCount + published.datedCount, 0);
+    assert.equal(published.details.find(d => d.id === '20').forecastStatus, 'fulfilled');
+    assert.equal(cell(c, '2026-10-28').confirmedCount, 1);
+    assert.equal(c.confirmedCount, 1);
+    assert.equal(c.pendingCount + c.datedCount, 0);
+    assert.equal(buildCalendarView(c).gridCells.find(d => d.date === '2026-10-27').displayLabel, '预');
+    assert.match(renderResetCalendar(c), /class="rc-cell rc-announced[^>]+title="2026-10-27[^>]*><b>10\/27<\/b><span>预<\/span>/);
+  }, "if (entry.announcementStatus !== 'fulfilled') continue;", 'continue;'],
+  ['已兑现预告不能污染待落地数量', build => {
+    const c = build(historyInput);
+    assert.equal(cell(c, '2026-10-27').pendingCount, 0);
+    assert.equal(cell(c, '2026-10-27').status, 'announced');
+  }, 'cell.fulfilledForecastCount++;', 'cell.pendingCount++; cell.fulfilledForecastCount++;'],
 ];
 for (const [index, [name, verify, from, to]] of cases.entries()) {
   verify(buildResetCalendar);
@@ -99,6 +125,12 @@ for (const [index, [name, verify, from, to]] of cases.entries()) {
 }
 assert.equal(JSON.stringify(input), before);
 assert.equal(hash(await readFile(calendarUrl, 'utf8')), hash(source));
+for (const record of [[], [{ ...historyInput.records[0], id: 'unrelated' }]]) {
+  const c = buildResetCalendar({ ...historyInput, records: record });
+  assert.equal(cell(c, '2026-10-27').fulfilledForecastCount, 0, '没有关联到账时不能宣布预告已兑现');
+}
+const ignored = buildResetCalendar({ ...historyInput, tweets: historyInput.tweets.map(t => t.id === '20' ? { ...t, manualDecision: { status: 'ignored' } } : t) });
+assert.equal(cell(ignored, '2026-10-27').fulfilledForecastCount, 0, '排除的原帖不恢复历史预告');
 
 const read = async name => JSON.parse(await readFile(new URL(`../data/${name}.json`, import.meta.url), 'utf8'));
 const [tweets, resets, statsFile] = await Promise.all([read('tweets'), read('resets'), read('stats')]);

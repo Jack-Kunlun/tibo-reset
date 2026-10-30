@@ -91,6 +91,24 @@ test('日历日期可选择，静默刷新保留选择，消失日期回退到�
   assert.equal(page.data.selectedDate, '2026-10-20');
 });
 
+test('历史预告仍显示预，详情标明已落地且不增加等待或到账计数', () => {
+  const input = state();
+  input.signals.calendar = { ...input.signals.calendar, pendingCount: 0, datedCount: 0, cells: [{
+    date: '2026-10-22', label: '10/22', status: 'announced', statusLabel: '重置预告 · 已落地',
+    confirmedCount: 0, pendingCount: 0, datedCount: 0, fulfilledForecastCount: 1,
+    details: [{ id: 'fixture-fulfilled', text: 'It is reset day today.', roles: ['forecast'],
+      forecastStatus: 'fulfilled', createdAt: '2026-10-22T06:55:22Z' }],
+  }] };
+  const page = host('records');
+  page.apply({ state: input, degraded: false });
+  page.onSelectCalendarDay({ currentTarget: { dataset: { date: '2026-10-22' } } });
+  assert.equal(page.data.calendar.gridCells.find(c => c.date === '2026-10-22').displayLabel, '预');
+  assert.equal(page.data.calendar.awaitingCount, 0);
+  assert.equal(page.data.selectedDay.details[0].title, '重置预告 · 已落地');
+  assert.equal(page.data.selectedDay.details[0].time, '14:55');
+  assert.equal(page.data.recordCount, input.chart.count);
+});
+
 test('28天计划按原帖Day编号选择，显示逐日摘要且与记录日历选择隔离', () => {
   const input = state();
   const rows = Array.from({ length: 28 }, (_, index) => ({

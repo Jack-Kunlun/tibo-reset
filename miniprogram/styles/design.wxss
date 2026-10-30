@@ -1016,5 +1016,18 @@ page { background: #0B1020; color: #F2F0FC; }
 .design .tr-reminder-copy > .tr-strong { color: #f2f0fc; }
 .design .tr-enable.is-idle { width: 92rpx; min-width: 92rpx; max-width: 92rpx; }
 .design .tr-enable-all.is-idle { width: 100%; min-width: 0; max-width: none; }
+
+/* 展开区移除旧网格后仍需保留卡片间距；用相邻外边距兼容无 flex gap 的宿主。 */
+.design .tr-panel-stack > .tr-view { margin: 0; }
+.design .tr-panel-stack > .tr-view + .tr-view { margin-top: 24rpx; }
+.design .tr-panel-stack .hr-grid { gap: 0; }
+.design .tr-panel-stack .hr + .hr { margin-top: 24rpx; }
+.design .tr-plan-entries { gap: 0; }
+.design .tr-plan-entry + .tr-plan-entry { margin-top: 24rpx; }
+.design .tr-main > .notice { margin: 0 0 24rpx; }
+.design .tr-main > .tr-footer { margin-top: 32rpx; }
+.design .tr-calendar-card + .tr-history-heading { margin-top: 32rpx; }
+.design .tr-record-detail { margin: 16rpx 0 24rpx; }
+.design .tr-feedback { display: block; }
 .tr-translation-label{display:block;margin-top:22rpx;margin-bottom:8rpx;color:#a89bcc;font-size:21rpx;line-height:1.5}
 .tr-translation-text{display:block;color:#e0dbea;font-size:25rpx;line-height:1.8;white-space:pre-wrap;word-break:break-word}
