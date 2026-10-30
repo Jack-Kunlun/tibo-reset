@@ -622,5 +622,11 @@
     "text": "第 25 天 / 今天起，Pro 100/200/500 各档以及 Business Premium 的全部用量上限翻倍。我们听到了大家的反馈，不会下调 Pro 200 的用量上限，所以你的 Work 和 Codex 用量保持不变。dot 的额外额度暂时也会继续给，而且 dot 的用量依旧与默认用量分开算。当然，我们也会继续推出更好的模型和更多效率改进，让你的实际可用量随时间提升。",
     "language": "zh-CN",
     "provider": "agent"
+  },
+  "2116256600436641887": {
+    "sourceHash": "cf4602500c0b70a95a7607513fe0e5a99b2a01fa5f2e93f10d04b3db150b9fb6",
+    "text": "不如直接宣布 28 天额度重置。",
+    "language": "zh-CN",
+    "provider": "agent"
   }
 }
