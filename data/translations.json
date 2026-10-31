@@ -628,5 +628,11 @@
     "text": "不如直接宣布 28 天额度重置。",
     "language": "zh-CN",
     "provider": "agent"
+  },
+  "2116405414921384099": {
+    "sourceHash": "e2414b20f80c27ddb3f6ab34633d145fe83117f623f30b88cc9993e65fd6eee4",
+    "text": "第 26 天 / 你现在可以在手机端轻松切换多个账号，桌面端也快支持了。接下来两天都会有额度重置……可以储备起来……随你怎么用吧 👀。",
+    "language": "zh-CN",
+    "provider": "agent"
   }
 }
