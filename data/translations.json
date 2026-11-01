@@ -640,5 +640,11 @@
     "text": "储备额度已发放 1/2",
     "language": "zh-CN",
     "provider": "agent"
+  },
+  "2116942192497533418": {
+    "sourceHash": "3406c8366e6f3c4fee5116f672dc271f41189762ec5b12d3a72d907633441600",
+    "text": "我要求一次可储备的额度重置。",
+    "language": "zh-CN",
+    "provider": "agent"
   }
 }
