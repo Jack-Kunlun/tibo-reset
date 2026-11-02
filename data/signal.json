@@ -1,11 +1,11 @@
 {
   "level": "explicit",
   "program": null,
-  "generatedAt": "2026-11-02T00:04:11.329Z",
-  "checkedTweets": 517,
+  "generatedAt": "2026-11-02T08:02:37.923Z",
+  "checkedTweets": 519,
   "lookbackDays": 60,
-  "windowFrom": "2026-09-03T00:04:11.329Z",
-  "windowTo": "2026-11-02T00:04:11.329Z",
+  "windowFrom": "2026-09-03T08:02:37.923Z",
+  "windowTo": "2026-11-02T08:02:37.923Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -15,32 +15,29 @@
       "zone": "Asia/Shanghai",
       "date": "2026.11.02",
       "weekday": "周一",
-      "time": "08:04",
-      "text": "2026.11.02（周一）08:04",
+      "time": "16:02",
+      "text": "2026.11.02（周一）16:02",
       "offset": "UTC+8"
     },
     "b": {
       "label": "Tibo 当地时间",
       "zone": "America/Los_Angeles",
-      "date": "2026.11.01",
-      "weekday": "周日",
-      "time": "16:04",
-      "text": "2026.11.01（周日）16:04",
+      "date": "2026.11.02",
+      "weekday": "周一",
+      "time": "00:02",
+      "text": "2026.11.02（周一）00:02",
       "offset": "UTC-8"
     },
     "diffHours": 16,
     "diffText": "北京时间比 Tibo 当地时间快 16 小时"
   },
   "latest": {
-    "id": "2117035794678546764",
+    "id": "2117151862705230048",
     "account": "thsottiaux",
-    "text": "Day 28/ Banked 2/2",
-    "createdAt": "2026-11-01T23:27:20.000Z",
-    "url": "https://x.com/thsottiaux/status/2117035794678546764",
-    "reasons": [
-      "命中额度词 limits/usage/credits",
-      "命中「新额度」类词 fresh/new/top up"
-    ],
+    "text": "I finished it though",
+    "createdAt": "2026-11-02T07:08:33.000Z",
+    "url": "https://x.com/thsottiaux/status/2117151862705230048",
+    "reasons": [],
     "viaContext": false,
     "inReplyTo": null,
     "createdZones": {
@@ -49,8 +46,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.11.02",
         "weekday": "周一",
-        "time": "07:27",
-        "text": "2026.11.02（周一）07:27",
+        "time": "15:08",
+        "text": "2026.11.02（周一）15:08",
         "offset": "UTC+8"
       },
       "b": {
@@ -58,15 +55,15 @@
         "zone": "America/Los_Angeles",
         "date": "2026.11.01",
         "weekday": "周日",
-        "time": "15:27",
-        "text": "2026.11.01（周日）15:27",
+        "time": "23:08",
+        "text": "2026.11.01（周日）23:08",
         "offset": "UTC-8"
       },
       "diffText": "北京时间比 Tibo 当地时间快 16 小时"
     },
-    "level": "hint",
-    "rejected": "有额度意图但没给出时间，只能作线索",
-    "intent": 3,
+    "level": "none",
+    "rejected": "无额度相关词",
+    "intent": 0,
     "window": null,
     "candidateWindow": null
   },
@@ -1111,7 +1108,7 @@
         "from": "2026-10-29T07:00:00.000Z",
         "to": "2026-10-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-02T00:04:11.329Z"
+        "checkedAt": "2026-11-02T08:02:37.923Z"
       }
     },
     {
@@ -3421,7 +3418,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-11-02T00:04:11.329Z"
+        "checkedAt": "2026-11-02T08:02:37.923Z"
       }
     },
     {
@@ -4326,6 +4323,84 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2117151862705230048",
+      "account": "thsottiaux",
+      "text": "I finished it though",
+      "createdAt": "2026-11-02T07:08:33.000Z",
+      "url": "https://x.com/thsottiaux/status/2117151862705230048",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.02",
+          "weekday": "周一",
+          "time": "15:08",
+          "text": "2026.11.02（周一）15:08",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.01",
+          "weekday": "周日",
+          "time": "23:08",
+          "text": "2026.11.01（周日）23:08",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2117151734506397716",
+      "account": "thsottiaux",
+      "text": "Game so good because poteto used all the compute and forced Elon to pull the plug",
+      "createdAt": "2026-11-02T07:08:02.000Z",
+      "url": "https://x.com/thsottiaux/status/2117151734506397716",
+      "reasons": [
+        "上下文：回复 @poteto「Day 28/ tibo's game has landed i spe…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "Day 28/ tibo's game has landed i spent $5.99 on this domain, but i had a blast making it with grok bot and cursor! i hope you enjoy it and find all the easter eggs 🤍 if i did it right you should be able to play it inside of X too"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.02",
+          "weekday": "周一",
+          "time": "15:08",
+          "text": "2026.11.02（周一）15:08",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.01",
+          "weekday": "周日",
+          "time": "23:08",
+          "text": "2026.11.01（周日）23:08",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2117035666332954818",
       "account": "thsottiaux",
@@ -12443,90 +12518,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2107310074209407069",
-      "account": "thsottiaux",
-      "text": "It’s the only thing you’re talking about. I recognize the obsession",
-      "createdAt": "2026-10-06T03:20:48.000Z",
-      "url": "https://x.com/thsottiaux/status/2107310074209407069",
-      "reasons": [
-        "上下文：回复 @poteto「How did you know I was referring to …」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "poteto",
-        "id": "",
-        "text": "How did you know I was referring to dots"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.06",
-          "weekday": "周二",
-          "time": "11:20",
-          "text": "2026.10.06（周二）11:20",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.05",
-          "weekday": "周一",
-          "time": "20:20",
-          "text": "2026.10.05（周一）20:20",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2107301501215613206",
-      "account": "thsottiaux",
-      "text": "You can be part of the judge panel for the 28 days",
-      "createdAt": "2026-10-06T02:46:44.000Z",
-      "url": "https://x.com/thsottiaux/status/2107301501215613206",
-      "reasons": [
-        "上下文：回复 @kimmonismus「Fair enough, id take this update ins…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "kimmonismus",
-        "id": "",
-        "text": "Fair enough, id take this update instead of a reset: GPT-6-Astra and GPT-6.1 Sol now reach 50 token per second instead of 30 token per second."
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.06",
-          "weekday": "周二",
-          "time": "10:46",
-          "text": "2026.10.06（周二）10:46",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.05",
-          "weekday": "周一",
-          "time": "19:46",
-          "text": "2026.10.05（周一）19:46",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12666,12 +12657,12 @@
     }
   ],
   "counts": {
-    "scanned": 517,
+    "scanned": 519,
     "explicit": 4,
     "occurred": 13,
     "hint": 71,
-    "none": 409,
-    "rejected": 409
+    "none": 411,
+    "rejected": 411
   },
   "truncated": true
 }
