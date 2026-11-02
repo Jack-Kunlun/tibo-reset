@@ -1,6 +1,43 @@
 {
   "tweets": [
     {
+      "id": "2117035794678546764",
+      "text": "Day 28/ Banked 2/2",
+      "created_at": "2026-11-01T23:27:20.000Z",
+      "url": "https://x.com/thsottiaux/status/2117035794678546764",
+      "author_verified": true,
+      "kind": "credit",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-02T00:04:11.291Z",
+      "translation": {
+        "text": "第 28 天 / 储备额度已发放 2/2",
+        "sourceHash": "2ce701372e9688500219169fcf0bb23c23b07bcf9c8ade9a05cd5b6b3179b96f",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
+      "id": "2117035666332954818",
+      "text": "it's fine to admit we plan these together months in advance",
+      "created_at": "2026-11-01T23:26:50.000Z",
+      "url": "https://x.com/thsottiaux/status/2117035666332954818",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "poteto",
+        "id": "",
+        "text": "i swear it was not planned lmao",
+        "created_at": "2026-11-01T21:37:46.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-02T00:04:11.291Z"
+    },
+    {
       "id": "2116942192497533418",
       "text": "I demand a banked reset",
       "created_at": "2026-11-01T17:15:24.000Z",
@@ -9312,7 +9349,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-01T20:01:30.024Z",
+  "updated_at": "2026-11-02T00:04:11.295Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }

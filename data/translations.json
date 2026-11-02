@@ -646,5 +646,11 @@
     "text": "我要求一次可储备的额度重置。",
     "language": "zh-CN",
     "provider": "agent"
+  },
+  "2117035794678546764": {
+    "sourceHash": "2ce701372e9688500219169fcf0bb23c23b07bcf9c8ade9a05cd5b6b3179b96f",
+    "text": "第 28 天 / 储备额度已发放 2/2",
+    "language": "zh-CN",
+    "provider": "agent"
   }
 }
