@@ -1,6 +1,30 @@
 {
   "tweets": [
     {
+      "id": "2117283355427495983",
+      "text": "Your dot will choose the best model for the task, drawing on different models for different parts of the work.",
+      "created_at": "2026-11-02T15:51:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2117283355427495983",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-02T16:01:42.371Z"
+    },
+    {
+      "id": "2117283124833055196",
+      "text": "Fellow resetters, heads up that we're working on expanding the family of frontier models that power dots, including GPT-6 Astra and GPT-6.1 Terra and some others in the future. Terra brings speed and a nice personality upgrade, and will help us bring dots to more people.",
+      "created_at": "2026-11-02T15:50:08.000Z",
+      "url": "https://x.com/thsottiaux/status/2117283124833055196",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-02T16:01:42.371Z"
+    },
+    {
       "id": "2117151862705230048",
       "text": "I finished it though",
       "created_at": "2026-11-02T07:08:33.000Z",
@@ -9386,7 +9410,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-02T08:02:37.887Z",
+  "updated_at": "2026-11-02T16:01:42.374Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
