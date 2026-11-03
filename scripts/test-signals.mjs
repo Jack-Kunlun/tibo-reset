@@ -1337,11 +1337,23 @@ console.log('\n【12】每日重置窗口');
 {
   /* 真实语料：起止、剩余天数、窗口文案都要对得上。
    *
-   * 10-04 20:33Z 发的（当地 10-04 13:33），28 天 → 当地 10-04 ~ 10-31。 */
+   * 10-04 20:33Z 发的（当地 10-04 13:33），28 天 → 当地 10-04 ~ 10-31。
+   *
+   * ⚠ NOW 必须锚在**公告推文自己**上，不能锚「最新一条推文」。
+   * 这段钉的是窗口文案，而窗口有终点（北京 2026.11.01 14:59）——
+   * 采集自动化每轮都在长语料，一旦最新推文越过窗口终点，
+   * `program` 变 null，整段用例全红（实测 2026-11-03：计划结束后
+   * 真实语料段 8 连红 + daysLeft 读 null 崩溃）。锚公告后 1 分钟
+   * 永远落在窗内，断言不再随采集漂移。
+   */
   const tweets = JSON.parse(await readFile(resolve(ROOT, 'data/tweets.json'), 'utf8')).tweets;
   const records = JSON.parse(await readFile(resolve(ROOT, 'data/resets.json'), 'utf8')).records;
-  const stamps = tweets.map((t) => Date.parse(t.created_at)).filter(Number.isFinite);
-  const NOW = Math.max(...stamps) + 60_000;
+  const anchors = tweets
+    .filter((t) => /Over the next 28 days/.test(t.text || ''))
+    .map((t) => Date.parse(t.created_at))
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
+  const NOW = anchors[0] + 60_000;
   const sig = detectSignals(tweets, { now: NOW, lastResetAt: latestEventMs(records) });
   const p = sig.program;
 
