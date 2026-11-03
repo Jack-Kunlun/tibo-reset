@@ -1,11 +1,11 @@
 {
   "level": "explicit",
   "program": null,
-  "generatedAt": "2026-11-02T16:01:42.394Z",
-  "checkedTweets": 521,
+  "generatedAt": "2026-11-03T00:15:32.174Z",
+  "checkedTweets": 522,
   "lookbackDays": 60,
-  "windowFrom": "2026-09-03T16:01:42.394Z",
-  "windowTo": "2026-11-02T16:01:42.394Z",
+  "windowFrom": "2026-09-04T00:15:32.174Z",
+  "windowTo": "2026-11-03T00:15:32.174Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -15,8 +15,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.11.03",
       "weekday": "周二",
-      "time": "00:01",
-      "text": "2026.11.03（周二）00:01",
+      "time": "08:15",
+      "text": "2026.11.03（周二）08:15",
       "offset": "UTC+8"
     },
     "b": {
@@ -24,33 +24,36 @@
       "zone": "America/Los_Angeles",
       "date": "2026.11.02",
       "weekday": "周一",
-      "time": "08:01",
-      "text": "2026.11.02（周一）08:01",
+      "time": "16:15",
+      "text": "2026.11.02（周一）16:15",
       "offset": "UTC-8"
     },
     "diffHours": 16,
     "diffText": "北京时间比 Tibo 当地时间快 16 小时"
   },
   "latest": {
-    "id": "2117283355427495983",
+    "id": "2117364233210151160",
     "account": "thsottiaux",
-    "text": "Your dot will choose the best model for the task, drawing on different models for different parts of the work.",
-    "createdAt": "2026-11-02T15:51:03.000Z",
-    "url": "https://x.com/thsottiaux/status/2117283355427495983",
+    "text": "Always been a fan",
+    "createdAt": "2026-11-02T21:12:26.000Z",
+    "url": "https://x.com/thsottiaux/status/2117364233210151160",
     "reasons": [
-      "含未来语气",
-      "含发布/宣传语境（下调置信度）"
+      "上下文：回复 @jxnlco「personal update:…」"
     ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "jxnlco",
+      "id": "",
+      "text": "personal update:"
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.11.02",
-        "weekday": "周一",
-        "time": "23:51",
-        "text": "2026.11.02（周一）23:51",
+        "date": "2026.11.03",
+        "weekday": "周二",
+        "time": "05:12",
+        "text": "2026.11.03（周二）05:12",
         "offset": "UTC+8"
       },
       "b": {
@@ -58,8 +61,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.11.02",
         "weekday": "周一",
-        "time": "07:51",
-        "text": "2026.11.02（周一）07:51",
+        "time": "13:12",
+        "text": "2026.11.02（周一）13:12",
         "offset": "UTC-8"
       },
       "diffText": "北京时间比 Tibo 当地时间快 16 小时"
@@ -1111,7 +1114,7 @@
         "from": "2026-10-29T07:00:00.000Z",
         "to": "2026-10-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-02T16:01:42.394Z"
+        "checkedAt": "2026-11-03T00:15:32.174Z"
       }
     },
     {
@@ -3421,7 +3424,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-11-02T16:01:42.394Z"
+        "checkedAt": "2026-11-03T00:15:32.174Z"
       }
     },
     {
@@ -4326,6 +4329,48 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2117364233210151160",
+      "account": "thsottiaux",
+      "text": "Always been a fan",
+      "createdAt": "2026-11-02T21:12:26.000Z",
+      "url": "https://x.com/thsottiaux/status/2117364233210151160",
+      "reasons": [
+        "上下文：回复 @jxnlco「personal update:…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "jxnlco",
+        "id": "",
+        "text": "personal update:"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.03",
+          "weekday": "周二",
+          "time": "05:12",
+          "text": "2026.11.03（周二）05:12",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.02",
+          "weekday": "周一",
+          "time": "13:12",
+          "text": "2026.11.02（周一）13:12",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2117283355427495983",
       "account": "thsottiaux",
@@ -12478,49 +12523,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2107314411975381479",
-      "account": "thsottiaux",
-      "text": "Let’s call upon the @poteto",
-      "createdAt": "2026-10-06T03:38:02.000Z",
-      "url": "https://x.com/thsottiaux/status/2107314411975381479",
-      "reasons": [
-        "上下文：回复 @DhruvJain08「waiting for @poteto to lurk in here …」",
-        "被回复的推文含额度语境（本条无延续语气，不借意图）"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "DhruvJain08",
-        "id": "",
-        "text": "waiting for @poteto to lurk in here and drop a meme rather than reset my grok bot usage or some credits instead. :///"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.06",
-          "weekday": "周二",
-          "time": "11:38",
-          "text": "2026.10.06（周二）11:38",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.05",
-          "weekday": "周一",
-          "time": "20:38",
-          "text": "2026.10.05（周一）20:38",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12660,12 +12662,12 @@
     }
   ],
   "counts": {
-    "scanned": 521,
+    "scanned": 522,
     "explicit": 4,
     "occurred": 13,
     "hint": 71,
-    "none": 413,
-    "rejected": 413
+    "none": 414,
+    "rejected": 414
   },
   "truncated": true
 }
