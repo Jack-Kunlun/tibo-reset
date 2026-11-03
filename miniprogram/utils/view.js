@@ -10,7 +10,7 @@
 import { beijingParts, countdown, countdownGroups, fmtDate, fmtClock, fmtDateTime, fmtDay, fmtSpan, pct1, spanOf, toTs, trim1 } from './format.js';
 // 与网页端**逐字同一份**（`src/lib/outlook.mjs` 由 scripts/build.mjs 同步过来）。
 // 「下一次什么时候 / 可不可信 / 凭什么」这三件事的判据只该有一份实现。
-import { buildOutlook, buildTodayReset } from './outlook.js';
+import { buildOutlook, buildTodayReset, buildProgramLifecycle } from './outlook.js';
 
 const PRECISION_TEXT = {
   day: '全天',
@@ -109,10 +109,10 @@ function planEntryView(entry, day, index) {
 }
 
 /**
- * Tibo 28 天计划视图。Day 是原帖中的业务编号，日期只用于逐条来源时间，
- * 不从本地/UTC 日历推导计划进度，也不重判服务端给出的状态。
+ * Tibo 28 天计划视图。Day 是原帖中的业务编号；日期用于来源时刻与活动到期，
+ * 不从本地/UTC 日历推导业务进度，也不重判服务端给出的逐日状态。
  */
-export function buildProgramPlanView(plan) {
+export function buildProgramPlanView(plan, now = Date.now()) {
   if (!plan || !Array.isArray(plan.rows)) return { show: false };
   const count = Number.isInteger(Number(plan.days)) ? Math.max(1, Math.min(28, Number(plan.days))) : 28;
   const latestDay = Number.isInteger(Number(plan.latestDay)) ? Number(plan.latestDay) : 0;
@@ -147,6 +147,7 @@ export function buildProgramPlanView(plan) {
   return {
     show: true,
     title: plan.title || 'Tibo 28 天计划',
+    ...buildProgramLifecycle(plan, now),
     dayCount: count,
     latestDay,
     hasObserved: plan.rows.some((row) => row.observedCount > 0),

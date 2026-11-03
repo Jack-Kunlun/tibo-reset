@@ -54,7 +54,7 @@
     <view class="tr-view tr-elapsed" id="elapsed"><view class="tr-view tr-elapsed-copy"><text class="tr-text tr-label">{{elapsedLabel}}</text><text class="tr-text tr-secondary">{{lastResetText}}</text><text wx:if="{{accountObservationText}}" class="tr-text tr-account-observation">最近账号实测 · {{accountObservationText}}</text></view><view class="tr-view tr-numbers"><block wx:for="{{elapsedGroups}}" wx:key="unit"><text class="tr-text">{{item.value}}</text><text class="tr-text tr-small">{{item.unit}}</text></block></view></view>
     <view wx:if="{{planView.show}}" class="tr-view tr-window tr-plan">
       <view class="tr-view tr-plan-heading">
-        <view class="tr-view tr-plan-title-row"><view class="tr-view tr-icon-slot"><image class="tr-image tr-icon" src="/assets/design-clock.png"></image></view><text class="tr-text tr-plan-title">{{planView.title}}</text></view>
+        <view class="tr-view tr-plan-title-row"><view class="tr-view tr-icon-slot"><image class="tr-image tr-icon" src="/assets/design-clock.png"></image></view><text class="tr-text tr-plan-title">{{planView.title}}</text><text wx:if="{{planView.ended}}" class="tr-text tr-plan-ended">已结束</text></view>
         <text class="tr-text tr-plan-latest">{{planView.latestLabel}}</text>
         <text class="tr-text tr-plan-summary">{{planView.summary}}</text>
         <text class="tr-text tr-plan-freshness">{{planView.freshnessText}}</text>

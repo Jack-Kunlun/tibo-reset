@@ -53,6 +53,22 @@ export const STATUS_NOTE = {
 
 const finite = (v) => typeof v === 'number' && Number.isFinite(v);
 
+/** 旧接口与离线快照已有计划末日；活动到期不能依赖后端新增字段或下一轮采集。 */
+export function buildProgramLifecycle(plan, now = Date.now()) {
+  let endsAt = typeof plan?.endsAt === 'string' ? Date.parse(plan.endsAt) : NaN;
+  if (!finite(endsAt) && /^\d{4}-\d{2}-\d{2}$/.test(plan?.toDate || '')) {
+    const midnight = Date.parse(`${plan.toDate}T00:00:00.000+08:00`);
+    // Date.parse 可能把 2 月 30 日顺延，不能据此宣布活动结束。
+    if (finite(midnight) && new Date(midnight + BEIJING_OFFSET_MS).toISOString().slice(0, 10) === plan.toDate) {
+      endsAt = midnight + DAY;
+    }
+  }
+  return {
+    ended: finite(endsAt) && finite(now) ? now >= endsAt : plan?.ended === true,
+    endsAt: finite(endsAt) ? new Date(endsAt).toISOString() : null,
+  };
+}
+
 /**
  * 判断最近一笔已确认重置或发券记录是否发生在北京时间今天。
  * 页面上的到账事实只看 chart.lastAt；不从公告窗口或预测 ETA 推导到账。

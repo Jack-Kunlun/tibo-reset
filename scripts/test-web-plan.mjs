@@ -8,6 +8,7 @@ import { renderProgramPlan, renderAll, renderRecentRhythm } from '../src/lib/ren
 import { rhythmScene, sceneBounds } from '../src/lib/scene.js';
 import { derive } from '../src/lib/page.mjs';
 import { buildProgramPlanView } from '../miniprogram/utils/view.js';
+import { createDashboardPage } from '../miniprogram/utils/dashboard.js';
 
 const template = await readFile(new URL('../src/index.html', import.meta.url), 'utf8');
 const rendererSource = await readFile(new URL('../src/lib/render.mjs', import.meta.url), 'utf8');
@@ -56,6 +57,70 @@ const cases = [
   }, "row.status === 'future'", 'false'],
 ];
 for (const [name, run] of cases) check(name, () => run(renderProgramPlan));
+
+check('双端可消费服务端结束标记，原有28格和统计保留', () => {
+  const ended = { ...plan, ended: true };
+  const inputBefore = JSON.stringify(ended);
+  const web = renderProgramPlan(ended, null);
+  assert.ok(web.includes('<span class="plan-ended">已结束</span>'));
+  assert.equal((web.match(/data-plan-select=/g) || []).length, 28);
+  assert.equal(buildProgramPlanView(ended).ended, true);
+  assert.deepEqual(buildProgramPlanView(ended).days, buildProgramPlanView(plan).days);
+  for (const old of [plan, { ...plan, ended: false }, { ...plan, ended: 'true' }]) {
+    assert.ok(!renderProgramPlan(old, program).includes('class="plan-ended"'));
+    assert.equal(buildProgramPlanView(old).ended, false);
+  }
+  assert.equal(JSON.stringify(ended), inputBefore);
+});
+
+check('旧接口、缓存和快照按已有北京末日日终显示结束，不依赖新字段或采集时刻', () => {
+  const end = Date.parse('2026-11-02T16:00:00.000Z');
+  const savedTZ = process.env.TZ;
+  try {
+    process.env.TZ = 'America/New_York';
+    for (const source of ['api', 'cache', 'snapshot']) {
+      const legacy = { ...plan, latestDay: 28, toDate: '2026-11-02', source, dataAsOf: '2026-10-22T00:00:00Z' };
+      const before = JSON.stringify(legacy);
+      const active = buildProgramPlanView(legacy, end - 1);
+      const ended = buildProgramPlanView(legacy, end);
+      assert.equal(active.ended, false);
+      assert.equal(ended.ended, true);
+      assert.equal(ended.endsAt, '2026-11-02T16:00:00.000Z');
+      assert.deepEqual(ended.days, active.days);
+      assert.equal(ended.summary, active.summary);
+      assert.equal(ended.freshnessText, active.freshnessText);
+      assert.equal(JSON.stringify(legacy), before);
+      assert.equal(buildProgramPlanView({ ...legacy, ended: false }, end).ended, true, '旧缓存中的 false 不冻结活动日期');
+    }
+    for (const toDate of [undefined, '', 'bad', '2026-02-30']) {
+      assert.equal(buildProgramPlanView({ ...plan, latestDay: 28, toDate }, end).ended, false, '无有效日期不能仅凭 Day 28 推定结束');
+    }
+  } finally {
+    if (savedTZ === undefined) delete process.env.TZ;
+    else process.env.TZ = savedTZ;
+  }
+});
+
+check('小程序持续打开跨过北京末日时更新标签，不等接口或下一轮采集', () => {
+  const end = Date.parse('2026-11-02T16:00:00.000Z');
+  const page = createDashboardPage('observe');
+  const patches = [];
+  const context = {
+    data: { degraded: true, pageVisible: false, planView: buildProgramPlanView({ ...plan, toDate: '2026-11-02' }, end - 1) },
+    setData: patch => patches.push(patch),
+    tickPredCountdown: () => null,
+  };
+  const savedNow = Date.now;
+  try {
+    Date.now = () => end;
+    page.tick.call(context);
+  } finally {
+    Date.now = savedNow;
+  }
+  assert.equal(patches.length, 1);
+  assert.equal(patches[0]['planView.ended'], true);
+  assert.equal(context.data.planView.ended, false, 'ticker 只更新视图，不改输入');
+});
 
 check('双端只显示更新、预告、到账及组合，空状态统一为短横线', () => {
   const examples = [

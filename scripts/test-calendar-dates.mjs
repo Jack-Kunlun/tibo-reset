@@ -113,6 +113,21 @@ const cases = [
     assert.equal(cell(c, '2026-10-27').pendingCount, 0);
     assert.equal(cell(c, '2026-10-27').status, 'announced');
   }, 'cell.fulfilledForecastCount++;', 'cell.pendingCount++; cell.fulfilledForecastCount++;'],
+  ['计划在北京末日结束后标记已结束，不依赖最后一天原帖或到账数量', build => {
+    const beforeEnd = build({ ...input, now: Date.parse('2026-10-31T15:59:59.999Z') });
+    const afterEnd = build({ ...input, now: Date.parse('2026-10-31T16:00:00Z') });
+    assert.equal(beforeEnd.toDate, '2026-10-31');
+    assert.equal(beforeEnd.plan.ended, false);
+    assert.equal(afterEnd.plan.ended, true);
+    assert.equal(afterEnd.plan.endsAt, '2026-10-31T16:00:00.000Z');
+    assert.equal(afterEnd.plan.latestDay, beforeEnd.plan.latestDay);
+    assert.deepEqual(afterEnd.plan.rows, beforeEnd.plan.rows);
+    for (const key of ['confirmedCount', 'creditCount', 'resetCount', 'pendingCount', 'datedCount']) assert.equal(afterEnd[key], beforeEnd[key]);
+    const allDaysEarly = build({ ...input, now: input.now, tweets: [...input.tweets,
+      tweet('early-last-day', '2026-10-28T00:00:00Z', 'Day 7/ We shipped API improvements.')] });
+    assert.equal(allDaysEarly.plan.latestDay, 7);
+    assert.equal(allDaysEarly.plan.ended, false);
+  }, '...buildProgramLifecycle({ toDate }, now)', 'ended: false'],
 ];
 for (const [index, [name, verify, from, to]] of cases.entries()) {
   verify(buildResetCalendar);

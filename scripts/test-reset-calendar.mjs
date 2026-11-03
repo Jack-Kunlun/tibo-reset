@@ -447,7 +447,8 @@ for (const [index, item] of planCases.entries()) {
     // ⚠ 译文模块是 data: URL 模块的**相对依赖**：data: URL 没有基准路径，
     // './tweet-translations.mjs' 会解析失败（ERR_UNSUPPORTED_RESOLVE_REQUEST）。
     // 所以凡是这段源码新增了相对 import，都得一起换成绝对 file URL。
-    .replace("'./tweet-translations.mjs'", JSON.stringify(pathToFileURL(resolve(ROOT, 'src/lib/tweet-translations.mjs')).href));
+    .replace("'./tweet-translations.mjs'", JSON.stringify(pathToFileURL(resolve(ROOT, 'src/lib/tweet-translations.mjs')).href))
+    .replace("'./outlook.mjs'", JSON.stringify(pathToFileURL(resolve(ROOT, 'src/lib/outlook.mjs')).href));
   const module = await import(dataModule(mutant + '\n// isolated mutant ' + index));
   assert.equal(item.verify(module.buildResetCalendar(item.input)), false, '源码反例必须被该行为断言拦截：' + item.name);
 }

@@ -14,6 +14,7 @@ import { indexShareTitle, historyShareTitle, isSinglePage } from './share.js';
 import { buildGauge, buildSignal, buildMetrics, buildForecast, buildOutlookView, buildCalendarView, buildProgramPlanView, buildObservationSignal, buildTodayResetView, predCountdown, readoutParts } from './view.js';
 import { survivalScene, stripScene, histogramScene, rhythmScene } from './scene.js';
 import { drawScene, setupCanvas } from './draw.js';
+import { buildProgramLifecycle } from './outlook.js';
 import { elapsed, reelGroups, verdict as makeVerdict, fmtDateTime, fmtClock, fmtClockSec, fmtSpan, toTs, beijingParts } from './format.js';
 import {
   ACTION_LABELS,
@@ -356,7 +357,7 @@ export function createDashboardPage(view = 'observe') {
         ? 'snapshot' : state.source === 'cache' ? 'cache' : 'api'),
       // preview-miniprogram 也有真实成功采集时刻；不回退到生成/请求时间。
       dataAsOf: rawPlan.dataAsOf ?? state.dataUpdatedAt,
-    });
+    }, currentNow);
     const selectedPlanDay = preserveUi && planView?.days?.some((row) => row.day === this.data.selectedPlanDay)
       ? this.data.selectedPlanDay : planView?.latestDay > 0 ? planView.latestDay : 0;
     const selectedPlan = planSelection(planView, selectedPlanDay);
@@ -469,6 +470,11 @@ export function createDashboardPage(view = 'observe') {
     }
     const now = Date.now();
     const patch = {};
+
+    if (this.data.planView?.show) {
+      const lifecycle = buildProgramLifecycle(this.data.planView, now);
+      if (lifecycle.ended !== this.data.planView.ended) patch['planView.ended'] = lifecycle.ended;
+    }
 
     const today = beijingParts(now);
     const todayLabel = `${today.month}.${today.day} ${today.weekday}`;

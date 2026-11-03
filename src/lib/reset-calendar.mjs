@@ -1,6 +1,7 @@
 import { analyzeTweet, detectProgram, contradictsConfirmedHistory, confirmedResetEvent } from './signals.mjs';
 import { programPostCopy, programFollowup } from './program-copy.mjs';
 import { attachTranslations, translationIndex } from './tweet-translations.mjs';
+import { buildProgramLifecycle } from './outlook.mjs';
 
 const DAY_MS = 86_400_000;
 const TRUSTED_SOURCES = new Set(['timeline-browser', 'with-replies']);
@@ -228,7 +229,7 @@ function assignUnlinkedProgramEvents({ events, posts, trusted, allTweets, accoun
   }
 }
 
-function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne, signals }) {
+function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne, signals, now }) {
   const programId = String(program.id ?? dayOne.id ?? '');
   const originalTweets = allTweets.map(({ manualDecision, ...tweet }) => tweet);
   const observations = new Map((signals?.accountObservations ?? []).map((o) => [String(o.announcementId), o]));
@@ -379,14 +380,17 @@ function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne
     return { day, status, statusLabel, updateCount, resetCount, creditCount, confirmedCount, observedCount,
       date: entries[0]?.createdAt ?? null, sourceUrl: entries.at(-1)?.url ?? null, entries };
   });
+  const fromDate = beijingDate(timestamp(dayOne.created_at));
+  const toDate = beijingDate(beijingMidnight(fromDate) + (Number(program.days) - 1) * DAY_MS);
   return {
     title: `Tibo ${program.days} 天计划`, programId, days: Number(program.days), latestDay,
+    ...buildProgramLifecycle({ toDate }, now),
     reportedDays: new Set(posts.map((post) => post.day)).size,
     updatedDays: rows.filter((row) => row.updateCount).length,
     resetDays: rows.filter((row) => row.confirmedCount).length,
     sourceUrl: program.url ?? null,
-    fromDate: beijingDate(timestamp(dayOne.created_at)),
-    toDate: beijingDate(beijingMidnight(beijingDate(timestamp(dayOne.created_at))) + (Number(program.days) - 1) * DAY_MS),
+    fromDate,
+    toDate,
     eventAssignments: events.flatMap((event) => {
       const days = new Set(posts.filter((post) => post.events.includes(event)).map((post) => post.day));
       const explicitDay = event.record.programId === programId ? event.record.programDay : null;
@@ -461,7 +465,7 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     return !matched.length || !matched.every((tweet) => contradictsConfirmedHistory(tweet, { account: normalizedAccount, tweets: allTweets }));
   });
   // 先按可信 Day/回复链完成活动计划归属，再将同一活动日的手动到账与公开完成合并。
-  const plan = buildProgramPlan({ trusted, allTweets, events, account: normalizedAccount, program, dayOne, signals });
+  const plan = buildProgramPlan({ trusted, allTweets, events, account: normalizedAccount, program, dayOne, signals, now: currentTime });
   const calendarEvents = events.filter((event) => !event.suppressedByManualProgramDay);
   for (const event of calendarEvents) {
     const index = dateToIndex.get(beijingDate(event.at));

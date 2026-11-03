@@ -1472,7 +1472,7 @@ export function renderProgramPlan(plan, program) {
     </details>`;
   }).join('');
   return `<section class="am-panel program-plan" aria-label="Tibo 28 天计划">
-    <div class="plan-heading"><div><span class="plan-kicker">每天发布改进，或重置额度</span><h2>${esc(plan.title)}</h2></div><span class="plan-latest">最新原帖 <b>Day ${plan.latestDay} / ${plan.days}</b></span></div>
+    <div class="plan-heading"><div><span class="plan-kicker">每天发布改进，或重置额度</span><div class="plan-title-row"><h2>${esc(plan.title)}</h2>${plan.ended === true ? '<span class="plan-ended">已结束</span>' : ''}</div></div><span class="plan-latest">最新原帖 <b>Day ${plan.latestDay} / ${plan.days}</b></span></div>
     <p class="plan-stats"><span><b>${plan.reportedDays}</b> 天有原帖</span><span><b>${plan.updatedDays}</b> 天有功能更新</span><span><b>${plan.resetDays}</b> 天确认重置</span></p>
     <nav class="plan-grid" aria-label="按活动日查看">${cells}</nav>
     <p class="plan-legend"><span>更 · 功能更新</span><span>预 · 重置预告</span><span>重 · 重置到账</span><span>双 · 更新+重置</span><span>- · 暂无更新、预告或到账记录</span>${plan.rows.some((row) => row.observedCount) ? '<span>账号到账反馈的来源与时间见详情</span>' : ''}<span>日序取原帖 Day 编号</span></p>

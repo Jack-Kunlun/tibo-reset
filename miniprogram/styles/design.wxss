@@ -885,7 +885,8 @@ page { background: #0B1020; color: #F2F0FC; }
 .design .tr-footer { font-size: 22rpx; }
 .design .tr-plan { padding-top: 20rpx; }
 .design .tr-plan-heading { display: flex; flex-direction: column; gap: 10rpx; padding: 8rpx 2rpx 20rpx; }
-.design .tr-plan-title-row { display: flex; align-items: center; gap: 12rpx; }
+.design .tr-plan-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12rpx; }
+.design .tr-plan-ended { display: inline-flex; align-items: center; justify-content: center; flex: none; margin-left: auto; padding: 5rpx 14rpx; border: 2rpx solid #515b74; border-radius: 12rpx; color: #b6bfd3; background: #74809a14; font-size: 22rpx; line-height: 1.4; white-space: nowrap; }
 .design .tr-plan-title-row .tr-icon-slot { width:32rpx; height:32rpx; flex:0 0 32rpx; }
 .design .tr-plan-title-row .tr-icon { width:30rpx; height:30rpx; }
 .design .tr-plan-title { color: #f2f0fc; font-size: 30rpx; font-weight: 600; }
