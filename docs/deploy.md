@@ -1370,6 +1370,37 @@ purge 无效），官方 jsdelivr 各域名与 gh-proxy/ghproxy 从**服务器**
 不受影响；图例无「待落地」；counts `explicit`2 / `occurred`15 / `hint`67 /
 `none`399 / `rejected`399 / `scanned`502、total 70；`<details>` 落在 `<a>` 内 **0**。
 
+### 第三十八轮（2026-11-03 · `eacdaa8` / `amd64-d088`）—— D-091 计划到期保留历史并标识「已结束」
+
+**改动**：diff 集 = `src/` 下 4 文件（`index.html`、`lib/{outlook,render,reset-calendar}.mjs`），
+无新增/删除文件 ⇒ 只覆盖 4 文件、不碰 `entrypoint.sh`。另含小程序侧（`view.js`/
+`dashboard.js`/`index.wxml`/`design.wxss` + 构建产物 `utils/outlook.js`）——**已就绪未发版**，
+小程序展示变更需发版后生效。
+
+**顺带修复（`3b11656`，先于主体提交）**：`test-signals` 真实语料段 NOW 原取「最新推文 +1min」，
+采集自动化把语料推过计划窗口终点后 `program` 变 null，整段 8 连红 + `daysLeft` 读 null 崩溃
+（实测 2026-11-03，计划已于 11-02 北京日终结束）。修复 = NOW 锚公告推文后 1 分钟，断言不随采集漂移。
+⭐ 另一条测试基建坑：`reset-calendar` 新增 `import './outlook.mjs'` 后，`test-reset-calendar`
+的变异加载器显式重写链（signals→file、program-copy→data、tweet-translations→file）没列
+outlook ⇒ data: URL 模块解析 `./outlook.mjs` 报 `ERR_UNSUPPORTED_RESOLVE_REQUEST`——
+凡给被内联模块新增相对 import，必须同步补重写链（其余测试都是通配重写，不受影响）。
+
+**⭐ 通道口径更新（2026-11-03 实测）**：平台现在**连 `wget` 也拦**（baidu 都 AccessDeny，
+`curl` 依旧拦），jsdmirror 本轮已恢复 ⇒ 拉取改用 **`python3 -c "urllib.request.urlopen(...)"`**
+放行。jsdmirror 单次直取 4 文件，落盘 sha256 与本机基准 4/4 全等后才动容器。
+
+**上线**：容器内 4 文件先核与上一版（`caca41a`）逐字节一致 ⇒ diff 集假设成立；`docker cp` +
+`docker commit` 出 `tibo-reset:amd64-d088`；腾名（prev d086 → 归档容器
+`tibo-reset-archive-20261103a`）→ stop/rename/run 串一条命令（`--network petcare_petcare-network`、
+`/srv/tibo-data` 卷、unless-stopped、10m×3 日志、env 显式传）→ `nginx -s reload`。
+墙钟 **0.49 秒**。
+
+**上线后验证**：`/api/health` ok + `FailingStreak=0`（healthy）；功能探针 = 字段形状：
+`/api/state` 出 `plan.ended=true`、`endsAt=2026-11-02T16:00:00.000Z`（= 北京 11-03 00:00
+计划日终，口径精确）—— 旧代码产出不出来 ⇒ 新代码已生效。counts 对照：线上
+`explicit`2/`occurred`17/`hint`69 vs 本机现算 `explicit`4/`occurred`13/`hint`71、
+两侧 `scanned`523 一致 —— 差异为 D-076 已知口径（人工确认走投影层不落盘，两端天然不同），非缺陷。
+
 
 ### 6.2 用 jsdelivr 国内镜像直取文件（第四轮起改用，优于分块）
 
