@@ -1,6 +1,18 @@
 {
   "tweets": [
     {
+      "id": "2117489367417803042",
+      "text": "Le GPT Fat",
+      "created_at": "2026-11-03T05:29:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2117489367417803042",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-03T06:12:06.780Z"
+    },
+    {
       "id": "2117412956950638872",
       "text": "We know some Git-fu. Excited the team is finally able to talk about it a bit. Massive props to @tnm and team",
       "created_at": "2026-11-03T00:26:03.000Z",
@@ -9447,7 +9459,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-03T01:12:09.673Z",
+  "updated_at": "2026-11-03T06:12:06.784Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
