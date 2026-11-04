@@ -1,6 +1,138 @@
 {
   "tweets": [
     {
+      "id": "2117889346426823037",
+      "text": "Asked chat and it confirmed the story",
+      "created_at": "2026-11-04T07:59:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2117889346426823037",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "haydenfield",
+        "id": "",
+        "text": "In many circles, “Ask Chat” has replaced “Google it,” and that’s reflected in a new announcement from OpenAI: the volume of search queries run through ChatGPT now equals 20% of the volume run through Google.",
+        "created_at": "2026-11-03T18:32:37.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-04T10:01:35.587Z"
+    },
+    {
+      "id": "2117888828874936679",
+      "text": "Why are you me",
+      "created_at": "2026-11-04T07:56:59.000Z",
+      "url": "https://x.com/thsottiaux/status/2117888828874936679",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "zoedotai",
+        "id": "",
+        "text": "why are top anthropic employees leaving right before ipo ?? WHY ???",
+        "created_at": "2026-11-04T04:17:42.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-04T10:01:35.587Z"
+    },
+    {
+      "id": "2117888243119304945",
+      "text": "ChatBLT",
+      "created_at": "2026-11-04T07:54:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2117888243119304945",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "thsottiaux",
+        "text": "Le GPT Fat",
+        "created_at": "2026-11-03T05:29:40.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-04T10:01:35.587Z"
+    },
+    {
+      "id": "2117884611640668212",
+      "text": "Which event was this?",
+      "created_at": "2026-11-04T07:40:14.000Z",
+      "url": "https://x.com/thsottiaux/status/2117884611640668212",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "evadne",
+        "id": "",
+        "text": "Ok going home 1. The guy who marshals people into three lanes smells bad 2. Security very high for a community event (drastically higher than the Anthropic event) 3. No courtyard access, only smokers outside 4. Seating is policed, seating outside the area is free for all,",
+        "created_at": "2026-11-03T18:32:18.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-04T10:01:35.587Z"
+    },
+    {
+      "id": "2117884085385429502",
+      "text": "👀",
+      "created_at": "2026-11-04T07:38:08.000Z",
+      "url": "https://x.com/thsottiaux/status/2117884085385429502",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "addyosmani",
+        "id": "",
+        "text": "An update on building games with Claude Code: Last week some of you ran into Claude Code pushing back on game projects it should have just built. We'd added a short rule to the Opus 5.5 prompt to steer Claude away from recreating specific existing games, but it was also kicking",
+        "created_at": "2026-11-04T05:17:01.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-04T10:01:35.587Z"
+    },
+    {
+      "id": "2117868812657971442",
+      "text": "It’s 50X",
+      "created_at": "2026-11-04T06:37:27.000Z",
+      "url": "https://x.com/thsottiaux/status/2117868812657971442",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "hiarun02",
+        "id": "",
+        "text": "Wait, what’s the point of OpenAI’s $500 Pro plan now? If the $200 plan stays at 20x usage and the $500 plan only gives 25x, you're paying $300 extra for just 5x more. That's 150% more money for only 25% more usage. Who is even going to pay for that?",
+        "created_at": "2026-11-03T12:15:42.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-04T10:01:35.587Z"
+    },
+    {
+      "id": "2117865198040355067",
+      "text": "Please make the model better, it doesn’t yet do everything",
+      "created_at": "2026-11-04T06:23:05.000Z",
+      "url": "https://x.com/thsottiaux/status/2117865198040355067",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ajambrosino",
+        "id": "",
+        "text": "starting today, you can now send me feedback for all the apps, not just OpenAI’s. hopefully this simplifies the feedback process for you all– you know I love a good merge",
+        "created_at": "2026-11-04T01:38:18.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-04T10:01:35.587Z"
+    },
+    {
       "id": "2117746467058405665",
       "text": "Things will change again and again and again. We’re still very early and agents today are incredible, and yet so frustrating still. Can’t wait to crack things to get that flow state back. Long journey ahead.",
       "created_at": "2026-11-03T22:31:18.000Z",
@@ -9515,7 +9647,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-04T04:03:34.639Z",
+  "updated_at": "2026-11-04T10:01:35.596Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
