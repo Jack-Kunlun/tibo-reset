@@ -1,6 +1,62 @@
 {
   "tweets": [
     {
+      "id": "2118024737070957009",
+      "text": "I was moved to the basement yesterday",
+      "created_at": "2026-11-04T16:57:02.000Z",
+      "url": "https://x.com/thsottiaux/status/2118024737070957009",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "AnikaCodes",
+        "id": "",
+        "text": "Rumor is Tibo is getting moved to a new role, and honestly that thread looks exactly like a handover. Tibo says \"Please make the model better, it doesn’t yet do everything\" and Andrew Ambrosino replies \"will get right on that\". Felt a faint sadness reading it ngl. If the rumor's",
+        "created_at": "2026-11-04T10:13:36.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-04T22:02:03.065Z"
+    },
+    {
+      "id": "2118024484594803084",
+      "text": "Which team were you on?",
+      "created_at": "2026-11-04T16:56:02.000Z",
+      "url": "https://x.com/thsottiaux/status/2118024484594803084",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "Today was my last day at Anthropic. I am so thankful for the time I got to spend there. I couldn't be more thankful for the time I spent and the connections I made. Will be taking some time off as I prepare for my next thing. I'll share more soon :)",
+        "created_at": "2026-11-04T10:30:16.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-04T22:02:03.065Z"
+    },
+    {
+      "id": "2118024169762029594",
+      "text": "Computers have RAM, right? Welcome Pierre. Let’s reinvent everything",
+      "created_at": "2026-11-04T16:54:47.000Z",
+      "url": "https://x.com/thsottiaux/status/2118024169762029594",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "pierrecomputer",
+        "text": "an announcement from the pierre computer company",
+        "created_at": "2026-11-04T15:14:55.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-04T22:02:03.065Z"
+    },
+    {
       "id": "2117889346426823037",
       "text": "Asked chat and it confirmed the story",
       "created_at": "2026-11-04T07:59:03.000Z",
@@ -9647,7 +9703,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-04T10:01:35.596Z",
+  "updated_at": "2026-11-04T22:02:03.068Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
