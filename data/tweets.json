@@ -1,6 +1,24 @@
 {
   "tweets": [
     {
+      "id": "2117746467058405665",
+      "text": "Things will change again and again and again. We’re still very early and agents today are incredible, and yet so frustrating still. Can’t wait to crack things to get that flow state back. Long journey ahead.",
+      "created_at": "2026-11-03T22:31:18.000Z",
+      "url": "https://x.com/thsottiaux/status/2117746467058405665",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-04T04:03:34.635Z",
+      "translation": {
+        "text": "事情会一次又一次地改变。我们其实还在很早的阶段，今天的代理已经很惊人了，但用起来还是让人挺受挫。真等不及要把这些问题一个个啃下来，把那种心流状态找回来。路还长着呢。",
+        "sourceHash": "f2800aefcf43721542f8d573bfd0c4ae9d0985ac870dfbb1c125de7e8310b4d2",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
       "id": "2117515752588853710",
       "text": "🫨",
       "created_at": "2026-11-03T07:14:31.000Z",
@@ -9497,7 +9515,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-03T10:01:40.625Z",
+  "updated_at": "2026-11-04T04:03:34.639Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
