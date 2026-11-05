@@ -1,6 +1,161 @@
 {
   "tweets": [
     {
+      "id": "2118165504955494695",
+      "text": "We needed the eyeballs",
+      "created_at": "2026-11-05T02:16:24.000Z",
+      "url": "https://x.com/thsottiaux/status/2118165504955494695",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "jonoalford",
+        "id": "",
+        "text": "This was literally one of the best websites I've ever seen. I still have no idea what anybody does at this company, but the website was so good.",
+        "created_at": "2026-11-04T17:48:35.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-05T04:02:52.918Z"
+    },
+    {
+      "id": "2118147545931374976",
+      "text": "Reports of my retirement have been greatly exaggerated",
+      "created_at": "2026-11-05T01:05:02.000Z",
+      "url": "https://x.com/thsottiaux/status/2118147545931374976",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "fly3nn",
+        "id": "",
+        "text": "我靠？？？tibo要下岗了吗？ 啥情况，看这架势是要取代tibo啊？ @grok",
+        "created_at": "2026-11-04T08:45:24.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-05T04:02:52.918Z"
+    },
+    {
+      "id": "2118147091155529874",
+      "text": "People needs dots",
+      "created_at": "2026-11-05T01:03:14.000Z",
+      "url": "https://x.com/thsottiaux/status/2118147091155529874",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "edbayes",
+        "id": "",
+        "text": "dots needs people!",
+        "created_at": "2026-11-04T23:15:47.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-05T04:02:52.918Z"
+    },
+    {
+      "id": "2118147019030335666",
+      "text": "Was surprised that you acquired @theo",
+      "created_at": "2026-11-05T01:02:57.000Z",
+      "url": "https://x.com/thsottiaux/status/2118147019030335666",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "thdxr",
+        "id": "",
+        "text": "so many acquisition announcements today",
+        "created_at": "2026-11-04T18:23:10.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-05T04:02:52.918Z"
+    },
+    {
+      "id": "2118146834325733453",
+      "text": "Reach out to @clintgibler if you want to work on securing the world.",
+      "created_at": "2026-11-05T01:02:13.000Z",
+      "url": "https://x.com/thsottiaux/status/2118146834325733453",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-05T04:02:52.918Z"
+    },
+    {
+      "id": "2118146794362405231",
+      "text": "We’ve assembled a world class cyber team and I’m excited for us to share more about our work over the weeks and months.",
+      "created_at": "2026-11-05T01:02:03.000Z",
+      "url": "https://x.com/thsottiaux/status/2118146794362405231",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "OpenAI",
+        "text": "Our security researchers built an autonomous cyber vulnerability discovery, exploitation, and patching pipeline. In a single run with an upcoming cyber model, it validated and generated patches for 948 local privilege escalation vulnerabilities in the Linux kernel at a total API",
+        "created_at": "2026-11-04T23:13:24.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-05T04:02:52.918Z"
+    },
+    {
+      "id": "2118139067636568305",
+      "text": "Dots just got a massive set of improvements",
+      "created_at": "2026-11-05T00:31:21.000Z",
+      "url": "https://x.com/thsottiaux/status/2118139067636568305",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "_samirism",
+        "id": "",
+        "text": "the team has been laser-focused on making dots significantly faster and more reliable. some updates in the latest app release… - you can now reply to your dot inline from a notification on iOS - share anything directly to your dot in iOS - open your dot from the iPhone Action",
+        "created_at": "2026-11-04T22:08:16.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-05T04:02:52.918Z"
+    },
+    {
+      "id": "2118138764161913278",
+      "text": "猫GPT",
+      "created_at": "2026-11-05T00:30:09.000Z",
+      "url": "https://x.com/thsottiaux/status/2118138764161913278",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-05T04:02:52.918Z"
+    },
+    {
+      "id": "2118138648214585591",
+      "text": "Welcome Cat. Stoked to be building together soon.",
+      "created_at": "2026-11-05T00:29:41.000Z",
+      "url": "https://x.com/thsottiaux/status/2118138648214585591",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "_catwu",
+        "text": "Some news: I’m joining OpenAI to lead product management for Core Products! I have a lot of respect for OpenAI for showing the world that scaling works, for bringing AI to over a billion people, and for believing great products are core to the mission. I’m excited to work with",
+        "created_at": "2026-11-05T00:25:34.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-05T04:02:52.918Z"
+    },
+    {
       "id": "2118024737070957009",
       "text": "I was moved to the basement yesterday",
       "created_at": "2026-11-04T16:57:02.000Z",
@@ -9703,7 +9858,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-04T22:02:03.068Z",
+  "updated_at": "2026-11-05T04:02:52.920Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
