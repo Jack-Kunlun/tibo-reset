@@ -1,6 +1,99 @@
 {
   "tweets": [
     {
+      "id": "2118444105969926407",
+      "text": "Come push the frontier of fluffiness",
+      "created_at": "2026-11-05T20:43:28.000Z",
+      "url": "https://x.com/thsottiaux/status/2118444105969926407",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "_samirism",
+        "text": "we've assembled a team of some of the most talented people in the persistent agent space - to make dots incredible dm me if you are interested in joining 👀",
+        "created_at": "2026-11-04T20:28:33.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-05T22:00:55.326Z"
+    },
+    {
+      "id": "2118443570298568886",
+      "text": "Don't know, I live in the basement now",
+      "created_at": "2026-11-05T20:41:20.000Z",
+      "url": "https://x.com/thsottiaux/status/2118443570298568886",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "kimmonismus",
+        "id": "",
+        "text": "Cool! Btw. When GPT-6.2? Asking for a friend.",
+        "created_at": "2026-11-05T18:07:14.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-05T22:00:55.326Z"
+    },
+    {
+      "id": "2118402103907655903",
+      "text": "Our latest cyber-specialized model is out. It's in its own league on many cyber-specific use cases. Available through Daybreak Red access.",
+      "created_at": "2026-11-05T17:56:34.000Z",
+      "url": "https://x.com/thsottiaux/status/2118402103907655903",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "OpenAI",
+        "text": "Introducing GPT‑6 Cyber: a major advance in security research that pairs stronger capabilities with better model alignment. The model powered the Linux kernel research we announced yesterday, and security teams at companies like Mozilla, Palo Alto Networks, Calif, and",
+        "created_at": "2026-11-05T17:09:13.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-05T22:00:55.326Z"
+    },
+    {
+      "id": "2118401691032973416",
+      "text": "Bunch of interesting buttons here:",
+      "created_at": "2026-11-05T17:54:55.000Z",
+      "url": "https://x.com/thsottiaux/status/2118401691032973416",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ajambrosino",
+        "id": "",
+        "text": "getting really into buttons",
+        "created_at": "2026-11-05T17:10:09.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-05T22:00:55.326Z"
+    },
+    {
+      "id": "2118376946652557613",
+      "text": "Who comes up with these haha. Dane Starbuck. Haha",
+      "created_at": "2026-11-05T16:16:36.000Z",
+      "url": "https://x.com/thsottiaux/status/2118376946652557613",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ohayou792",
+        "id": "",
+        "text": "Tibo突然被调离核心产品线去抓内部安全，外界还当成是普通的高管轮岗。 ​但只要把幕后发生的一连串事情拼在一起，你就会发现OpenAI内部刚刚经历了一场战时级别的秘密排查。 ​就在前阵子，OpenAI的高管核心会议室里直接搜出了暗中运转的窃听设备，美国司法部随即火速立案接管。",
+        "created_at": "2026-11-05T01:59:58.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-05T22:00:55.326Z"
+    },
+    {
       "id": "2118255144836161582",
       "text": "Congrats I guess",
       "created_at": "2026-11-05T08:12:36.000Z",
@@ -10039,7 +10132,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-05T10:02:59.055Z",
+  "updated_at": "2026-11-05T22:00:55.327Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
