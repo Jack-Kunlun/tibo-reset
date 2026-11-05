@@ -1,6 +1,187 @@
 {
   "tweets": [
     {
+      "id": "2118255144836161582",
+      "text": "Congrats I guess",
+      "created_at": "2026-11-05T08:12:36.000Z",
+      "url": "https://x.com/thsottiaux/status/2118255144836161582",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "I'm surprised too (just learning about it here)",
+        "created_at": "2026-11-05T02:41:19.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-05T10:02:59.053Z"
+    },
+    {
+      "id": "2118254289894445278",
+      "text": "Might be",
+      "created_at": "2026-11-05T08:09:12.000Z",
+      "url": "https://x.com/thsottiaux/status/2118254289894445278",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "fudgeposting",
+        "id": "",
+        "text": "with the pierre, astral and sky acquisitions this might be one of the greatest engineering orgs of our time",
+        "created_at": "2026-11-04T16:55:37.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-05T10:02:59.053Z"
+    },
+    {
+      "id": "2118253609272177047",
+      "text": "50X",
+      "created_at": "2026-11-05T08:06:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2118253609272177047",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "JamesMalsawm",
+        "id": "",
+        "text": "wait..what's the point of paying OpenAi's $500 pro plan now? if $200 give 20x usage while $500 only give 25x. who is even going to pay for that?",
+        "created_at": "2026-11-04T17:30:00.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-05T10:02:59.053Z"
+    },
+    {
+      "id": "2118252192536973501",
+      "text": "Welcome sir",
+      "created_at": "2026-11-05T08:00:52.000Z",
+      "url": "https://x.com/thsottiaux/status/2118252192536973501",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "helloitsaustin",
+        "id": "",
+        "text": "lots of news breaking these days so I may as well sneak mine in if anyone cares and share that I recently joined @OpenAI 🫡 my time at Anthropic was a fever dream in the best way possible. got to help build the growth function, work alongside some really really talented people,",
+        "created_at": "2026-11-05T02:01:42.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-05T10:02:59.053Z"
+    },
+    {
+      "id": "2118251848297783385",
+      "text": "In 6 months this will look quite funny in retrospect",
+      "created_at": "2026-11-05T07:59:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2118251848297783385",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "amix3k",
+        "id": "",
+        "text": "I don’t think Grok Bot, Muse, or ChatGPT Dots have strong product-market fit outside the tech/dev sector. Their fate will be similar to OpenClaw.",
+        "created_at": "2026-11-04T21:07:44.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-05T10:02:59.053Z",
+      "translation": {
+        "text": "6 个月后再回头看这段，会觉得挺好笑的。",
+        "sourceHash": "1fc5b10bb6179e32d01cb1d03f946fed0922930e49b1249063a74edbc04aed65",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
+      "id": "2118250631165300747",
+      "text": "Follow Samir for dot updates",
+      "created_at": "2026-11-05T07:54:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2118250631165300747",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "_samirism",
+        "text": "the team has been laser-focused on making dots significantly faster and more reliable. some updates in the latest app release… - you can now reply to your dot inline from a notification on iOS - share anything directly to your dot in iOS - open your dot from the iPhone Action",
+        "created_at": "2026-11-04T22:08:16.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-05T10:02:59.053Z"
+    },
+    {
+      "id": "2118250462092914736",
+      "text": "Yes and",
+      "created_at": "2026-11-05T07:54:00.000Z",
+      "url": "https://x.com/thsottiaux/status/2118250462092914736",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "rileybrown",
+        "id": "",
+        "text": "i expect my dot to get VERY good.",
+        "created_at": "2026-11-05T03:04:19.000Z",
+        "url": ""
+      },
+      "quotedTweet": {
+        "account": "_samirism",
+        "text": "the team has been laser-focused on making dots significantly faster and more reliable. some updates in the latest app release… - you can now reply to your dot inline from a notification on iOS - share anything directly to your dot in iOS - open your dot from the iPhone Action",
+        "created_at": "2026-11-04T22:08:16.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-05T10:02:59.053Z"
+    },
+    {
+      "id": "2118249806875533399",
+      "text": "Codex",
+      "created_at": "2026-11-05T07:51:23.000Z",
+      "url": "https://x.com/thsottiaux/status/2118249806875533399",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "dani_avila7",
+        "id": "",
+        "text": "Wait, OpenAI is actually doing this?! They're embedding the Codex harness directly into the Agents SDK Instead of building and maintaining your own execution harness, you could use Codex directly within the SDK Still in alpha, but I'm really curious to see how far they take",
+        "created_at": "2026-11-04T17:14:25.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-05T10:02:59.053Z"
+    },
+    {
+      "id": "2118248900381536740",
+      "text": "Privilege to work alongside so many amazing people who won’t rest until we materialize a better future.",
+      "created_at": "2026-11-05T07:47:47.000Z",
+      "url": "https://x.com/thsottiaux/status/2118248900381536740",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "clairevo",
+        "text": "BREAKING: @OpenAI product team is absolutely stacked",
+        "created_at": "2026-11-05T01:20:00.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-05T10:02:59.053Z"
+    },
+    {
       "id": "2118165504955494695",
       "text": "We needed the eyeballs",
       "created_at": "2026-11-05T02:16:24.000Z",
@@ -9858,7 +10039,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-05T04:02:52.920Z",
+  "updated_at": "2026-11-05T10:02:59.055Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }

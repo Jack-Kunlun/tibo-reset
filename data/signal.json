@@ -1,11 +1,11 @@
 {
   "level": "explicit",
   "program": null,
-  "generatedAt": "2026-11-05T04:02:52.963Z",
-  "checkedTweets": 546,
+  "generatedAt": "2026-11-05T10:02:59.088Z",
+  "checkedTweets": 555,
   "lookbackDays": 60,
-  "windowFrom": "2026-09-06T04:02:52.963Z",
-  "windowTo": "2026-11-05T04:02:52.963Z",
+  "windowFrom": "2026-09-06T10:02:59.088Z",
+  "windowTo": "2026-11-05T10:02:59.088Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -15,36 +15,36 @@
       "zone": "Asia/Shanghai",
       "date": "2026.11.05",
       "weekday": "周四",
-      "time": "12:02",
-      "text": "2026.11.05（周四）12:02",
+      "time": "18:02",
+      "text": "2026.11.05（周四）18:02",
       "offset": "UTC+8"
     },
     "b": {
       "label": "Tibo 当地时间",
       "zone": "America/Los_Angeles",
-      "date": "2026.11.04",
-      "weekday": "周三",
-      "time": "20:02",
-      "text": "2026.11.04（周三）20:02",
+      "date": "2026.11.05",
+      "weekday": "周四",
+      "time": "02:02",
+      "text": "2026.11.05（周四）02:02",
       "offset": "UTC-8"
     },
     "diffHours": 16,
     "diffText": "北京时间比 Tibo 当地时间快 16 小时"
   },
   "latest": {
-    "id": "2118165504955494695",
+    "id": "2118255144836161582",
     "account": "thsottiaux",
-    "text": "We needed the eyeballs",
-    "createdAt": "2026-11-05T02:16:24.000Z",
-    "url": "https://x.com/thsottiaux/status/2118165504955494695",
+    "text": "Congrats I guess",
+    "createdAt": "2026-11-05T08:12:36.000Z",
+    "url": "https://x.com/thsottiaux/status/2118255144836161582",
     "reasons": [
-      "上下文：回复 @jonoalford「This was literally one of the best w…」"
+      "上下文：回复 @theo「I'm surprised too (just learning abo…」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "jonoalford",
+      "account": "theo",
       "id": "",
-      "text": "This was literally one of the best websites I've ever seen. I still have no idea what anybody does at this company, but the website was so good."
+      "text": "I'm surprised too (just learning about it here)"
     },
     "createdZones": {
       "a": {
@@ -52,17 +52,17 @@
         "zone": "Asia/Shanghai",
         "date": "2026.11.05",
         "weekday": "周四",
-        "time": "10:16",
-        "text": "2026.11.05（周四）10:16",
+        "time": "16:12",
+        "text": "2026.11.05（周四）16:12",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.11.04",
-        "weekday": "周三",
-        "time": "18:16",
-        "text": "2026.11.04（周三）18:16",
+        "date": "2026.11.05",
+        "weekday": "周四",
+        "time": "00:12",
+        "text": "2026.11.05（周四）00:12",
         "offset": "UTC-8"
       },
       "diffText": "北京时间比 Tibo 当地时间快 16 小时"
@@ -899,6 +899,57 @@
   ],
   "hints": [
     {
+      "id": "2118251848297783385",
+      "account": "thsottiaux",
+      "text": "In 6 months this will look quite funny in retrospect",
+      "createdAt": "2026-11-05T07:59:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2118251848297783385",
+      "reasons": [
+        "含未来语气",
+        "上下文：回复 @amix3k「I don’t think Grok Bot, Muse, or Cha…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "amix3k",
+        "id": "",
+        "text": "I don’t think Grok Bot, Muse, or ChatGPT Dots have strong product-market fit outside the tech/dev sector. Their fate will be similar to OpenClaw."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.05",
+          "weekday": "周四",
+          "time": "15:59",
+          "text": "2026.11.05（周四）15:59",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.04",
+          "weekday": "周三",
+          "time": "23:59",
+          "text": "2026.11.04（周三）23:59",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "hint",
+      "rejected": "含时间表达「in 6 months」但没有额度相关词，不作为重置信号",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": {
+        "word": "in 6 months",
+        "precision": "instant",
+        "from": "2027-05-04T07:59:30.000Z",
+        "to": "2027-05-05T07:58:30.000Z",
+        "dayNum": null,
+        "spec": 28,
+        "note": null
+      }
+    },
+    {
       "id": "2117746467058405665",
       "account": "thsottiaux",
       "text": "Things will change again and again and again. We’re still very early and agents today are incredible, and yet so frustrating still. Can’t wait to crack things to get that flow state back. Long journey ahead.",
@@ -1160,7 +1211,7 @@
         "from": "2026-10-29T07:00:00.000Z",
         "to": "2026-10-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-05T04:02:52.963Z"
+        "checkedAt": "2026-11-05T10:02:59.088Z"
       }
     },
     {
@@ -3470,7 +3521,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-11-05T04:02:52.963Z"
+        "checkedAt": "2026-11-05T10:02:59.088Z"
       }
     },
     {
@@ -4375,6 +4426,330 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2118255144836161582",
+      "account": "thsottiaux",
+      "text": "Congrats I guess",
+      "createdAt": "2026-11-05T08:12:36.000Z",
+      "url": "https://x.com/thsottiaux/status/2118255144836161582",
+      "reasons": [
+        "上下文：回复 @theo「I'm surprised too (just learning abo…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "I'm surprised too (just learning about it here)"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.05",
+          "weekday": "周四",
+          "time": "16:12",
+          "text": "2026.11.05（周四）16:12",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.05",
+          "weekday": "周四",
+          "time": "00:12",
+          "text": "2026.11.05（周四）00:12",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2118254289894445278",
+      "account": "thsottiaux",
+      "text": "Might be",
+      "createdAt": "2026-11-05T08:09:12.000Z",
+      "url": "https://x.com/thsottiaux/status/2118254289894445278",
+      "reasons": [
+        "上下文：回复 @fudgeposting「with the pierre, astral and sky acqu…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "fudgeposting",
+        "id": "",
+        "text": "with the pierre, astral and sky acquisitions this might be one of the greatest engineering orgs of our time"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.05",
+          "weekday": "周四",
+          "time": "16:09",
+          "text": "2026.11.05（周四）16:09",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.05",
+          "weekday": "周四",
+          "time": "00:09",
+          "text": "2026.11.05（周四）00:09",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2118253609272177047",
+      "account": "thsottiaux",
+      "text": "50X",
+      "createdAt": "2026-11-05T08:06:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2118253609272177047",
+      "reasons": [
+        "上下文：回复 @JamesMalsawm「wait..what's the point of paying Ope…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "JamesMalsawm",
+        "id": "",
+        "text": "wait..what's the point of paying OpenAi's $500 pro plan now? if $200 give 20x usage while $500 only give 25x. who is even going to pay for that?"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.05",
+          "weekday": "周四",
+          "time": "16:06",
+          "text": "2026.11.05（周四）16:06",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.05",
+          "weekday": "周四",
+          "time": "00:06",
+          "text": "2026.11.05（周四）00:06",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2118252192536973501",
+      "account": "thsottiaux",
+      "text": "Welcome sir",
+      "createdAt": "2026-11-05T08:00:52.000Z",
+      "url": "https://x.com/thsottiaux/status/2118252192536973501",
+      "reasons": [
+        "上下文：回复 @helloitsaustin「lots of news breaking these days so …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "helloitsaustin",
+        "id": "",
+        "text": "lots of news breaking these days so I may as well sneak mine in if anyone cares and share that I recently joined @OpenAI 🫡 my time at Anthropic was a fever dream in the best way possible. got to help build the growth function, work alongside some really really talented people,"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.05",
+          "weekday": "周四",
+          "time": "16:00",
+          "text": "2026.11.05（周四）16:00",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.05",
+          "weekday": "周四",
+          "time": "00:00",
+          "text": "2026.11.05（周四）00:00",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2118250631165300747",
+      "account": "thsottiaux",
+      "text": "Follow Samir for dot updates",
+      "createdAt": "2026-11-05T07:54:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2118250631165300747",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.05",
+          "weekday": "周四",
+          "time": "15:54",
+          "text": "2026.11.05（周四）15:54",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.04",
+          "weekday": "周三",
+          "time": "23:54",
+          "text": "2026.11.04（周三）23:54",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2118250462092914736",
+      "account": "thsottiaux",
+      "text": "Yes and",
+      "createdAt": "2026-11-05T07:54:00.000Z",
+      "url": "https://x.com/thsottiaux/status/2118250462092914736",
+      "reasons": [
+        "上下文：回复 @rileybrown「i expect my dot to get VERY good.…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "rileybrown",
+        "id": "",
+        "text": "i expect my dot to get VERY good."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.05",
+          "weekday": "周四",
+          "time": "15:54",
+          "text": "2026.11.05（周四）15:54",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.04",
+          "weekday": "周三",
+          "time": "23:54",
+          "text": "2026.11.04（周三）23:54",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2118249806875533399",
+      "account": "thsottiaux",
+      "text": "Codex",
+      "createdAt": "2026-11-05T07:51:23.000Z",
+      "url": "https://x.com/thsottiaux/status/2118249806875533399",
+      "reasons": [
+        "上下文：回复 @dani_avila7「Wait, OpenAI is actually doing this?…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "dani_avila7",
+        "id": "",
+        "text": "Wait, OpenAI is actually doing this?! They're embedding the Codex harness directly into the Agents SDK Instead of building and maintaining your own execution harness, you could use Codex directly within the SDK Still in alpha, but I'm really curious to see how far they take"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.05",
+          "weekday": "周四",
+          "time": "15:51",
+          "text": "2026.11.05（周四）15:51",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.04",
+          "weekday": "周三",
+          "time": "23:51",
+          "text": "2026.11.04（周三）23:51",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2118248900381536740",
+      "account": "thsottiaux",
+      "text": "Privilege to work alongside so many amazing people who won’t rest until we materialize a better future.",
+      "createdAt": "2026-11-05T07:47:47.000Z",
+      "url": "https://x.com/thsottiaux/status/2118248900381536740",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.05",
+          "weekday": "周四",
+          "time": "15:47",
+          "text": "2026.11.05（周四）15:47",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.04",
+          "weekday": "周三",
+          "time": "23:47",
+          "text": "2026.11.04（周三）23:47",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2118165504955494695",
       "account": "thsottiaux",
@@ -12203,344 +12578,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2107699167808356482",
-      "account": "thsottiaux",
-      "text": "👀",
-      "createdAt": "2026-10-07T05:06:55.000Z",
-      "url": "https://x.com/thsottiaux/status/2107699167808356482",
-      "reasons": [
-        "上下文：回复 @athyuttamre「♪ you may say, i'm a dreamer ♪…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "athyuttamre",
-        "id": "",
-        "text": "♪ you may say, i'm a dreamer ♪"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.07",
-          "weekday": "周三",
-          "time": "13:06",
-          "text": "2026.10.07（周三）13:06",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.06",
-          "weekday": "周二",
-          "time": "22:06",
-          "text": "2026.10.06（周二）22:06",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2107699068499841309",
-      "account": "thsottiaux",
-      "text": "呜啦啦",
-      "createdAt": "2026-10-07T05:06:31.000Z",
-      "url": "https://x.com/thsottiaux/status/2107699068499841309",
-      "reasons": [
-        "上下文：回复 @thdxr「why openai so french…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "thdxr",
-        "id": "",
-        "text": "why openai so french"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.07",
-          "weekday": "周三",
-          "time": "13:06",
-          "text": "2026.10.07（周三）13:06",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.06",
-          "weekday": "周二",
-          "time": "22:06",
-          "text": "2026.10.06（周二）22:06",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2107676900894417277",
-      "account": "thsottiaux",
-      "text": "It ended well",
-      "createdAt": "2026-10-07T03:38:26.000Z",
-      "url": "https://x.com/thsottiaux/status/2107676900894417277",
-      "reasons": [
-        "上下文：回复 @ForwardEditor「This will never end well LOL feels l…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "ForwardEditor",
-        "id": "",
-        "text": "This will never end well LOL feels like even if a day goes incredibly, this is like asking whether you'd like 1 cookie or 0 cookies"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.07",
-          "weekday": "周三",
-          "time": "11:38",
-          "text": "2026.10.07（周三）11:38",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.06",
-          "weekday": "周二",
-          "time": "20:38",
-          "text": "2026.10.06（周二）20:38",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2107676653895967106",
-      "account": "thsottiaux",
-      "text": "Also! Good evening!!",
-      "createdAt": "2026-10-07T03:37:27.000Z",
-      "url": "https://x.com/thsottiaux/status/2107676653895967106",
-      "reasons": [
-        "上下文：回复 @ForwardEditor「This will never end well LOL feels l…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "ForwardEditor",
-        "id": "",
-        "text": "This will never end well LOL feels like even if a day goes incredibly, this is like asking whether you'd like 1 cookie or 0 cookies"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.07",
-          "weekday": "周三",
-          "time": "11:37",
-          "text": "2026.10.07（周三）11:37",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.06",
-          "weekday": "周二",
-          "time": "20:37",
-          "text": "2026.10.06（周二）20:37",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2107647946032664948",
-      "account": "thsottiaux",
-      "text": "Or it will end very well?",
-      "createdAt": "2026-10-07T01:43:23.000Z",
-      "url": "https://x.com/thsottiaux/status/2107647946032664948",
-      "reasons": [
-        "含未来语气",
-        "上下文：回复 @ForwardEditor「This will never end well LOL feels l…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "ForwardEditor",
-        "id": "",
-        "text": "This will never end well LOL feels like even if a day goes incredibly, this is like asking whether you'd like 1 cookie or 0 cookies"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.07",
-          "weekday": "周三",
-          "time": "09:43",
-          "text": "2026.10.07（周三）09:43",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.06",
-          "weekday": "周二",
-          "time": "18:43",
-          "text": "2026.10.06（周二）18:43",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2107647667925135663",
-      "account": "thsottiaux",
-      "text": "This is how quickly *Steven* moves",
-      "createdAt": "2026-10-07T01:42:16.000Z",
-      "url": "https://x.com/thsottiaux/status/2107647667925135663",
-      "reasons": [
-        "上下文：回复 @stevenheidel「here's how quickly we move at @OpenA…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "stevenheidel",
-        "id": "",
-        "text": "here's how quickly we move at @OpenAI : Sept 22 - initial Decisions API prototype Sept 29 - DevDay announcement today - launch 🚀 just two weeks from local demo to public launch"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.07",
-          "weekday": "周三",
-          "time": "09:42",
-          "text": "2026.10.07（周三）09:42",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.06",
-          "weekday": "周二",
-          "time": "18:42",
-          "text": "2026.10.06（周二）18:42",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2107628890550399465",
-      "account": "thsottiaux",
-      "text": "It does",
-      "createdAt": "2026-10-07T00:27:40.000Z",
-      "url": "https://x.com/thsottiaux/status/2107628890550399465",
-      "reasons": [
-        "上下文：回复 @devberkayy「tell me it accepts images…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "devberkayy",
-        "id": "",
-        "text": "tell me it accepts images"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.07",
-          "weekday": "周三",
-          "time": "08:27",
-          "text": "2026.10.07（周三）08:27",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.06",
-          "weekday": "周二",
-          "time": "17:27",
-          "text": "2026.10.06（周二）17:27",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2107613966692409653",
-      "account": "thsottiaux",
-      "text": "Ship ship ship",
-      "createdAt": "2026-10-06T23:28:21.000Z",
-      "url": "https://x.com/thsottiaux/status/2107613966692409653",
-      "reasons": [
-        "含发布/宣传语境（下调置信度）",
-        "上下文：回复 @TheRohanVarma「One week since we launched dots! We’…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "TheRohanVarma",
-        "id": "",
-        "text": "One week since we launched dots! We’ve been working through your feedback and shipped a bunch of improvements: - Faster cloud browsing - Fixed extra phone notifications while you’re already using ChatGPT - Cleaner code blocks and attachments on web - Fewer pauses while waiting"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.07",
-          "weekday": "周三",
-          "time": "07:28",
-          "text": "2026.10.07（周三）07:28",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.06",
-          "weekday": "周二",
-          "time": "16:28",
-          "text": "2026.10.06（周二）16:28",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12680,12 +12717,12 @@
     }
   ],
   "counts": {
-    "scanned": 546,
+    "scanned": 555,
     "explicit": 4,
     "occurred": 13,
-    "hint": 72,
-    "none": 437,
-    "rejected": 437
+    "hint": 73,
+    "none": 445,
+    "rejected": 445
   },
   "truncated": true
 }
