@@ -1,6 +1,125 @@
 {
   "tweets": [
     {
+      "id": "2118574897542922697",
+      "text": "My loop caught this. It's the future",
+      "created_at": "2026-11-06T05:23:11.000Z",
+      "url": "https://x.com/thsottiaux/status/2118574897542922697",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ThePrimeagen",
+        "id": "",
+        "text": "X growth hack Join Anthropic or OpenAI and just start saying shit about harnesses and how its the future.",
+        "created_at": "2026-11-05T20:26:19.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-06T10:02:06.396Z"
+    },
+    {
+      "id": "2118572184679710964",
+      "text": "Feedback is a gift",
+      "created_at": "2026-11-06T05:12:24.000Z",
+      "url": "https://x.com/thsottiaux/status/2118572184679710964",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ajambrosino",
+        "id": "",
+        "text": "isn’t this still a single long scroll though",
+        "created_at": "2026-11-06T00:54:35.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-06T10:02:06.396Z"
+    },
+    {
+      "id": "2118569868278796680",
+      "text": "There is no going back. Software is changed forever.",
+      "created_at": "2026-11-06T05:03:12.000Z",
+      "url": "https://x.com/thsottiaux/status/2118569868278796680",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "Sergey_Rura",
+        "id": "",
+        "text": "Do you have it in a more dramatic statement?",
+        "created_at": "2026-11-06T05:01:41.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-06T10:02:06.396Z"
+    },
+    {
+      "id": "2118569441860723112",
+      "text": "Formal proofs of tens of millions of lines of code are not a ridiculous thing anymore and within the realm of what should be considered when designing new systems.",
+      "created_at": "2026-11-06T05:01:30.000Z",
+      "url": "https://x.com/thsottiaux/status/2118569441860723112",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-06T10:02:06.396Z"
+    },
+    {
+      "id": "2118569235953893573",
+      "text": "I can confidently say that humans were not very good at writing secure infrastructure. The endstate will be hypersecure infrastructure and software for all, but we're going to go through some turbulence before we reach that.",
+      "created_at": "2026-11-06T05:00:41.000Z",
+      "url": "https://x.com/thsottiaux/status/2118569235953893573",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-06T10:02:06.396Z"
+    },
+    {
+      "id": "2118567894309306654",
+      "text": "Hi Max 👀",
+      "created_at": "2026-11-06T04:55:21.000Z",
+      "url": "https://x.com/thsottiaux/status/2118567894309306654",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "maxleiter",
+        "id": "",
+        "text": "The team is cooking It might be a good time to share I'm now (officially) working on Claude Code Desktop. Please send me all your feedback!",
+        "created_at": "2026-11-06T01:26:46.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-06T10:02:06.396Z"
+    },
+    {
+      "id": "2118567451596300778",
+      "text": "Basement is full of wonders",
+      "created_at": "2026-11-06T04:53:36.000Z",
+      "url": "https://x.com/thsottiaux/status/2118567451596300778",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "Layton_Gott",
+        "id": "",
+        "text": "went down to visit Tibo in the basement and found this lol",
+        "created_at": "2026-11-06T04:49:38.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-06T10:02:06.396Z"
+    },
+    {
       "id": "2118473288368406582",
       "text": "Generating*",
       "created_at": "2026-11-05T22:39:25.000Z",
@@ -10193,7 +10312,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-06T04:03:25.375Z",
+  "updated_at": "2026-11-06T10:02:06.402Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
