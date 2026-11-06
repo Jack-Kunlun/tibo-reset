@@ -1,11 +1,11 @@
 {
   "level": "explicit",
   "program": null,
-  "generatedAt": "2026-11-06T10:02:06.431Z",
-  "checkedTweets": 571,
+  "generatedAt": "2026-11-06T22:01:48.680Z",
+  "checkedTweets": 573,
   "lookbackDays": 60,
-  "windowFrom": "2026-09-07T10:02:06.431Z",
-  "windowTo": "2026-11-06T10:02:06.431Z",
+  "windowFrom": "2026-09-07T22:01:48.680Z",
+  "windowTo": "2026-11-06T22:01:48.680Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -13,10 +13,10 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.11.06",
-      "weekday": "周五",
-      "time": "18:02",
-      "text": "2026.11.06（周五）18:02",
+      "date": "2026.11.07",
+      "weekday": "周六",
+      "time": "06:01",
+      "text": "2026.11.07（周六）06:01",
       "offset": "UTC+8"
     },
     "b": {
@@ -24,54 +24,58 @@
       "zone": "America/Los_Angeles",
       "date": "2026.11.06",
       "weekday": "周五",
-      "time": "02:02",
-      "text": "2026.11.06（周五）02:02",
+      "time": "14:01",
+      "text": "2026.11.06（周五）14:01",
       "offset": "UTC-8"
     },
     "diffHours": 16,
     "diffText": "北京时间比 Tibo 当地时间快 16 小时"
   },
   "latest": {
-    "id": "2118574897542922697",
+    "id": "2118802895604994463",
     "account": "thsottiaux",
-    "text": "My loop caught this. It's the future",
-    "createdAt": "2026-11-06T05:23:11.000Z",
-    "url": "https://x.com/thsottiaux/status/2118574897542922697",
+    "text": "More things to come, join our Cyber at the Frontier livestream on November 12, 10am PT:",
+    "createdAt": "2026-11-06T20:29:10.000Z",
+    "url": "https://x.com/thsottiaux/status/2118802895604994463",
     "reasons": [
-      "上下文：回复 @ThePrimeagen「X growth hack Join Anthropic or Open…」"
+      "命中「新额度」类词 fresh/new/top up"
     ],
     "viaContext": false,
-    "inReplyTo": {
-      "account": "ThePrimeagen",
-      "id": "",
-      "text": "X growth hack Join Anthropic or OpenAI and just start saying shit about harnesses and how its the future."
-    },
+    "inReplyTo": null,
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.11.06",
-        "weekday": "周五",
-        "time": "13:23",
-        "text": "2026.11.06（周五）13:23",
+        "date": "2026.11.07",
+        "weekday": "周六",
+        "time": "04:29",
+        "text": "2026.11.07（周六）04:29",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.11.05",
-        "weekday": "周四",
-        "time": "21:23",
-        "text": "2026.11.05（周四）21:23",
+        "date": "2026.11.06",
+        "weekday": "周五",
+        "time": "12:29",
+        "text": "2026.11.06（周五）12:29",
         "offset": "UTC-8"
       },
       "diffText": "北京时间比 Tibo 当地时间快 16 小时"
     },
-    "level": "none",
-    "rejected": "无额度相关词",
-    "intent": 0,
+    "level": "hint",
+    "rejected": "含时间表达「november 12」但没有额度相关词，不作为重置信号",
+    "intent": 1,
     "window": null,
-    "candidateWindow": null
+    "candidateWindow": {
+      "word": "november 12",
+      "precision": "day",
+      "from": "2026-11-12T08:00:00.000Z",
+      "to": "2026-11-13T07:59:00.000Z",
+      "dayNum": 20769,
+      "spec": 100,
+      "note": null
+    }
   },
   "signals": [
     {
@@ -899,6 +903,52 @@
   ],
   "hints": [
     {
+      "id": "2118802895604994463",
+      "account": "thsottiaux",
+      "text": "More things to come, join our Cyber at the Frontier livestream on November 12, 10am PT:",
+      "createdAt": "2026-11-06T20:29:10.000Z",
+      "url": "https://x.com/thsottiaux/status/2118802895604994463",
+      "reasons": [
+        "命中「新额度」类词 fresh/new/top up"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.07",
+          "weekday": "周六",
+          "time": "04:29",
+          "text": "2026.11.07（周六）04:29",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.06",
+          "weekday": "周五",
+          "time": "12:29",
+          "text": "2026.11.06（周五）12:29",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "hint",
+      "rejected": "含时间表达「november 12」但没有额度相关词，不作为重置信号",
+      "intent": 1,
+      "window": null,
+      "candidateWindow": {
+        "word": "november 12",
+        "precision": "day",
+        "from": "2026-11-12T08:00:00.000Z",
+        "to": "2026-11-13T07:59:00.000Z",
+        "dayNum": 20769,
+        "spec": 100,
+        "note": null
+      }
+    },
+    {
       "id": "2118251848297783385",
       "account": "thsottiaux",
       "text": "In 6 months this will look quite funny in retrospect",
@@ -1211,7 +1261,7 @@
         "from": "2026-10-29T07:00:00.000Z",
         "to": "2026-10-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-06T10:02:06.431Z"
+        "checkedAt": "2026-11-06T22:01:48.680Z"
       }
     },
     {
@@ -3521,7 +3571,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-11-06T10:02:06.431Z"
+        "checkedAt": "2026-11-06T22:01:48.680Z"
       }
     },
     {
@@ -4426,6 +4476,48 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2118802796749508830",
+      "account": "thsottiaux",
+      "text": "No",
+      "createdAt": "2026-11-06T20:28:46.000Z",
+      "url": "https://x.com/thsottiaux/status/2118802796749508830",
+      "reasons": [
+        "上下文：回复 @andrewcshin7「Is posting every hour the best growt…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "andrewcshin7",
+        "id": "",
+        "text": "Is posting every hour the best growth strategy on X?"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.07",
+          "weekday": "周六",
+          "time": "04:28",
+          "text": "2026.11.07（周六）04:28",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.06",
+          "weekday": "周五",
+          "time": "12:28",
+          "text": "2026.11.06（周五）12:28",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2118574897542922697",
       "account": "thsottiaux",
@@ -12521,49 +12613,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2108428560822424062",
-      "account": "thsottiaux",
-      "text": "This was all client-side + network for playground only. Shipped optimized rendering logic that can keep up with ultrafast, try again",
-      "createdAt": "2026-10-09T05:25:16.000Z",
-      "url": "https://x.com/thsottiaux/status/2108428560822424062",
-      "reasons": [
-        "含发布/宣传语境（下调置信度）",
-        "上下文：回复 @SimonasLTU1「Okay, so as a poor peasant with a Ch…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "SimonasLTU1",
-        "id": "",
-        "text": "Okay, so as a poor peasant with a ChatGPT Pro $100 subscription and like $2 sitting in my OpenAI Playground balance, I decided to test GPT-6.1 Sol ULTRAMOTHERFUCKINGFAST in the API. The result? 12,566 output tokens in 4 minutes 16 seconds. Do the math 😂 That's about 49 tok/s."
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.09",
-          "weekday": "周五",
-          "time": "13:25",
-          "text": "2026.10.09（周五）13:25",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.08",
-          "weekday": "周四",
-          "time": "22:25",
-          "text": "2026.10.08（周四）22:25",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12703,12 +12752,12 @@
     }
   ],
   "counts": {
-    "scanned": 571,
+    "scanned": 573,
     "explicit": 4,
     "occurred": 13,
-    "hint": 73,
-    "none": 461,
-    "rejected": 461
+    "hint": 74,
+    "none": 462,
+    "rejected": 462
   },
   "truncated": true
 }
