@@ -1,6 +1,218 @@
 {
   "tweets": [
     {
+      "id": "2118953661820977315",
+      "text": "Also, you really died 25 times? 😭",
+      "created_at": "2026-11-07T06:28:15.000Z",
+      "url": "https://x.com/thsottiaux/status/2118953661820977315",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "Rough physics, bad music, lots of challenges that didn't make sense with the built in checkpoints 2.5/10",
+        "created_at": "2026-11-07T05:39:08.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-07T10:02:10.146Z"
+    },
+    {
+      "id": "2118953500432650621",
+      "text": "Show us your skills",
+      "created_at": "2026-11-07T06:27:37.000Z",
+      "url": "https://x.com/thsottiaux/status/2118953500432650621",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-07T10:02:10.146Z"
+    },
+    {
+      "id": "2118953362725159104",
+      "text": "Cyber",
+      "created_at": "2026-11-07T06:27:04.000Z",
+      "url": "https://x.com/thsottiaux/status/2118953362725159104",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "i0n1c",
+        "text": "I guess now that @openai has name dropped @calif_io as an early adopter I can tell you GPT-6 Cyber is out of this world. It is lightyears ahead of everything I used.",
+        "created_at": "2026-11-05T18:27:22.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-07T10:02:10.146Z"
+    },
+    {
+      "id": "2118953187344560319",
+      "text": "?",
+      "created_at": "2026-11-07T06:26:22.000Z",
+      "url": "https://x.com/thsottiaux/status/2118953187344560319",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "thdxr",
+        "id": "",
+        "text": "people copying products, business models etc never bothered me because we all do it lately though companies have been stealing my words and the way i express myself feels disturbing because it's my voice and feels odd to see an uncanny version of it",
+        "created_at": "2026-11-06T15:02:50.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-07T10:02:10.146Z"
+    },
+    {
+      "id": "2118952992644960524",
+      "text": "What if it was Opus 5.5",
+      "created_at": "2026-11-07T06:25:36.000Z",
+      "url": "https://x.com/thsottiaux/status/2118952992644960524",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "maria_rcks",
+        "id": "",
+        "text": "if this is 6.2's doing... ig i'll keep using my claude sub",
+        "created_at": "2026-11-07T05:48:08.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-07T10:02:10.146Z"
+    },
+    {
+      "id": "2118944211169063121",
+      "text": "Odd, the y axis is flipped ?",
+      "created_at": "2026-11-07T05:50:42.000Z",
+      "url": "https://x.com/thsottiaux/status/2118944211169063121",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "thorstenball",
+        "id": "",
+        "text": "Nice try cropping the image",
+        "created_at": "2026-11-06T11:02:04.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-07T10:02:10.146Z"
+    },
+    {
+      "id": "2118943165092970764",
+      "text": "Well done",
+      "created_at": "2026-11-07T05:46:33.000Z",
+      "url": "https://x.com/thsottiaux/status/2118943165092970764",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "TsoiNotes",
+        "id": "",
+        "text": "I’ve beaten Nightmare Mode—hope you have a great Friday night!",
+        "created_at": "2026-11-07T05:38:32.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-07T10:02:10.146Z"
+    },
+    {
+      "id": "2118939076791546000",
+      "text": "Quite cool what you can do with a single prompt these days 👀",
+      "created_at": "2026-11-07T05:30:18.000Z",
+      "url": "https://x.com/thsottiaux/status/2118939076791546000",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-07T10:02:10.146Z"
+    },
+    {
+      "id": "2118938956301779171",
+      "text": "Get me out of the basement https:// poteto.com",
+      "created_at": "2026-11-07T05:29:49.000Z",
+      "url": "https://x.com/thsottiaux/status/2118938956301779171",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "thsottiaux",
+        "text": "It's Friday",
+        "created_at": "2026-11-07T01:03:22.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-07T10:02:10.146Z"
+    },
+    {
+      "id": "2118938498157957326",
+      "text": "Nobody touch roon",
+      "created_at": "2026-11-07T05:28:00.000Z",
+      "url": "https://x.com/thsottiaux/status/2118938498157957326",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "apples_jimmy",
+        "id": "",
+        "text": "Reports coming in of an angry mob asking for roon in the streets, demanding 6.2",
+        "created_at": "2026-11-06T20:06:20.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-07T10:02:10.146Z"
+    },
+    {
+      "id": "2118931941907165401",
+      "text": "Savage, John",
+      "created_at": "2026-11-07T05:01:57.000Z",
+      "url": "https://x.com/thsottiaux/status/2118931941907165401",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "johnsavage_ai",
+        "id": "",
+        "text": "Hey OpenAI I dare you to drop GPT-6.2 today otherwise I'm cancelling with full usage and 2 banked resets I don't care anymore",
+        "created_at": "2026-11-06T16:40:03.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-07T10:02:10.146Z"
+    },
+    {
+      "id": "2118927736031047850",
+      "text": "Do it",
+      "created_at": "2026-11-07T04:45:14.000Z",
+      "url": "https://x.com/thsottiaux/status/2118927736031047850",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "jkelleyrtp",
+        "id": "",
+        "text": "should we make Devin look sick AF? pull the trigger or nah?",
+        "created_at": "2026-11-06T23:11:58.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-07T10:02:10.146Z"
+    },
+    {
       "id": "2118874107341389982",
       "text": "Love that you immediately picked up and answered all my questions on how you use dots",
       "created_at": "2026-11-07T01:12:08.000Z",
@@ -10386,7 +10598,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-07T04:03:06.795Z",
+  "updated_at": "2026-11-07T10:02:10.148Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
