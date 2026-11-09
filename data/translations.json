@@ -676,5 +676,23 @@
     "text": "周五了。",
     "language": "zh-CN",
     "provider": "agent"
+  },
+  "2119232059537514598": {
+    "sourceHash": "905c4f7f21ac1a9b924d791b0124d46cc1f0ad048490987a9a2b8d697ee9dd68",
+    "text": "我们把 Pro 套餐和 Business 100 的用量翻倍了",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2119296267545419987": {
+    "sourceHash": "ab60f2b5fe1dd51726d9a1304fc49c504fe7e5a39a2b1e8ae0cd9ac2acec78ce",
+    "text": "看到了一些困惑，不过所有 Pro 套餐都没有 5 小时限额，相比 Plus 的用量是：✅ Pro 100 = 10 倍 ✅ Pro 200 = 20 倍 ✅ Pro 500 = 50 倍，还能用 ultrafast",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2119308687676432672": {
+    "sourceHash": "11db21709e27458d9f0e1a7383698145feb2a2f44e551f09acdb8448f118d18e",
+    "text": "我们本来犹豫要不要把 x.com 嵌进 Codex 应用里，好让这些额度重置说得通，但最后决定不这么做",
+    "language": "zh-CN",
+    "provider": "agent"
   }
 }

@@ -1,6 +1,332 @@
 {
   "tweets": [
     {
+      "id": "2119532403593191733",
+      "text": "Thanks for running those and publishing",
+      "created_at": "2026-11-08T20:47:58.000Z",
+      "url": "https://x.com/thsottiaux/status/2119532403593191733",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "garrytan",
+        "id": "",
+        "text": "Out of curiosity I am doing some open source eval work on harnesses with frontier models and here’s what is coming back so far",
+        "created_at": "2026-11-08T18:09:12.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-09T00:47:30.478Z"
+    },
+    {
+      "id": "2119528988033073501",
+      "text": "Jerry, I challenge you to make a game",
+      "created_at": "2026-11-08T20:34:24.000Z",
+      "url": "https://x.com/thsottiaux/status/2119528988033073501",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "MillionInt",
+        "id": "",
+        "text": "One day we’ll get a good game out of the great agent beef of 2026",
+        "created_at": "2026-11-08T18:50:07.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-09T00:47:30.478Z"
+    },
+    {
+      "id": "2119309070658318698",
+      "text": "Alfred plays to win",
+      "created_at": "2026-11-08T06:00:31.000Z",
+      "url": "https://x.com/thsottiaux/status/2119309070658318698",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "alexmichael",
+        "id": "",
+        "text": "Who will win? @claudeai @bot @Meta @OpenAI",
+        "created_at": "2026-11-08T01:17:44.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-09T00:47:30.478Z"
+    },
+    {
+      "id": "2119308687676432672",
+      "text": "We hesitated to embed https:// x.com / into the codex app to make sense of the resets, but decided against it.",
+      "created_at": "2026-11-08T05:59:00.000Z",
+      "url": "https://x.com/thsottiaux/status/2119308687676432672",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ForwardEditor",
+        "id": "",
+        "text": "I feel like it's necessary to have an X account to have ANY clue what's going on with AI and also why tf your Codex usage keeps getting reset randomly",
+        "created_at": "2026-11-07T21:51:28.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-09T00:47:30.478Z",
+      "translation": {
+        "text": "我们本来犹豫要不要把 x.com 嵌进 Codex 应用里，好让这些额度重置说得通，但最后决定不这么做",
+        "sourceHash": "11db21709e27458d9f0e1a7383698145feb2a2f44e551f09acdb8448f118d18e",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
+      "id": "2119305379100450928",
+      "text": "They already did, come over",
+      "created_at": "2026-11-08T05:45:51.000Z",
+      "url": "https://x.com/thsottiaux/status/2119305379100450928",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "JamesMalsawm",
+        "id": "",
+        "text": "if Codex limits just doubled will you actually switch back to Claude?",
+        "created_at": "2026-11-07T10:30:00.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-09T00:47:30.478Z"
+    },
+    {
+      "id": "2119305294291612140",
+      "text": "Would a Pro 50 make sense? Wdyt?",
+      "created_at": "2026-11-08T05:45:31.000Z",
+      "url": "https://x.com/thsottiaux/status/2119305294291612140",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "thsottiaux",
+        "text": "Saw some confusions, but all Pro plans have no 5-hour limits, and give the following usage compared to Plus. ✅ Pro 100 = 10X ✅ Pro 200 = 20X ✅ Pro 500 = 50X, access to ultrafast",
+        "created_at": "2026-11-08T05:09:39.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-09T00:47:30.478Z"
+    },
+    {
+      "id": "2119304841873023158",
+      "text": "Basement is fun",
+      "created_at": "2026-11-08T05:43:43.000Z",
+      "url": "https://x.com/thsottiaux/status/2119304841873023158",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "TJwithAI",
+        "id": "",
+        "text": "Tibo哥，新来那个哥们得营销比你差多了，还是你回来掌管重置按钮吧😂😂",
+        "created_at": "2026-11-08T00:52:57.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-09T00:47:30.478Z"
+    },
+    {
+      "id": "2119304055126425939",
+      "text": "Pretty wild to me that GPT 6.1 Terra gets compared to Opus 5.5. No doubt that it's a great model, but it's not meant to compete in the big leagues. We've got other models for that.",
+      "created_at": "2026-11-08T05:40:36.000Z",
+      "url": "https://x.com/thsottiaux/status/2119304055126425939",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "JamesMalsawm",
+        "id": "",
+        "text": "I'm genuinely curious. Do you guys prefer Opus 5.5 or Gpt 6.1 Terra?",
+        "created_at": "2026-11-07T09:30:00.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-09T00:47:30.478Z"
+    },
+    {
+      "id": "2119296267545419987",
+      "text": "Saw some confusions, but all Pro plans have no 5-hour limits, and give the following usage compared to Plus. ✅ Pro 100 = 10X ✅ Pro 200 = 20X ✅ Pro 500 = 50X, access to ultrafast",
+      "created_at": "2026-11-08T05:09:39.000Z",
+      "url": "https://x.com/thsottiaux/status/2119296267545419987",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-09T00:47:30.478Z",
+      "translation": {
+        "text": "看到了一些困惑，不过所有 Pro 套餐都没有 5 小时限额，相比 Plus 的用量是：✅ Pro 100 = 10 倍 ✅ Pro 200 = 20 倍 ✅ Pro 500 = 50 倍，还能用 ultrafast",
+        "sourceHash": "ab60f2b5fe1dd51726d9a1304fc49c504fe7e5a39a2b1e8ae0cd9ac2acec78ce",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
+      "id": "2119294044480401585",
+      "text": "Yes, but I am also very fond of this little x bubble",
+      "created_at": "2026-11-08T05:00:49.000Z",
+      "url": "https://x.com/thsottiaux/status/2119294044480401585",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "JamesMalsawm",
+        "id": "",
+        "text": "Claude: 9.6% market share ChatGPT: 56% Yet every dev I know uses Claude. Are we living in a bubble? 😭",
+        "created_at": "2026-11-07T07:30:00.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-09T00:47:30.478Z"
+    },
+    {
+      "id": "2119293235353006321",
+      "text": "That is not correct.",
+      "created_at": "2026-11-08T04:57:36.000Z",
+      "url": "https://x.com/thsottiaux/status/2119293235353006321",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-09T00:47:30.478Z"
+    },
+    {
+      "id": "2119232059537514598",
+      "text": "We doubled the usage on Pro plans and Business 100",
+      "created_at": "2026-11-08T00:54:31.000Z",
+      "url": "https://x.com/thsottiaux/status/2119232059537514598",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "Tech_girl",
+        "id": "",
+        "text": "Has anyone else noticed that ever since Tibo stopped giving out resets, Codex usage limits seem to last longer? Or is it just me?",
+        "created_at": "2026-11-07T19:28:27.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-09T00:47:30.478Z",
+      "translation": {
+        "text": "我们把 Pro 套餐和 Business 100 的用量翻倍了",
+        "sourceHash": "905c4f7f21ac1a9b924d791b0124d46cc1f0ad048490987a9a2b8d697ee9dd68",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
+      "id": "2119211022410228094",
+      "text": "I think that will take a few years, but one can dream",
+      "created_at": "2026-11-07T23:30:55.000Z",
+      "url": "https://x.com/thsottiaux/status/2119211022410228094",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "jxnlco",
+        "id": "",
+        "text": "Computer use will be faster than this one day",
+        "created_at": "2026-11-07T22:29:00.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-09T00:47:30.478Z"
+    },
+    {
+      "id": "2119161246872429013",
+      "text": "What's the before, after?",
+      "created_at": "2026-11-07T20:13:08.000Z",
+      "url": "https://x.com/thsottiaux/status/2119161246872429013",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "AdamHoltererer",
+        "id": "",
+        "text": "yolo mode ftw",
+        "created_at": "2026-11-07T14:33:58.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-09T00:47:30.478Z"
+    },
+    {
+      "id": "2119160727164604874",
+      "text": "I'm also confused about this",
+      "created_at": "2026-11-07T20:11:04.000Z",
+      "url": "https://x.com/thsottiaux/status/2119160727164604874",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "argofowl",
+        "id": "",
+        "text": "guys... what is going on with tibo? this is so dumb and confusing i don't get it",
+        "created_at": "2026-11-07T18:10:42.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-09T00:47:30.478Z"
+    },
+    {
+      "id": "2119113983118672370",
+      "text": "Nothing much",
+      "created_at": "2026-11-07T17:05:19.000Z",
+      "url": "https://x.com/thsottiaux/status/2119113983118672370",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "rezoundous",
+        "id": "",
+        "text": "Tibo: \"Le GPT Fat\", \"ChatBLT\", \"Basement\", \"Friday\" and all these leads to?",
+        "created_at": "2026-11-07T10:30:01.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-09T00:47:30.478Z"
+    },
+    {
+      "id": "2119113859747426370",
+      "text": "Missed that you can dash",
+      "created_at": "2026-11-07T17:04:50.000Z",
+      "url": "https://x.com/thsottiaux/status/2119113859747426370",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "UFO2002616",
+        "id": "",
+        "text": "挑战全网最快！ 25s 带 Tibo 速通地下室👊👊👊 @thsottiaux 我拿到了 Reset 按钮，今天会 Reset 吗？😆 以下是一些小技巧： 1. Tibo的脑袋是无敌的，只有身体判定伤害 2. 长按跳跃键可以跳得更远 3. 游戏一开始立马冲刺，可以找到很多机会 4. 卡在砖块边缘跳跃，可以更好地控制落点",
+        "created_at": "2026-11-07T08:51:23.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-09T00:47:30.478Z"
+    },
+    {
       "id": "2118953661820977315",
       "text": "Also, you really died 25 times? 😭",
       "created_at": "2026-11-07T06:28:15.000Z",
@@ -10598,7 +10924,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-07T10:02:10.148Z",
+  "updated_at": "2026-11-09T00:47:30.482Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
