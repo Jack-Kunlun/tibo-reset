@@ -1,6 +1,25 @@
 {
   "tweets": [
     {
+      "id": "2119611877810639072",
+      "text": "Congrats to Theo",
+      "created_at": "2026-11-09T02:03:46.000Z",
+      "url": "https://x.com/thsottiaux/status/2119611877810639072",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "maria_rcks",
+        "id": "",
+        "text": "In other news, I'm excited to announce that I'll be joining Anthropic! Claude has been a huge part of how I build things, so getting to work on it is kind of surreal. Thank you to everyone who helped make this happen. Also really grateful for my time at T3 Code and for the",
+        "created_at": "2026-11-09T00:57:05.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-09T04:03:53.075Z"
+    },
+    {
       "id": "2119532403593191733",
       "text": "Thanks for running those and publishing",
       "created_at": "2026-11-08T20:47:58.000Z",
@@ -10924,7 +10943,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-09T00:47:30.482Z",
+  "updated_at": "2026-11-09T04:03:53.079Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }

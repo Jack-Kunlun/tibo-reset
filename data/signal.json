@@ -1,11 +1,11 @@
 {
   "level": "explicit",
   "program": null,
-  "generatedAt": "2026-11-09T00:47:30.521Z",
-  "checkedTweets": 604,
+  "generatedAt": "2026-11-09T04:03:53.138Z",
+  "checkedTweets": 605,
   "lookbackDays": 60,
-  "windowFrom": "2026-09-10T00:47:30.521Z",
-  "windowTo": "2026-11-09T00:47:30.521Z",
+  "windowFrom": "2026-09-10T04:03:53.138Z",
+  "windowTo": "2026-11-09T04:03:53.138Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -15,8 +15,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.11.09",
       "weekday": "周一",
-      "time": "08:47",
-      "text": "2026.11.09（周一）08:47",
+      "time": "12:03",
+      "text": "2026.11.09（周一）12:03",
       "offset": "UTC+8"
     },
     "b": {
@@ -24,27 +24,27 @@
       "zone": "America/Los_Angeles",
       "date": "2026.11.08",
       "weekday": "周日",
-      "time": "16:47",
-      "text": "2026.11.08（周日）16:47",
+      "time": "20:03",
+      "text": "2026.11.08（周日）20:03",
       "offset": "UTC-8"
     },
     "diffHours": 16,
     "diffText": "北京时间比 Tibo 当地时间快 16 小时"
   },
   "latest": {
-    "id": "2119532403593191733",
+    "id": "2119611877810639072",
     "account": "thsottiaux",
-    "text": "Thanks for running those and publishing",
-    "createdAt": "2026-11-08T20:47:58.000Z",
-    "url": "https://x.com/thsottiaux/status/2119532403593191733",
+    "text": "Congrats to Theo",
+    "createdAt": "2026-11-09T02:03:46.000Z",
+    "url": "https://x.com/thsottiaux/status/2119611877810639072",
     "reasons": [
-      "上下文：回复 @garrytan「Out of curiosity I am doing some ope…」"
+      "上下文：回复 @maria_rcks「In other news, I'm excited to announ…」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "garrytan",
+      "account": "maria_rcks",
       "id": "",
-      "text": "Out of curiosity I am doing some open source eval work on harnesses with frontier models and here’s what is coming back so far"
+      "text": "In other news, I'm excited to announce that I'll be joining Anthropic! Claude has been a huge part of how I build things, so getting to work on it is kind of surreal. Thank you to everyone who helped make this happen. Also really grateful for my time at T3 Code and for the"
     },
     "createdZones": {
       "a": {
@@ -52,8 +52,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.11.09",
         "weekday": "周一",
-        "time": "04:47",
-        "text": "2026.11.09（周一）04:47",
+        "time": "10:03",
+        "text": "2026.11.09（周一）10:03",
         "offset": "UTC+8"
       },
       "b": {
@@ -61,8 +61,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.11.08",
         "weekday": "周日",
-        "time": "12:47",
-        "text": "2026.11.08（周日）12:47",
+        "time": "18:03",
+        "text": "2026.11.08（周日）18:03",
         "offset": "UTC-8"
       },
       "diffText": "北京时间比 Tibo 当地时间快 16 小时"
@@ -1428,7 +1428,7 @@
         "from": "2026-10-29T07:00:00.000Z",
         "to": "2026-10-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-09T00:47:30.521Z"
+        "checkedAt": "2026-11-09T04:03:53.138Z"
       }
     },
     {
@@ -3738,7 +3738,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-11-09T00:47:30.521Z"
+        "checkedAt": "2026-11-09T04:03:53.138Z"
       }
     },
     {
@@ -4690,6 +4690,48 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2119611877810639072",
+      "account": "thsottiaux",
+      "text": "Congrats to Theo",
+      "createdAt": "2026-11-09T02:03:46.000Z",
+      "url": "https://x.com/thsottiaux/status/2119611877810639072",
+      "reasons": [
+        "上下文：回复 @maria_rcks「In other news, I'm excited to announ…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "maria_rcks",
+        "id": "",
+        "text": "In other news, I'm excited to announce that I'll be joining Anthropic! Claude has been a huge part of how I build things, so getting to work on it is kind of surreal. Thank you to everyone who helped make this happen. Also really grateful for my time at T3 Code and for the"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.09",
+          "weekday": "周一",
+          "time": "10:03",
+          "text": "2026.11.09（周一）10:03",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.08",
+          "weekday": "周日",
+          "time": "18:03",
+          "text": "2026.11.08（周日）18:03",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2119532403593191733",
       "account": "thsottiaux",
@@ -12768,48 +12810,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2109832541956194798",
-      "account": "thsottiaux",
-      "text": "Nice",
-      "createdAt": "2026-10-13T02:24:11.000Z",
-      "url": "https://x.com/thsottiaux/status/2109832541956194798",
-      "reasons": [
-        "上下文：回复 @aliansarinik「We have two additions to PersonalAge…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "aliansarinik",
-        "id": "",
-        "text": "We have two additions to PersonalAgentBench: @hark_labs and @OpenAI 's Dots! Dots has taken the lead, with Hark close behind while Gemini Spark moves to third, followed by Instinct, Grok Bot, and Muse. We also doubled the number of tasks this week, adding research, image"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.13",
-          "weekday": "周二",
-          "time": "10:24",
-          "text": "2026.10.13（周二）10:24",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.12",
-          "weekday": "周一",
-          "time": "19:24",
-          "text": "2026.10.12（周一）19:24",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12949,12 +12949,12 @@
     }
   ],
   "counts": {
-    "scanned": 604,
+    "scanned": 605,
     "explicit": 4,
     "occurred": 13,
     "hint": 78,
-    "none": 489,
-    "rejected": 489
+    "none": 490,
+    "rejected": 490
   },
   "truncated": true
 }
