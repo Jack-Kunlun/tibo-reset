@@ -1401,6 +1401,31 @@ outlook ⇒ data: URL 模块解析 `./outlook.mjs` 报 `ERR_UNSUPPORTED_RESOLVE_
 `explicit`2/`occurred`17/`hint`69 vs 本机现算 `explicit`4/`occurred`13/`hint`71、
 两侧 `scanned`523 一致 —— 差异为 D-076 已知口径（人工确认走投影层不落盘，两端天然不同），非缺陷。
 
+### 第三十九轮（2026-11-15 · `8c02cc0` / `amd64-d089`）—— D-092 结束计划归入历史活动 + 月日历 + 采集判据修复
+
+**改动**：diff 集 = `src/` 下 4 文件（`index.html`、`lib/{collect,render,reset-calendar}.mjs`），
+无新增/删除文件 ⇒ 只覆盖 4 文件、不碰 `entrypoint.sh`。小程序侧（历史活动入记录页、
+月日历）已就绪入库**未发版**。
+
+**顺带修复（`7ba8fb5`，先于主体提交）**：`test-signals` 判据三「完成句式都判 occurred」
+NOW 原取「最新推文 +1min」，occurred 只收 60 天窗口内事件 ⇒ 09-12 的完成公告
+（`Reset all propagated. Sweet dreams.`，确认记录在册）在 11-11 被新采集顶出窗口，
+断言变红（HEAD 复跑同红，与当次改动无关）。修复 = NOW 锚**完成句式族最新一条** +1min，
+窗口罩住全族；doneShape 收敛到窗口内 + 非空闸（全老化时响亮失败提示重钉锚，
+不许断言悄悄变空壳）。这是连续第二轮踩「断言锚会漂的时间点」——锚点必须锚在
+**被测形状自己的时间轴**上，不能锚「最新 X」这类随采集漂移的参照物。
+
+**上线**：容器内 4 文件先核与上一版（`af82fdc`）逐字节一致 ⇒ diff 集假设成立；
+jsdmirror（python3 urllib 通道）拉 4 文件、sha256 与本机 4/4 全等；`docker cp` +
+`docker commit` 出 `tibo-reset:amd64-d089`；腾名（prev d088 → `tibo-reset-archive-20261115a`）
+→ stop/rename/run 串一条命令 → `nginx -s reload`。墙钟 **0.46 秒**。
+
+**上线后验证**：`/api/health` ok + `FailingStreak=0`（healthy）。功能探针 = 字段形状：
+`/api/state` 出 `calendar.months`（2025-09 → 2026-11 共 15 个自然月）与
+`currentMonth=2026-11` —— 旧代码产出不出来 ⇒ 新代码已生效；D-091 的
+`plan.ended/endsAt` 连续性在位。counts 对照：线上 `explicit`2/`occurred`15/`hint`74
+vs 本机现算 `explicit`4/`occurred`11/`hint`76、两侧 `scanned`583 一致 ——
+同为 D-076 已知口径，非缺陷。
 
 ### 6.2 用 jsdelivr 国内镜像直取文件（第四轮起改用，优于分块）
 
