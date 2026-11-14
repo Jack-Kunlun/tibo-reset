@@ -1224,14 +1224,29 @@ console.log('\n【11】完成句式的单复数 + lastResetAt 不可省');
    *
    * 取「最新一条推文之后 1 分钟」：窗内有全部历史，且不依赖跑测试的日期。
    * 过滤 `Number.isFinite` 是必须的 —— 缺 `created_at` 的条目会让 Math.max 静默变 NaN。
+   *
+   * ⚠ 2026-11-15 再修：锚点从「最新一条推文」收窄到「最新一条**完成句式**推文」。
+   * occurred 只收 60 天窗口内的事件，而采集每轮都在长语料 —— 锚「最新推文」会把
+   * 更早的完成公告老化出窗（实测：09-12 那条 `Reset all propagated. Sweet dreams.`
+   * 在 11-11 被 11-13 的新推文顶出 60 天窗，断言随之变红，与当次改动无关）。
+   * 锚完成句式族最新一条 +1 分钟，窗口恰好罩住整个完成句式族；
+   * doneShape 再收敛到窗口内，并加非空闸 —— 语料里完成句式全老化时要**响亮地红**，
+   * 提醒重新钉锚，而不是让断言悄悄变空壳。
    */
-  const stamps = tweets.map((t) => Date.parse(t.created_at)).filter(Number.isFinite);
-  const NOW = Math.max(...stamps) + 60_000;
+  const DONE_RE = /\bresets?\s+(?:all\s+)?(?:propagated|complete[ds]?|done|rolled|finished)\b/i;
+  const doneTweets = tweets
+    .filter((t) => DONE_RE.test(t.text || '') && Number.isFinite(Date.parse(t.created_at)));
+  const NOW = Math.max(...doneTweets.map((t) => Date.parse(t.created_at))) + 60_000;
   const sig = detectSignals(tweets, { now: NOW, lastResetAt: latestEventMs(records) });
 
-  const doneShape = tweets.filter((t) => /\bresets?\s+(?:all\s+)?(?:propagated|complete[ds]?|done|rolled|finished)\b/i.test(t.text || ''));
+  const inWindow = (t) => {
+    const ts = Date.parse(t.created_at);
+    return NOW - ts <= 60 * 864e5 && ts <= NOW;
+  };
+  const doneShape = doneTweets.filter(inWindow);
+  check('真实语料：完成句式族非空（防断言空壳）', doneShape.length >= 1, String(doneShape.length));
   check(
-    '真实语料：完成句式的推文都判为 occurred',
+    '真实语料：窗口内的完成句式推文都判为 occurred',
     doneShape.every((t) => (sig.occurred || []).some((x) => x.id === t.id)),
     doneShape.map((t) => `${t.id}:${t.text.slice(0, 34)}`).join(' | ')
   );
