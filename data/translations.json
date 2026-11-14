@@ -694,5 +694,17 @@
     "text": "我们本来犹豫要不要把 x.com 嵌进 Codex 应用里，好让这些额度重置说得通，但最后决定不这么做",
     "language": "zh-CN",
     "provider": "agent"
+  },
+  "2120410006273380750": {
+    "sourceHash": "6d135919c0c85c4f9857f3b29ed39c1fd20d1022a105231659e53d6644f22303",
+    "text": "好久没有额度重置了。也许我该从地下室里出来走走了。",
+    "language": "zh-CN",
+    "provider": "agent"
+  },
+  "2121036562058400200": {
+    "sourceHash": "9bbcc60e15df0272c392a76e81234740f1a208404772b87ae35c8fa0b1161359",
+    "text": "今天我们公布了自己正在开发的新网络安全工具，涵盖自动化打补丁和自动化红队测试。回放视频在这里：https://t.co/fW371aFjB5",
+    "language": "zh-CN",
+    "provider": "agent"
   }
 }

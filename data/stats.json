@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-25T06:06:16.000Z",
     "last_text": "It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ https://t.co/xKaK95EAly",
-    "days_since_last": 14.915014409722222,
+    "days_since_last": 20.417467708333334,
     "avg_interval_days": 6.201318376068373,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.358045775625218,
@@ -14,43 +14,31 @@
     "reset_count": 59,
     "hit_within_avg": 0.7230769230769231
   },
-  "generated_at": "2026-11-09T04:03:53.386Z",
+  "generated_at": "2026-11-14T16:07:25.358Z",
   "collect": {
-    "mode": "incremental",
-    "source": "browser",
-    "stoppedBy": "known",
-    "newTweets": 1,
-    "knownCount": 604,
-    "reply": {
-      "mode": "incremental",
-      "stoppedBy": "known",
-      "steps": 14,
-      "harvested": 15,
-      "withContext": 14,
-      "authorsMissing": 0
-    },
+    "mode": "degraded",
+    "source": "html",
+    "stoppedBy": null,
+    "newTweets": 5,
+    "knownCount": 605,
+    "reply": null,
     "replyError": null,
-    "fullText": {
-      "candidates": 0,
-      "attempted": 0,
-      "fetched": 0,
-      "skipped": 0,
-      "missingReplyContext": [],
-      "scanned": []
-    }
+    "fullText": null
   },
   "history": {
     "added": 0,
     "updated": 0,
     "removed": 0,
-    "upstreamCount": 71,
-    "refreshedAt": "2026-11-09T04:03:32.268Z",
+    "upstreamCount": 72,
+    "refreshedAt": "2026-11-14T16:07:06.855Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
     "changed": false,
-    "patchedTexts": 0
+    "patchedTexts": 1
   },
   "last_full_at": "2026-11-09T00:47:30.765Z",
-  "errors": []
+  "errors": [
+    "采集覆盖不完整：采集专用 Chrome 未登录 x.com（与日常浏览器窗口的登录态独立）；仅取得免登录首屏，回复与完整时间线未更新"
+  ]
 }

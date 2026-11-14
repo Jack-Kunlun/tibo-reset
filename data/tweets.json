@@ -1,6 +1,74 @@
 {
   "tweets": [
     {
+      "id": "2121062974161092792",
+      "text": "How can codex be improved? Try not to say model.",
+      "created_at": "2026-11-13T02:09:55.000Z",
+      "account": "thsottiaux",
+      "kind": "other",
+      "role": "post",
+      "foundVia": "timeline",
+      "inReplyTo": null,
+      "first_seen": "2026-11-14T16:07:25.080Z"
+    },
+    {
+      "id": "2121036562058400200",
+      "text": "We announced new tools we're developing for cybersecurity today across automated patching and automated red teaming. Watch the recording here https://t.co/fW371aFjB5",
+      "created_at": "2026-11-13T00:24:58.000Z",
+      "account": "thsottiaux",
+      "kind": "other",
+      "role": "post",
+      "foundVia": "timeline",
+      "inReplyTo": null,
+      "first_seen": "2026-11-14T16:07:25.080Z",
+      "translation": {
+        "text": "今天我们公布了自己正在开发的新网络安全工具，涵盖自动化打补丁和自动化红队测试。回放视频在这里：https://t.co/fW371aFjB5",
+        "sourceHash": "9bbcc60e15df0272c392a76e81234740f1a208404772b87ae35c8fa0b1161359",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
+      "id": "2120999993079451919",
+      "text": "We shipped some good updates to dots today and the banked reset has been activated and should land in everyones accounts sometime soon! https://t.co/Y7Mnp6Cuu1",
+      "created_at": "2026-11-12T21:59:39.000Z",
+      "account": "thsottiaux",
+      "kind": "credit",
+      "role": "post",
+      "foundVia": "timeline",
+      "inReplyTo": null,
+      "first_seen": "2026-11-14T16:07:25.080Z",
+      "text_full": true
+    },
+    {
+      "id": "2120410006273380750",
+      "text": "It’s been a while without resets. Maybe I should come back out of the basement",
+      "created_at": "2026-11-11T06:55:15.000Z",
+      "account": "thsottiaux",
+      "kind": "other",
+      "role": "post",
+      "foundVia": "timeline",
+      "inReplyTo": null,
+      "first_seen": "2026-11-14T16:07:25.080Z",
+      "translation": {
+        "text": "好久没有额度重置了。也许我该从地下室里出来走走了。",
+        "sourceHash": "6d135919c0c85c4f9857f3b29ed39c1fd20d1022a105231659e53d6644f22303",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
+      "id": "2120267268517249036",
+      "text": "How many of you have a small business?",
+      "created_at": "2026-11-10T21:28:04.000Z",
+      "account": "thsottiaux",
+      "kind": "other",
+      "role": "post",
+      "foundVia": "timeline",
+      "inReplyTo": null,
+      "first_seen": "2026-11-14T16:07:25.080Z"
+    },
+    {
       "id": "2119611877810639072",
       "text": "Congrats to Theo",
       "created_at": "2026-11-09T02:03:46.000Z",
@@ -10943,7 +11011,8 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-09T04:03:53.079Z",
-  "source": "browser",
-  "coverage_since": "2026-10-24T06:06:16.000Z"
+  "updated_at": "2026-11-14T16:07:25.083Z",
+  "source": "html",
+  "coverage_since": "2026-10-24T06:06:16.000Z",
+  "degraded": "采集专用 Chrome 未登录 x.com（与日常浏览器窗口的登录态独立）"
 }
