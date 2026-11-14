@@ -12,11 +12,47 @@
     <view class="tr-view tr-page-heading"><view class="tr-view"><text class="tr-text tr-eyebrow">{{pageEyebrow}}</text><text class="tr-text tr-h2">{{pageTitle}}</text></view><text class="tr-text tr-day">{{view === 'records' ? calendar.zoneLabel : view === 'analysis' ? '仅供参考' : todayLabel}}</text></view>
     <view wx:if="{{calendar}}" class="tr-view tr-calendar-card">
       <view class="tr-view tr-row"><text class="tr-text tr-h3">重置月日历</text><text class="tr-text tr-secondary">{{calendarRange}}</text></view>
-      <view class="tr-view tr-calendar-summary"><text class="tr-text"><text class="tr-text tr-b">{{calendar.confirmedCount}}</text> 次已确认</text><text wx:if="{{calendar.observedCount}}" class="tr-text"><text class="tr-text tr-b">{{calendar.observedCount}}</text> 次账号实测</text><text class="tr-text"><text class="tr-text tr-b">{{calendar.awaitingCount}}</text> 条待落地</text><text class="tr-text">第 <text class="tr-text tr-b">{{calendar.progressDay}}</text> / {{calendar.days}} 天</text></view>
+      <view wx:if="{{calendarMonthOptions.length > 1}}" class="tr-view tr-calendar-month-switcher">
+        <button class="tr-calendar-month-nav {{calendarCanPrev ? '' : 'is-disabled'}}" size="mini" plain disabled="{{!calendarCanPrev}}" data-direction="-1" bindtap="onShiftCalendarMonth" aria-label="上一个月">‹</button>
+        <picker class="tr-view tr-calendar-month-picker" mode="selector" range="{{calendarMonthOptions}}" range-key="title" value="{{calendarMonthIndex}}" bindchange="onSelectCalendarMonth" aria-label="选择月份">
+          <view class="tr-view tr-calendar-month-pick"><text class="tr-text tr-calendar-month-title">{{calendar.title}}</text><text class="tr-text tr-calendar-month-arrow">⌄</text></view>
+        </picker>
+        <button class="tr-calendar-month-nav {{calendarCanNext ? '' : 'is-disabled'}}" size="mini" plain disabled="{{!calendarCanNext}}" data-direction="1" bindtap="onShiftCalendarMonth" aria-label="下一个月">›</button>
+      </view>
+      <view wx:else class="tr-view tr-calendar-current-month"><text class="tr-text">{{calendar.title}}</text></view>
+      <view class="tr-view tr-calendar-summary"><text class="tr-text"><text class="tr-text tr-b">{{calendar.confirmedCount}}</text> 次已确认</text><text wx:if="{{calendar.observedCount}}" class="tr-text"><text class="tr-text tr-b">{{calendar.observedCount}}</text> 次账号实测</text><text class="tr-text"><text class="tr-text tr-b">{{calendar.awaitingCount}}</text> 条待落地</text><text class="tr-text">日期进度 <text class="tr-text tr-b">{{calendar.progressDay}}</text> / {{calendar.days}} 日</text></view>
       <view class="tr-view tr-weekdays"><text wx:for="{{calendar.weekdays}}" wx:key="*this" class="tr-text">{{item}}</text></view>
       <view class="tr-view tr-calendar-grid"><block wx:for="{{calendar.gridCells}}" wx:key="key"><view wx:if="{{item.blank}}" class="tr-view"></view><view wx:else class="tr-view tr-calendar-day {{item.confirmedCount ? 'tr-complete' : item.observedCount ? 'tr-observed' : item.awaitingCount || item.status === 'announced' ? 'tr-pending' : item.status === 'updated' ? 'tr-updated' : item.status === 'future' ? 'tr-future' : ''}} {{selectedDate === item.date ? 'is-selected' : ''}}" data-date="{{item.date}}" bindtap="onSelectCalendarDay" role="button" aria-label="{{item.date + ' ' + item.statusLabel}}"><text class="tr-text tr-day-number">{{item.dayNumber}}</text><text class="tr-text tr-small">{{item.confirmedCount ? '到账' : item.observedCount ? '实测' : item.awaitingCount || item.status === 'announced' ? '预' : item.status === 'updated' ? '更新' : item.status === 'future' ? '·' : '—'}}</text></view></block></view>
       <view class="tr-view tr-calendar-legend"><view class="tr-view"><view class="tr-view tr-legend-dot tr-dot-complete"></view><text class="tr-text">{{calendar.hasManual ? '已到账' : '公开确认到账'}}</text></view><view wx:if="{{calendar.observedCount}}" class="tr-view"><view class="tr-view tr-legend-dot tr-dot-observed"></view><text class="tr-text">单账号实测</text></view><view class="tr-view"><view class="tr-view tr-legend-dot tr-dot-update"></view><text class="tr-text">功能更新</text></view><view class="tr-view"><view class="tr-view tr-legend-dot tr-dot-pending"></view><text class="tr-text">预 · 重置预告</text></view></view>
       <text wx:if="{{calendar.snapshot}}" class="tr-text tr-date-note">{{calendar.freshnessText}}</text>
+    </view>
+    <view wx:if="{{view === 'records' && planView.show && planView.ended}}" class="tr-view tr-window tr-plan tr-plan-archive">
+      <view class="tr-view tr-plan-archive-toggle" bindtap="onToggleHistoricalPlan" role="button" aria-expanded="{{historicalPlanOpen}}">
+        <view class="tr-view"><text class="tr-text tr-plan-title">历史活动 · {{planView.title}}</text><text class="tr-text tr-plan-summary">已结束 · {{planView.summary}}</text></view>
+        <text class="tr-text tr-plan-archive-action">{{historicalPlanOpen ? '收起' : '查看 28 天记录'}}</text>
+      </view>
+      <view wx:if="{{historicalPlanOpen}}" class="tr-view tr-plan-archive-body">
+        <view class="tr-view tr-plan-rule"><text class="tr-text tr-plan-rule-label">28 天规则</text><text class="tr-text">{{planView.rule}}</text></view>
+        <view class="tr-view tr-plan-grid" aria-label="历史活动的28天记录">
+          <view wx:for="{{planView.days}}" wx:key="key" class="tr-view tr-plan-day {{item.statusClass}} {{selectedPlanDay === item.day ? 'is-selected' : ''}}" data-day="{{item.day}}" bindtap="onSelectPlanDay" role="button" aria-label="{{item.accessibleLabel}}">
+            <view class="tr-view tr-plan-day-name"><text class="tr-text">Day</text><text class="tr-text tr-plan-day-number">{{item.day}}</text></view><text class="tr-text tr-plan-marker">{{item.marker}}</text>
+          </view>
+        </view>
+        <view wx:if="{{selectedPlan}}" class="tr-view tr-plan-detail">
+          <view class="tr-view tr-plan-detail-head"><text class="tr-text tr-plan-detail-title">Day {{selectedPlan.day}}</text><view class="tr-view tr-plan-status {{selectedPlan.statusClass}}">{{selectedPlan.statusLabel}}</view></view>
+          <view wx:if="{{selectedPlan.entries.length}}" class="tr-view tr-plan-entries">
+            <view wx:for="{{selectedPlan.entries}}" wx:key="key" class="tr-view tr-plan-entry">
+              <view wx:if="{{item.labels.length}}" class="tr-view tr-plan-badges"><view wx:for="{{item.labels}}" wx:key="text" class="tr-view tr-plan-badge {{item.cls}}">{{item.text}}</view></view>
+              <text class="tr-text tr-plan-entry-title">{{item.title}}</text><view class="tr-view tr-plan-entry-meta"><text class="tr-text">{{item.when}}</text><text wx:if="{{item.confirmedWhen}}" class="tr-text">{{item.confirmedWhen}}</text></view>
+              <text wx:if="{{item.observationText}}" class="tr-text tr-plan-entry-observation">{{item.observationText}}</text>
+              <view class="tr-view tr-plan-entry-actions"><view wx:if="{{item.hasText}}" class="tr-view tr-plan-action" data-key="{{item.key}}" bindtap="onTogglePlanEntry" role="button">{{expandedPlanEntry === item.key ? '收起原文' : item.translation ? '查看原文与翻译' : '展开原文'}}</view><view wx:if="{{item.url && !singlePage}}" class="tr-view tr-plan-action" data-url="{{item.url}}" bindtap="onCopySource" role="button">查看原推链接 ↗</view></view>
+              <view wx:if="{{expandedPlanEntry === item.key}}" class="tr-view"><text wx:if="{{item.translation}}" class="tr-text tr-translation-label">中文翻译</text><text wx:if="{{item.translation}}" class="tr-text tr-translation-text">{{item.translation}}</text><text wx:if="{{item.translation}}" class="tr-text tr-translation-label">英文原文</text><text class="tr-text tr-plan-entry-text">{{item.text}}</text></view>
+            </view>
+          </view>
+          <text wx:else class="tr-text tr-plan-empty">{{selectedPlan.statusLabel}} · 暂无可展示的原帖条目</text>
+        </view>
+        <view class="tr-view tr-plan-archive-source"><text class="tr-text tr-plan-freshness">{{planView.freshnessText}}</text><view wx:if="{{planView.sourceUrl && !singlePage}}" class="tr-view tr-plan-action" data-url="{{planView.sourceUrl}}" bindtap="onCopySource" role="button">复制原始规则链接 ↗</view></view>
+      </view>
     </view>
     <view wx:if="{{selectedDay}}" class="tr-view tr-selected-date"><view class="tr-view tr-row"><text class="tr-text tr-strong">{{selectedDay.label}}</text><view class="tr-view tr-chip {{selectedDay.status === 'confirmed' ? 'tr-chip-complete' : selectedDay.status === 'observed' ? 'tr-chip-observed' : ''}}"><view class="tr-view tr-chip-dot"></view><text class="tr-text">{{selectedDay.statusLabel}}</text></view></view>
       <view wx:for="{{selectedDay.details}}" wx:key="key" class="tr-view tr-event-row"><text class="tr-text tr-event-time">{{item.time}}</text><view class="tr-view tr-event-body"><text class="tr-text tr-strong">{{item.title}}</text><text wx:if="{{item.when && (item.title === '已有账号实测到账' || item.title === '重置已确认' || item.title === '发券型已确认')}}" class="tr-text tr-observation-detail-line">{{item.when}}</text><text wx:if="{{item.translation}}" class="tr-text tr-translation-label">中文翻译</text><text wx:if="{{item.translation}}" class="tr-text tr-translation-text">{{item.translation}}</text><text wx:if="{{item.translation}}" class="tr-text tr-translation-label">英文原文</text><text class="tr-text tr-p">{{item.text || (item.title === '已有账号实测到账' ? '该记录来自单个账号；公开确认和其他账号到账状态仍待更新。' : '')}}</text><view wx:if="{{item.url && !singlePage}}" class="tr-view tr-text-button" data-url="{{item.url}}" bindtap="onCopyCalendarSource" role="button"><text class="tr-text">复制原推</text><text class="tr-text tr-arrow">↗</text></view></view></view>

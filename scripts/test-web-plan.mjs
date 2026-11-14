@@ -177,7 +177,7 @@ function boot(script, hash = '') {
       getAttribute() { return '#program-day-' + day; } };
   };
   const days = ['1', '2', '28'].map(make), links = ['1', '2', '28'].map(make);
-  const root = { classList: { add() {} }, querySelectorAll(selector) { return selector === '[data-plan-day]' ? days : links; } };
+  const root = { classList: { add() {} }, closest() { return null; }, querySelectorAll(selector) { return selector === '[data-plan-day]' ? days : links; } };
   const history = { replaceState(a,b,value) { this.hash = value; } };
   vm.runInNewContext(script, { document: { querySelector() { return root; } }, history, location: { hash } });
   return { days, links, history };
@@ -189,7 +189,7 @@ const selectionCases = [
   }, "box.classList.toggle('is-selected', active);", "box.classList.toggle('is-selected', false);"],
   ['分享或刷新保留选中活动日', script => {
     assert.equal(boot(script, '#program-day-1').days.find(d => d.open).dataset.planDay, '1');
-  }, 'if (requested) select(requested[1]);', ''],
+  }, 'select(requested[1]);', ''],
   ['无效活动日不清空当前明细', script => {
     assert.equal(boot(script, '#program-day-99').days.find(d => d.open).dataset.planDay, '2');
   }, "if (!days.some(function (box) { return box.dataset.planDay === day; })) return;", ''],
@@ -216,9 +216,35 @@ for (const [from, to] of [
   const broken = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
   assert.throws(() => verifyIntegration(broken.renderAll));
 }
+const verifyEndedPlanArchive = render => {
+  const archivedSignal = { ...signal, calendar: { ...signal.calendar, plan: { ...plan, ended: true,
+    sourceUrl: 'https://x.com/thsottiaux/status/program' } } };
+  const parts = render(derived.model, derived.prediction, archivedSignal);
+  assert.equal(parts.PROGRAM, '', '已结束计划必须离开主版插槽');
+  assert.match(parts.PROGRAM_HISTORY, /^<details class="program-archive"><summary>/);
+  assert.equal((parts.PROGRAM_HISTORY.match(/data-plan-select=/g) || []).length, 28);
+  assert.ok(parts.PROGRAM_HISTORY.includes('已结束') && parts.PROGRAM_HISTORY.includes('查看活动原文'));
+  assert.ok(parts.PROGRAM_HISTORY.includes('https://x.com/thsottiaux/status/program'));
+  assert.ok(!parts.PROGRAM_HISTORY.startsWith('<details class="program-archive" open'));
+};
+check('结束计划从主版移出，并在历史活动默认收起且保留28天来源', () => verifyEndedPlanArchive(renderAll));
+const archivedMutation = rendererSource.replace(
+  "PROGRAM: signals?.calendar?.plan?.ended === true ? ''\n      : renderProgramPlan(signals?.calendar?.plan, signals?.program),",
+  "PROGRAM: renderProgramPlan(signals?.calendar?.plan, signals?.program),",
+).replace(/from (['"])(\.[^'"]+)\1/g, (_, quote, path) => `from ${quote}${new URL(path, rendererUrl).href}${quote}`);
+const archivedBroken = await import('data:text/javascript;base64,' + Buffer.from(archivedMutation).toString('base64'));
+assert.throws(() => verifyEndedPlanArchive(archivedBroken.renderAll), undefined, '把结束计划放回主版的反例必须被拦住');
 const verifyPlacement = source => assert.ok(source.indexOf('<!--__SIGNAL__-->') < source.indexOf('<!--__OUTLOOK__-->') && source.indexOf('<!--__OUTLOOK__-->') < source.indexOf('<!--__PROGRAM__-->') && source.indexOf('<!--__PROGRAM__-->') < source.indexOf('<!--__RESET_CALENDAR__-->'));
 check('线索置顶且计划留在主栏', () => verifyPlacement(template));
 assert.throws(() => verifyPlacement(template.replace('        <!--__PROGRAM__-->\n', '').replace('<!--__BASIS_SUMMARY__-->', '<!--__BASIS_SUMMARY__--><!--__PROGRAM__-->')));
+const verifyArchivePlacement = source => {
+  const archiveAt = source.indexOf('<!--__PROGRAM_HISTORY__-->');
+  assert.ok(archiveAt > source.indexOf('<!--__RECENT_RECORDS__-->'));
+  assert.ok(archiveAt < source.indexOf('<!--__RHYTHM__-->'));
+};
+check('历史活动插槽位于主版记录之后、历史节奏之前', () => verifyArchivePlacement(template));
+assert.throws(() => verifyArchivePlacement(template.replace('<!--__PROGRAM_HISTORY__-->', '')),
+  undefined, '缺失历史活动插槽的反例必须被拦住');
 
 const rhythmData = { gapDays: Array.from({ length: 20 }, (_, i) => i / 2),
   records: Array.from({ length: 21 }, (_, i) => ({ at: new Date(Date.UTC(2026, 9, i + 1)).toISOString() })) };

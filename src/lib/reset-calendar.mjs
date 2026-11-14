@@ -414,6 +414,7 @@ function buildProgramPlan({ trusted, allTweets, events, account, program, dayOne
  */
 export function buildResetCalendar({ records = [], tweets = [], signals, now = Date.now(), account = 'thsottiaux' } = {}) {
   const currentTime = timestamp(now);
+  if (currentTime == null) return null;
   const normalizedAccount = String(account ?? 'thsottiaux').replace(/^@/, '').toLowerCase();
   const allTweets = (tweets ?? []).filter((tweet) => timestamp(tweet?.created_at) != null && timestamp(tweet.created_at) <= currentTime);
   const trusted = eligibleTweets(allTweets, normalizedAccount, currentTime);
@@ -421,21 +422,38 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
   const program = signals?.program ?? trusted.map((tweet) => ({ tweet, hit: detectProgram(tweet.text) }))
     .filter((item) => item.hit).sort((a, b) => timestamp(b.tweet.created_at) - timestamp(a.tweet.created_at))
     .map(({ tweet, hit }) => ({ ...hit, id: String(tweet.id), announcedAt: tweet.created_at, url: tweet.url }))[0];
-  const days = Number(program?.days);
+  const programDays = Number(program?.days);
   const programAnnouncedAt = timestamp(program?.announcedAt);
-  if (currentTime == null || !Number.isInteger(days) || days < 1 || days > 62 || programAnnouncedAt == null) return null;
-
-  const dayOne = trusted
+  const validProgram = Number.isInteger(programDays) && programDays >= 1 && programDays <= 62 && programAnnouncedAt != null;
+  const dayOne = validProgram ? trusted
     .filter((tweet) => timestamp(tweet.created_at) >= programAnnouncedAt && /\bDay\s*1\s*\//i.test(tweet.text ?? ''))
-    .sort((a, b) => timestamp(a.created_at) - timestamp(b.created_at) || String(a.id).localeCompare(String(b.id)))[0];
-  if (!dayOne) return null;
+    .sort((a, b) => timestamp(a.created_at) - timestamp(b.created_at) || String(a.id).localeCompare(String(b.id)))[0] : null;
 
-  const fromDate = beijingDate(timestamp(dayOne.created_at));
-  const toDate = beijingDate(beijingMidnight(fromDate) + (days - 1) * DAY_MS);
-  const startWeekday = weekday(fromDate);
+  // 月历范围由有效历史记录锚定，不能跟随已结束的活动计划停在最后一天。
+  const today = beijingDate(currentTime);
+  const currentMonth = today.slice(0, 7);
+  const [currentYear, currentMonthNumber] = currentMonth.split('-').map(Number);
+  const currentDays = new Date(Date.UTC(currentYear, currentMonthNumber, 0)).getUTCDate();
+  const currentToDate = `${currentMonth}-${String(currentDays).padStart(2, '0')}`;
+  const events = uniqueEvents(records, normalizedAccount, currentTime).filter((event) => {
+    if (event.record.manual) return true;
+    const matched = trusted.filter((tweet) => sameSource(event.sources, sourceIdentities(tweet, normalizedAccount)));
+    return !matched.length || !matched.every((tweet) => contradictsConfirmedHistory(tweet, { account: normalizedAccount, tweets: allTweets }));
+  });
+  // 先按可信 Day/回复链完成活动计划归属，再将同一活动日的手动到账与公开完成合并。
+  const plan = dayOne ? buildProgramPlan({ trusted, allTweets, events, account: normalizedAccount,
+    program, dayOne, signals, now: currentTime }) : null;
+
+  const historyMonths = events.map((event) => beijingDate(event.at).slice(0, 7));
+  if (dayOne) historyMonths.push(beijingDate(timestamp(dayOne.created_at)).slice(0, 7));
+  const earliestMonth = historyMonths.length ? historyMonths.sort()[0] : currentMonth;
+  const fromDate = `${earliestMonth}-01`;
+  const rangeStartMs = beijingMidnight(fromDate);
+  const rangeEndMs = beijingMidnight(currentToDate);
+  const rangeDays = Math.floor((rangeEndMs - rangeStartMs) / DAY_MS) + 1;
   const dateToIndex = new Map();
-  const builders = Array.from({ length: days }, (_, index) => {
-    const date = beijingDate(beijingMidnight(fromDate) + index * DAY_MS);
+  const builders = Array.from({ length: rangeDays }, (_, index) => {
+    const date = beijingDate(rangeStartMs + index * DAY_MS);
     dateToIndex.set(date, index);
     return {
       date,
@@ -455,17 +473,6 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
       detailMap: new Map(),
     };
   });
-
-  let confirmedCount = 0;
-  let resetCount = 0;
-  let creditCount = 0;
-  const events = uniqueEvents(records, normalizedAccount, currentTime).filter((event) => {
-    if (event.record.manual) return true;
-    const matched = trusted.filter((tweet) => sameSource(event.sources, sourceIdentities(tweet, normalizedAccount)));
-    return !matched.length || !matched.every((tweet) => contradictsConfirmedHistory(tweet, { account: normalizedAccount, tweets: allTweets }));
-  });
-  // 先按可信 Day/回复链完成活动计划归属，再将同一活动日的手动到账与公开完成合并。
-  const plan = buildProgramPlan({ trusted, allTweets, events, account: normalizedAccount, program, dayOne, signals, now: currentTime });
   const calendarEvents = events.filter((event) => !event.suppressedByManualProgramDay);
   for (const event of calendarEvents) {
     const index = dateToIndex.get(beijingDate(event.at));
@@ -473,9 +480,6 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     const cell = builders[index];
     cell.confirmedCount++;
     cell[event.record.type === 'credit' ? 'creditCount' : 'resetCount']++;
-    confirmedCount++;
-    if (event.record.type === 'credit') creditCount++;
-    else resetCount++;
     const sourceTweet = sourceTweetForEvent(event, trusted, normalizedAccount, allTweets);
     addDetail(cell, {
       id: event.record.id == null ? sourceTweet?.id ?? null : String(event.record.id),
@@ -490,7 +494,6 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     }, normalizedAccount);
   }
 
-  let observedCount = 0;
   for (const observation of signals?.accountObservations ?? []) {
     const tweet = trusted.find((t) => String(t.id) === String(observation.announcementId));
     const observedAt = timestamp(observation.observedAt);
@@ -498,15 +501,13 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     const index = dateToIndex.get(beijingDate(observedAt));
     if (index == null) continue;
     const cell = builders[index];
-    cell.observedCount++; observedCount++;
+    cell.observedCount++;
     addDetail(cell, { id: String(tweet.id), url: tweet.url ?? null, text: tweet.text ?? '',
       createdAt: tweet.created_at, observedAt: observation.observedAt,
       observationPrecision: observation.precision, sourceLabel: observation.sourceLabel,
       roles: ['observed'] }, normalizedAccount);
   }
 
-  let datedCount = 0;
-  let pendingCount = 0;
   const seenForecasts = new Set();
   for (const forecast of [...(signals?.forecasts ?? []), ...(signals?.overdueForecasts ?? [])]) {
     if (forecast?.level !== 'explicit') continue;
@@ -528,10 +529,8 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
       if (forecast.status === 'overdue') cell.overdueCount++;
       if (forecastType === 'dated') {
         cell.datedCount++;
-        datedCount++;
       } else {
         cell.pendingCount++;
-        pendingCount++;
       }
       addDetail(cell, {
         id,
@@ -547,22 +546,19 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
   }
 
   // 当前预告会在兑现后撤下，历史日历仍保留发布当天的预告；兑现身份复用计划归属。
-  let fulfilledForecastCount = 0;
-  for (const entry of plan.rows.flatMap((row) => row.entries)) {
+  for (const entry of (plan?.rows ?? []).flatMap((row) => row.entries)) {
     if (entry.announcementStatus !== 'fulfilled') continue;
     const index = dateToIndex.get(beijingDate(timestamp(entry.createdAt)));
     if (index == null) continue;
     const cell = builders[index];
     if (cell.detailMap.get(detailKey(entry, normalizedAccount))?.roles.includes('forecast')) continue;
     cell.fulfilledForecastCount++;
-    fulfilledForecastCount++;
     addDetail(cell, { id: entry.id, url: entry.url, text: entry.text, createdAt: entry.createdAt,
       dayNumber: entry.day, forecastStatus: 'fulfilled', roles: ['forecast'] }, normalizedAccount);
   }
 
-  let updatedCount = 0;
   // 功能更新与活动计划共用结论；有 Day 编号的普通讨论和纯重置不冒充功能交付。
-  for (const entry of plan.rows.flatMap((row) => row.entries)) {
+  for (const entry of (plan?.rows ?? []).flatMap((row) => row.entries)) {
     if (!entry.isUpdate) continue;
     const createdAt = timestamp(entry.createdAt);
     const index = dateToIndex.get(beijingDate(createdAt));
@@ -572,7 +568,6 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     const alreadyUpdated = cell.detailMap.get(key)?.roles.includes('updated');
     if (!alreadyUpdated) {
       cell.updatedCount++;
-      updatedCount++;
     }
     addDetail(cell, {
       id: String(entry.id),
@@ -584,9 +579,6 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     }, normalizedAccount);
   }
 
-  const today = beijingDate(currentTime);
-  const todayIndex = dateToIndex.get(today);
-  const progressDay = todayIndex == null ? (today < fromDate ? 0 : days) : todayIndex + 1;
   const cells = builders.map((cell) => {
     const { detailMap, ...plain } = cell;
     const details = [...detailMap.values()].sort((a, b) =>
@@ -609,27 +601,51 @@ export function buildResetCalendar({ records = [], tweets = [], signals, now = D
     return plain;
   });
 
+  const monthKeys = [];
+  let monthCursor = earliestMonth;
+  while (monthCursor <= currentMonth) {
+    monthKeys.push(monthCursor);
+    const [cursorYear, cursorMonth] = monthCursor.split('-').map(Number);
+    monthCursor = new Date(Date.UTC(cursorYear, cursorMonth, 1)).toISOString().slice(0, 7);
+  }
+  const months = monthKeys.map((monthKey) => {
+    const [monthYear, monthNumber] = monthKey.split('-').map(Number);
+    const days = new Date(Date.UTC(monthYear, monthNumber, 0)).getUTCDate();
+    const monthFromDate = `${monthKey}-01`;
+    const monthToDate = `${monthKey}-${String(days).padStart(2, '0')}`;
+    const startIndex = Math.floor((beijingMidnight(monthFromDate) - rangeStartMs) / DAY_MS);
+    const monthCells = cells.slice(startIndex, startIndex + days);
+    const sum = (key) => monthCells.reduce((total, cell) => total + (cell[key] ?? 0), 0);
+    return {
+      month: monthKey,
+      title: `${monthYear}年${monthNumber}月重置日历`,
+      fromDate: monthFromDate,
+      toDate: monthToDate,
+      days,
+      startWeekday: weekday(monthFromDate),
+      progressDay: monthKey === currentMonth ? Number(today.slice(8)) : days,
+      confirmedCount: sum('confirmedCount'),
+      resetCount: sum('resetCount'),
+      creditCount: sum('creditCount'),
+      observedCount: sum('observedCount'),
+      datedCount: sum('datedCount'),
+      pendingCount: sum('pendingCount'),
+      fulfilledForecastCount: sum('fulfilledForecastCount'),
+      updatedCount: sum('updatedCount'),
+      cells: monthCells,
+      weeks: Array.from({ length: Math.ceil(days / 7) }, (_, index) => monthCells.slice(index * 7, (index + 1) * 7)),
+      hasManual: monthCells.some((cell) => cell.details.some((detail) => detail.manual)),
+      zone: 'Asia/Shanghai',
+    };
+  });
+  const current = months.at(-1);
   return {
-    title: `${days}天重置日历`,
-    hasManual: records.some((record) => record.manual),
-    zone: 'Asia/Shanghai',
-    fromDate,
-    toDate,
-    days,
-    progressDay,
-    startWeekday,
-    observedCount,
-    confirmedCount,
-    resetCount,
-    creditCount,
-    datedCount,
-    pendingCount,
-    fulfilledForecastCount,
-    updatedCount,
-    weeks: Array.from({ length: Math.ceil(days / 7) }, (_, index) => cells.slice(index * 7, (index + 1) * 7)),
-    cells,
-    sourceUrl: dayOne.url ?? null,
-    programUrl: program.url ?? null,
+    ...current,
+    currentMonth,
+    earliestMonth,
+    months,
+    sourceUrl: dayOne?.url ?? null,
+    programUrl: program?.url ?? null,
     plan,
   };
 }

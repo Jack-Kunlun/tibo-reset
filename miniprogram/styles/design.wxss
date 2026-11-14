@@ -442,6 +442,51 @@ page { background: #0B1020; color: #F2F0FC; }
   font-size:22rpx;
   color:#a4abc4;
   padding:30rpx 0}
+.design .tr-calendar-month-switcher {
+  display:flex;
+  align-items:center;
+  gap:12rpx;
+  margin-top:22rpx;
+  padding:10rpx;
+  border:2rpx solid #293047;
+  border-radius:18rpx;
+  background:#10172a}
+.design .tr-calendar-month-nav {
+  flex:none;
+  width:64rpx;
+  height:58rpx;
+  margin:0;
+  padding:0;
+  border:2rpx solid #37405c;
+  border-radius:14rpx;
+  background:#1a2235;
+  color:#d8d2ec;
+  font-size:38rpx;
+  line-height:1}
+.design .tr-calendar-month-nav::after { border:0; }
+.design .tr-calendar-month-nav.is-disabled { opacity:.42; }
+.design .tr-calendar-month-picker { flex:1; min-width:0; display:block; }
+.design .tr-calendar-month-pick {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12rpx;
+  min-height:58rpx}
+.design .tr-calendar-month-title {
+  flex:1;
+  min-width:0;
+  overflow:hidden;
+  color:#f2f0fc;
+  font-size:25rpx;
+  font-weight:500;
+  text-align:center;
+  text-overflow:ellipsis;
+  white-space:nowrap}
+.design .tr-calendar-month-arrow { color:#a4abc4; font-size:30rpx; }
+.design .tr-calendar-current-month {
+  margin-top:22rpx;
+  color:#a4abc4;
+  font-size:22rpx}
 .design .tr-calendar-summary .tr-b {
   font-size:28rpx;
   color:#f2f0fc;
@@ -946,6 +991,13 @@ page { background: #0B1020; color: #F2F0FC; }
 .design .tr-plan-explain .prog-body { padding-bottom: 18rpx; }
 .design .tr-plan-explain .prog-rule { display: block; color: #8995b0; font-size: 20rpx; line-height: 1.55; padding-bottom: 14rpx; }
 .design .tr-plan-freshness { display:block; padding-top:4rpx; color:#73809a; font-size:20rpx; line-height:1.5; }
+.design .tr-plan-archive { padding-top: 0; }
+.design .tr-plan-archive-toggle { display:flex; align-items:center; justify-content:space-between; gap:16rpx; min-height:104rpx; }
+.design .tr-plan-archive-toggle .tr-plan-title { display:block; color:#c7bbeb; font-size:26rpx; font-weight:600; }
+.design .tr-plan-archive-toggle .tr-plan-summary { display:block; padding-top:8rpx; font-size:20rpx; line-height:1.5; }
+.design .tr-plan-archive-action { flex:none; color:#b8a9f2; font-size:21rpx; }
+.design .tr-plan-archive-body { border-top:2rpx solid #293047; padding-top:16rpx; }
+.design .tr-plan-archive-source { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8rpx 16rpx; padding-top:10rpx; }
 .design .tr-calendar-card { overflow: visible; }
 .design .tr-calendar-summary .tr-b { font-size: 28rpx; color: #f2f0fc; font-weight: 500; }
 .design .tr-calendar-day .tr-day-number { font-size: 24rpx; }

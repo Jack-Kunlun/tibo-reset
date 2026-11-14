@@ -31,6 +31,13 @@ function state() {
   }));
   return { ...structuredClone(snapshotState()), chart: buildChartData(records, now) };
 }
+function legacyCalendar(calendar, patch = {}) {
+  const result = { ...calendar, ...patch };
+  delete result.months;
+  delete result.currentMonth;
+  delete result.earliestMonth;
+  return result;
+}
 
 test('记录页展示全部历史且不修改双端共享的时间顺序', () => {
   const input = state();
@@ -75,7 +82,7 @@ test('日历日期可选择，静默刷新保留选择，消失日期回退到�
     pendingCount: 0, details: [{ id: `cal-${i}`, roles: ['confirmed'], type: 'reset',
       confirmedAt: `${date}T23:30:00Z`, text: 'Reset complete', url: 'https://x.com/example' }],
   }));
-  input.signals = { ...input.signals, calendar: { ...input.signals.calendar, cells } };
+  input.signals = { ...input.signals, calendar: legacyCalendar(input.signals.calendar, { cells }) };
   const page = host('records');
   page.apply({ state: input, degraded: false });
   assert.equal(page.data.selectedDate, '2026-10-20');
@@ -91,14 +98,97 @@ test('日历日期可选择，静默刷新保留选择，消失日期回退到�
   assert.equal(page.data.selectedDate, '2026-10-20');
 });
 
+test('月份切换限于服务端历史范围，静默刷新保留月份且不丢根计划', () => {
+  const makeMonth = (month, days, resetDay, text) => {
+    const [year, monthNumber] = month.split('-').map(Number);
+    const fromDate = `${month}-01`;
+    const toDate = `${month}-${String(days).padStart(2, '0')}`;
+    const cells = Array.from({ length: days }, (_, index) => {
+      const date = `${month}-${String(index + 1).padStart(2, '0')}`;
+      const confirmed = index + 1 === resetDay;
+      return { date, label: `${month.slice(5)}/${String(index + 1).padStart(2, '0')}`,
+        status: confirmed ? 'confirmed' : 'elapsed-no-record', statusLabel: confirmed ? '已到账' : '暂无记录',
+        confirmedCount: confirmed ? 1 : 0, observedCount: 0, pendingCount: 0, datedCount: 0,
+        details: confirmed ? [{ id: `month-${month}`, roles: ['confirmed'], type: 'reset',
+          confirmedAt: `${date}T12:00:00Z`, text, url: `https://x.com/example/${month}` }] : [] };
+    });
+    const weekday = new Date(`${fromDate}T00:00:00Z`).getUTCDay();
+    return { month, title: `${year}年${monthNumber}月重置日历`, fromDate, toDate, days,
+      startWeekday: (weekday + 6) % 7, progressDay: days, confirmedCount: 1, resetCount: 1,
+      creditCount: 0, observedCount: 0, datedCount: 0, pendingCount: 0,
+      fulfilledForecastCount: 0, updatedCount: 0, cells,
+      weeks: Array.from({ length: Math.ceil(days / 7) }, (_, i) => cells.slice(i * 7, (i + 1) * 7)),
+      hasManual: false, zone: 'Asia/Shanghai' };
+  };
+  const previous = makeMonth('2026-10', 31, 28, '历史月份到账原文');
+  const current = makeMonth('2026-11', 30, 7, '当前月份到账原文');
+  const plan = { title: '根层唯一计划', days: 28, latestDay: 0, rows: [] };
+  const input = state();
+  input.signals = { ...input.signals, calendar: { ...current, currentMonth: current.month,
+    earliestMonth: previous.month, months: [previous, current], plan } };
+  const page = host('records');
+  page.apply({ state: input, degraded: false });
+  assert.equal(page.data.selectedCalendarMonth, '2026-11');
+  assert.equal(page.data.calendar.title, current.title);
+  assert.equal(page.data.calendarMonthIndex, 1);
+  assert.equal(page.data.calendarCanPrev, true);
+  assert.equal(page.data.calendarCanNext, false);
+  assert.equal(page.data.calendar.plan, plan);
+  assert.equal('months' in page.data.calendar, false, '全量历史不进入 setData 视图载荷');
+  assert.equal(page._calendarSource.months.length, 2, '私有来源仍保留所有可切换月份');
+  assert.equal(page.data.calendar.currentMonth, '2026-11');
+  assert.equal(page.data.calendar.earliestMonth, '2026-10');
+
+  page.onShiftCalendarMonth({ currentTarget: { dataset: { direction: '1' } } });
+  assert.equal(page.data.selectedCalendarMonth, '2026-11', '当前月不能继续前进到未来月份');
+  page.onShiftCalendarMonth({ currentTarget: { dataset: { direction: '-1' } } });
+  assert.equal(page.data.selectedCalendarMonth, '2026-10');
+  assert.equal(page.data.calendar.fromDate, '2026-10-01');
+  assert.equal(page.data.calendarMonthIndex, 0);
+  assert.equal(page.data.calendarCanPrev, false);
+  assert.equal(page.data.calendarCanNext, true);
+  assert.equal(page.data.calendar.plan, plan, '切月份只能覆盖月历投影，不能替换根计划');
+  assert.equal(page.data.selectedDate, '2026-10-28');
+  assert.equal(page.data.selectedDay.details[0].text, '历史月份到账原文');
+  page.onShiftCalendarMonth({ currentTarget: { dataset: { direction: '-1' } } });
+  assert.equal(page.data.selectedCalendarMonth, '2026-10', '最早支持月份不能再回退');
+
+  page.apply({ state: input, degraded: false, preserveUi: true });
+  assert.equal(page.data.selectedCalendarMonth, '2026-10', '静默刷新保留用户选定月份');
+  assert.equal(page.data.selectedDay.details[0].text, '历史月份到账原文');
+  page.onSelectCalendarMonth({ detail: { value: '1' } });
+  assert.equal(page.data.selectedCalendarMonth, '2026-11', '原生月份选择器按选项索引切换');
+
+  const december = makeMonth('2026-12', 31, 4, '新月份到账原文');
+  const nextInput = { ...input, signals: { ...input.signals,
+    calendar: { ...december, currentMonth: december.month, earliestMonth: previous.month,
+      months: [previous, current, december], plan } } };
+  const followsCurrent = host('records');
+  followsCurrent.apply({ state: input, degraded: false });
+  followsCurrent.apply({ state: nextInput, degraded: false, preserveUi: true });
+  assert.equal(followsCurrent.data.selectedCalendarMonth, '2026-12', '未手动选月时，静默刷新跟随新的当月');
+
+  const legacy = host('records');
+  const oldCalendar = { ...current, plan };
+  delete oldCalendar.month;
+  delete oldCalendar.months;
+  delete oldCalendar.currentMonth;
+  delete oldCalendar.earliestMonth;
+  legacy.apply({ state: { ...input, signals: { ...input.signals, calendar: oldCalendar } }, degraded: false });
+  assert.equal(legacy.data.calendarMonthOptions.length, 1);
+  assert.equal(legacy.data.selectedCalendarMonth, '2026-11');
+  assert.equal(legacy.data.calendarCanPrev, false);
+  assert.equal(legacy.data.calendarCanNext, false);
+});
+
 test('历史预告仍显示预，详情标明已落地且不增加等待或到账计数', () => {
   const input = state();
-  input.signals.calendar = { ...input.signals.calendar, pendingCount: 0, datedCount: 0, cells: [{
+  input.signals.calendar = legacyCalendar(input.signals.calendar, { pendingCount: 0, datedCount: 0, cells: [{
     date: '2026-10-22', label: '10/22', status: 'announced', statusLabel: '重置预告 · 已落地',
     confirmedCount: 0, pendingCount: 0, datedCount: 0, fulfilledForecastCount: 1,
     details: [{ id: 'fixture-fulfilled', text: 'It is reset day today.', roles: ['forecast'],
       forecastStatus: 'fulfilled', createdAt: '2026-10-22T06:55:22Z' }],
-  }] };
+  }] });
   const page = host('records');
   page.apply({ state: input, degraded: false });
   page.onSelectCalendarDay({ currentTarget: { dataset: { date: '2026-10-22' } } });
@@ -132,14 +222,13 @@ test('28天计划按原帖Day编号选择，显示逐日摘要且与记录日历
     entries: [{ id: 'day16-update', kind: 'update', isUpdate: true, title: 'API 缓存改进', text: 'API caching changes.', createdAt: '2026-10-21T01:00:00.000Z', url: 'https://x.com/tibo/status/day16-update' }] };
   input.signals = {
     ...input.signals,
-    calendar: {
-      ...input.signals.calendar,
+    calendar: legacyCalendar(input.signals.calendar, {
       cells: [
         { date: '2026-10-19', status: 'confirmed', statusLabel: '已到账', confirmedCount: 1, pendingCount: 0, details: [] },
         { date: '2026-10-20', status: 'confirmed', statusLabel: '已到账', confirmedCount: 1, pendingCount: 0, details: [] },
       ],
       plan: { title: 'Tibo 28 天计划', days: 28, latestDay: 16, reportedDays: 16, updatedDays: 12, resetDays: 6, sourceUrl: 'https://x.com/tibo/status/program', rows },
-    },
+    }),
   };
   const page = host('observe');
   page.apply({ state: input, degraded: false });
@@ -159,6 +248,42 @@ test('28天计划按原帖Day编号选择，显示逐日摘要且与记录日历
   page.apply({ state: input, degraded: false, preserveUi: true });
   assert.equal(page.data.selectedPlanDay, 2);
   assert.equal(page.data.expandedPlanEntry, 'day2-update');
+});
+
+test('结束计划默认收起在历史活动，可展开28天并保留来源与选日状态', () => {
+  const input = state();
+  const rows = Array.from({ length: 28 }, (_, index) => ({ day: index + 1, status: 'missing', entries: [] }));
+  rows[27] = { day: 28, status: 'confirmed', statusLabel: '重置已确认', confirmedCount: 1, entries: [
+    { id: 'archive-reset', kind: 'reset', title: 'Day 28 重置确认', text: 'Reset complete.', createdAt: '2026-11-02T08:00:00Z', url: 'https://x.com/tibo/status/archive-reset' },
+  ] };
+  input.signals = { ...input.signals, calendar: { ...input.signals?.calendar,
+    plan: { title: 'Tibo 28 天计划', days: 28, latestDay: 28, toDate: '2026-11-02', ended: false,
+      reportedDays: 28, updatedDays: 18, resetDays: 9, sourceUrl: 'https://x.com/tibo/status/program', rows },
+  } };
+  const records = host('records');
+  records.apply({ state: input, degraded: false });
+  assert.equal(records.data.planView.ended, true, '旧API中的 ended:false 不能覆盖已过的 toDate');
+  assert.equal(records.data.historicalPlanOpen, false);
+  assert.equal(records.data.planView.days.length, 28);
+  records.onToggleHistoricalPlan();
+  assert.equal(records.data.historicalPlanOpen, true);
+  records.onSelectPlanDay({ currentTarget: { dataset: { day: '28' } } });
+  assert.equal(records.data.selectedPlan.entries[0].url, 'https://x.com/tibo/status/archive-reset');
+  records.onToggleHistoricalPlan();
+  records.apply({ state: input, degraded: false, preserveUi: true });
+  assert.equal(records.data.historicalPlanOpen, false, '静默刷新不自动重新展开历史活动');
+  records.onToggleHistoricalPlan();
+  records.apply({ state: input, degraded: false, preserveUi: true });
+  assert.equal(records.data.historicalPlanOpen, true, '静默刷新保留用户打开的历史活动');
+  assert.equal(records.data.selectedPlanDay, 28);
+
+  const observe = host('observe');
+  observe.apply({ state: input, degraded: false });
+  assert.equal(observe.data.planView.show, true);
+  assert.equal(observe.data.planView.ended, true, '首页仍能判定生命周期，WXML单独隐藏结束计划');
+  assert.equal(observe.data.historicalPlanOpen, false);
+  observe.onToggleHistoricalPlan();
+  assert.equal(observe.data.historicalPlanOpen, false, '历史活动入口只在记录页可展开');
 });
 
 test('切回页面读取共享缓存，隐藏后停止计时且记录和分析不查询提醒', () => {
@@ -274,10 +399,10 @@ test('首页只置顶上次重置后仍有效的线索，线索不能升级为�
 test('过期预告保留公告身份，日历详情不能断言尚未落地', async () => {
   const input = state();
   const date = '2026-10-20';
-  input.signals = { ...input.signals, calendar: { ...input.signals.calendar, cells: [{
+  input.signals = { ...input.signals, calendar: legacyCalendar(input.signals.calendar, { cells: [{
     date, status:'pending', statusLabel:'落地待核实', pendingCount:0, datedCount:1,
     details:[{id:'late',roles:['forecast'],awaitingVerification:true,createdAt:date+'T12:00:00Z'}],
-  }] } };
+  }] }) };
   const verify = (factory) => {
     const page = host('records'); Object.assign(page, factory('records'));
     page.setData = host('records').setData; page.tick=()=>{}; page.paint=()=>{};

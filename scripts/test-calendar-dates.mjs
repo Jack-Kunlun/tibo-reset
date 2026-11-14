@@ -3,7 +3,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { buildResetCalendar } from '../src/lib/reset-calendar.mjs';
+import { buildResetCalendar, withCalendarTranslations } from '../src/lib/reset-calendar.mjs';
+import { sourceHash } from '../src/lib/tweet-translations.mjs';
 import { derive } from '../src/lib/page.mjs';
 import { renderResetCalendar } from '../src/lib/render.mjs';
 import { buildCalendarView } from '../miniprogram/utils/view.js';
@@ -46,13 +47,26 @@ const historyInput = {
   signals: { program: input.signals.program, forecasts: [] },
   now: Date.parse('2026-10-29T01:00:00Z'),
 };
+const oldestText = 'A reset has been completed.';
+const oldestTweet = tweet('sep-reset', '2025-09-17T04:00:00Z', oldestText, {
+  translation: { text: '一次重置已完成。', sourceHash: sourceHash(oldestText), language: 'zh-CN' },
+});
+const historicalInput = {
+  tweets: [oldestTweet],
+  records: [
+    { id: oldestTweet.id, type: 'reset', manual: true, announced_at: oldestTweet.created_at, text: oldestText },
+    { id: 'nov-credit', type: 'credit', manual: true, announced_at: '2026-11-14T10:00:00Z', text: 'November credit' },
+  ],
+  signals: { forecasts: [] },
+  now: Date.parse('2026-11-15T04:00:00Z'),
+};
 const cases = [
   ['北京午夜两侧的功能更新落到不同日期，原始时间保持 UTC', build => {
     const c = build(input);
     assert.equal(cell(c, '2026-10-26').updatedCount, 1);
     assert.equal(cell(c, '2026-10-27').updatedCount, 3);
     assert.equal(cell(c, '2026-10-27').details.find(d => d.id === '3').createdAt, '2026-10-26T16:00:00.000Z');
-    assert.equal(c.startWeekday, 6);
+    assert.equal(c.startWeekday, 3);
     assert.equal(cell(c, '2026-10-26').weekday, 0);
   }, 'ms + 8 * 3_600_000', 'ms'],
   ['北京午夜关闭上一日，今日标记与日历进度在同一边界切换', build => {
@@ -91,7 +105,7 @@ const cases = [
     assert.equal(buildCalendarView(c).zoneLabel, '北京时间');
     assert.ok(renderResetCalendar(c).includes('· 北京时间'));
     assert.equal(buildCalendarView({ ...c, zone: 'UTC' }).zoneLabel, 'UTC 日期');
-    assert.ok(renderResetCalendar({ ...c, zone: 'UTC' }).includes('· UTC 实际日期'));
+    assert.ok(renderResetCalendar({ ...c, months: undefined, zone: 'UTC' }).includes('· UTC 实际日期'));
   }, "zone: 'Asia/Shanghai'", "zone: 'UTC'"],
   ['跨日到账后保留发布日预告，不重复记到账或待落地', build => {
     const c = build(historyInput);
@@ -122,12 +136,99 @@ const cases = [
     assert.equal(afterEnd.plan.endsAt, '2026-10-31T16:00:00.000Z');
     assert.equal(afterEnd.plan.latestDay, beforeEnd.plan.latestDay);
     assert.deepEqual(afterEnd.plan.rows, beforeEnd.plan.rows);
-    for (const key of ['confirmedCount', 'creditCount', 'resetCount', 'pendingCount', 'datedCount']) assert.equal(afterEnd[key], beforeEnd[key]);
+    for (const key of ['reportedDays', 'updatedDays', 'resetDays', 'latestDay']) assert.equal(afterEnd.plan[key], beforeEnd.plan[key]);
+    assert.equal(beforeEnd.fromDate, '2026-10-01');
+    assert.equal(afterEnd.fromDate, '2026-11-01');
     const allDaysEarly = build({ ...input, now: input.now, tweets: [...input.tweets,
       tweet('early-last-day', '2026-10-28T00:00:00Z', 'Day 7/ We shipped API improvements.')] });
     assert.equal(allDaysEarly.plan.latestDay, 7);
     assert.equal(allDaysEarly.plan.ended, false);
   }, '...buildProgramLifecycle({ toDate }, now)', 'ended: false'],
+  ['月历跨月后继续按北京时间显示当月，结束计划保留原 7 天日期与明细', build => {
+    const before = build(input);
+    const nextMonth = build({ ...input, now: Date.parse('2026-12-01T00:00:00Z') });
+    assert.equal(nextMonth.fromDate, '2026-12-01');
+    assert.equal(nextMonth.toDate, '2026-12-31');
+    assert.equal(nextMonth.days, 31);
+    assert.equal(nextMonth.cells.length, 31);
+    assert.equal(nextMonth.weeks.flat().length, 31);
+    assert.equal(nextMonth.progressDay, 1);
+    assert.equal(nextMonth.startWeekday, 1);
+    assert.equal(nextMonth.plan.ended, true);
+    assert.equal(nextMonth.plan.fromDate, '2026-10-25');
+    assert.equal(nextMonth.plan.toDate, '2026-10-31');
+    assert.deepEqual(nextMonth.plan.rows, before.plan.rows);
+  }, 'const currentMonth = today.slice(0, 7);', "const currentMonth = today.slice(0, 4) + '-11';"],
+  ['无活动计划时仍能展示当月到账，且有效计划仍保留独立视图', build => {
+    const calendar = build({ records: [{ id: 'manual-nov14', type: 'reset', manual: true,
+      announced_at: '2026-11-14T10:00:00Z', first_confirmed_at: '2026-11-14T10:00:00Z' }],
+      tweets: [], signals: { program: null, forecasts: [] }, now: Date.parse('2026-11-15T04:00:00Z') });
+    assert.equal(calendar.plan, null);
+    assert.equal(calendar.fromDate, '2026-11-01');
+    assert.equal(calendar.toDate, '2026-11-30');
+    assert.equal(calendar.days, 30);
+    assert.equal(calendar.cells.find(cell => cell.date === '2026-11-14').confirmedCount, 1);
+    assert.ok(build(input).plan?.rows.length, '活动计划不能因月历滚动而丢失');
+  }, 'const dayOne = validProgram ? trusted', 'const dayOne = false ? trusted'],
+  ['历史月历从最早有效重置月份连续覆盖到当前月，事件只落在原日期', build => {
+    const c = build(historicalInput);
+    assert.equal(c.earliestMonth, '2025-09');
+    assert.equal(c.currentMonth, '2026-11');
+    assert.equal(c.months.length, 15);
+    assert.equal(c.months[0].month, '2025-09');
+    assert.equal(c.months.at(-1).month, '2026-11');
+    assert.equal(c.months.find(m => m.month === '2025-09').confirmedCount, 1);
+    assert.equal(c.months.find(m => m.month === '2025-09').resetCount, 1);
+    assert.equal(c.months.find(m => m.month === '2026-11').confirmedCount, 1);
+    assert.equal(c.months.find(m => m.month === '2026-11').creditCount, 1);
+    assert.equal(c.months.find(m => m.month === '2026-11').cells.find(d => d.date === '2026-11-14').details[0].id, 'nov-credit');
+    assert.ok(!c.months.find(m => m.month === '2026-11').cells.flatMap(d => d.details).some(d => d.id === 'sep-reset'));
+    const allCells = c.months.flatMap(m => m.cells);
+    assert.equal(allCells.length, c.months.reduce((n, m) => n + m.days, 0));
+    assert.equal(new Set(allCells.map(d => d.date)).size, allCells.length);
+    assert.equal(c.cells, c.months.at(-1).cells);
+    assert.equal(c.plan, null);
+    const translated = withCalendarTranslations(c, historicalInput.tweets);
+    assert.equal(translated.months[0].cells.find(d => d.date === '2025-09-17').details[0].translation.text, '一次重置已完成。');
+  }, 'const earliestMonth = historyMonths.length ? historyMonths.sort()[0] : currentMonth;', 'const earliestMonth = currentMonth;'],
+  ['月份日期按各自然月生成，含跨年边界与闰年规则', build => {
+    const c = build(historicalInput);
+    const month = key => c.months.find(m => m.month === key);
+    assert.deepEqual(['2025-09', '2025-12', '2026-01', '2026-02', '2026-11'].map(key => {
+      const m = month(key);
+      return [m.month, m.days, m.startWeekday, m.cells.length, m.cells[0].date, m.cells.at(-1).date];
+    }), [
+      ['2025-09', 30, 0, 30, '2025-09-01', '2025-09-30'],
+      ['2025-12', 31, 0, 31, '2025-12-01', '2025-12-31'],
+      ['2026-01', 31, 3, 31, '2026-01-01', '2026-01-31'],
+      ['2026-02', 28, 6, 28, '2026-02-01', '2026-02-28'],
+      ['2026-11', 30, 6, 30, '2026-11-01', '2026-11-30'],
+    ]);
+  }, 'getUTCDate();\n    const monthFromDate', 'getUTCDate() - 1;\n    const monthFromDate'],
+  ['计划 Day 1 早于首笔到账时，最早月取两者中更早的计划月份', build => {
+    const start = tweet('plan-day-one', '2025-09-30T04:00:00Z', 'Day 1/ Starting the reset program.');
+    const c = build({ tweets: [start], records: [
+      { id: 'first-reset', type: 'reset', manual: true, announced_at: '2025-10-02T04:00:00Z' },
+    ], signals: { program: { id: 'historical-program', days: 7, announcedAt: '2025-09-29T04:00:00Z' } },
+    now: Date.parse('2025-11-15T04:00:00Z') });
+    assert.equal(c.earliestMonth, '2025-09');
+    assert.equal(c.months[0].month, '2025-09');
+    assert.equal(c.months.find(m => m.month === '2025-10').confirmedCount, 1);
+    assert.equal(c.plan.fromDate, '2025-09-30');
+    assert.equal(c.plan.rows.length, 7);
+    assert.ok(c.months.every(month => !('plan' in month) && !('months' in month)));
+  }, 'if (dayOne) historyMonths.push(', 'if (false) historyMonths.push('],
+  ['无可用历史时只返回当前月，月界到达后自动新增月份', build => {
+    const empty = build({ records: [], tweets: [], signals: {}, now: Date.parse('2026-11-30T15:59:59Z') });
+    const afterMidnight = build({ records: [], tweets: [], signals: {}, now: Date.parse('2026-11-30T16:00:00Z') });
+    assert.equal(empty.earliestMonth, '2026-11');
+    assert.equal(empty.months.length, 1);
+    assert.equal(empty.progressDay, 30);
+    assert.equal(afterMidnight.currentMonth, '2026-12');
+    assert.equal(afterMidnight.earliestMonth, '2026-12');
+    assert.equal(afterMidnight.months.length, 1);
+    assert.equal(afterMidnight.progressDay, 1);
+  }, 'const earliestMonth = historyMonths.length ? historyMonths.sort()[0] : currentMonth;', "const earliestMonth = '2026-10';"],
 ];
 for (const [index, [name, verify, from, to]] of cases.entries()) {
   verify(buildResetCalendar);

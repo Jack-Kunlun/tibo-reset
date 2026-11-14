@@ -2352,6 +2352,8 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
     h.indexOf('class="tr-outlook"') < h.indexOf('class="tr-reminders"') &&
     h.indexOf('class="tr-reminders"') < h.indexOf('class="tr-elapsed"') &&
     h.indexOf('class="tr-elapsed"') < h.indexOf('class="tr-window tr-plan"') && h.includes('planView.latestLabel') && h.includes('bindtap="onSelectPlanDay"'));
+  check('首页仅显示仍在进行的计划，结束计划从主版退出',
+    h.includes('wx:if="{{planView.show && !planView.ended}}"') && !h.includes('wx:if="{{planView.show}}" class="tr-window tr-plan"'));
   check('计划默认按官方Day编号展示，原规则与来源收在折叠说明内',
     h.includes('28 天规则') && h.includes('planView.summary') && h.includes('selectedPlan.entries') && h.includes('bindtap="onToggleProgram"') && h.includes('bindtap="onCopySource"'));
   const planDisplayContract = (markup) => {
@@ -2381,6 +2383,16 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
   check('记录页日历可点选明细，之后展示完整记录',
     r.includes('bindtap="onSelectCalendarDay"') && r.includes('selectedDay.details') && r.includes('allRecords') &&
     r.indexOf('tr-calendar-card') < r.indexOf('tr-selected-date') && r.indexOf('tr-selected-date') < r.indexOf('tr-history-list'));
+  check('记录页月份选择使用接口切片并提供有边界的前后切换',
+    r.includes('mode="selector"') && r.includes('range="{{calendarMonthOptions}}"') &&
+    r.includes('bindchange="onSelectCalendarMonth"') && r.includes('data-direction="-1"') &&
+    r.includes('data-direction="1"') && r.includes('disabled="{{!calendarCanPrev}}"') &&
+    r.includes('disabled="{{!calendarCanNext}}"') && r.includes('{{calendar.title}}'));
+  check('记录页以默认收起的历史活动保留结束计划、28天和来源详情',
+    r.includes('view === \'records\' && planView.show && planView.ended') &&
+    r.includes('bindtap="onToggleHistoricalPlan"') && r.includes('aria-expanded="{{historicalPlanOpen}}"') &&
+    r.includes('wx:if="{{historicalPlanOpen}}"') && r.includes('wx:for="{{planView.days}}"') &&
+    r.includes('selectedPlan.entries') && r.includes('planView.sourceUrl'));
   check('分析页保留节奏、回测、概率、历史三图和样本披露',
     ['class="tr-bars"','data-bc="wait"','data-bc="backtest"','data-bc="pace"','id="hist"','id="survival"','id="strip"','class="metrics"'].every(t=>a.includes(t)));
   check('三个Tab均声明数据截至时间，未用请求时刻冒充采集时刻',

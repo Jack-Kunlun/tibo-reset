@@ -1474,6 +1474,7 @@ export function renderProgramPlan(plan, program) {
   return `<section class="am-panel program-plan" aria-label="Tibo 28 天计划">
     <div class="plan-heading"><div><span class="plan-kicker">每天发布改进，或重置额度</span><div class="plan-title-row"><h2>${esc(plan.title)}</h2>${plan.ended === true ? '<span class="plan-ended">已结束</span>' : ''}</div></div><span class="plan-latest">最新原帖 <b>Day ${plan.latestDay} / ${plan.days}</b></span></div>
     <p class="plan-stats"><span><b>${plan.reportedDays}</b> 天有原帖</span><span><b>${plan.updatedDays}</b> 天有功能更新</span><span><b>${plan.resetDays}</b> 天确认重置</span></p>
+    ${plan.sourceUrl ? `<p class="plan-source"><a href="${attr(plan.sourceUrl)}" target="_blank" rel="noopener noreferrer">查看活动原文 ↗</a></p>` : ''}
     <nav class="plan-grid" aria-label="按活动日查看">${cells}</nav>
     <p class="plan-legend"><span>更 · 功能更新</span><span>预 · 重置预告</span><span>重 · 重置到账</span><span>双 · 更新+重置</span><span>- · 暂无更新、预告或到账记录</span>${plan.rows.some((row) => row.observedCount) ? '<span>账号到账反馈的来源与时间见详情</span>' : ''}<span>日序取原帖 Day 编号</span></p>
     <div class="plan-days">${rows}</div>
@@ -1481,19 +1482,17 @@ export function renderProgramPlan(plan, program) {
   </section>`;
 }
 
-export function renderResetCalendar(c) {
-  if (!c) return '';
+function renderCalendarMonth(c, selectedMonth) {
   const zoneLabel = c.zone === 'Asia/Shanghai' ? '北京时间' : 'UTC 实际日期';
   const blanks = Array.from({ length: c.startWeekday ?? 0 }, () => '<span class="rc-empty" aria-hidden="true"></span>').join('');
-  return `<section class="reset-calendar am-panel" aria-label="重置月日历">
-    <div class="rc-heading"><div><h2>重置月日历</h2><p>${esc(c.fromDate)} — ${esc(c.toDate)} · ${zoneLabel}</p></div><span class="rc-caption">非官方整理</span></div>
+  return `<div class="rc-month" data-calendar-month="${attr(c.month)}"${c.month === selectedMonth ? '' : ' hidden'}>
+    <p class="rc-range">${esc(c.fromDate)} — ${esc(c.toDate)} · ${zoneLabel}</p>
     <div class="rc-layout"><div class="rc-summary">
-      <span class="rc-muted">日历进度</span><strong class="rc-progress">${c.progressDay}<small> / ${c.days}</small></strong>
+      <span class="rc-muted">本月日期</span><strong class="rc-progress">${c.progressDay}<small> / ${c.days}</small></strong>
       <div class="rc-stat"><span>已确认到账</span><b>${c.confirmedCount}<small> 次</small></b></div>
       <p class="rc-muted">${c.resetCount} 次重置 · ${c.creditCount} 次发券</p>
       <div class="rc-stat rc-pending"><span>预告待落地</span><b>${c.pendingCount + (c.datedCount ?? 0)}<small> 条</small></b></div>
       ${c.observedCount ? `<div class="rc-stat rc-observed"><span>账号实测到账</span><b>${c.observedCount}<small> 次</small></b></div>` : ''}
-      <a class="rc-source" href="${attr(c.programUrl ?? c.sourceUrl)}" target="_blank" rel="noopener noreferrer">查看活动原文 ↗</a>
     </div><div class="rc-board"><div class="rc-week">${['一','二','三','四','五','六','日'].map((d) => `<span>周${d}</span>`).join('')}</div>
       <div class="rc-grid">${blanks}${c.cells.map((cell) => {
         const tag = cell.sourceUrl ? 'a' : 'div';
@@ -1506,6 +1505,22 @@ export function renderResetCalendar(c) {
       }).join('')}</div>
       <p class="rc-legend"><span>● ${c.hasManual ? '已到账' : '公开确认到账'}</span>${c.observedCount ? '<span>◇ 单账号实测</span>' : ''}<span>预 · 重置预告</span><span>● 功能更新</span><span>暂无记录 ≠ 当日没有重置</span></p>
     </div></div>
+  </div>`;
+}
+
+export function renderResetCalendar(c) {
+  if (!c) return '';
+  const months = c.months?.length ? c.months : [{ ...c, month: c.fromDate.slice(0, 7) }];
+  const currentMonth = c.currentMonth || months.at(-1).month;
+  const monthLabel = (month) => `${Number(month.slice(0, 4))} 年 ${Number(month.slice(5))} 月`;
+  return `<section class="reset-calendar am-panel" aria-label="重置月日历" data-current-month="${attr(currentMonth)}" data-selected-month="${attr(currentMonth)}">
+    <div class="rc-heading"><h2>重置月日历</h2><span class="rc-caption">非官方整理</span></div>
+    <nav class="rc-month-nav" aria-label="日历月份" hidden>
+      <button type="button" data-calendar-prev aria-label="上一个月"${months.length < 2 ? ' disabled' : ''}>‹</button>
+      <select data-calendar-select aria-label="选择日历月份">${months.map((month) => `<option value="${attr(month.month)}"${month.month === currentMonth ? ' selected' : ''}>${monthLabel(month.month)}</option>`).join('')}</select>
+      <button type="button" data-calendar-next aria-label="下一个月" disabled>›</button>
+    </nav>
+    ${months.map((month) => renderCalendarMonth(month, currentMonth)).join('')}
   </section>`;
 }
 
@@ -1544,8 +1559,12 @@ export function renderAll(m, prediction, signals, opts = {}) {
       : signals?.activeHints?.some((hint) => hint.window) && signalHtml
         ? `<details class="am-signal-details is-hint"><summary><span class="signal-summary"><b>线索 · 未确认</b><span>有新的额度相关时间线索</span></span><span class="signal-disclosure">查看详情</span></summary>${signalHtml}</details>`
         : signalHtml,
-    // 与小程序读取同一份原帖日序投影，旧数据缺投影时仍可核对活动规则。
-    PROGRAM: renderProgramPlan(signals?.calendar?.plan, signals?.program),
+    // 活动中的计划在主版展示；结束后保留完整逐日来源，但默认收起在历史活动中。
+    PROGRAM: signals?.calendar?.plan?.ended === true ? ''
+      : renderProgramPlan(signals?.calendar?.plan, signals?.program),
+    PROGRAM_HISTORY: signals?.calendar?.plan?.ended === true
+      ? `<details class="program-archive"><summary><span>历史活动 · 28 天计划已结束</span><span class="am-tiny am-muted">查看逐日记录与来源</span></summary>${renderProgramPlan(signals.calendar.plan, signals.program)}</details>`
+      : '',
     RESET_CALENDAR: renderResetCalendar(signals?.calendar),
     // 第二层：预测依据（三张卡）。
     BASIS: outlook ? renderBasis(outlook, m, prediction, signals) : '',

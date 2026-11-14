@@ -30,16 +30,18 @@ const current = buildResetCalendar({
   signals,
   now: NOW,
 });
-check('真实 Day 1 锚定北京 10/06，而非 UTC 日期或 program.from', current?.fromDate === '2026-10-06');
-check('当前 28 天格按北京时间覆盖 10/06–11/02', current?.days === 28 && current.toDate === '2026-11-02');
-check('真实快照计 7 条已确认事件（6 reset + 1 credit）',
-  current?.confirmedCount === 7 && current.resetCount === 6 && current.creditCount === 1);
+check('月历按当前北京时间覆盖 10/01–10/31，28 天计划独立锚定 10/06–11/02',
+  current?.fromDate === '2026-10-01' && current.toDate === '2026-10-31' && current.days === 31 &&
+  current.plan?.fromDate === '2026-10-06' && current.plan.toDate === '2026-11-02' && current.plan.days === 28);
+check('真实快照计当前自然月内 8 条已确认事件（7 reset + 1 credit）',
+  current?.confirmedCount === 8 && current.resetCount === 7 && current.creditCount === 1);
 check('Day 15 随帖落地在北京 10/20，只增加一次确认而非待落地预告',
-  current?.pendingCount === 0 && current.confirmedCount === 7 &&
+  current?.pendingCount === 0 && current.confirmedCount === 8 &&
   current.cells.find((cell) => cell.date === '2026-10-20')?.status === 'confirmed' &&
   current.cells.find((cell) => cell.date === '2026-10-20')?.confirmedCount === 1);
-check('真实快照 Day 1 来源可追溯且进度按北京日期计算',
-  current?.sourceUrl === 'https://x.com/thsottiaux/status/2107158998495748264' && current.progressDay === 15);
+check('真实快照 Day 1 来源可追溯且月历进度按北京日期计算',
+  current?.sourceUrl === 'https://x.com/thsottiaux/status/2107158998495748264' && current.progressDay === 20 &&
+  current.plan.latestDay === 15);
 
 /* ------------------------- 固定夹具 ------------------------- */
 
@@ -101,12 +103,13 @@ const fixture = buildResetCalendar({ records, tweets: fixtureTweets, signals: fi
 const cell = (date) => fixture.cells.find((item) => item.date === date);
 
 check('缺 author_verified 的可信浏览器 Day 1 可用，跨日按北京时间归格',
-  fixture?.fromDate === '2026-10-06' && fixture.cells[0].date === '2026-10-06' && fixture.startWeekday === 1);
+  fixture?.fromDate === '2026-10-01' && fixture.cells[0].date === '2026-10-01' && fixture.startWeekday === 3);
 check('Day N 按实际北京发布日标更新，不按名义日序移格',
   cell('2026-10-08')?.details.some((item) => item.id === day3.id && item.dayNumber === 3 && item.createdAt.startsWith('2026-10-08')));
 check('确认事件按北京确认日入格，别名只计一次且同日多个事件保留',
   cell('2026-10-07')?.confirmedCount === 3 && cell('2026-10-07')?.resetCount === 2 && cell('2026-10-07')?.creditCount === 1);
-check('未来确认记录不会提前入格', fixture.confirmedCount === 3);
+check('未来确认记录不会提前入格；窗口内但活动外的月内记录仍显示', fixture.confirmedCount === 4 &&
+  cell('2026-10-05')?.confirmedCount === 1);
 check('带窗口预告与未定时预告独立计数，重复来源只计一次',
   fixture.datedCount === 1 && fixture.pendingCount === 1 &&
   cell('2026-10-07')?.datedCount === 1 && cell('2026-10-08')?.pendingCount === 1);
@@ -118,12 +121,13 @@ check('预告优先于更新，更新优先于空白日状态',
 check('今天未结束时标为待观察并标 isToday，后续日期也待观察',
   cell('2026-10-10')?.status === 'future' && cell('2026-10-10')?.isToday === true && cell('2026-10-11')?.status === 'future');
 check('输出可序列化，扁平格和 week 分组一致',
-  JSON.stringify(fixture).length > 0 && fixture.cells.length === 7 && fixture.weeks.flat().length === 7);
+  JSON.stringify(fixture).length > 0 && fixture.cells.length === 31 && fixture.weeks.flat().length === 31);
 
 check('显式 false、非浏览器来源或不同账号均不能锚定 Day 1',
-  buildResetCalendar({ records: [], signals: { program }, now: '2026-10-10T12:00:00Z', tweets: [otherAccountDay1, untrustedDay1, rejectedDay1] }) === null);
-check('缺失或超范围 program.days 不生成日历',
-  buildResetCalendar({ records: [], tweets: [day1], signals: { program: { ...program, days: 0 } }, now: '2026-10-10T12:00:00Z' }) === null);
+  buildResetCalendar({ records: [], signals: { program }, now: '2026-10-10T12:00:00Z', tweets: [otherAccountDay1, untrustedDay1, rejectedDay1] })?.plan === null);
+const invalidProgramCalendar = buildResetCalendar({ records: [], tweets: [day1], signals: { program: { ...program, days: 0 } }, now: '2026-10-10T12:00:00Z' });
+check('无有效活动计划时仍保留当月月历',
+  invalidProgramCalendar?.plan === null && invalidProgramCalendar.fromDate === '2026-10-01' && invalidProgramCalendar.days === 31);
 
 const fakeCompletion = buildResetCalendar({records:[{id:pending.id,type:'reset',announced_at:pending.created_at,url:pending.url}],tweets:[day1,pending],signals:{program,forecasts:[{level:'explicit',timing:'pending',evidence:[{id:pending.id}]}]},now:'2026-10-10T12:00:00Z'});
 check('已采原文明示预告时，误标历史不能变成已到账',fakeCompletion.confirmedCount===0 && fakeCompletion.cells.find(c=>c.date==='2026-10-08').status==='pending');
@@ -133,13 +137,16 @@ const firstConfirmation = buildResetCalendar({records:[{id:'500',type:'credit',a
 check('首次确认跨北京午夜时落在首次确认日，发券仍计一次',firstConfirmation.cells.find(c=>c.date==='2026-10-06').creditCount===1 && firstConfirmation.cells.find(c=>c.date==='2026-10-07').confirmedCount===0);
 const bridgeRecords=[{id:'501',type:'reset',announced_at:'2026-10-07T01:00:00Z'},{id:'502',type:'reset',announced_at:'2026-10-07T02:00:00Z'},{id:'503',type:'reset',announced_at:'2026-10-07T03:00:00Z',confirmation_urls:['https://x.com/thsottiaux/status/501','https://x.com/thsottiaux/status/502']}];
 check('晚到桥接别名与输入顺序不重复计到账', [bridgeRecords,[...bridgeRecords].reverse()].every(records=>buildResetCalendar({records,tweets:[day1],signals:{program},now:'2026-10-10T12:00:00Z'}).confirmedCount===1));
-const finalDay = Date.parse('2026-11-02T08:00:00Z');
+const finalDay = Date.parse('2026-11-15T04:00:00Z');
 const finalSignals = detectSignals(tweetsData.tweets,{now:finalDay,lastResetAt:latestEventMs(recordsData.records),account:ACCOUNT});
 const lastCalendar = buildResetCalendar({records:recordsData.records,tweets:tweetsData.tweets,signals:finalSignals,now:finalDay});
-check('洛杉矶活动规则到期后，北京末日日历仍保留',!finalSignals.program && lastCalendar?.toDate==='2026-11-02' && lastCalendar.progressDay===28);
+check('计划结束后月历继续显示北京 11 月，历史计划仍保留 28 天结束状态',
+  !finalSignals.program && lastCalendar?.fromDate === '2026-11-01' && lastCalendar.toDate === '2026-11-30' &&
+  lastCalendar.days === 30 && lastCalendar.progressDay === 15 && lastCalendar.plan?.days === 28 &&
+  lastCalendar.plan.fromDate === '2026-10-06' && lastCalendar.plan.toDate === '2026-11-02' && lastCalendar.plan.ended === true);
 const serverSource = await readFile(resolve(ROOT,'server/index.mjs'),'utf8');
 const getSignalsSource = serverSource.match(/async function getSignals\(data\) \{[\s\S]*?\n\}/)?.[0];
-const cacheRecords=[{id:'700',type:'reset',announced_at:'2026-10-06T00:00:00Z'},{id:'701',type:'reset',announced_at:'2026-10-07T00:00:00Z'}];
+const cacheRecords=[{id:'700',type:'reset',announced_at:'2026-11-06T00:00:00Z'},{id:'701',type:'reset',announced_at:'2026-11-07T00:00:00Z'}];
 const getCachedSignals = runInNewContext(`let sigCache={key:null,value:null}; ${getSignalsSource}; getSignals`,{
   store:{getData:async()=>({tweets:{updated_at:'unchanged',tweets:[day1]},resets:{records:cacheRecords}})},
   latestEventMs,buildResetCalendar,detectSignals:()=>({program,forecasts:[]}),
@@ -272,9 +279,9 @@ const planCases = [
     from: 'if (matches.length !== 1) return null;', to: 'if (!matches.length) return null;',
   },
   {
-    name: '计划原帖最新 Day 16 与日历进度独立，固定保留 28 天',
+    name: '计划原帖最新 Day 16 与北京月历进度独立，固定保留 28 天',
     input: realPlanInput,
-    verify: c => c.plan.latestDay === 16 && c.progressDay === 16 && c.plan.rows.length === 28,
+    verify: c => c.plan.latestDay === 16 && c.progressDay === 21 && c.plan.rows.length === 28 && c.days === 31,
     from: 'const latestDay = Math.max(0, ...posts.map((post) => post.day));',
     to: 'const latestDay = Math.max(0, ...posts.map((post) => post.day)) + 1;',
   },

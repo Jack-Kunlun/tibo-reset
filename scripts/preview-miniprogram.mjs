@@ -76,6 +76,7 @@ function createWxmlRuntime() {
     text: 'span',
     image: 'img',
     button: 'button',
+    picker: 'select',
     'scroll-view': 'div',
     canvas: 'canvas',
     block: null,
@@ -325,7 +326,7 @@ function createWxmlRuntime() {
     const events = [];
     for (const [name, rawValue] of Object.entries(attrs)) {
       if (name.startsWith('wx:') || name === 'key' || name === 'for') continue;
-      if (/^(?:bind|catch)(?:tap|touchstart|touchmove|touchend|longpress)$/.test(name)) {
+      if (/^(?:bind|catch)(?:tap|change|touchstart|touchmove|touchend|longpress)$/.test(name)) {
         events.push({
           name,
           handler: String(interpolate(rawValue, scope) ?? ''),
@@ -335,6 +336,7 @@ function createWxmlRuntime() {
       }
 
       const value = interpolate(rawValue, scope);
+      if (tag === 'picker' && ['mode', 'range', 'range-key'].includes(name)) continue;
       if (name === 'src' && tag === 'image') {
         const source = String(value ?? '');
         const resolved = options.assets[source] || (source.startsWith('data:image/') ? source : '');
@@ -391,6 +393,16 @@ function createWxmlRuntime() {
     if (htmlTag === 'img') {
       if (!Object.prototype.hasOwnProperty.call(attrs, 'alt')) outputAttrs += ' alt=""';
       return '<img' + outputAttrs + '>';
+    }
+    if (tag === 'picker') {
+      const range = interpolate(attrs.range, scope);
+      const rangeKey = attrs['range-key'];
+      const selectedIndex = Number(interpolate(attrs.value, scope));
+      const options = Array.isArray(range) ? range.map((item, index) => {
+        const label = item && typeof item === 'object' ? item[rangeKey] : item;
+        return '<option value="' + index + '"' + (index === selectedIndex ? ' selected' : '') + '>' + escapeHtml(label) + '</option>';
+      }).join('') : '';
+      return '<select' + outputAttrs + '>' + options + '</select>';
     }
     if (VOID_TAGS.has(htmlTag)) return '<' + htmlTag + outputAttrs + '>';
     return '<' + htmlTag + outputAttrs + '>' +
@@ -614,6 +626,9 @@ const extraCss = [
   '.preview-page image{object-fit:contain}',
   '.preview-page button{cursor:pointer}',
   '.preview-page button:disabled{cursor:default}',
+  '.preview-page select.tr-calendar-month-picker{box-sizing:border-box;width:100%;min-width:0;margin:0;padding:8px 28px 8px 8px;border:0;border-radius:14px;background-color:transparent;background-image:linear-gradient(45deg,transparent 50%,#a4abc4 50%),linear-gradient(135deg,#a4abc4 50%,transparent 50%);background-position:calc(100% - 15px) 50%,calc(100% - 11px) 50%;background-size:5px 5px;background-repeat:no-repeat;color:#f2f0fc;font:inherit;font-size:13px;text-align:center;text-align-last:center;appearance:none;-webkit-appearance:none;outline:none;cursor:pointer}',
+  '.preview-page select.tr-calendar-month-picker option{background:#10172a;color:#f2f0fc}',
+  '.preview-page select.tr-calendar-month-picker:focus-visible{outline:2px solid #c9b9ff;outline-offset:2px}',
   '.preview-page canvas{display:block}',
   '.preview-page .chart{width:100%}',
   '.preview-page .chart-hist{height:156px}',
@@ -630,6 +645,7 @@ const pageJson = {};
 for (const [view, page] of Object.entries(pages)) {
   pageJson[view] = page;
 }
+pageJson._calendarSource = state.signals.calendar;
 const tabHtml = tabs.map((tab, index) => {
   const active = index === 0;
   return '<button type="button" role="tab" aria-selected="' + active + '" class="tr-tab preview-tab' + (active ? ' is-selected' : '') +
@@ -648,19 +664,22 @@ const browserScript = [
   'const runtime = ' + runtimeFactorySource + '();',
   'const root = document.getElementById("preview-page-root");',
   'const tabs = [...document.querySelectorAll(".preview-tab")];',
-  'const instances = Object.fromEntries(Object.entries(bundles).map(([view, bundle]) => [view, { ...createDashboardPage(view), data: bundle.data, tick() {}, paint() {}, setData(patch, callback) { applyPatch(this.data, patch); if (view === currentView) renderCurrent(); if (typeof callback === "function") callback(); } }]));',
+  'const instances = Object.fromEntries(Object.entries(bundles).filter(([view]) => view !== "_calendarSource").map(([view, bundle]) => { const page = { ...createDashboardPage(view), data: bundle.data, tick() {}, paint() {}, setData(patch, callback) { applyPatch(this.data, patch); if (view === currentView) renderCurrent(); if (typeof callback === "function") callback(); } }; page._calendarSource = bundles._calendarSource; return [view, page]; }));',
   'let currentView = "observe";',
   'function applyPatch(target, patch) { for (const [path, value] of Object.entries(patch || {})) { const parts = path.split("."); let cursor = target; for (const part of parts.slice(0, -1)) { if (!cursor[part] || typeof cursor[part] !== "object") cursor[part] = {}; cursor = cursor[part]; } cursor[parts[parts.length - 1]] = value; } }',
   'function esc(value) { return String(value ?? "").replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;"}[c])); }',
   'function renderCurrent() { const bundle = bundles[currentView], page = instances[currentView]; root.innerHTML = "<page class=\\"preview-page\\">" + runtime.render(bundle.template, page.data, { assets: bundle.assets }) + "</page>"; const pageStyle = document.createElement("div").style; pageStyle.cssText = root.querySelector("page-meta")?.getAttribute("page-style") || ""; document.body.style.overflow = document.documentElement.style.overflow = pageStyle.overflow; requestAnimationFrame(paintCurrent); }',
   'function selectView(view) { if (!instances[view]) return; if (view !== currentView) instances[currentView].data.signalDetailsOpen = false; currentView = view; tabs.forEach((tab) => { const selected = tab.dataset.previewView === view; tab.setAttribute("aria-selected", String(selected)); tab.classList.toggle("is-selected", selected); const image = tab.querySelector("img"); image.src = selected ? image.dataset.selectedIcon : image.dataset.icon; }); renderCurrent(); }',
-  'function eventFor(node) { const dataset = {}; for (const [key, value] of Object.entries(node.dataset)) if (!key.startsWith("preview")) dataset[key] = value; return { currentTarget: { dataset } }; }',
+  'function eventFor(node, detail) { const dataset = {}; for (const [key, value] of Object.entries(node.dataset)) if (!key.startsWith("preview")) dataset[key] = value; return { currentTarget: { dataset }, ...(detail ? { detail } : {}) }; }',
   'function setData(patch) { instances[currentView].setData(patch); }',
   'function handle(name, event) { const data = instances[currentView].data, dataset = event.currentTarget.dataset;',
   '  if (name === "onToggleAnalysis") { const key = dataset.section; if (Object.prototype.hasOwnProperty.call(data.analysisOpen || {}, key)) setData({ ["analysisOpen." + key]: !data.analysisOpen[key] }); return; }',
   '  if (name === "onToggleSignalDetails") { if (data.signal && data.signal.show) setData({ signalDetailsOpen: !data.signalDetailsOpen }); return; }',
   '  if (name === "onToggleProgram") { const opening = !data.programOpen; setData({ programOpen: opening, ...(opening ? {} : { programHeight: 0 }) }); if (opening) requestAnimationFrame(() => { const reveal = root.querySelector(".prog-reveal"); if (reveal && reveal.scrollHeight) setData({ programHeight: Math.ceil(reveal.scrollHeight) }); }); return; }',
+  '  if (name === "onToggleHistoricalPlan") { instances[currentView].onToggleHistoricalPlan(); return; }',
   '  if (name === "onSelectCalendarDay") { instances[currentView].onSelectCalendarDay(event); return; }',
+  '  if (name === "onSelectCalendarMonth") { instances[currentView].onSelectCalendarMonth(event); return; }',
+  '  if (name === "onShiftCalendarMonth") { instances[currentView].onShiftCalendarMonth(event); return; }',
   '  if (name === "onSelectPlanDay") { instances[currentView].onSelectPlanDay(event); return; }',
   '  if (name === "onTogglePlanEntry") { const key = dataset.key; if ((data.selectedPlan?.entries || []).some((entry) => entry.key === key && entry.hasText)) setData({ expandedPlanEntry: data.expandedPlanEntry === key ? "" : key }); return; }',
   '  if (name === "onToggleRecord") { const key = dataset.key; if ((data.allRecords || []).some((row) => row.key === key)) setData({ expandedRecord: data.expandedRecord === key ? "" : key }); return; }',
@@ -674,6 +693,7 @@ const browserScript = [
   '  if (name === "onCopySource" || name === "onCopyCalendarSource" || name === "onToggleReminder" || name === "onHeroTouch" || name === "onStopTap") return;',
   '}',
   'root.addEventListener("click", (click) => { const chain = []; let node = click.target instanceof Element ? click.target : null; while (node && node !== root) { const handler = node.dataset.previewTap || node.dataset.previewLongpress; if (handler) chain.push({ node, handler, catches: node.dataset.previewCatchTap === "true" }); node = node.parentElement; } for (const entry of chain) { handle(entry.handler, eventFor(entry.node)); if (entry.catches) break; } });',
+  'root.addEventListener("change", (change) => { const node = change.target; const handler = node?.dataset.previewChange; if (handler) handle(handler, eventFor(node, { value: node.value })); });',
   'tabs.forEach((tab) => tab.addEventListener("click", () => selectView(tab.dataset.previewView)));',
   'function paint(selector, make, layout) { const canvas = root.querySelector(selector); if (!canvas) return; const rect = canvas.getBoundingClientRect(), width = Math.round(rect.width), height = Math.round(rect.height); if (!width || !height) return; const dpr = window.devicePixelRatio || 2; canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr); const context = canvas.getContext("2d"); if (!context) return; context.scale(dpr, dpr); const scene = make(chart, { width, height, ...(layout ? { layout } : {}) }); drawScene(context, scene, dpr, "night"); }',
   'function paintCurrent() { if (currentView !== "analysis") return; paint("#hist", histogramScene, "compact"); paint("#survival", survivalScene, "compact"); paint("#strip", stripScene, "compact"); }',

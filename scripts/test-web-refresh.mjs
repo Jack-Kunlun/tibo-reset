@@ -2,7 +2,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
-import { renderDigest } from '../src/lib/render.mjs';
+import { renderDigest, renderResetCalendar } from '../src/lib/render.mjs';
+import { buildResetCalendar } from '../src/lib/reset-calendar.mjs';
 import { derive } from '../src/lib/page.mjs';
 import { snapshotFrom } from '../src/lib/snapshot.mjs';
 
@@ -13,8 +14,9 @@ const script = template.match(/<script id="state-refresh">([\s\S]*?)<\/script>/)
 const at = '2026-10-15T06:00:00.000Z';
 const next = '2026-10-15T07:00:00.000Z';
 const settle = async () => { for (let i = 0; i < 8; i++) await Promise.resolve(); };
-function boot({ state = { dataUpdatedAt: at }, errors = [], digestRevision = '', manualRevision = 0, translationRevision = 0, scriptOverride = script, stored = null, hidden = false, pending = false } = {}) {
+function boot({ state = { dataUpdatedAt: at }, errors = [], digestRevision = '', manualRevision = 0, translationRevision = 0, calendar = null, scriptOverride = script, stored = null, hidden = false, pending = false } = {}) {
   const boxes = { '.sig-prog': { open: true }, '.am-more': { open: false } };
+  if (calendar) boxes['.reset-calendar'] = { dataset: calendar };
   const calls = [], timers = [], intervals = [], events = {}, removed = [];
   const store = new Map(stored ? [['reset-observatory-reading', JSON.stringify(stored)]] : []);
   let reloaded = 0, scrolled = null, resized = 0, resolveRequest;
@@ -90,6 +92,15 @@ await same.intervals[0].fn();
 check('新一轮数据到达会重载服务端页面', same.reloaded === 1);
 const reading = JSON.parse(same.store.get('reset-observatory-reading') ?? '{}');
 check('更新前保存阅读位置及开关状态', reading.scrollY === 432 && reading.open['.sig-prog'] === true && reading.open['.am-more'] === false);
+const monthReading = boot({ calendar: { currentMonth: '2026-10', selectedMonth: '2025-09', calendarChosen: 'true' },
+  state: { dataUpdatedAt: at, signals: { calendar: { currentMonth: '2026-11' } } } });
+await settle();
+check('无新采集也在跨月时重新取得当月日历', monthReading.reloaded === 1);
+check('自动刷新保存读者主动选中的历史月份', JSON.parse(monthReading.store.get('reset-observatory-reading')).calendarMonth === '2025-09');
+const defaultMonth = boot({ calendar: { currentMonth: '2026-10', selectedMonth: '2026-10' },
+  state: { dataUpdatedAt: at, signals: { calendar: { currentMonth: '2026-11' } } } });
+await settle();
+check('未手动选月时跨月仍默认新当月', defaultMonth.reloaded === 1 && JSON.parse(defaultMonth.store.get('reset-observatory-reading')).calendarMonth === null);
 await same.intervals[0].fn();
 check('正在重载时不重复请求或重载', same.calls.length === 2 && same.reloaded === 1);
 const restored = boot({ stored: { path: '/', at: Date.now(), scrollY: 123, open: { '.sig-prog': false, '.am-more': true } } });
@@ -154,4 +165,62 @@ check('小程序快照成功数据时刻不随失败采集推进', snapshotData.
 const buildSource = await readFile(new URL('./build.mjs', import.meta.url), 'utf8');
 const snapshotSource = await readFile(new URL('../src/lib/snapshot.mjs', import.meta.url), 'utf8');
 check('两条快照生成入口都传递成功采集时刻', /snapshotFrom\(\{[^}]*\btweets\b/.test(buildSource) && /return snapshotFrom\(\{[^}]*\btweets\b/.test(snapshotSource));
+const monthScript = template.match(/<script id="calendar-navigation">([\s\S]*?)<\/script>/)?.[1];
+const calendar = buildResetCalendar({ now: Date.parse('2026-11-15T04:00:00Z'), records: [
+  { id: 'old', type: 'reset', announced_at: '2025-09-17T04:00:00Z', manual: true },
+  { id: 'new', type: 'credit', announced_at: '2026-11-03T04:00:00Z', manual: true },
+] });
+const calendarHtml = renderResetCalendar(calendar);
+check('服务端渲染全部15个月并且只默认展示当前月',
+  (calendarHtml.match(/data-calendar-month=/g) || []).length === 15 &&
+  /data-calendar-month="2025-09" hidden/.test(calendarHtml) &&
+  /data-calendar-month="2026-11">/.test(calendarHtml));
+check('旧API无months时仍渲染单月日历', (renderResetCalendar({ ...calendar, months: undefined }).match(/data-calendar-month=/g) || []).length === 1);
+function bootMonths(source = monthScript, saved = null) {
+  const node = extra => ({ ...extra, handlers: {}, addEventListener(type, fn) { this.handlers[type] = fn; } });
+  const picker = node({ value: calendar.currentMonth });
+  const prev = node({ disabled: false }), next = node({ disabled: true }), nav = { hidden: true };
+  const panels = calendar.months.map(month => ({ dataset: { calendarMonth: month.month }, hidden: month.month !== calendar.currentMonth }));
+  const root = { dataset: { currentMonth: calendar.currentMonth, selectedMonth: calendar.currentMonth },
+    querySelectorAll: () => panels,
+    querySelector: selector => ({ '[data-calendar-select]': picker, '[data-calendar-prev]': prev, '[data-calendar-next]': next, '.rc-month-nav': nav })[selector],
+  };
+  runInNewContext(source, { document: { querySelector: () => root }, location: { pathname: '/' },
+    sessionStorage: { getItem: () => saved ? JSON.stringify(saved) : null } });
+  return { root, picker, prev, next, nav, panels, visible: () => panels.filter(panel => !panel.hidden).map(panel => panel.dataset.calendarMonth) };
+}
+const monthCases = [
+  ['上一月与最早月份切换仅显示对应面板', ui => {
+    ui.prev.handlers.click();
+    assert.deepEqual(ui.visible(), ['2026-10']);
+    ui.picker.value = '2025-09'; ui.picker.handlers.change();
+    assert.deepEqual(ui.visible(), ['2025-09']);
+    assert.equal(ui.root.dataset.selectedMonth, '2025-09');
+    assert.equal(ui.root.dataset.calendarChosen, 'true');
+    assert.equal(ui.nav.hidden, false);
+  }, 'panel.hidden = i !== index;', 'panel.hidden = false;'],
+  ['月份边界不能前进到未来或早于首月', ui => {
+    assert.equal(ui.next.disabled, true);
+    ui.next.handlers.click();
+    assert.deepEqual(ui.visible(), ['2026-11']);
+    ui.picker.value = '2025-09'; ui.picker.handlers.change();
+    assert.equal(ui.prev.disabled, true);
+    assert.equal(ui.next.disabled, false);
+    ui.prev.handlers.click();
+    assert.deepEqual(ui.visible(), ['2025-09']);
+    ui.next.handlers.click();
+    assert.deepEqual(ui.visible(), ['2025-10']);
+  }, 'previous.disabled = index === 0;', 'previous.disabled = false;'],
+];
+for (const [name, verify, from, to] of monthCases) {
+  verify(bootMonths());
+  assert.ok(monthScript.includes(from));
+  assert.throws(() => verify(bootMonths(monthScript.replace(from, to))));
+  check(name + '，隔离反例被拦住', true);
+}
+const savedMonth = { path: '/', at: Date.now(), calendarMonth: '2025-09' };
+check('自动刷新后恢复主动选择的历史月', bootMonths(monthScript, savedMonth).visible()[0] === '2025-09');
+check('过期或不可用的月份不覆盖默认当月',
+  bootMonths(monthScript, { ...savedMonth, at: Date.now() - 300001 }).visible()[0] === '2026-11' &&
+  bootMonths(monthScript, { ...savedMonth, calendarMonth: '2024-01' }).visible()[0] === '2026-11');
 console.log(`✓ 网页刷新 ${passed} 项通过`);

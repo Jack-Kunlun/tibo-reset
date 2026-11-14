@@ -3,12 +3,12 @@
  *
  * 采集链路有三条，优先级从高到低：
  *   1) 登录态采集（主链路，见 ./browser.mjs）：驱动本机已登录的 Chrome 滚动收割
- *      完整时间线。未登录的 x.com 只给 profile 首屏 **7 条**原创，覆盖不到
+ *      完整时间线。未登录的 x.com 只给 profile 首屏少量原创，覆盖不到
  *      「上一次重置」—— 2026-09-12 那次重置的 5 条全在 7 条窗口之外，
  *      观测台一次都没看见它本该盯住的那件事。
  *   2) 免登录 HTML（降级）：抓 x.com/<account> 首屏，内嵌 React Server Components
- *      载荷键名不带引号，只能用正则而非 JSON.parse。只覆盖最近 7 条，
- *      浏览器路径不可用时（如 CI 无 Chrome）才走这条。
+ *      载荷兼容旧式对象文本与新版双层 JSON 字符串，只覆盖首屏且不含回复流；
+ *      本机浏览器路径不可用时才走这条，并明确记录覆盖不完整。
  *   3) 历史回填：公开 API，每轮合并，记录里标注 attribution。
  */
 
@@ -163,6 +163,33 @@ function unescapeJs(s) {
 export function parseTweets(html) {
   const tweets = [];
 
+  // 新版 SSR 把整份响应包在 Result.Ok.value 的 JSON 字符串内。按 Tweet 对象取字段，
+  // 不遍历其引用/转推子树，避免把被引用者的正文配给外层作者或借用账号注册时间。
+  for (const match of html.matchAll(/value:("(?:[^"\\]|\\.)*")/g)) {
+    let payload;
+    try { payload = JSON.parse(JSON.parse(match[1])); } catch { continue; }
+    const pending = [payload];
+    while (pending.length) {
+      const node = pending.pop();
+      if (!node || typeof node !== 'object') continue;
+      if (node.__typename === 'Tweet') {
+        const id = node.rest_id;
+        const text = node.details?.full_text;
+        const at = node.details?.created_at_ms;
+        const account = node.core?.user_results?.result?.core?.screen_name;
+        if (!node.retweeted_status_result && !node.legacy?.retweeted_status_result &&
+            /^\d+$/.test(id ?? '') && typeof text === 'string' && text.trim() &&
+            typeof account === 'string' && account && typeof at === 'number' &&
+            Number.isFinite(new Date(at).getTime())) {
+          tweets.push({ id, text, created_at: new Date(at).toISOString(), account });
+        }
+        continue;
+      }
+      pending.push(...Object.values(node));
+    }
+  }
+  if (tweets.length) return [...new Map(tweets.map((tweet) => [tweet.id, tweet])).values()];
+
   // 逐条推文**就近配对**，而不是「全部 full_text 抓成一个数组、全部 created_at_ms 抓成另一个数组，
   // 再按索引硬配」。后者有个必然的错位：payload 里除了推文，用户对象也带 created_at_ms
   // （UserCore 的账号注册时间），多出来的那一个会把整条链推歪一位 ——
@@ -292,8 +319,9 @@ export const classify = classifyEvent;
 
 export async function fetchLiveTweets(account = SOURCE_ACCOUNT) {
   const html = await get(`https://x.com/${account}`);
-  return parseTweets(html)
-    .filter((t) => t.text)
+  const tweets = parseTweets(html)
+    .filter((t) => t.text?.trim() && t.id && Number.isFinite(Date.parse(t.created_at)) &&
+      (!t.account || t.account.toLowerCase() === account.toLowerCase()))
     .map((t) => ({
       ...t,
       kind: classify(t.text),
@@ -304,6 +332,8 @@ export async function fetchLiveTweets(account = SOURCE_ACCOUNT) {
       foundVia: 'timeline',
       inReplyTo: null,
     }));
+  if (!tweets.length) throw new Error('免登录首屏未解析到有效推文，页面结构可能变化或访问受限');
+  return tweets;
 }
 
 /**
@@ -367,7 +397,7 @@ export async function fetchLiveTweetsViaBrowser(account = SOURCE_ACCOUNT, opts =
 
   const main = streams[0];
   if (!main) throw new Error(`浏览器采集失败：${errors[0]?.message ?? '未知原因'}`);
-  if (!main.loggedIn) throw new Error('Chrome profile 未登录 x.com');
+  if (!main.loggedIn) throw new Error('采集专用 Chrome 未登录 x.com（与日常浏览器窗口的登录态独立）');
   if (!main.tweets.length) throw new Error('浏览器收割到 0 条推文');
 
   // 回复流失败**不抛错**（记在 replyError 里）：它是覆盖面的补充，
@@ -872,6 +902,9 @@ export function mergeTweetBatch(base = [], incoming = [], nowIso = new Date().to
       merged.set(key, { ...t, first_seen: nowIso });
       continue;
     }
+    // 首屏混有引用和其他作者，不能覆盖已核验原帖的内容、时间或来源身份。
+    // 只保留 foundVia 却允许低可信正文覆盖，同样会把未核验的改写伪装成可信证据。
+    if (t.foundVia === 'timeline' && ['timeline-browser', 'with-replies', 'manual'].includes(prev.foundVia)) continue;
     const keepPrevText =
       prev.text_full === true && String(t.text ?? '').length < String(prev.text ?? '').length;
     // 后续增量常从时间线再次采到同一条回复，但邻接上下文可能因虚拟列表边缘而缺失。
@@ -1128,7 +1161,7 @@ export async function runCollection(opts = {}) {
   const freshEnough =
     opts.skipIfFresherThanMs > 0 && lastLiveAt > 0 && liveAgeMs < opts.skipIfFresherThanMs;
   let skippedFresh = false;
-  /** 本轮实时数据来自哪条链路：'browser'（登录态，完整）| 'html'（降级，仅 7 条）。 */
+  /** 本轮实时数据来自哪条链路：'browser'（登录态，完整）| 'html'（降级，仅首屏）。 */
   let liveSource = null;
   /** 登录态采集的时间下界（ISO），即「上一次重置 - 缓冲」。 */
   let coverageSince = null;
@@ -1216,7 +1249,7 @@ export async function runCollection(opts = {}) {
 
     // 降级：免登录首屏。
     //
-    // 这条路径只覆盖最近 7 条 —— 它「聊胜于无」，不是「够用」。2026-09-12 那次
+    // 这条路径只覆盖少量首屏帖子。2026-09-12 那次
     // 重置的 5 条全在 7 条之外，正是覆盖不足导致观测台漏掉了自己该盯的事。
     // 所以降级这件事必须**写进数据里**（tweets.json 的 source / degraded），
     // 不能被当成正常情况。
@@ -1233,6 +1266,10 @@ export async function runCollection(opts = {}) {
       }
     }
 
+    if (liveSource === 'html') {
+      errors.push(`采集覆盖不完整：${browserError || '未使用登录态浏览器'}；仅取得免登录首屏，回复与完整时间线未更新`);
+    }
+
     if (fresh) {
       const known = new Set(knownIds);
       newCount = fresh.filter((t) => t.id && !known.has(t.id)).length;
@@ -1245,12 +1282,13 @@ export async function runCollection(opts = {}) {
       const next = {
         ...live,
         tweets: mergeInto(live.tweets, fresh),
-        updated_at: new Date().toISOString(),
+        // 首屏可补少量原文，但不能刷新完整时间线的成功时刻。
+        updated_at: liveSource === 'browser' ? new Date().toISOString() : (live.updated_at ?? null),
         source: liveSource,
       };
       delete next.degraded;
       if (coverageSince) next.coverage_since = coverageSince;
-      if (liveSource === 'html' && browserError) next.degraded = browserError;
+      if (liveSource === 'html') next.degraded = browserError || '未使用登录态浏览器';
       live = next;
     }
 
@@ -1288,7 +1326,6 @@ export async function runCollection(opts = {}) {
         live = {
           ...live,
           tweets: mergeInto(live.tweets, hits),
-          updated_at: new Date().toISOString(),
         };
       }
 
@@ -1332,7 +1369,8 @@ export async function runCollection(opts = {}) {
   if (upstreamText.size) {
     const r = patchTruncatedTexts(live.tweets, upstreamText, { source: 'upstream' });
     if (r.patched > 0) {
-      live = { ...live, tweets: r.tweets, updated_at: new Date().toISOString() };
+      // 历史正文补全不证明当前时间线已采集，不能掩盖登录态失败或跳过采集。
+      live = { ...live, tweets: r.tweets };
       textPatched = r.patched;
     }
   }
@@ -1420,7 +1458,9 @@ export async function runCollection(opts = {}) {
       // 走到这里但没采推文 = 推文数据够新（短路），只是历史 / 正文有了更新。
       // 把上一轮的形态带过来，否则 `source` 会显示为空 —— 那读起来像「这轮采集坏了」，
       // 而事实是「数据本来就是新的」。carriedOver 把这个区别写进数据里。
-      : { ...(prevStats.collect ?? {}), carriedOver: true },
+      : errors.length && !opts.skipLive && !skippedFresh
+        ? { mode: 'failed', source: null, stoppedBy: null, newTweets: 0, replyError: null }
+        : { ...(prevStats.collect ?? {}), carriedOver: true },
     // 历史刷新的留档。它决定「距上次重置多少天」这类核心数字有没有跟上上游；
     // 上游失败时（本地已有数据、不进 errors）只有这里看得见。
     history: { ...historyReport, changed: historyChanged, patchedTexts: textPatched },

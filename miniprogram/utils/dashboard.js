@@ -158,6 +158,38 @@ function calendarSelection(calendar, date) {
   };
 }
 
+function calendarMonthEntries(calendar) {
+  const months = Array.isArray(calendar?.months) && calendar.months.length
+    ? calendar.months : calendar ? [calendar] : [];
+  return months.map((item) => {
+    const month = item.month || item.fromDate?.slice(0, 7) || calendar.currentMonth || '';
+    return { month, title: item.title || month };
+  }).filter((item) => /^\d{4}-\d{2}$/.test(item.month));
+}
+
+function calendarMonthView(calendar, monthKey) {
+  if (!calendar) return null;
+  const month = Array.isArray(calendar.months)
+    ? calendar.months.find((item) => item.month === monthKey) : null;
+  // 根对象携带唯一 plan；月份只覆盖日历投影字段，不能替换整份 calendar。
+  const view = buildCalendarView(month ? { ...calendar, ...month } : calendar);
+  if (!view) return null;
+  // 全量历史保留在页面实例私有字段，不进入 setData 视图树。
+  const { months: ignoredMonths, ...projection } = view;
+  return projection;
+}
+
+function defaultCalendarDate(calendar) {
+  return calendar?.cells.filter((cell) => cell.confirmedCount).slice(-1)[0]?.date
+    || calendar?.cells.find((cell) => cell.isToday)?.date
+    || calendar?.cells[0]?.date
+    || '';
+}
+
+function calendarRange(calendar) {
+  return calendar ? `${calendar.fromDate.slice(5).replace('-', '.')} — ${calendar.toDate.slice(5).replace('-', '.')}` : '';
+}
+
 function planSelection(planView, day) {
   if (!planView?.show || !Number.isInteger(Number(day))) return null;
   return planView.days.find((row) => row.day === Number(day)) || null;
@@ -201,6 +233,11 @@ export function createDashboardPage(view = 'observe') {
     survivalN: 0,
     basisRows: [],
     calendar: null,
+    selectedCalendarMonth: '',
+    calendarMonthOptions: [],
+    calendarMonthIndex: 0,
+    calendarCanPrev: false,
+    calendarCanNext: false,
     planView: { show: false, days: [] },
     selectedPlanDay: 0,
     selectedPlan: null,
@@ -217,6 +254,7 @@ export function createDashboardPage(view = 'observe') {
     detailsOpen: false,
     programOpen: false,
     programHeight: 0,
+    historicalPlanOpen: false,
     signalDetailsOpen: false,
     motionEnabled: true,
     pageVisible: false,
@@ -349,7 +387,18 @@ export function createDashboardPage(view = 'observe') {
     const outlook = buildOutlookView(chart, state.prediction, state.signals, predNow);
     const forecast = buildForecast(state.prediction, outlook);
     const records = recordRows(chart);
-    const calendar = buildCalendarView(state.signals?.calendar);
+    const rawCalendar = state.signals?.calendar;
+    this._calendarSource = rawCalendar;
+    const calendarMonthOptions = calendarMonthEntries(rawCalendar);
+    const currentCalendarMonth = rawCalendar?.currentMonth || rawCalendar?.month
+      || calendarMonthOptions.slice(-1)[0]?.month || '';
+    const keepChosenMonth = preserveUi && this._calendarMonthChosen === true
+      && calendarMonthOptions.some((item) => item.month === this.data.selectedCalendarMonth);
+    if (!preserveUi || !keepChosenMonth) this._calendarMonthChosen = false;
+    const selectedCalendarMonth = keepChosenMonth
+      ? this.data.selectedCalendarMonth : currentCalendarMonth;
+    const calendarMonthIndex = calendarMonthOptions.findIndex((item) => item.month === selectedCalendarMonth);
+    const calendar = calendarMonthView(rawCalendar, selectedCalendarMonth);
     const rawPlan = state.signals?.calendar?.plan;
     const planView = buildProgramPlanView(rawPlan && {
       ...rawPlan,
@@ -364,7 +413,7 @@ export function createDashboardPage(view = 'observe') {
     const expandedPlanEntry = preserveUi && selectedPlan?.entries.some((entry) => entry.key === this.data.expandedPlanEntry)
       ? this.data.expandedPlanEntry : '';
     const selectedDate = preserveUi && calendar?.cells.some((cell) => cell.date === this.data.selectedDate)
-      ? this.data.selectedDate : calendar?.cells.filter((cell) => cell.confirmedCount).slice(-1)[0]?.date || calendar?.cells.find((cell) => cell.isToday)?.date || '';
+      ? this.data.selectedDate : defaultCalendarDate(calendar);
     const delay = state.prediction?.announcementDelay;
     const arrival = delay?.sampleCount ? { count: delay.sampleCount,
       median: Number.isFinite(delay.medianMs) ? fmtSpan(delay.medianMs / 86400000) : '样本不足',
@@ -405,11 +454,16 @@ export function createDashboardPage(view = 'observe') {
         survivalN: chart ? chart.gapDays.length : 0,
         basisRows: basisRows(outlook, forecast),
         calendar,
+        selectedCalendarMonth,
+        calendarMonthOptions,
+        calendarMonthIndex: Math.max(0, calendarMonthIndex),
+        calendarCanPrev: calendarMonthIndex > 0,
+        calendarCanNext: calendarMonthIndex >= 0 && calendarMonthIndex < calendarMonthOptions.length - 1,
         planView,
         selectedPlanDay,
         selectedPlan,
         expandedPlanEntry,
-        calendarRange: calendar ? `${calendar.fromDate.slice(5).replace('-', '.')} — ${calendar.toDate.slice(5).replace('-', '.')}` : '',
+        calendarRange: calendarRange(calendar),
         selectedDate,
         selectedDay: calendarSelection(calendar, selectedDate),
         allRecords: records,
@@ -428,6 +482,7 @@ export function createDashboardPage(view = 'observe') {
         detailsOpen: preserveUi && this.data.detailsOpen,
         programOpen: preserveUi && this.data.programOpen,
         programHeight: preserveUi ? this.data.programHeight : 0,
+        historicalPlanOpen: preserveUi && this.data.historicalPlanOpen && this.data.view === 'records' && planView?.ended === true,
         signalDetailsOpen: !!(preserveUi && signal.show && this.data.signalDetailsOpen),
         genText: fmtDateTime(genTs),
         dataText: Number.isFinite(toTs(state.dataUpdatedAt)) ? fmtDateTime(toTs(state.dataUpdatedAt)).slice(5) : '未知',
@@ -855,6 +910,11 @@ export function createDashboardPage(view = 'observe') {
     });
   },
 
+  onToggleHistoricalPlan() {
+    if (this.data.view !== 'records' || !this.data.planView?.show || !this.data.planView.ended) return;
+    this.setData({ historicalPlanOpen: !this.data.historicalPlanOpen });
+  },
+
   measureProgram() {
     const measure = ++this._programMeasure;
     // 静默刷新也会改变内容高度；与用户展开共用测量及迟到回写守卫。
@@ -883,6 +943,41 @@ export function createDashboardPage(view = 'observe') {
     const date = e?.currentTarget?.dataset?.date;
     if (!this.data.calendar?.cells.some((cell) => cell.date === date)) return;
     this.setData({ selectedDate: date, selectedDay: calendarSelection(this.data.calendar, date) });
+  },
+
+  onSelectCalendarMonth(e) {
+    const index = Number(e?.detail?.value);
+    if (!Number.isInteger(index)) return;
+    const month = this.data.calendarMonthOptions?.[index];
+    if (month) this.showCalendarMonth(month.month);
+  },
+
+  onShiftCalendarMonth(e) {
+    const direction = Number(e?.currentTarget?.dataset?.direction);
+    if (direction !== -1 && direction !== 1) return;
+    const month = this.data.calendarMonthOptions?.[this.data.calendarMonthIndex + direction];
+    if (month) this.showCalendarMonth(month.month);
+  },
+
+  showCalendarMonth(monthKey) {
+    const index = this.data.calendarMonthOptions?.findIndex((item) => item.month === monthKey) ?? -1;
+    if (index < 0) return;
+    this._calendarMonthChosen = true;
+    if (monthKey === this.data.selectedCalendarMonth) return;
+    const calendar = calendarMonthView(this._calendarSource || this.data.calendar, monthKey);
+    if (!calendar) return;
+    const selectedDate = calendar.cells.some((cell) => cell.date === this.data.selectedDate)
+      ? this.data.selectedDate : defaultCalendarDate(calendar);
+    this.setData({
+      calendar,
+      selectedCalendarMonth: monthKey,
+      calendarMonthIndex: index,
+      calendarCanPrev: index > 0,
+      calendarCanNext: index < this.data.calendarMonthOptions.length - 1,
+      calendarRange: calendarRange(calendar),
+      selectedDate,
+      selectedDay: calendarSelection(calendar, selectedDate),
+    });
   },
 
   onSelectPlanDay(e) {
