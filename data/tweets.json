@@ -1,29 +1,90 @@
 {
   "tweets": [
     {
+      "id": "2121134582527594929",
+      "text": "Hi 👋 Doing well. Team is busy",
+      "created_at": "2026-11-13T06:54:27.000Z",
+      "url": "https://x.com/thsottiaux/status/2121134582527594929",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "argofowl",
+        "id": "",
+        "text": "openai are you good? hello?",
+        "created_at": "2026-11-12T17:13:56.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-15T00:24:06.865Z"
+    },
+    {
+      "id": "2121132369696747608",
+      "text": "Sounds like bliss",
+      "created_at": "2026-11-13T06:45:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2121132369696747608",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "snowy_smile_",
+        "id": "",
+        "text": "🚨 Attention! Tibo pretends to seek advice, but barely reads the comments or listens to anyone. Don't waste your time giving thoughtful feedback. He doesn't really care. He's just pretending to take his work seriously.",
+        "created_at": "2026-11-13T02:22:03.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-15T00:24:06.865Z"
+    },
+    {
+      "id": "2121132035653894561",
+      "text": "sino",
+      "created_at": "2026-11-13T06:44:20.000Z",
+      "url": "https://x.com/thsottiaux/status/2121132035653894561",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ajambrosino",
+        "id": "",
+        "text": "bro",
+        "created_at": "2026-11-13T02:10:12.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-15T00:24:06.865Z"
+    },
+    {
       "id": "2121062974161092792",
       "text": "How can codex be improved? Try not to say model.",
       "created_at": "2026-11-13T02:09:55.000Z",
       "account": "thsottiaux",
       "kind": "other",
       "role": "post",
-      "foundVia": "timeline",
+      "foundVia": "timeline-browser",
       "inReplyTo": null,
-      "first_seen": "2026-11-14T16:07:25.080Z"
+      "first_seen": "2026-11-14T16:07:25.080Z",
+      "url": "https://x.com/thsottiaux/status/2121062974161092792",
+      "author_verified": true
     },
     {
       "id": "2121036562058400200",
-      "text": "We announced new tools we're developing for cybersecurity today across automated patching and automated red teaming. Watch the recording here https://t.co/fW371aFjB5",
+      "text": "We announced new tools we're developing for cybersecurity today across automated patching and automated red teaming. Watch the recording here",
       "created_at": "2026-11-13T00:24:58.000Z",
       "account": "thsottiaux",
       "kind": "other",
       "role": "post",
-      "foundVia": "timeline",
+      "foundVia": "timeline-browser",
       "inReplyTo": null,
       "first_seen": "2026-11-14T16:07:25.080Z",
+      "url": "https://x.com/thsottiaux/status/2121036562058400200",
+      "author_verified": true,
       "translation": {
-        "text": "今天我们公布了自己正在开发的新网络安全工具，涵盖自动化打补丁和自动化红队测试。回放视频在这里：https://t.co/fW371aFjB5",
-        "sourceHash": "9bbcc60e15df0272c392a76e81234740f1a208404772b87ae35c8fa0b1161359",
+        "text": "我们今天公布了正在为网络安全开发的新工具，涵盖自动补丁与自动化红队。录播看这里",
+        "sourceHash": "e34cb70fa2a7ee33e8efe953ddaa1be933670b0d3159edb6c45682a9000205ee",
         "language": "zh-CN",
         "provider": "agent"
       }
@@ -35,10 +96,74 @@
       "account": "thsottiaux",
       "kind": "credit",
       "role": "post",
-      "foundVia": "timeline",
+      "foundVia": "timeline-browser",
       "inReplyTo": null,
       "first_seen": "2026-11-14T16:07:25.080Z",
-      "text_full": true
+      "text_full": true,
+      "url": "https://x.com/thsottiaux/status/2120999993079451919",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "ChatGPT",
+        "text": "Your dot now has… ⚡️ Faster replies 💬 Less jargon 🫡 Better follow-through And, they can now follow your custom instructions. Tell your dot in the thread things like how to behave or which actions need your go-ahead. “always talk in lowercase.” “Show me a draft before",
+        "created_at": "2026-11-12T20:04:24.000Z",
+        "relation": "quote"
+      }
+    },
+    {
+      "id": "2120621485442339277",
+      "text": "Hi 👋 Buzz Buzz",
+      "created_at": "2026-11-11T20:55:36.000Z",
+      "url": "https://x.com/thsottiaux/status/2120621485442339277",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "charlierguo",
+        "id": "",
+        "text": "At this level the app is just unusable aside from broadcasting, right? I had Tibo reply to a post recently and it wrecked my mentions",
+        "created_at": "2026-11-11T17:59:13.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-15T00:24:06.865Z"
+    },
+    {
+      "id": "2120411235716063700",
+      "text": "Many such cases.",
+      "created_at": "2026-11-11T07:00:08.000Z",
+      "url": "https://x.com/thsottiaux/status/2120411235716063700",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "iso_morph",
+        "id": "",
+        "text": "Astra 6 is so completely brutally better than Opus 5.5 at formal verification it's not even funny I'm using TLA to verify something we will be launching soon, and... man Opus is getting completely fried and Astra is just cruising.",
+        "created_at": "2026-11-10T04:43:53.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-15T00:24:06.865Z"
+    },
+    {
+      "id": "2120410480204525936",
+      "text": "Thursday is feeling codexy to me. Perhaps also a good time for a banked reset.",
+      "created_at": "2026-11-11T06:57:08.000Z",
+      "url": "https://x.com/thsottiaux/status/2120410480204525936",
+      "author_verified": true,
+      "kind": "credit",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-15T00:24:06.865Z",
+      "translation": {
+        "text": "周四对我来说很有 Codex 味道。或许也是个攒额度重置的好日子。",
+        "sourceHash": "34396f550d7d1ad921fed48ceaba451d5a7fa02fe79042947e73880805bce6e5",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
     },
     {
       "id": "2120410006273380750",
@@ -47,7 +172,7 @@
       "account": "thsottiaux",
       "kind": "other",
       "role": "post",
-      "foundVia": "timeline",
+      "foundVia": "timeline-browser",
       "inReplyTo": null,
       "first_seen": "2026-11-14T16:07:25.080Z",
       "translation": {
@@ -55,7 +180,47 @@
         "sourceHash": "6d135919c0c85c4f9857f3b29ed39c1fd20d1022a105231659e53d6644f22303",
         "language": "zh-CN",
         "provider": "agent"
-      }
+      },
+      "url": "https://x.com/thsottiaux/status/2120410006273380750",
+      "author_verified": true
+    },
+    {
+      "id": "2120304649807020238",
+      "text": "We're assembling one of the best teams ever and I do talk to folks at Anthropic every once in a while. Couldn't be more excited for the months ahead.",
+      "created_at": "2026-11-10T23:56:36.000Z",
+      "url": "https://x.com/thsottiaux/status/2120304649807020238",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "embw_l0x",
+        "id": "",
+        "text": "Guys this is bad Im hearing rumors that morale at OpenAI is very low with the release of Fable 5.2 They havent shipped anything worthwhile since that failure of a Dev Day Tibos in talks with Anthropic to switch companies now that OpenAI will never IPO",
+        "created_at": "2026-11-10T04:26:00.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-15T00:24:06.865Z"
+    },
+    {
+      "id": "2120267636516995218",
+      "text": "congrats",
+      "created_at": "2026-11-10T21:29:31.000Z",
+      "url": "https://x.com/thsottiaux/status/2120267636516995218",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "inferencetoken",
+        "id": "",
+        "text": "Guess this is my job now",
+        "created_at": "2026-11-10T19:19:20.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-15T00:24:06.865Z"
     },
     {
       "id": "2120267268517249036",
@@ -64,9 +229,72 @@
       "account": "thsottiaux",
       "kind": "other",
       "role": "post",
-      "foundVia": "timeline",
+      "foundVia": "timeline-browser",
       "inReplyTo": null,
-      "first_seen": "2026-11-14T16:07:25.080Z"
+      "first_seen": "2026-11-14T16:07:25.080Z",
+      "url": "https://x.com/thsottiaux/status/2120267268517249036",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "OpenAI",
+        "text": "Now in beta: Businesses in ChatGPT. Claim your business, manage your information, and get insights on how people engage with you. Eligible businesses can also build a Business Agent to answer customers’ questions and help them explore what you offer. https:// openai.com/index/introduc ing-businesses-chatgpt/ …",
+        "created_at": "2026-11-10T18:06:42.000Z",
+        "relation": "quote"
+      }
+    },
+    {
+      "id": "2120266880963473789",
+      "text": "Labs innovating together ftw",
+      "created_at": "2026-11-10T21:26:31.000Z",
+      "url": "https://x.com/thsottiaux/status/2120266880963473789",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "claudeai",
+        "text": "Also new: with interactive connectors, you can now open the full version of a tool inside Claude. Work in Adobe, Atlassian, and Box beside your conversation. Make changes yourself, or ask Claude to make them with you. Rolling out on web and desktop.",
+        "created_at": "2026-11-10T17:26:06.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-15T00:24:06.865Z"
+    },
+    {
+      "id": "2120021043876106429",
+      "text": "Dots can now control many machines in addition to its own little cloud computer that we provide by default.",
+      "created_at": "2026-11-10T05:09:39.000Z",
+      "url": "https://x.com/thsottiaux/status/2120021043876106429",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "OpenAIDevs",
+        "text": "You can now connect multiple local computers to the same dot and choose which one it uses for a task. It can build and test your app on a dedicated machine while you keep coding on your laptop.",
+        "created_at": "2026-11-09T20:01:49.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-15T00:24:06.865Z"
+    },
+    {
+      "id": "2120018604691521609",
+      "text": "good evening",
+      "created_at": "2026-11-10T04:59:58.000Z",
+      "url": "https://x.com/thsottiaux/status/2120018604691521609",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "ajambrosino",
+        "id": "",
+        "text": "good morning",
+        "created_at": "2026-11-09T14:12:13.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-15T00:24:06.865Z"
     },
     {
       "id": "2119611877810639072",
@@ -11011,8 +11239,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-14T16:07:25.083Z",
-  "source": "html",
-  "coverage_since": "2026-10-24T06:06:16.000Z",
-  "degraded": "采集专用 Chrome 未登录 x.com（与日常浏览器窗口的登录态独立）"
+  "updated_at": "2026-11-15T00:24:06.868Z",
+  "source": "browser",
+  "coverage_since": "2026-10-24T06:06:16.000Z"
 }
