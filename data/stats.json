@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-25T06:06:16.000Z",
     "last_text": "It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ https://t.co/xKaK95EAly",
-    "days_since_last": 20.76239587962963,
+    "days_since_last": 21.163003425925925,
     "avg_interval_days": 6.201318376068373,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.358045775625218,
@@ -14,86 +14,29 @@
     "reset_count": 59,
     "hit_within_avg": 0.7230769230769231
   },
-  "generated_at": "2026-11-15T00:24:07.177Z",
+  "generated_at": "2026-11-15T10:00:59.632Z",
   "collect": {
-    "mode": "full",
+    "mode": "incremental",
     "source": "browser",
-    "stoppedBy": "floor",
-    "newTweets": 11,
-    "knownCount": 610,
+    "stoppedBy": "known",
+    "newTweets": 1,
+    "knownCount": 621,
     "reply": {
-      "mode": "full",
-      "stoppedBy": "no-more",
-      "steps": 13,
-      "harvested": 10,
-      "withContext": 8,
+      "mode": "incremental",
+      "stoppedBy": "known",
+      "steps": 1,
+      "harvested": 3,
+      "withContext": 3,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 7,
-      "attempted": 7,
-      "fetched": 7,
+      "candidates": 0,
+      "attempted": 0,
+      "fetched": 0,
       "skipped": 0,
       "missingReplyContext": [],
-      "scanned": [
-        {
-          "id": "2115273253711409208",
-          "length": 22,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": true,
-          "replyContextStatus": "verified"
-        },
-        {
-          "id": "2114237083652882932",
-          "length": 75,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": true,
-          "replyContextStatus": "verified"
-        },
-        {
-          "id": "2114200291319124163",
-          "length": 15,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": true,
-          "replyContextStatus": "verified"
-        },
-        {
-          "id": "2117283124833055196",
-          "length": 271,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": false,
-          "replyContextStatus": "not-required"
-        },
-        {
-          "id": "2115850175868727621",
-          "length": 521,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": false,
-          "replyContextStatus": "not-required"
-        },
-        {
-          "id": "2115588390414581916",
-          "length": 273,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": false,
-          "replyContextStatus": "not-required"
-        },
-        {
-          "id": "2114800277677092936",
-          "length": 256,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": false,
-          "replyContextStatus": "not-required"
-        }
-      ]
+      "scanned": []
     }
   },
   "history": {
@@ -101,7 +44,7 @@
     "updated": 0,
     "removed": 0,
     "upstreamCount": 72,
-    "refreshedAt": "2026-11-15T00:22:59.615Z",
+    "refreshedAt": "2026-11-15T10:00:46.012Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
