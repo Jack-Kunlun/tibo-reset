@@ -1,6 +1,18 @@
 {
   "tweets": [
     {
+      "id": "2122206990101536852",
+      "text": "Codex team might have actually fixed the \"model at capacity\" errors that have been pestering you.",
+      "created_at": "2026-11-16T05:55:49.000Z",
+      "url": "https://x.com/thsottiaux/status/2122206990101536852",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-16T10:01:58.325Z"
+    },
+    {
       "id": "2121845965997101118",
       "text": "Cyber team wants your feedback on Daybreak. Models, codex plugins, blue/red access, documentation, red teaming & defense factory... What can we do better or improve?",
       "created_at": "2026-11-15T06:01:14.000Z",
@@ -11251,7 +11263,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-15T10:00:59.363Z",
+  "updated_at": "2026-11-16T10:01:58.326Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
