@@ -1,11 +1,11 @@
 {
   "level": "explicit",
   "program": null,
-  "generatedAt": "2026-11-17T16:06:05.432Z",
-  "checkedTweets": 584,
+  "generatedAt": "2026-11-17T22:06:38.428Z",
+  "checkedTweets": 582,
   "lookbackDays": 60,
-  "windowFrom": "2026-09-18T16:06:05.432Z",
-  "windowTo": "2026-11-17T16:06:05.432Z",
+  "windowFrom": "2026-09-18T22:06:38.428Z",
+  "windowTo": "2026-11-17T22:06:38.428Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -15,8 +15,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.11.18",
       "weekday": "周三",
-      "time": "00:06",
-      "text": "2026.11.18（周三）00:06",
+      "time": "06:06",
+      "text": "2026.11.18（周三）06:06",
       "offset": "UTC+8"
     },
     "b": {
@@ -24,52 +24,48 @@
       "zone": "America/Los_Angeles",
       "date": "2026.11.17",
       "weekday": "周二",
-      "time": "08:06",
-      "text": "2026.11.17（周二）08:06",
+      "time": "14:06",
+      "text": "2026.11.17（周二）14:06",
       "offset": "UTC-8"
     },
     "diffHours": 16,
     "diffText": "北京时间比 Tibo 当地时间快 16 小时"
   },
   "latest": {
-    "id": "2122534533216268747",
+    "id": "2122754551187132438",
     "account": "thsottiaux",
-    "text": "6.1 Sol forever",
-    "createdAt": "2026-11-17T03:37:22.000Z",
-    "url": "https://x.com/thsottiaux/status/2122534533216268747",
+    "text": "These models are extremely efficient, which you feel in speed to complete tasks, cost and how much further your usage goes",
+    "createdAt": "2026-11-17T18:11:38.000Z",
+    "url": "https://x.com/thsottiaux/status/2122754551187132438",
     "reasons": [
-      "上下文：回复 @AdamHoltererer「OpenAI really needs to release a new…」"
+      "命中额度词 limits/usage/credits"
     ],
     "viaContext": false,
-    "inReplyTo": {
-      "account": "AdamHoltererer",
-      "id": "",
-      "text": "OpenAI really needs to release a new model soon"
-    },
+    "inReplyTo": null,
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.11.17",
-        "weekday": "周二",
-        "time": "11:37",
-        "text": "2026.11.17（周二）11:37",
+        "date": "2026.11.18",
+        "weekday": "周三",
+        "time": "02:11",
+        "text": "2026.11.18（周三）02:11",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.11.16",
-        "weekday": "周一",
-        "time": "19:37",
-        "text": "2026.11.16（周一）19:37",
+        "date": "2026.11.17",
+        "weekday": "周二",
+        "time": "10:11",
+        "text": "2026.11.17（周二）10:11",
         "offset": "UTC-8"
       },
       "diffText": "北京时间比 Tibo 当地时间快 16 小时"
     },
-    "level": "none",
-    "rejected": "无额度相关词",
-    "intent": 0,
+    "level": "hint",
+    "rejected": "有额度意图但没给出时间，只能作线索",
+    "intent": 2,
     "window": null,
     "candidateWindow": null
   },
@@ -811,6 +807,44 @@
   ],
   "hints": [
     {
+      "id": "2122754551187132438",
+      "account": "thsottiaux",
+      "text": "These models are extremely efficient, which you feel in speed to complete tasks, cost and how much further your usage goes",
+      "createdAt": "2026-11-17T18:11:38.000Z",
+      "url": "https://x.com/thsottiaux/status/2122754551187132438",
+      "reasons": [
+        "命中额度词 limits/usage/credits"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.18",
+          "weekday": "周三",
+          "time": "02:11",
+          "text": "2026.11.18（周三）02:11",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.17",
+          "weekday": "周二",
+          "time": "10:11",
+          "text": "2026.11.17（周二）10:11",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "hint",
+      "rejected": "有额度意图但没给出时间，只能作线索",
+      "intent": 2,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
       "id": "2121036562058400200",
       "account": "thsottiaux",
       "text": "We announced new tools we're developing for cybersecurity today across automated patching and automated red teaming. Watch the recording here",
@@ -906,7 +940,7 @@
         "from": "2026-11-12T08:00:00.000Z",
         "to": "2026-11-13T07:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-17T16:06:05.432Z"
+        "checkedAt": "2026-11-17T22:06:38.428Z"
       }
     },
     {
@@ -1477,7 +1511,7 @@
         "from": "2026-10-29T07:00:00.000Z",
         "to": "2026-10-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-17T16:06:05.432Z"
+        "checkedAt": "2026-11-17T22:06:38.428Z"
       }
     },
     {
@@ -3787,7 +3821,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-11-17T16:06:05.432Z"
+        "checkedAt": "2026-11-17T22:06:38.428Z"
       }
     },
     {
@@ -4568,6 +4602,44 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2122753991000133943",
+      "account": "thsottiaux",
+      "text": "GPT-6.2 Sol & Astra are *finally* here. We've also expanded ultrafast to Pro 200 plans for GPT-6.2 Sol, it's my go-to model for most day to day things.",
+      "createdAt": "2026-11-17T18:09:24.000Z",
+      "url": "https://x.com/thsottiaux/status/2122753991000133943",
+      "reasons": [
+        "含发布/宣传语境（下调置信度）"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.18",
+          "weekday": "周三",
+          "time": "02:09",
+          "text": "2026.11.18（周三）02:09",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.17",
+          "weekday": "周二",
+          "time": "10:09",
+          "text": "2026.11.17（周二）10:09",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2122534533216268747",
       "account": "thsottiaux",
@@ -12632,48 +12704,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2110864861119045840",
-      "account": "thsottiaux",
-      "text": "我用法语编程",
-      "createdAt": "2026-10-15T22:46:15.000Z",
-      "url": "https://x.com/thsottiaux/status/2110864861119045840",
-      "reasons": [
-        "上下文：回复 @_simonsmith「I'm thoroughly Dots-pilled. Still a …」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "_simonsmith",
-        "id": "",
-        "text": "I'm thoroughly Dots-pilled. Still a fan of Muse, but probably 75-80% of my AI requests now go through Dots. The primary exception: learning things in chat. For that, GPT-6 Instant with Dynamic UI is unmatched. Just incredible. Some recent Dots work and personal tasks: - Build"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.16",
-          "weekday": "周五",
-          "time": "06:46",
-          "text": "2026.10.16（周五）06:46",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.15",
-          "weekday": "周四",
-          "time": "15:46",
-          "text": "2026.10.15（周四）15:46",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12813,12 +12843,12 @@
     }
   ],
   "counts": {
-    "scanned": 584,
+    "scanned": 582,
     "explicit": 4,
     "occurred": 11,
-    "hint": 76,
-    "none": 472,
-    "rejected": 472
+    "hint": 77,
+    "none": 469,
+    "rejected": 469
   },
   "truncated": true
 }
