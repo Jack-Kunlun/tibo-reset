@@ -1,6 +1,25 @@
 {
   "tweets": [
     {
+      "id": "2122534533216268747",
+      "text": "6.1 Sol forever",
+      "created_at": "2026-11-17T03:37:22.000Z",
+      "url": "https://x.com/thsottiaux/status/2122534533216268747",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "AdamHoltererer",
+        "id": "",
+        "text": "OpenAI really needs to release a new model soon",
+        "created_at": "2026-11-16T18:01:24.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-17T04:01:48.286Z"
+    },
+    {
       "id": "2122206990101536852",
       "text": "Codex team might have actually fixed the \"model at capacity\" errors that have been pestering you.",
       "created_at": "2026-11-16T05:55:49.000Z",
@@ -180,7 +199,7 @@
       "kind": "credit",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-15T00:24:06.865Z",
       "translation": {
         "text": "周四对我来说很有 Codex 味道。或许也是个攒额度重置的好日子。",
@@ -196,7 +215,7 @@
       "account": "thsottiaux",
       "kind": "other",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "inReplyTo": null,
       "first_seen": "2026-11-14T16:07:25.080Z",
       "translation": {
@@ -11263,7 +11282,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-16T10:01:58.326Z",
+  "updated_at": "2026-11-17T04:01:48.290Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
