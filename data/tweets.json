@@ -199,7 +199,7 @@
       "kind": "credit",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "with-replies",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-11-15T00:24:06.865Z",
       "translation": {
         "text": "周四对我来说很有 Codex 味道。或许也是个攒额度重置的好日子。",
@@ -215,7 +215,7 @@
       "account": "thsottiaux",
       "kind": "other",
       "role": "post",
-      "foundVia": "with-replies",
+      "foundVia": "timeline-browser",
       "inReplyTo": null,
       "first_seen": "2026-11-14T16:07:25.080Z",
       "translation": {
@@ -818,7 +818,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-07T10:02:10.146Z"
     },
     {
@@ -836,7 +836,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-07T10:02:10.146Z"
     },
     {
@@ -942,7 +942,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-06T22:01:48.646Z",
       "translation": {
         "text": "还有更多东西要来，11 月 12 日上午 10 点（太平洋时间），欢迎加入我们的 Cyber at the Frontier 直播：",
@@ -1036,7 +1036,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-06T10:02:06.396Z"
     },
     {
@@ -1048,7 +1048,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-06T10:02:06.396Z"
     },
     {
@@ -1110,7 +1110,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-06T04:03:25.371Z"
     },
     {
@@ -1147,7 +1147,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-06T04:03:25.371Z"
     },
     {
@@ -1202,7 +1202,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-05T22:00:55.326Z"
     },
     {
@@ -1509,7 +1509,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-05T04:02:52.918Z"
     },
     {
@@ -1527,7 +1527,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-05T04:02:52.918Z"
     },
     {
@@ -1558,7 +1558,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-05T04:02:52.918Z"
     },
     {
@@ -1576,7 +1576,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-05T04:02:52.918Z"
     },
     {
@@ -1881,7 +1881,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-02T16:01:42.371Z"
     },
     {
@@ -1893,7 +1893,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-02T16:01:42.371Z"
     },
     {
@@ -2028,7 +2028,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-01T20:01:30.020Z"
     },
     {
@@ -2040,7 +2040,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-01T20:01:30.020Z"
     },
     {
@@ -2333,7 +2333,7 @@
       "kind": "reset",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-29T20:01:19.822Z"
     },
     {
@@ -2346,7 +2346,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-29T20:01:19.822Z",
       "translation": {
         "text": "第 25 天 / 今天起，Pro 100/200/500 各档以及 Business Premium 的全部用量上限翻倍。我们听到了大家的反馈，不会下调 Pro 200 的用量上限，所以你的 Work 和 Codex 用量保持不变。dot 的额外额度暂时也会继续给，而且 dot 的用量依旧与默认用量分开算。当然，我们也会继续推出更好的模型和更多效率改进，让你的实际可用量随时间提升。",
@@ -2697,7 +2697,7 @@
       "kind": "reset",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-28T03:02:43.419Z",
       "translation": {
         "text": "第 23 天 / 大家一直催的 iCloud 邮件与日历插件。开玩笑的，今天其实是重置日。不过大家还是真的很想要！",
@@ -3075,7 +3075,7 @@
       "kind": "reset",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-10-25T04:03:01.063Z",
       "translation": {
         "text": "第 20 天 / 休整并重置",
@@ -11282,7 +11282,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-17T04:01:48.290Z",
+  "updated_at": "2026-11-17T16:06:05.410Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
