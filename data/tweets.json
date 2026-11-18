@@ -1,6 +1,100 @@
 {
   "tweets": [
     {
+      "id": "2123151267002503570",
+      "text": "Climbing",
+      "created_at": "2026-11-18T20:28:02.000Z",
+      "url": "https://x.com/thsottiaux/status/2123151267002503570",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "AdamHoltererer",
+        "id": "",
+        "text": "Based on my very limited experience:",
+        "created_at": "2026-11-18T15:18:53.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-18T22:01:54.532Z"
+    },
+    {
+      "id": "2123150581321883811",
+      "text": "GG",
+      "created_at": "2026-11-18T20:25:19.000Z",
+      "url": "https://x.com/thsottiaux/status/2123150581321883811",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "Leapofcode",
+        "id": "",
+        "text": "🏆 AND WE HAVE A WINNER! GPT-6.2 Astra defeats Claude Fable 5.2 ♟️ Final Stats: 71 moves | 204,219 tokens | $2.0671 Token & Cost Breakdown: • GPT-6.2 Astra: 70,203 tokens | $0.6052 • Claude Fable 5.2: 134,016 tokens | $1.4619 Astra takes the win using almost half the",
+        "created_at": "2026-11-18T15:38:25.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-18T22:01:54.532Z"
+    },
+    {
+      "id": "2123113107048501273",
+      "text": "How is 6.2 Sol treating you today?",
+      "created_at": "2026-11-18T17:56:24.000Z",
+      "url": "https://x.com/thsottiaux/status/2123113107048501273",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-18T22:01:54.532Z",
+      "translation": {
+        "text": "今天 6.2 Sol 用着还顺手吗？",
+        "sourceHash": "bde390b7fd178426f08761ad554174df8849b745689de7a506a690a04dc7981a",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
+      "id": "2123112903809318994",
+      "text": "What are you using it for?",
+      "created_at": "2026-11-18T17:55:36.000Z",
+      "url": "https://x.com/thsottiaux/status/2123112903809318994",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "Yampeleg",
+        "id": "",
+        "text": "No, you are all wrong. Astra 6.2 is insanely good.",
+        "created_at": "2026-11-18T09:48:16.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-18T22:01:54.532Z"
+    },
+    {
+      "id": "2123112623294320913",
+      "text": "Thank you Theo ❤️",
+      "created_at": "2026-11-18T17:54:29.000Z",
+      "url": "https://x.com/thsottiaux/status/2123112623294320913",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "I took this to heart and spent the last few hours doing another deep dive on GPT-6.2 Astra tl;dr - things are better than when I tested, but IMO still \"directionally, very bad\" I'm going to keep using the same example I've hyperfixated on since the start: \"why is creating a",
+        "created_at": "2026-11-18T09:54:17.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-18T22:01:54.532Z"
+    },
+    {
       "id": "2122954129094111394",
       "text": "I do think you all coordinated on a slack channel 👀",
       "created_at": "2026-11-18T07:24:41.000Z",
@@ -11691,7 +11785,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-18T16:08:00.709Z",
+  "updated_at": "2026-11-18T22:01:54.535Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }

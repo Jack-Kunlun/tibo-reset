@@ -1,11 +1,11 @@
 {
   "level": "explicit",
   "program": null,
-  "generatedAt": "2026-11-18T16:08:00.733Z",
-  "checkedTweets": 594,
+  "generatedAt": "2026-11-18T22:01:54.559Z",
+  "checkedTweets": 593,
   "lookbackDays": 60,
-  "windowFrom": "2026-09-19T16:08:00.733Z",
-  "windowTo": "2026-11-18T16:08:00.733Z",
+  "windowFrom": "2026-09-19T22:01:54.559Z",
+  "windowTo": "2026-11-18T22:01:54.559Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -15,8 +15,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.11.19",
       "weekday": "周四",
-      "time": "00:08",
-      "text": "2026.11.19（周四）00:08",
+      "time": "06:01",
+      "text": "2026.11.19（周四）06:01",
       "offset": "UTC+8"
     },
     "b": {
@@ -24,45 +24,45 @@
       "zone": "America/Los_Angeles",
       "date": "2026.11.18",
       "weekday": "周三",
-      "time": "08:08",
-      "text": "2026.11.18（周三）08:08",
+      "time": "14:01",
+      "text": "2026.11.18（周三）14:01",
       "offset": "UTC-8"
     },
     "diffHours": 16,
     "diffText": "北京时间比 Tibo 当地时间快 16 小时"
   },
   "latest": {
-    "id": "2122954129094111394",
+    "id": "2123151267002503570",
     "account": "thsottiaux",
-    "text": "I do think you all coordinated on a slack channel 👀",
-    "createdAt": "2026-11-18T07:24:41.000Z",
-    "url": "https://x.com/thsottiaux/status/2122954129094111394",
+    "text": "Climbing",
+    "createdAt": "2026-11-18T20:28:02.000Z",
+    "url": "https://x.com/thsottiaux/status/2123151267002503570",
     "reasons": [
-      "上下文：回复 @mattshumer_「Why are they all posting reviews at …」"
+      "上下文：回复 @AdamHoltererer「Based on my very limited experience:…」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "mattshumer_",
+      "account": "AdamHoltererer",
       "id": "",
-      "text": "Why are they all posting reviews at the same time: there's an embargo. Why are the reviews all negative: the model is bad. It's pretty simple, guys. There's no conspiracy. We're just giving our opinions."
+      "text": "Based on my very limited experience:"
     },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.11.18",
-        "weekday": "周三",
-        "time": "15:24",
-        "text": "2026.11.18（周三）15:24",
+        "date": "2026.11.19",
+        "weekday": "周四",
+        "time": "04:28",
+        "text": "2026.11.19（周四）04:28",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.11.17",
-        "weekday": "周二",
-        "time": "23:24",
-        "text": "2026.11.17（周二）23:24",
+        "date": "2026.11.18",
+        "weekday": "周三",
+        "time": "12:28",
+        "text": "2026.11.18（周三）12:28",
         "offset": "UTC-8"
       },
       "diffText": "北京时间比 Tibo 当地时间快 16 小时"
@@ -811,6 +811,50 @@
   ],
   "hints": [
     {
+      "id": "2123113107048501273",
+      "account": "thsottiaux",
+      "text": "How is 6.2 Sol treating you today?",
+      "createdAt": "2026-11-18T17:56:24.000Z",
+      "url": "https://x.com/thsottiaux/status/2123113107048501273",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.19",
+          "weekday": "周四",
+          "time": "01:56",
+          "text": "2026.11.19（周四）01:56",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.18",
+          "weekday": "周三",
+          "time": "09:56",
+          "text": "2026.11.18（周三）09:56",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "hint",
+      "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": {
+        "word": "today",
+        "precision": "day",
+        "from": "2026-11-18T08:00:00.000Z",
+        "to": "2026-11-19T07:59:00.000Z",
+        "dayNum": 20775,
+        "spec": 72,
+        "note": null
+      }
+    },
+    {
       "id": "2122929634916679820",
       "account": "thsottiaux",
       "text": "One of the funny reasons for the difference in vibes between the influencers and the crowd today on 6.2 Sol/Astra is that we gave a few folks access a while ago and then made a lot of changes in the last 3-4 days and I'm pretty sure no re-testing was done within those days and the videos were produced last week. Don't get me wrong, while the models are a hefty jump compared to their GPT predecessors, they are by no means perfect and there are a few things the teams are excited for the models to get better at in future iterations in terms of taste and niceness of use. Love all the feedback and we hear you!",
@@ -988,7 +1032,7 @@
         "from": "2026-11-12T08:00:00.000Z",
         "to": "2026-11-13T07:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-18T16:08:00.733Z"
+        "checkedAt": "2026-11-18T22:01:54.559Z"
       }
     },
     {
@@ -1559,7 +1603,7 @@
         "from": "2026-10-29T07:00:00.000Z",
         "to": "2026-10-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-18T16:08:00.733Z"
+        "checkedAt": "2026-11-18T22:01:54.559Z"
       }
     },
     {
@@ -3869,7 +3913,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-11-18T16:08:00.733Z"
+        "checkedAt": "2026-11-18T22:01:54.559Z"
       }
     },
     {
@@ -4508,6 +4552,174 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2123151267002503570",
+      "account": "thsottiaux",
+      "text": "Climbing",
+      "createdAt": "2026-11-18T20:28:02.000Z",
+      "url": "https://x.com/thsottiaux/status/2123151267002503570",
+      "reasons": [
+        "上下文：回复 @AdamHoltererer「Based on my very limited experience:…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "AdamHoltererer",
+        "id": "",
+        "text": "Based on my very limited experience:"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.19",
+          "weekday": "周四",
+          "time": "04:28",
+          "text": "2026.11.19（周四）04:28",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.18",
+          "weekday": "周三",
+          "time": "12:28",
+          "text": "2026.11.18（周三）12:28",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2123150581321883811",
+      "account": "thsottiaux",
+      "text": "GG",
+      "createdAt": "2026-11-18T20:25:19.000Z",
+      "url": "https://x.com/thsottiaux/status/2123150581321883811",
+      "reasons": [
+        "上下文：回复 @Leapofcode「🏆 AND WE HAVE A WINNER! GPT-6.2 Ast…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "Leapofcode",
+        "id": "",
+        "text": "🏆 AND WE HAVE A WINNER! GPT-6.2 Astra defeats Claude Fable 5.2 ♟️ Final Stats: 71 moves | 204,219 tokens | $2.0671 Token & Cost Breakdown: • GPT-6.2 Astra: 70,203 tokens | $0.6052 • Claude Fable 5.2: 134,016 tokens | $1.4619 Astra takes the win using almost half the"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.19",
+          "weekday": "周四",
+          "time": "04:25",
+          "text": "2026.11.19（周四）04:25",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.18",
+          "weekday": "周三",
+          "time": "12:25",
+          "text": "2026.11.18（周三）12:25",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2123112903809318994",
+      "account": "thsottiaux",
+      "text": "What are you using it for?",
+      "createdAt": "2026-11-18T17:55:36.000Z",
+      "url": "https://x.com/thsottiaux/status/2123112903809318994",
+      "reasons": [
+        "上下文：回复 @Yampeleg「No, you are all wrong. Astra 6.2 is …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "Yampeleg",
+        "id": "",
+        "text": "No, you are all wrong. Astra 6.2 is insanely good."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.19",
+          "weekday": "周四",
+          "time": "01:55",
+          "text": "2026.11.19（周四）01:55",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.18",
+          "weekday": "周三",
+          "time": "09:55",
+          "text": "2026.11.18（周三）09:55",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2123112623294320913",
+      "account": "thsottiaux",
+      "text": "Thank you Theo ❤️",
+      "createdAt": "2026-11-18T17:54:29.000Z",
+      "url": "https://x.com/thsottiaux/status/2123112623294320913",
+      "reasons": [
+        "上下文：回复 @theo「I took this to heart and spent the l…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "I took this to heart and spent the last few hours doing another deep dive on GPT-6.2 Astra tl;dr - things are better than when I tested, but IMO still \"directionally, very bad\" I'm going to keep using the same example I've hyperfixated on since the start: \"why is creating a"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.19",
+          "weekday": "周四",
+          "time": "01:54",
+          "text": "2026.11.19（周四）01:54",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.18",
+          "weekday": "周三",
+          "time": "09:54",
+          "text": "2026.11.18（周三）09:54",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2122954129094111394",
       "account": "thsottiaux",
@@ -12459,174 +12671,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2111523665817047359",
-      "account": "thsottiaux",
-      "text": "🍺👌",
-      "createdAt": "2026-10-17T18:24:06.000Z",
-      "url": "https://x.com/thsottiaux/status/2111523665817047359",
-      "reasons": [
-        "上下文：回复 @ajambrosino「hold my beer…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "ajambrosino",
-        "id": "",
-        "text": "hold my beer"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.18",
-          "weekday": "周日",
-          "time": "02:24",
-          "text": "2026.10.18（周日）02:24",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.17",
-          "weekday": "周六",
-          "time": "11:24",
-          "text": "2026.10.17（周六）11:24",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2111523462372372942",
-      "account": "thsottiaux",
-      "text": "Bit blurry",
-      "createdAt": "2026-10-17T18:23:18.000Z",
-      "url": "https://x.com/thsottiaux/status/2111523462372372942",
-      "reasons": [
-        "上下文：回复 @gabrielchua「With plugin extensions, I can custom…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "gabrielchua",
-        "id": "",
-        "text": "With plugin extensions, I can customise my Codex desktop app. Google cal feels a bit too cluttered for me, so I built a simpler focused month and day view, exactly how I like it. Software for n=1"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.18",
-          "weekday": "周日",
-          "time": "02:23",
-          "text": "2026.10.18（周日）02:23",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.17",
-          "weekday": "周六",
-          "time": "11:23",
-          "text": "2026.10.17（周六）11:23",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2111522308666077527",
-      "account": "thsottiaux",
-      "text": "Let’s pump those numbers up",
-      "createdAt": "2026-10-17T18:18:43.000Z",
-      "url": "https://x.com/thsottiaux/status/2111522308666077527",
-      "reasons": [
-        "上下文：回复 @jkeatn「7,000 followers! don’t ask me anythi…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "jkeatn",
-        "id": "",
-        "text": "7,000 followers! don’t ask me anything, I work at anthropic"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.18",
-          "weekday": "周日",
-          "time": "02:18",
-          "text": "2026.10.18（周日）02:18",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.17",
-          "weekday": "周六",
-          "time": "11:18",
-          "text": "2026.10.17（周六）11:18",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2111495569806065883",
-      "account": "thsottiaux",
-      "text": "@ah20im start a ghost in the machine tactical squad, we've got a degradation",
-      "createdAt": "2026-10-17T16:32:28.000Z",
-      "url": "https://x.com/thsottiaux/status/2111495569806065883",
-      "reasons": [
-        "上下文：回复 @ajambrosino「green…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "ajambrosino",
-        "id": "",
-        "text": "green"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.18",
-          "weekday": "周日",
-          "time": "00:32",
-          "text": "2026.10.18（周日）00:32",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.17",
-          "weekday": "周六",
-          "time": "09:32",
-          "text": "2026.10.17（周六）09:32",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12766,12 +12810,12 @@
     }
   ],
   "counts": {
-    "scanned": 594,
+    "scanned": 593,
     "explicit": 4,
     "occurred": 11,
-    "hint": 75,
-    "none": 483,
-    "rejected": 483
+    "hint": 76,
+    "none": 482,
+    "rejected": 482
   },
   "truncated": true
 }
