@@ -1,11 +1,11 @@
 {
   "level": "explicit",
   "program": null,
-  "generatedAt": "2026-11-17T22:06:38.428Z",
-  "checkedTweets": 582,
+  "generatedAt": "2026-11-18T04:08:00.927Z",
+  "checkedTweets": 583,
   "lookbackDays": 60,
-  "windowFrom": "2026-09-18T22:06:38.428Z",
-  "windowTo": "2026-11-17T22:06:38.428Z",
+  "windowFrom": "2026-09-19T04:08:00.927Z",
+  "windowTo": "2026-11-18T04:08:00.927Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -15,8 +15,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.11.18",
       "weekday": "周三",
-      "time": "06:06",
-      "text": "2026.11.18（周三）06:06",
+      "time": "12:08",
+      "text": "2026.11.18（周三）12:08",
       "offset": "UTC+8"
     },
     "b": {
@@ -24,32 +24,36 @@
       "zone": "America/Los_Angeles",
       "date": "2026.11.17",
       "weekday": "周二",
-      "time": "14:06",
-      "text": "2026.11.17（周二）14:06",
+      "time": "20:08",
+      "text": "2026.11.17（周二）20:08",
       "offset": "UTC-8"
     },
     "diffHours": 16,
     "diffText": "北京时间比 Tibo 当地时间快 16 小时"
   },
   "latest": {
-    "id": "2122754551187132438",
+    "id": "2122902327443300537",
     "account": "thsottiaux",
-    "text": "These models are extremely efficient, which you feel in speed to complete tasks, cost and how much further your usage goes",
-    "createdAt": "2026-11-17T18:11:38.000Z",
-    "url": "https://x.com/thsottiaux/status/2122754551187132438",
+    "text": "What are they getting wrong? Curious",
+    "createdAt": "2026-11-18T03:58:51.000Z",
+    "url": "https://x.com/thsottiaux/status/2122902327443300537",
     "reasons": [
-      "命中额度词 limits/usage/credits"
+      "上下文：回复 @adonis_singh「6.2-Astra and 6.2-Sol take #1 and #2…」"
     ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "adonis_singh",
+      "id": "",
+      "text": "6.2-Astra and 6.2-Sol take #1 and #2 on Eyebench! Both are within 2 questions of a perfect score. Sol is also the cheapest model in the top 10, which is quite insane"
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.11.18",
         "weekday": "周三",
-        "time": "02:11",
-        "text": "2026.11.18（周三）02:11",
+        "time": "11:58",
+        "text": "2026.11.18（周三）11:58",
         "offset": "UTC+8"
       },
       "b": {
@@ -57,15 +61,15 @@
         "zone": "America/Los_Angeles",
         "date": "2026.11.17",
         "weekday": "周二",
-        "time": "10:11",
-        "text": "2026.11.17（周二）10:11",
+        "time": "19:58",
+        "text": "2026.11.17（周二）19:58",
         "offset": "UTC-8"
       },
       "diffText": "北京时间比 Tibo 当地时间快 16 小时"
     },
-    "level": "hint",
-    "rejected": "有额度意图但没给出时间，只能作线索",
-    "intent": 2,
+    "level": "none",
+    "rejected": "无额度相关词",
+    "intent": 0,
     "window": null,
     "candidateWindow": null
   },
@@ -940,7 +944,7 @@
         "from": "2026-11-12T08:00:00.000Z",
         "to": "2026-11-13T07:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-17T22:06:38.428Z"
+        "checkedAt": "2026-11-18T04:08:00.927Z"
       }
     },
     {
@@ -1511,7 +1515,7 @@
         "from": "2026-10-29T07:00:00.000Z",
         "to": "2026-10-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-17T22:06:38.428Z"
+        "checkedAt": "2026-11-18T04:08:00.927Z"
       }
     },
     {
@@ -3821,7 +3825,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-11-17T22:06:38.428Z"
+        "checkedAt": "2026-11-18T04:08:00.927Z"
       }
     },
     {
@@ -4200,148 +4204,6 @@
         "spec": 96,
         "note": null
       }
-    },
-    {
-      "id": "2101158161994699036",
-      "account": "thsottiaux",
-      "text": "You main Sol? And out of curiosity, you never buy credits?",
-      "createdAt": "2026-09-19T03:55:18.000Z",
-      "url": "https://x.com/thsottiaux/status/2101158161994699036",
-      "reasons": [
-        "命中额度词 limits/usage/credits",
-        "上下文：回复 @stemonteduro「i'm a little bit disappointed with O…」",
-        "被回复的推文含额度语境（本条无延续语气，不借意图）"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "stemonteduro",
-        "id": "",
-        "text": "i'm a little bit disappointed with OpenAI. I'm running out of my weekly usage limit: • I can't upgrade to the $200 plan • I can't use Astra, and I haven't used it all week • Despite all of this, there has been no reset this week In less than 1h, I'll be forced to switch to"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.19",
-          "weekday": "周六",
-          "time": "11:55",
-          "text": "2026.09.19（周六）11:55",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.18",
-          "weekday": "周五",
-          "time": "20:55",
-          "text": "2026.09.18（周五）20:55",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "hint",
-      "rejected": "有额度意图但没给出时间，只能作线索",
-      "intent": 2,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2101157729037586694",
-      "account": "thsottiaux",
-      "text": "We were working on the keynote today with @romainhuet and @sama and most of the fun was trying to figure out how to explain it all to you because there is so much good stuff in there that it's a bit ridiculous all in quick succession. We'll have some things next week already to not keep you waiting so long, but very excited to show you all new things we've been working on and how it will all come together in the coming months.",
-      "createdAt": "2026-09-19T03:53:34.000Z",
-      "url": "https://x.com/thsottiaux/status/2101157729037586694",
-      "reasons": [
-        "命中「新额度」类词 fresh/new/top up",
-        "含未来语气",
-        "含发布/宣传语境（下调置信度）"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.19",
-          "weekday": "周六",
-          "time": "11:53",
-          "text": "2026.09.19（周六）11:53",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.18",
-          "weekday": "周五",
-          "time": "20:53",
-          "text": "2026.09.18（周五）20:53",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "hint",
-      "rejected": "含时间表达「today」但没有额度相关词，不作为重置信号",
-      "intent": 1,
-      "window": null,
-      "candidateWindow": {
-        "word": "today",
-        "precision": "day",
-        "from": "2026-09-18T07:00:00.000Z",
-        "to": "2026-09-19T06:59:00.000Z",
-        "dayNum": 20714,
-        "spec": 72,
-        "note": null
-      }
-    },
-    {
-      "id": "2101126440469344384",
-      "account": "thsottiaux",
-      "text": "We have content for maybe 3 dev days",
-      "createdAt": "2026-09-19T01:49:15.000Z",
-      "url": "https://x.com/thsottiaux/status/2101126440469344384",
-      "reasons": [
-        "上下文：回复 @ChrisGPT「What’s incredible is their dropping …」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "ChrisGPT",
-        "id": "",
-        "text": "What’s incredible is their dropping a big release next week, instead of waiting to drop it during dev day."
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.19",
-          "weekday": "周六",
-          "time": "09:49",
-          "text": "2026.09.19（周六）09:49",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.18",
-          "weekday": "周五",
-          "time": "18:49",
-          "text": "2026.09.18（周五）18:49",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "hint",
-      "rejected": "含时间表达「maybe 3」但没有额度相关词，不作为重置信号",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": {
-        "word": "maybe 3",
-        "precision": "day",
-        "from": "2027-05-03T07:00:00.000Z",
-        "to": "2027-05-04T06:59:00.000Z",
-        "dayNum": 20941,
-        "spec": 100,
-        "note": null
-      }
     }
   ],
   "activeHints": [],
@@ -4602,6 +4464,386 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2122902327443300537",
+      "account": "thsottiaux",
+      "text": "What are they getting wrong? Curious",
+      "createdAt": "2026-11-18T03:58:51.000Z",
+      "url": "https://x.com/thsottiaux/status/2122902327443300537",
+      "reasons": [
+        "上下文：回复 @adonis_singh「6.2-Astra and 6.2-Sol take #1 and #2…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "adonis_singh",
+        "id": "",
+        "text": "6.2-Astra and 6.2-Sol take #1 and #2 on Eyebench! Both are within 2 questions of a perfect score. Sol is also the cheapest model in the top 10, which is quite insane"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.18",
+          "weekday": "周三",
+          "time": "11:58",
+          "text": "2026.11.18（周三）11:58",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.17",
+          "weekday": "周二",
+          "time": "19:58",
+          "text": "2026.11.17（周二）19:58",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2122891208968294400",
+      "account": "thsottiaux",
+      "text": "Beauty is in the eye of the beholder, but clearly the models are polarizing. A bit like we had in the early codex days. These models are clearly extremely capable but have a couple of rough edges that we will sand down over time.",
+      "createdAt": "2026-11-18T03:14:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2122891208968294400",
+      "reasons": [
+        "含未来语气",
+        "上下文：回复 @JoshPurtell「Days like this I genuinely feel like…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "JoshPurtell",
+        "id": "",
+        "text": "Days like this I genuinely feel like I live in a different universe from the rest of the world. Saw ubiquitous 6.2 hate / it's over for OpenAI yada yada ... ran the highest-signal autoresearch bench and 6.2 sol/astr are *absolute monsters*. Astra 6.2 saturates it at low effort"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.18",
+          "weekday": "周三",
+          "time": "11:14",
+          "text": "2026.11.18（周三）11:14",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.17",
+          "weekday": "周二",
+          "time": "19:14",
+          "text": "2026.11.17（周二）19:14",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2122880368600621508",
+      "account": "thsottiaux",
+      "text": "!!",
+      "createdAt": "2026-11-18T02:31:35.000Z",
+      "url": "https://x.com/thsottiaux/status/2122880368600621508",
+      "reasons": [
+        "上下文：回复 @arcprize「GPT-6.2 Astra from @OpenAI on ARC-AG…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "arcprize",
+        "id": "",
+        "text": "GPT-6.2 Astra from @OpenAI on ARC-AGI (Verified): - ARC-AGI-3: 100.0% (SOTA), $4.1K (provider adapter), 70.3%, $24.2K (standard) - ARC-AGI-2: 95.8% (SOTA), $0.50/task - ARC-AGI-1: 98.5%, $0.17/task GPT-6.2 Astra is the first model to achieve a 100% score on ARC-AGI-3."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.18",
+          "weekday": "周三",
+          "time": "10:31",
+          "text": "2026.11.18（周三）10:31",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.17",
+          "weekday": "周二",
+          "time": "18:31",
+          "text": "2026.11.17（周二）18:31",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2122880282550481388",
+      "account": "thsottiaux",
+      "text": "Let's go bro",
+      "createdAt": "2026-11-18T02:31:15.000Z",
+      "url": "https://x.com/thsottiaux/status/2122880282550481388",
+      "reasons": [
+        "上下文：回复 @pradeepXkapoor「Lmao bro gpt 6.2 is actually good. B…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "pradeepXkapoor",
+        "id": "",
+        "text": "Lmao bro gpt 6.2 is actually good. Both Astra and sol are doing great, reminds me of 5.6 honestly. Yes it nuked my usage but it’s fine. Not sure what is up with some of the big peeps like matthew, theo and some other folks talking shit about it. gpt 6.2 is not bad at all Bro"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.18",
+          "weekday": "周三",
+          "time": "10:31",
+          "text": "2026.11.18（周三）10:31",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.17",
+          "weekday": "周二",
+          "time": "18:31",
+          "text": "2026.11.17（周二）18:31",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2122851449474605281",
+      "account": "thsottiaux",
+      "text": "Awkward",
+      "createdAt": "2026-11-18T00:36:40.000Z",
+      "url": "https://x.com/thsottiaux/status/2122851449474605281",
+      "reasons": [
+        "上下文：回复 @skalskip92「GPT-6.2 is getting roasted on X mean…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "skalskip92",
+        "id": "",
+        "text": "GPT-6.2 is getting roasted on X meanwhile, Astra and Sol just took #1 and #2 on my object detection benchmark so I have some awkwardly positive results to share ↓ benchmarks and examples"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.18",
+          "weekday": "周三",
+          "time": "08:36",
+          "text": "2026.11.18（周三）08:36",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.17",
+          "weekday": "周二",
+          "time": "16:36",
+          "text": "2026.11.17（周二）16:36",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2122850498202271748",
+      "account": "thsottiaux",
+      "text": "Pretty!",
+      "createdAt": "2026-11-18T00:32:54.000Z",
+      "url": "https://x.com/thsottiaux/status/2122850498202271748",
+      "reasons": [
+        "上下文：回复 @dingchilling「GPT-6.2 Astra on the Art Bench! :)…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "dingchilling",
+        "id": "",
+        "text": "GPT-6.2 Astra on the Art Bench! :)"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.18",
+          "weekday": "周三",
+          "time": "08:32",
+          "text": "2026.11.18（周三）08:32",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.17",
+          "weekday": "周二",
+          "time": "16:32",
+          "text": "2026.11.17（周二）16:32",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2122816458711548126",
+      "account": "thsottiaux",
+      "text": "Team never stops. We'll get it right on all levels one day, in the meantime it's a pretty good jump on all fronts and cheaper/faster.",
+      "createdAt": "2026-11-17T22:17:38.000Z",
+      "url": "https://x.com/thsottiaux/status/2122816458711548126",
+      "reasons": [
+        "含未来语气",
+        "上下文：回复 @notjazii「hate against openai is forced it’s b…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "notjazii",
+        "id": "",
+        "text": "hate against openai is forced it’s been about 2 hours since gpt 6.2 released and all i see on x is hate > this is an opus 5/4.8 level model > there is nothing good about these model > why even release a models this bad > and a lot more too got access to both models in codex"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.18",
+          "weekday": "周三",
+          "time": "06:17",
+          "text": "2026.11.18（周三）06:17",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.17",
+          "weekday": "周二",
+          "time": "14:17",
+          "text": "2026.11.17（周二）14:17",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2122816053348847795",
+      "account": "thsottiaux",
+      "text": "Much faster too",
+      "createdAt": "2026-11-17T22:16:01.000Z",
+      "url": "https://x.com/thsottiaux/status/2122816053348847795",
+      "reasons": [
+        "上下文：回复 @Conor_D_Dart「I am testing GPT 6.2 Astra and Sol, …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "Conor_D_Dart",
+        "id": "",
+        "text": "I am testing GPT 6.2 Astra and Sol, and so far I don’t see anything negative. Ignore the negative reviews until YOU have tested it yourself"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.18",
+          "weekday": "周三",
+          "time": "06:16",
+          "text": "2026.11.18（周三）06:16",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.17",
+          "weekday": "周二",
+          "time": "14:16",
+          "text": "2026.11.17（周二）14:16",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2122815564821434613",
+      "account": "thsottiaux",
+      "text": "What is ClutterBench",
+      "createdAt": "2026-11-17T22:14:05.000Z",
+      "url": "https://x.com/thsottiaux/status/2122815564821434613",
+      "reasons": [
+        "上下文：回复 @AdamHoltererer「GPT 6.2 is state-of-the-art on Clutt…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "AdamHoltererer",
+        "id": "",
+        "text": "GPT 6.2 is state-of-the-art on ClutterBench, surprisingly This was previously dominated by Claude models Google's models are all below 12th btw"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.18",
+          "weekday": "周三",
+          "time": "06:14",
+          "text": "2026.11.18（周三）06:14",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.17",
+          "weekday": "周二",
+          "time": "14:14",
+          "text": "2026.11.17（周二）14:14",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2122753991000133943",
       "account": "thsottiaux",
@@ -12329,381 +12571,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2111246098207813946",
-      "account": "thsottiaux",
-      "text": "Mehga ghud",
-      "createdAt": "2026-10-17T00:01:09.000Z",
-      "url": "https://x.com/thsottiaux/status/2111246098207813946",
-      "reasons": [
-        "上下文：回复 @codex_resets「Day 12: Dots on the Home Screen Clea…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "codex_resets",
-        "id": "",
-        "text": "Day 12: Dots on the Home Screen Clear improvement, or meh? 👏 or 🤷 here: https:// codex-resets.com/tibo-28"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.17",
-          "weekday": "周六",
-          "time": "08:01",
-          "text": "2026.10.17（周六）08:01",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.16",
-          "weekday": "周五",
-          "time": "17:01",
-          "text": "2026.10.16（周五）17:01",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2111245772645896573",
-      "account": "thsottiaux",
-      "text": "How many packs do you smoke per day?",
-      "createdAt": "2026-10-16T23:59:51.000Z",
-      "url": "https://x.com/thsottiaux/status/2111245772645896573",
-      "reasons": [
-        "上下文：回复 @theo「Most common format of DMs I get: “He…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "theo",
-        "id": "",
-        "text": "Most common format of DMs I get: “Hey Theo, I’ve been a fan for a long time [3-8 paragraph life story] So, which $20 plan is better, Claude or Codex?”"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.17",
-          "weekday": "周六",
-          "time": "07:59",
-          "text": "2026.10.17（周六）07:59",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.16",
-          "weekday": "周五",
-          "time": "16:59",
-          "text": "2026.10.16（周五）16:59",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2111245443917385980",
-      "account": "thsottiaux",
-      "text": "Thanks Kol!",
-      "createdAt": "2026-10-16T23:58:33.000Z",
-      "url": "https://x.com/thsottiaux/status/2111245443917385980",
-      "reasons": [
-        "上下文：回复 @koltregaskes「OpenAI, I think you need to explain …」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "koltregaskes",
-        "id": "",
-        "text": "OpenAI, I think you need to explain this a lot better. The difference is you can use chat mode not just work mode. Why are AI labs so bad at explaining their own tools and systems? 🤷‍♂️"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.17",
-          "weekday": "周六",
-          "time": "07:58",
-          "text": "2026.10.17（周六）07:58",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.16",
-          "weekday": "周五",
-          "time": "16:58",
-          "text": "2026.10.16（周五）16:58",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2111245052513259606",
-      "account": "thsottiaux",
-      "text": "And update your app to enjoy this gem",
-      "createdAt": "2026-10-16T23:57:00.000Z",
-      "url": "https://x.com/thsottiaux/status/2111245052513259606",
-      "reasons": [
-        "上下文：回复 @koltregaskes「OpenAI, I think you need to explain …」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "koltregaskes",
-        "id": "",
-        "text": "OpenAI, I think you need to explain this a lot better. The difference is you can use chat mode not just work mode. Why are AI labs so bad at explaining their own tools and systems? 🤷‍♂️"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.17",
-          "weekday": "周六",
-          "time": "07:57",
-          "text": "2026.10.17（周六）07:57",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.16",
-          "weekday": "周五",
-          "time": "16:57",
-          "text": "2026.10.16（周五）16:57",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2111244957851984181",
-      "account": "thsottiaux",
-      "text": "We also significantly improved GPT-6 Pro for all pro users",
-      "createdAt": "2026-10-16T23:56:37.000Z",
-      "url": "https://x.com/thsottiaux/status/2111244957851984181",
-      "reasons": [
-        "上下文：回复 @koltregaskes「OpenAI, I think you need to explain …」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "koltregaskes",
-        "id": "",
-        "text": "OpenAI, I think you need to explain this a lot better. The difference is you can use chat mode not just work mode. Why are AI labs so bad at explaining their own tools and systems? 🤷‍♂️"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.17",
-          "weekday": "周六",
-          "time": "07:56",
-          "text": "2026.10.17（周六）07:56",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.16",
-          "weekday": "周五",
-          "time": "16:56",
-          "text": "2026.10.16（周五）16:56",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2110971985417441512",
-      "account": "thsottiaux",
-      "text": "Either we are out of ideas or we are cooking. Time will tell",
-      "createdAt": "2026-10-16T05:51:55.000Z",
-      "url": "https://x.com/thsottiaux/status/2110971985417441512",
-      "reasons": [
-        "含未来语气"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.16",
-          "weekday": "周五",
-          "time": "13:51",
-          "text": "2026.10.16（周五）13:51",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.15",
-          "weekday": "周四",
-          "time": "22:51",
-          "text": "2026.10.15（周四）22:51",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2110951585983631505",
-      "account": "thsottiaux",
-      "text": "Can’t argue with that, Let’s break the cycle.",
-      "createdAt": "2026-10-16T04:30:52.000Z",
-      "url": "https://x.com/thsottiaux/status/2110951585983631505",
-      "reasons": [
-        "上下文：回复 @maria_rcks「I miss the old Tibo, reset the usage…」",
-        "被回复的推文含额度语境（本条无延续语气，不借意图）"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "maria_rcks",
-        "id": "",
-        "text": "I miss the old Tibo, reset the usage Tibo The “oops, again” Tibo, back to a hundred Tibo I hate the new Tibo, arguing in quotes Tibo The 28 days Tibo, beefing with poteto Tibo I miss the sweet Tibo, free weekend reset Tibo I gotta say, back then I’d never hit my weekly, Tibo See"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.16",
-          "weekday": "周五",
-          "time": "12:30",
-          "text": "2026.10.16（周五）12:30",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.15",
-          "weekday": "周四",
-          "time": "21:30",
-          "text": "2026.10.15（周四）21:30",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2110951220508819773",
-      "account": "thsottiaux",
-      "text": "?",
-      "createdAt": "2026-10-16T04:29:25.000Z",
-      "url": "https://x.com/thsottiaux/status/2110951220508819773",
-      "reasons": [
-        "上下文：回复 @charlierguo「The Codex name has been incredibly s…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "charlierguo",
-        "id": "",
-        "text": "The Codex name has been incredibly sticky (all of the technical folks I know still call the desktop app Codex), but clearly ChatGPT is the long-term product Increasingly feels like Codex should be the brand of the harness: ChatGPT powered by Codex Agents API powered by Codex"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.16",
-          "weekday": "周五",
-          "time": "12:29",
-          "text": "2026.10.16（周五）12:29",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.15",
-          "weekday": "周四",
-          "time": "21:29",
-          "text": "2026.10.15（周四）21:29",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2110868151688912976",
-      "account": "thsottiaux",
-      "text": "Spot on",
-      "createdAt": "2026-10-15T22:59:20.000Z",
-      "url": "https://x.com/thsottiaux/status/2110868151688912976",
-      "reasons": [
-        "上下文：回复 @_simonsmith「I'm thoroughly Dots-pilled. Still a …」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "_simonsmith",
-        "id": "",
-        "text": "I'm thoroughly Dots-pilled. Still a fan of Muse, but probably 75-80% of my AI requests now go through Dots. The primary exception: learning things in chat. For that, GPT-6 Instant with Dynamic UI is unmatched. Just incredible. Some recent Dots work and personal tasks: - Build"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.16",
-          "weekday": "周五",
-          "time": "06:59",
-          "text": "2026.10.16（周五）06:59",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.15",
-          "weekday": "周四",
-          "time": "15:59",
-          "text": "2026.10.15（周四）15:59",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12843,12 +12710,12 @@
     }
   ],
   "counts": {
-    "scanned": 582,
+    "scanned": 583,
     "explicit": 4,
     "occurred": 11,
-    "hint": 77,
-    "none": 469,
-    "rejected": 469
+    "hint": 74,
+    "none": 473,
+    "rejected": 473
   },
   "truncated": true
 }
