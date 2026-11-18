@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-25T06:06:16.000Z",
     "last_text": "It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ https://t.co/xKaK95EAly",
-    "days_since_last": 24.163714097222222,
+    "days_since_last": 24.417880162037036,
     "avg_interval_days": 6.201318376068373,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.358045775625218,
@@ -14,31 +14,47 @@
     "reset_count": 59,
     "hit_within_avg": 0.7230769230769231
   },
-  "generated_at": "2026-11-18T10:02:01.024Z",
+  "generated_at": "2026-11-18T16:08:00.985Z",
   "collect": {
-    "mode": "incremental",
+    "mode": "full",
     "source": "browser",
-    "stoppedBy": "known",
-    "newTweets": 11,
-    "knownCount": 635,
+    "stoppedBy": "no-more",
+    "newTweets": 0,
+    "knownCount": 646,
     "reply": {
-      "mode": "incremental",
-      "stoppedBy": "known",
+      "mode": "full",
+      "stoppedBy": "floor",
       "loggedIn": true,
-      "oldest": "2026-11-18T00:36:40.000Z",
-      "steps": 16,
-      "harvested": 16,
-      "withContext": 14,
+      "oldest": "2026-10-23T23:15:04.000Z",
+      "steps": 152,
+      "harvested": 164,
+      "withContext": 127,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 1,
-      "attempted": 1,
-      "fetched": 1,
+      "candidates": 5,
+      "attempted": 5,
+      "fetched": 5,
       "skipped": 0,
       "missingReplyContext": [],
       "scanned": [
+        {
+          "id": "2115273253711409208",
+          "length": 22,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": true,
+          "replyContextStatus": "verified"
+        },
+        {
+          "id": "2114200291319124163",
+          "length": 15,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": true,
+          "replyContextStatus": "verified"
+        },
         {
           "id": "2122929634916679820",
           "length": 612,
@@ -46,17 +62,51 @@
           "networkMetadataStatus": "verified",
           "needsReplyContext": false,
           "replyContextStatus": "not-required"
+        },
+        {
+          "id": "2117283124833055196",
+          "length": 271,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
+        },
+        {
+          "id": "2115850175868727621",
+          "length": 521,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
         }
       ]
     },
-    "fullScan": null
+    "fullScan": {
+      "complete": false,
+      "reason": "原创时间线尚未到达时间下界",
+      "requestedSince": "2026-10-24T06:06:16.000Z",
+      "main": {
+        "complete": false,
+        "loggedIn": true,
+        "mode": "full",
+        "stoppedBy": "no-more",
+        "oldest": "2026-11-13T02:09:55.000Z"
+      },
+      "reply": {
+        "complete": true,
+        "loggedIn": true,
+        "mode": "full",
+        "stoppedBy": "floor",
+        "oldest": "2026-10-23T23:15:04.000Z"
+      }
+    }
   },
   "history": {
     "added": 0,
     "updated": 0,
     "removed": 0,
     "upstreamCount": 72,
-    "refreshedAt": "2026-11-18T10:01:30.994Z",
+    "refreshedAt": "2026-11-18T16:02:15.929Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
@@ -66,7 +116,7 @@
   "last_full_at": "2026-11-15T00:24:07.177Z",
   "full_scan": null,
   "full_scan_attempt": {
-    "attempted_at": "2026-11-18T04:02:35.839Z",
+    "attempted_at": "2026-11-18T16:02:15.930Z",
     "requested_since": "2026-10-24T06:06:16.000Z",
     "complete": false,
     "reason": "原创时间线尚未到达时间下界"
