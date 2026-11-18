@@ -1,6 +1,208 @@
 {
   "tweets": [
     {
+      "id": "2122954129094111394",
+      "text": "I do think you all coordinated on a slack channel 👀",
+      "created_at": "2026-11-18T07:24:41.000Z",
+      "url": "https://x.com/thsottiaux/status/2122954129094111394",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "mattshumer_",
+        "id": "",
+        "text": "Why are they all posting reviews at the same time: there's an embargo. Why are the reviews all negative: the model is bad. It's pretty simple, guys. There's no conspiracy. We're just giving our opinions.",
+        "created_at": "2026-11-18T03:30:44.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-18T10:02:00.766Z"
+    },
+    {
+      "id": "2122953953851879880",
+      "text": "Alex, let's go, sorry you have to adapt a bit, but it pays off. Next generation will make it all more natural, in the meantime the raw power is indeed there already.",
+      "created_at": "2026-11-18T07:23:59.000Z",
+      "url": "https://x.com/thsottiaux/status/2122953953851879880",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "The_Alex",
+        "id": "",
+        "text": "6.2 Astra is cheap and fast I'll give it that. Had a rough day 1 with it but excited to keep using it and tuning it to my use cases!",
+        "created_at": "2026-11-18T06:52:17.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-18T10:02:00.766Z"
+    },
+    {
+      "id": "2122953161921196052",
+      "text": "You need to share the prompt for that one, that's beautiful",
+      "created_at": "2026-11-18T07:20:51.000Z",
+      "url": "https://x.com/thsottiaux/status/2122953161921196052",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "JamesMalsawm",
+        "id": "",
+        "text": "GPT-6.2 Astra is an INSANE leap over GPT-6 Astra. It's scary how much it has improved. OpenAI is officially back! by the way - $10/$50 vs $8/$40 is this upgrade worth it?",
+        "created_at": "2026-11-18T04:30:00.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-18T10:02:00.766Z"
+    },
+    {
+      "id": "2122952910137135379",
+      "text": "Yes, that's the whole point of getting feedback",
+      "created_at": "2026-11-18T07:19:50.000Z",
+      "url": "https://x.com/thsottiaux/status/2122952910137135379",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "MiaAI_lab",
+        "id": "",
+        "text": "So you gave access to the models, to influencers, when you know your models aren't ready and have issues? 🤔",
+        "created_at": "2026-11-18T06:07:31.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-18T10:02:00.766Z"
+    },
+    {
+      "id": "2122950072623350250",
+      "text": "Yes",
+      "created_at": "2026-11-18T07:08:34.000Z",
+      "url": "https://x.com/thsottiaux/status/2122950072623350250",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "Wilf_Lin",
+        "id": "",
+        "text": "ultrafast now available in 200?",
+        "created_at": "2026-11-18T06:08:55.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-18T10:02:00.766Z"
+    },
+    {
+      "id": "2122949739708809619",
+      "text": "Try this in codex > Add this to my custom instructions \"Talk to me ELI5 by default and go deeper if I ask.\" but also, team is on it.",
+      "created_at": "2026-11-18T07:07:15.000Z",
+      "url": "https://x.com/thsottiaux/status/2122949739708809619",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "Teach your models how to speak English again and you'll have my love back quickly :)",
+        "created_at": "2026-11-18T06:05:40.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-18T10:02:00.766Z"
+    },
+    {
+      "id": "2122938155225752015",
+      "text": "👀",
+      "created_at": "2026-11-18T06:21:13.000Z",
+      "url": "https://x.com/thsottiaux/status/2122938155225752015",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "iruletheworldmo",
+        "id": "",
+        "text": "i have to be consistent because there’s no better benchmark then eci. there’s a strong chance everyone is saying this model is a genius in a week.",
+        "created_at": "2026-11-18T03:32:41.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-18T10:02:00.766Z"
+    },
+    {
+      "id": "2122929829863735594",
+      "text": "If you have Pro 200/500, I do recommend trying out 6.2 Sol ultrafast, it's quite the blast to use and a completely different feel. I'm excited to keep pushing in bringing these speeds to more users over time.",
+      "created_at": "2026-11-18T05:48:08.000Z",
+      "url": "https://x.com/thsottiaux/status/2122929829863735594",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-18T10:02:00.766Z"
+    },
+    {
+      "id": "2122929634916679820",
+      "text": "One of the funny reasons for the difference in vibes between the influencers and the crowd today on 6.2 Sol/Astra is that we gave a few folks access a while ago and then made a lot of changes in the last 3-4 days and I'm pretty sure no re-testing was done within those days and the videos were produced last week. Don't get me wrong, while the models are a hefty jump compared to their GPT predecessors, they are by no means perfect and there are a few things the teams are excited for the models to get better at in future iterations in terms of taste and niceness of use. Love all the feedback and we hear you!",
+      "created_at": "2026-11-18T05:47:21.000Z",
+      "url": "https://x.com/thsottiaux/status/2122929634916679820",
+      "author_verified": true,
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-18T10:02:00.766Z",
+      "translation": {
+        "text": "今天 6.2 Sol/Astra 上博主和普通用户的体感差这么多，其中一个挺有意思的原因是：我们前阵子先给了几个人访问权限，之后这 3-4 天又改了不少东西，我敢肯定这几天里没重新测过，而那些视频是上周做的。别误会，虽然这代模型比起它们的 GPT 前辈提升很大，但离完美还差得远，团队也有些期待模型在后续迭代里做得更好的地方，比如品味和用起来的手感。感谢所有反馈，我们都听到了！",
+        "sourceHash": "95b8acfe2c3aa537c33f2b19b7771d4c808547abf5dcfc4fdb32abc845e10515",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
+      "id": "2122928699838492690",
+      "text": "Love Theo and all, but ... :D",
+      "created_at": "2026-11-18T05:43:38.000Z",
+      "url": "https://x.com/thsottiaux/status/2122928699838492690",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "According to Artificial Analysis, Opus 5.5 is no longer on the pareto line (best value per intelligence) Love AA and all, but they really need some behavioral benches to smooth out this gap. Opus 5.5 is still the best value available for real long running code work.",
+        "created_at": "2026-11-18T04:56:54.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-18T10:02:00.766Z"
+    },
+    {
+      "id": "2122903687949688912",
+      "text": "It's that is the only critique of the launch, I'm glad. It is indeed truly all about efficiency and topline capabilities. We'll highlight more interesting things in the next launch video.",
+      "created_at": "2026-11-18T04:04:15.000Z",
+      "url": "https://x.com/thsottiaux/status/2122903687949688912",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "swyx",
+        "id": "",
+        "text": "the fact that nobody with decisionmaking power saw this coming a mile away and vetoed the 6.2 astra ad is my primary critique of the astra launch the model itself is solid minor version improvement guys, efficiency is one of the three most impt RL objectives rn and they are",
+        "created_at": "2026-11-18T01:21:10.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-18T10:02:00.766Z"
+    },
+    {
       "id": "2122902327443300537",
       "text": "What are they getting wrong? Curious",
       "created_at": "2026-11-18T03:58:51.000Z",
@@ -11489,7 +11691,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-18T04:08:00.903Z",
+  "updated_at": "2026-11-18T10:02:00.769Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
