@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-25T06:06:16.000Z",
     "last_text": "It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ https://t.co/xKaK95EAly",
-    "days_since_last": 24.663642199074076,
+    "days_since_last": 24.918141747685183,
     "avg_interval_days": 6.201318376068373,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.358045775625218,
@@ -14,31 +14,55 @@
     "reset_count": 59,
     "hit_within_avg": 0.7230769230769231
   },
-  "generated_at": "2026-11-18T22:01:54.826Z",
+  "generated_at": "2026-11-19T04:08:23.572Z",
   "collect": {
-    "mode": "incremental",
+    "mode": "full",
     "source": "browser",
     "stoppedBy": "no-more",
-    "newTweets": 5,
-    "knownCount": 646,
+    "newTweets": 2,
+    "knownCount": 651,
     "reply": {
-      "mode": "incremental",
-      "stoppedBy": "known",
+      "mode": "full",
+      "stoppedBy": "floor",
       "loggedIn": true,
-      "oldest": "2026-11-18T05:47:21.000Z",
-      "steps": 12,
-      "harvested": 13,
-      "withContext": 11,
+      "oldest": "2026-10-23T23:12:31.000Z",
+      "steps": 160,
+      "harvested": 169,
+      "withContext": 133,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 1,
-      "attempted": 1,
-      "fetched": 1,
+      "candidates": 6,
+      "attempted": 6,
+      "fetched": 6,
       "skipped": 0,
       "missingReplyContext": [],
       "scanned": [
+        {
+          "id": "2115273253711409208",
+          "length": 22,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": true,
+          "replyContextStatus": "verified"
+        },
+        {
+          "id": "2114200291319124163",
+          "length": 15,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": true,
+          "replyContextStatus": "verified"
+        },
+        {
+          "id": "2123175166519992652",
+          "length": 297,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
+        },
         {
           "id": "2122929634916679820",
           "length": 612,
@@ -46,17 +70,51 @@
           "networkMetadataStatus": "verified",
           "needsReplyContext": false,
           "replyContextStatus": "not-required"
+        },
+        {
+          "id": "2117283124833055196",
+          "length": 271,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
+        },
+        {
+          "id": "2115850175868727621",
+          "length": 521,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
         }
       ]
     },
-    "fullScan": null
+    "fullScan": {
+      "complete": false,
+      "reason": "原创时间线尚未到达时间下界",
+      "requestedSince": "2026-10-24T06:06:16.000Z",
+      "main": {
+        "complete": false,
+        "loggedIn": true,
+        "mode": "full",
+        "stoppedBy": "no-more",
+        "oldest": "2026-11-17T18:09:24.000Z"
+      },
+      "reply": {
+        "complete": true,
+        "loggedIn": true,
+        "mode": "full",
+        "stoppedBy": "floor",
+        "oldest": "2026-10-23T23:12:31.000Z"
+      }
+    }
   },
   "history": {
     "added": 0,
     "updated": 0,
     "removed": 0,
     "upstreamCount": 72,
-    "refreshedAt": "2026-11-18T22:01:27.951Z",
+    "refreshedAt": "2026-11-19T04:02:18.369Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
@@ -66,7 +124,7 @@
   "last_full_at": "2026-11-15T00:24:07.177Z",
   "full_scan": null,
   "full_scan_attempt": {
-    "attempted_at": "2026-11-18T16:02:15.930Z",
+    "attempted_at": "2026-11-19T04:02:18.370Z",
     "requested_since": "2026-10-24T06:06:16.000Z",
     "complete": false,
     "reason": "原创时间线尚未到达时间下界"

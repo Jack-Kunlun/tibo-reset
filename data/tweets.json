@@ -1,6 +1,44 @@
 {
   "tweets": [
     {
+      "id": "2123179276199735535",
+      "text": "It does like math",
+      "created_at": "2026-11-18T22:19:20.000Z",
+      "url": "https://x.com/thsottiaux/status/2123179276199735535",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "DannyIO",
+        "id": "",
+        "text": "Working on some open math problems where I've used the previous Astra, Fable, Claude. This Astra progressed more than all of them combined in the first few prompts. Im assuming its the one that solved Navier–Stokes?",
+        "created_at": "2026-11-18T22:08:19.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-19T04:08:23.299Z"
+    },
+    {
+      "id": "2123175166519992652",
+      "text": "GPT-6.2 Astra is pretty good at hard things. Here the team shared some results on AMD and Jalapeño chip optimizations. I do get the feedback on its communication style and we're working on that, but for really the hardest tasks in the world it does seem to be in a league of its own at the moment.",
+      "created_at": "2026-11-18T22:03:01.000Z",
+      "url": "https://x.com/thsottiaux/status/2123175166519992652",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "OpenAI",
+        "text": "Working with @AMD, our models identified up to 14% PPA improvement on flagship GPU IP in less than five months—building on designs AMD’s engineers had already spent years optimizing. The same approach helped improve Jalapeño, our first custom inference chip, with gains verified",
+        "created_at": "2026-11-18T17:05:52.000Z",
+        "relation": "quote"
+      },
+      "text_full": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-19T04:08:23.299Z"
+    },
+    {
       "id": "2123151267002503570",
       "text": "Climbing",
       "created_at": "2026-11-18T20:28:02.000Z",
@@ -476,7 +514,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-17T22:06:38.403Z",
       "translation": {
         "text": "这些模型效率极高 —— 完成任务的速度、成本，以及额度能撑多远，你都能直接感受到。",
@@ -3430,7 +3468,7 @@
       },
       "kind": "other",
       "account": "thsottiaux",
-      "role": "post",
+      "role": "reply",
       "foundVia": "with-replies",
       "first_seen": "2026-10-25T20:01:30.946Z"
     },
@@ -11785,7 +11823,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-18T22:01:54.535Z",
+  "updated_at": "2026-11-19T04:08:23.303Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
