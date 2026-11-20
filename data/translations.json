@@ -730,5 +730,11 @@
     "text": "今天 6.2 Sol 用着还顺手吗？",
     "language": "zh-CN",
     "provider": "agent"
+  },
+  "2123556256392847657": {
+    "sourceHash": "194eef2d2675c073838d33fb2abd22b42167085224400f0194b756578f914a5c",
+    "text": "先说一声：我们开始向少量 ChatGPT Plus 用户测试 Dot 了。随着范围逐步扩大，期待大家持续给反馈——经过这阵子的多项改进，我最近听到的关于 Dot 主动性表现的正面评价明显多了起来。我们也会把 Dot 开放给所有 ChatGPT Business Standard 用户。今天开始上线。",
+    "language": "zh-CN",
+    "provider": "agent"
   }
 }
