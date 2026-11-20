@@ -236,7 +236,7 @@ const archivedBroken = await import('data:text/javascript;base64,' + Buffer.from
 assert.throws(() => verifyEndedPlanArchive(archivedBroken.renderAll), undefined, '把结束计划放回主版的反例必须被拦住');
 const verifyPlacement = source => assert.ok(source.indexOf('<!--__SIGNAL__-->') < source.indexOf('<!--__OUTLOOK__-->') && source.indexOf('<!--__OUTLOOK__-->') < source.indexOf('<!--__PROGRAM__-->') && source.indexOf('<!--__PROGRAM__-->') < source.indexOf('<!--__RESET_CALENDAR__-->'));
 check('线索置顶且计划留在主栏', () => verifyPlacement(template));
-assert.throws(() => verifyPlacement(template.replace('        <!--__PROGRAM__-->\n', '').replace('<!--__BASIS_SUMMARY__-->', '<!--__BASIS_SUMMARY__--><!--__PROGRAM__-->')));
+assert.throws(() => verifyPlacement(template.replace('        <!--__PROGRAM__-->\n', '').replace('<!--__RESET_CALENDAR__-->', '<!--__RESET_CALENDAR__--><!--__PROGRAM__-->')));
 const verifyArchivePlacement = source => {
   const archiveAt = source.indexOf('<!--__PROGRAM_HISTORY__-->');
   assert.ok(archiveAt > source.indexOf('<!--__RECENT_RECORDS__-->'));

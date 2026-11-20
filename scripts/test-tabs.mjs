@@ -130,6 +130,8 @@ test('月份切换限于服务端历史范围，静默刷新保留月份且不�
   page.apply({ state: input, degraded: false });
   assert.equal(page.data.selectedCalendarMonth, '2026-11');
   assert.equal(page.data.calendar.title, current.title);
+  assert.equal(page.data.calendar.monthLabel, '2026 年 11 月');
+  assert.deepEqual(page.data.calendarMonthOptions.map(item => item.title), ['2026 年 10 月', '2026 年 11 月']);
   assert.equal(page.data.calendarMonthIndex, 1);
   assert.equal(page.data.calendarCanPrev, true);
   assert.equal(page.data.calendarCanNext, false);

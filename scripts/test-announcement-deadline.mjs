@@ -42,7 +42,8 @@ const cases = [
   '!hasResetDayAnnouncement(text) && !hasScheduledResetDeclaration(text);', 'true;'],
   ['愿望或猜测不能借 reset day 升格', 'signals', m =>
     assert.notEqual(m.analyzeTweet({ ...root, text: 'Day 17/ Maybe it’s reset day today.' }).level, 'explicit'),
-  '!/\\b(?:maybe|hope|wish|yesterday|previously)\\b/i.test(s)', 'true'],
+  ['const RE_TENTATIVE = /\\b(?:perhaps|maybe)\\b/i;', '!/\\b(?:perhaps|maybe|hope|wish|yesterday|previously)\\b/i.test(s)'],
+   ['/(?!)/;', 'true']],
   ['已核验自回复可借父帖的重置主语', 'signals', m =>
     assert.equal(m.analyzeTweet(reply, { tweets: posts }).level, 'explicit'),
   "Boolean(linked && /^(?:lands?|landing)\\s+(?:tomorrow|today|before|by)\\b/i.test(text))", 'false'],
@@ -126,8 +127,10 @@ let checks = 0;
 for (const [name, key, run, from, to] of cases) {
   run(modules[key]);
   const { text, url } = sources[key];
-  assert.ok(text.includes(from), '变异目标不存在：' + name);
-  const mutant = text.replace(from, to).replace(/from (['"])(\.[^'"]+)\1/g, (_, q, path) => `from ${q}${new URL(path, url).href}${q}`);
+  // from/to 支持数组形态：多处闸门共同把守同一条升格路径时，需同时废掉才构成有效反例。
+  const pairs = Array.isArray(from) ? from.map((f, i) => [f, to[i]]) : [[from, to]];
+  for (const [f] of pairs) assert.ok(text.includes(f), '变异目标不存在：' + name);
+  const mutant = pairs.reduce((t, [f, v]) => t.replace(f, v), text).replace(/from (['"])(\.[^'"]+)\1/g, (_, q, path) => `from ${q}${new URL(path, url).href}${q}`);
   const broken = await import('data:text/javascript;base64,' + Buffer.from(mutant).toString('base64'));
   assert.throws(() => run(broken), undefined, '反例未被拦截：' + name);
   checks++;

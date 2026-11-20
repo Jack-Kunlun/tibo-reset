@@ -26,7 +26,7 @@
  *   node scripts/collect.mjs --full-scan-hours=24
  *                                        # 隔多久强制全量回补一次（默认 72）
  *   node scripts/collect.mjs --max-steps=40
- *                                        # 时间线最多小步滚动多少下（默认 60）
+ *                                        # 覆盖单条时间线滚动步数（默认：全量 400、增量 60）
  *   node scripts/collect.mjs --no-full-text
  *                                        # 不做详情页全文补全（默认做）。
  *                                        # 它只对「疑似被截断」的长推文生效
@@ -109,7 +109,7 @@ console.table({
 if (!result.skippedFresh) {
   const src =
     result.source === 'browser'
-      ? '✓ 登录态浏览器（完整时间线）'
+      ? '✓ 登录态浏览器'
       : result.source === 'html'
         ? '⚠ 免登录首屏（降级，缺少完整时间线与回复）'
         : '(未采集)';
@@ -117,13 +117,22 @@ if (!result.skippedFresh) {
     result.mode === 'incremental'
       ? `增量（翻到已入库的推文即停：${result.stoppedBy}）`
       : result.mode === 'full'
-        ? `全量回溯（${result.stoppedBy}）`
+        ? result.fullScan?.complete
+          ? `全量回溯（已验证到达下界：${result.stoppedBy}）`
+          : `全量尝试（未完成：${result.fullScan?.reason ?? result.stoppedBy}）`
         : result.mode === 'degraded'
           ? '降级路径'
           : '(未采集)';
   console.log('\n--- 覆盖范围 ---');
   console.log('  来源      ' + src);
   console.log('  采集模式  ' + mode);
+  if (result.fullScan) {
+    console.log(
+      '  全量覆盖  ' + (result.fullScan.complete
+        ? `✓ 原创与回复均到达 ${result.coverageSince ?? '时间下界'}`
+        : `⚠ 未完成：${result.fullScan.reason}`)
+    );
+  }
   if (result.newCount != null) {
     console.log(
       '  本轮新增  ' +

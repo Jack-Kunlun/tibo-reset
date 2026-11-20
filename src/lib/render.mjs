@@ -1483,10 +1483,9 @@ export function renderProgramPlan(plan, program) {
 }
 
 function renderCalendarMonth(c, selectedMonth) {
-  const zoneLabel = c.zone === 'Asia/Shanghai' ? '北京时间' : 'UTC 实际日期';
   const blanks = Array.from({ length: c.startWeekday ?? 0 }, () => '<span class="rc-empty" aria-hidden="true"></span>').join('');
   return `<div class="rc-month" data-calendar-month="${attr(c.month)}"${c.month === selectedMonth ? '' : ' hidden'}>
-    <p class="rc-range">${esc(c.fromDate)} — ${esc(c.toDate)} · ${zoneLabel}</p>
+    <p class="rc-month-fallback">${Number(c.month.slice(0, 4))} 年 ${Number(c.month.slice(5))} 月</p>
     <div class="rc-layout"><div class="rc-summary">
       <span class="rc-muted">本月日期</span><strong class="rc-progress">${c.progressDay}<small> / ${c.days}</small></strong>
       <div class="rc-stat"><span>已确认到账</span><b>${c.confirmedCount}<small> 次</small></b></div>
@@ -1514,11 +1513,11 @@ export function renderResetCalendar(c) {
   const currentMonth = c.currentMonth || months.at(-1).month;
   const monthLabel = (month) => `${Number(month.slice(0, 4))} 年 ${Number(month.slice(5))} 月`;
   return `<section class="reset-calendar am-panel" aria-label="重置月日历" data-current-month="${attr(currentMonth)}" data-selected-month="${attr(currentMonth)}">
-    <div class="rc-heading"><h2>重置月日历</h2><span class="rc-caption">非官方整理</span></div>
+    <div class="rc-heading"><h2>重置月日历</h2><span class="rc-caption">非官方整理 · ${c.zone === 'Asia/Shanghai' ? '北京时间' : 'UTC 实际日期'}</span></div>
     <nav class="rc-month-nav" aria-label="日历月份" hidden>
-      <button type="button" data-calendar-prev aria-label="上一个月"${months.length < 2 ? ' disabled' : ''}>‹</button>
+      <button type="button" data-calendar-prev aria-label="上一个月"${months.length < 2 ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
       <select data-calendar-select aria-label="选择日历月份">${months.map((month) => `<option value="${attr(month.month)}"${month.month === currentMonth ? ' selected' : ''}>${monthLabel(month.month)}</option>`).join('')}</select>
-      <button type="button" data-calendar-next aria-label="下一个月" disabled>›</button>
+      <button type="button" data-calendar-next aria-label="下一个月" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
     </nav>
     ${months.map((month) => renderCalendarMonth(month, currentMonth)).join('')}
   </section>`;

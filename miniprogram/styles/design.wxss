@@ -452,6 +452,9 @@ page { background: #0B1020; color: #F2F0FC; }
   border-radius:18rpx;
   background:#10172a}
 .design .tr-calendar-month-nav {
+  display:flex;
+  align-items:center;
+  justify-content:center;
   flex:none;
   width:64rpx;
   height:58rpx;
@@ -470,7 +473,9 @@ page { background: #0B1020; color: #F2F0FC; }
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:12rpx;
+  position:relative;
+  padding:0 28rpx;
+  box-sizing:border-box;
   min-height:58rpx}
 .design .tr-calendar-month-title {
   flex:1;
@@ -482,7 +487,10 @@ page { background: #0B1020; color: #F2F0FC; }
   text-align:center;
   text-overflow:ellipsis;
   white-space:nowrap}
-.design .tr-calendar-month-arrow { color:#a4abc4; font-size:30rpx; }
+.design .tr-calendar-chevron { width:14rpx; height:14rpx; border-right:3rpx solid currentColor; border-bottom:3rpx solid currentColor; flex:none; box-sizing:border-box; }
+.design .tr-calendar-chevron.is-prev { transform:translateX(3rpx) rotate(135deg); }
+.design .tr-calendar-chevron.is-next { transform:translateX(-3rpx) rotate(-45deg); }
+.design .tr-calendar-chevron.is-down { position:absolute; right:8rpx; top:50%; color:#a4abc4; transform:translateY(-70%) rotate(45deg); }
 .design .tr-calendar-current-month {
   margin-top:22rpx;
   color:#a4abc4;
@@ -991,7 +999,9 @@ page { background: #0B1020; color: #F2F0FC; }
 .design .tr-plan-explain .prog-body { padding-bottom: 18rpx; }
 .design .tr-plan-explain .prog-rule { display: block; color: #8995b0; font-size: 20rpx; line-height: 1.55; padding-bottom: 14rpx; }
 .design .tr-plan-freshness { display:block; padding-top:4rpx; color:#73809a; font-size:20rpx; line-height:1.5; }
-.design .tr-plan-archive { padding-top: 0; }
+/* 历史活动独立于月历与当天明细，间距由本区块统一承担，避免宿主叠加外边距。 */
+.design .tr-plan-archive { margin:32rpx 0; padding-top:0; border-top:0; }
+.design .tr-plan-archive + .tr-selected-date { margin-top:0; }
 .design .tr-plan-archive-toggle { display:flex; align-items:center; justify-content:space-between; gap:16rpx; min-height:104rpx; }
 .design .tr-plan-archive-toggle .tr-plan-title { display:block; color:#c7bbeb; font-size:26rpx; font-weight:600; }
 .design .tr-plan-archive-toggle .tr-plan-summary { display:block; padding-top:8rpx; font-size:20rpx; line-height:1.5; }

@@ -41,10 +41,15 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
  * 三个字段的由来：
  *   · `generated_at`     采集**运行**时刻，失败轮照样推进（页面横幅的「本轮尝试」用它）
  *   · `last_full_at`     上次全量回溯时刻
+ *   · `full_scan.completed_at` / `full_scan_attempt.attempted_at` 时间只用于节奏控制；
+ *     同对象里的状态、原因与覆盖下界仍参与比较
  *   · `stats.days_since_last`  由 now 减去 last_at 得到，每轮都在涨
  */
 export const VOLATILE = {
-  'data/stats.json': ['generated_at', 'last_full_at', 'stats.days_since_last'],
+  'data/stats.json': [
+    'generated_at', 'last_full_at', 'stats.days_since_last',
+    'full_scan.completed_at', 'full_scan_attempt.attempted_at',
+  ],
   'data/signal.json': ['generatedAt', 'windowFrom', 'windowTo'],
   'data/tweets.json': ['updated_at'],
 };

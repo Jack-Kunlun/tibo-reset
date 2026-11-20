@@ -55,6 +55,12 @@ export const HISTORY_API = 'https://codex-resets.com/api/v1/resets?limit=100';
  * 72 小时是个保守值：按每周 2–3 次的重置频率，三天内至少覆盖一次完整重置周期。
  */
 export const DEFAULT_FULL_SCAN_HOURS = 72;
+export const FULL_SCAN_RETRY_HOURS = 6;
+// 登录态深扫实测需 288 步 / 2 秒等待才触底；留出余量并用步数硬上限约束耗时。
+const FULL_SCAN_MAX_STEPS = 400;
+const INCREMENTAL_MAX_STEPS = 60;
+const FULL_SCAN_SETTLE_MS = 2_000;
+const INCREMENTAL_SETTLE_MS = 800;
 
 const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36';
@@ -360,7 +366,7 @@ export async function fetchLiveTweets(account = SOURCE_ACCOUNT) {
  * 挂了不该让整轮采集判失败 —— 原创流那部分数据仍然是好的。
  *
  * @param {string} account
- * @param {{sinceMs?:number, knownIds?:Iterable<string>|null, maxSteps?:number,
+ * @param {{sinceMs?:number, knownIds?:Iterable<string>|null, maxSteps?:number, settleMs?:number,
  *          onProgress?:Function, withReplies?:boolean, fetchFullText?:boolean,
  *          fullTextMax?:number, fullTextMinLength?:number}} opts
  *        `knownIds` 里的视为已入库，采集器翻到「连续整屏都是已知」即停 ——
@@ -372,12 +378,15 @@ export async function fetchLiveTweets(account = SOURCE_ACCOUNT) {
  *        在这里被消掉，而不是等上游历史来补（上游收不收录不由我们决定）。
  */
 export async function fetchLiveTweetsViaBrowser(account = SOURCE_ACCOUNT, opts = {}) {
+  const knownIds = opts.knownIds == null ? null : Array.from(opts.knownIds);
+  const fullScan = knownIds == null || knownIds.length === 0;
   const base = {
     handle: account,
     sinceMs: opts.sinceMs ?? 0,
-    knownIds: opts.knownIds ?? null,
+    knownIds,
     knownTweets: opts.knownTweets ?? [],
-    maxSteps: opts.maxSteps,
+    maxSteps: opts.maxSteps ?? (fullScan ? FULL_SCAN_MAX_STEPS : INCREMENTAL_MAX_STEPS),
+    settleMs: opts.settleMs ?? (fullScan ? FULL_SCAN_SETTLE_MS : INCREMENTAL_SETTLE_MS),
     // Chrome 也必须走同一个（实测出来的）代理。
     // 早先这里没传，Chrome 便一路用系统/环境代理 —— 而沙箱注入的那个连不通 x.com。
     proxy: opts.proxy,
@@ -442,6 +451,8 @@ export async function fetchLiveTweetsViaBrowser(account = SOURCE_ACCOUNT, opts =
     tweets,
     mode: main.mode,
     stoppedBy: main.stoppedBy,
+    loggedIn: main.loggedIn,
+    oldest: main.oldest,
     steps: main.steps,
     // 详情页全文补全的产物与执行情况。**正文回填有两条来源**（上游历史、详情页），
     // 这里是后者：它不依赖上游收不收录，是 KI-009 的直接修法。
@@ -451,6 +462,8 @@ export async function fetchLiveTweetsViaBrowser(account = SOURCE_ACCOUNT, opts =
       ? {
           mode: reply.mode,
           stoppedBy: reply.stoppedBy,
+          loggedIn: reply.loggedIn,
+          oldest: reply.oldest,
           steps: reply.steps,
           harvested: reply.tweets.length,
           withContext: reply.replyCount,
@@ -489,6 +502,50 @@ export function resetFloorMs(records, bufferHours = 24) {
     .sort((a, b) => new Date(b.announced_at) - new Date(a.announced_at))[0];
   if (!latest) return 0;
   return new Date(latest.announced_at).getTime() - bufferHours * 3_600_000;
+}
+
+/**
+ * 一次全量回补只有在两条登录态时间线都亲自越过时间下界时才算完整。
+ * `no-more` 只是暂时没有新 DOM 条目，不能证明列表已经滚到下界。
+ */
+export function assessFullScanCoverage(floor, main, reply, replyError = null) {
+  const checkStream = (stream) => {
+    const oldestMs = Date.parse(stream?.oldest ?? '');
+    const complete = Boolean(
+      floor > 0 && stream?.loggedIn === true && stream.mode === 'full' &&
+      stream.stoppedBy === 'floor' && Number.isFinite(oldestMs) && oldestMs <= floor
+    );
+    return {
+      complete,
+      loggedIn: stream?.loggedIn === true,
+      mode: stream?.mode ?? null,
+      stoppedBy: stream?.stoppedBy ?? null,
+      oldest: stream?.oldest ?? null,
+    };
+  };
+  const mainCoverage = checkStream(main);
+  const replyCoverage = checkStream(reply);
+  const complete = mainCoverage.complete && replyCoverage.complete && !replyError;
+  const reason = complete
+    ? null
+    : floor <= 0
+      ? '没有可验证的时间下界'
+      : !main
+        ? '原创时间线采集失败'
+        : !mainCoverage.complete
+          ? '原创时间线尚未到达时间下界'
+          : replyError
+            ? `回复时间线采集失败：${replyError}`
+            : !reply
+              ? '回复时间线未采集'
+              : '回复时间线尚未到达时间下界';
+  return {
+    complete,
+    reason,
+    requestedSince: floor > 0 ? new Date(floor).toISOString() : null,
+    main: mainCoverage,
+    reply: replyCoverage,
+  };
 }
 
 export async function fetchHistory() {
@@ -1173,6 +1230,9 @@ export async function runCollection(opts = {}) {
   let newCount = 0;
   /** 本轮是否真的完成了全量回溯（用于推进 stats.json 的 last_full_at）。 */
   let didFullScan = false;
+  /** 本轮全量回补的覆盖证明；不完整时仅用于说明原因。 */
+  let fullScanCoverage = null;
+  let fullScanAttemptAt = null;
   /** 回复流的采集形态（模式 / 停止原因 / 收下多少条带上下文）。 */
   let replyInfo = null;
   /** 回复流失败的原因（不影响整轮成败）。 */
@@ -1206,17 +1266,38 @@ export async function runCollection(opts = {}) {
     // 为什么还必须周期性全量：增量只在「时间线连续且单调向下」时成立。虚拟列表
     // 抖动会丢整屏、他也会删推 —— 这些洞增量永远补不回来（它看到已知的就停了）。
     const fullScanMs = (opts.fullScanHours ?? DEFAULT_FULL_SCAN_HOURS) * 3_600_000;
-    const lastFullAt = prevStats.last_full_at ? new Date(prevStats.last_full_at).getTime() : 0;
+    const verifiedFullAt = Date.parse(prevStats.full_scan?.completed_at ?? '');
+    const verifiedFloor = Date.parse(prevStats.full_scan?.coverage_since ?? '');
+    const certifiedCoverage = prevStats.full_scan?.version === 1 &&
+      prevStats.full_scan?.status === 'complete' &&
+      prevStats.full_scan?.main?.complete === true && prevStats.full_scan?.reply?.complete === true &&
+      Number.isFinite(verifiedFullAt) && Number.isFinite(verifiedFloor) &&
+      floor > 0 && verifiedFloor <= floor;
+    const previousAttemptAt = Date.parse(prevStats.full_scan_attempt?.attempted_at ?? '');
+    const previousAttemptFloor = prevStats.full_scan_attempt?.requested_since === null
+      ? 0
+      : Date.parse(prevStats.full_scan_attempt?.requested_since ?? '');
+    const attemptCoversFloor = floor > 0
+      ? Number.isFinite(previousAttemptFloor) && previousAttemptFloor <= floor
+      : prevStats.full_scan_attempt?.requested_since === null;
+    const retryWaitMs = FULL_SCAN_RETRY_HOURS * 3_600_000;
+    const now = Date.now();
+    const attemptAgeMs = now - previousAttemptAt;
+    const proofAgeMs = now - verifiedFullAt;
+    const inRetryWait = attemptCoversFloor && Number.isFinite(previousAttemptAt) &&
+      attemptAgeMs >= 0 && attemptAgeMs < retryWaitMs;
+    const verifiedFresh = certifiedCoverage && proofAgeMs >= 0 && proofAgeMs <= fullScanMs;
     const knownIds = live.tweets.map((t) => t.id).filter(Boolean);
     const wantFull =
       opts.full === true ||
       knownIds.length === 0 || // 库里什么都没有，增量无从谈起
-      !lastFullAt ||
-      Date.now() - lastFullAt > fullScanMs;
+      (!verifiedFresh && !inRetryWait);
 
     let fresh = null;
     let browserError = null;
     if (useBrowser) {
+      // 启动、代理或 CDP 抛错也是一次尝试，不能因此绕过失败回补的冷却。
+      if (wantFull) fullScanAttemptAt = new Date().toISOString();
       try {
         const r = await fetchLiveTweetsViaBrowser(opts.account, {
           sinceMs: floor,
@@ -1236,15 +1317,33 @@ export async function runCollection(opts = {}) {
         liveSource = 'browser';
         collectMode = r.mode;
         stoppedBy = r.stoppedBy;
-        didFullScan = r.mode === 'full';
         replyInfo = r.reply;
         replyError = r.replyError;
         detailText = r.fullTexts ?? new Map();
         fullTextReport = r.fullTextReport ?? null;
-        if (floor > 0) coverageSince = new Date(floor).toISOString();
+        if (wantFull) {
+          fullScanCoverage = assessFullScanCoverage(floor, {
+            loggedIn: r.loggedIn,
+            mode: r.mode,
+            stoppedBy: r.stoppedBy,
+            oldest: r.oldest,
+          }, r.reply, r.replyError);
+          didFullScan = fullScanCoverage.complete;
+          if (didFullScan) coverageSince = new Date(floor).toISOString();
+        }
       } catch (err) {
         browserError = err.message;
       }
+    }
+
+    if (wantFull && !fullScanCoverage) {
+      fullScanCoverage = {
+        complete: false,
+        reason: browserError || (useBrowser ? '浏览器未返回全量覆盖结果' : '未使用登录态浏览器'),
+        requestedSince: floor > 0 ? new Date(floor).toISOString() : null,
+        main: null,
+        reply: null,
+      };
     }
 
     // 降级：免登录首屏。
@@ -1435,6 +1534,7 @@ export async function runCollection(opts = {}) {
   await saveJson(resolve(dataDir, 'resets.json'), history);
   await saveJson(resolve(dataDir, 'tweets.json'), live);
   await saveJson(resolve(dataDir, 'signal.json'), signals);
+  const fullScanCompletedAt = didFullScan ? new Date().toISOString() : null;
   await saveJson(resolve(dataDir, 'stats.json'), {
     stats,
     generated_at: new Date().toISOString(),
@@ -1454,17 +1554,41 @@ export async function runCollection(opts = {}) {
           // 详情页全文补全的留档。它坏掉时（详情页结构变了、被限流）正文会**悄悄**
           // 退回半句，页面上完全看不出来 —— 只有这里的数字能看出来。
           fullText: fullTextReport,
+          fullScan: fullScanCoverage,
         }
       // 走到这里但没采推文 = 推文数据够新（短路），只是历史 / 正文有了更新。
       // 把上一轮的形态带过来，否则 `source` 会显示为空 —— 那读起来像「这轮采集坏了」，
       // 而事实是「数据本来就是新的」。carriedOver 把这个区别写进数据里。
       : errors.length && !opts.skipLive && !skippedFresh
-        ? { mode: 'failed', source: null, stoppedBy: null, newTweets: 0, replyError: null }
+        ? {
+            mode: 'failed', source: null, stoppedBy: null, newTweets: 0, replyError: null,
+            fullScan: fullScanCoverage,
+          }
         : { ...(prevStats.collect ?? {}), carriedOver: true },
     // 历史刷新的留档。它决定「距上次重置多少天」这类核心数字有没有跟上上游；
     // 上游失败时（本地已有数据、不进 errors）只有这里看得见。
     history: { ...historyReport, changed: historyChanged, patchedTexts: textPatched },
-    last_full_at: didFullScan ? new Date().toISOString() : (prevStats.last_full_at ?? null),
+    last_full_at: fullScanCompletedAt ?? (prevStats.last_full_at ?? null),
+    // 旧 last_full_at 仅是运行记录，没有双时间线到达下界的证据，不能独立作为
+    // 增量短路依据。成功证明与最近一次回补尝试分别保存，避免混为一谈。
+    full_scan: didFullScan
+      ? {
+          version: 1,
+          status: 'complete',
+          completed_at: fullScanCompletedAt,
+          coverage_since: coverageSince,
+          main: fullScanCoverage.main,
+          reply: fullScanCoverage.reply,
+        }
+      : (prevStats.full_scan ?? null),
+    full_scan_attempt: fullScanAttemptAt
+      ? {
+          attempted_at: fullScanAttemptAt,
+          requested_since: fullScanCoverage?.requestedSince ?? null,
+          complete: didFullScan,
+          reason: fullScanCoverage?.reason ?? null,
+        }
+      : (prevStats.full_scan_attempt ?? null),
     errors,
   });
 
@@ -1480,6 +1604,7 @@ export async function runCollection(opts = {}) {
     coverageSince,
     mode: collectMode,
     stoppedBy,
+    fullScan: fullScanCoverage,
     newCount,
     // 历史刷新与正文回填的结果 —— 「为什么距上次重置变了」要答得出来。
     history: { ...historyReport, changed: historyChanged, patchedTexts: textPatched },

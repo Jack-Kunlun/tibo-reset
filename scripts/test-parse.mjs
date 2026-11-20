@@ -28,9 +28,11 @@ import {
   pickRadarCandidates,
   rankRadarCandidates,
   resetFloorMs,
+  assessFullScanCoverage,
 } from '../src/lib/collect.mjs';
 import {
   normalizeTimelineItems,
+  earliestObservedTime,
   isKnownScreen,
   pairReplyContext,
   harvestExpression,
@@ -58,11 +60,20 @@ const sha256 = (value) => createHash('sha256').update(value).digest('hex');
 const browserSource = await readFile(new URL('../src/lib/browser.mjs', import.meta.url), 'utf8');
 let isolatedMutants = 0;
 
+check(
+  '全量覆盖最早时刻取下界裁剪前的收割集合',
+  earliestObservedTime([{ time: '2026-10-24T05:00:00.000Z' }, { time: '2026-11-08T02:00:00.000Z' }]) ===
+    '2026-10-24T05:00:00.000Z' && earliestObservedTime([]) === null &&
+    browserSource.includes('oldest: oldestObserved,') &&
+    browserSource.includes('oldestObserved = earliestObservedTime(harvested.values());'),
+  'normalized tweets 已裁掉下界之前的条目，不能用它证明回溯范围'
+);
+
 async function rejectBrowserMutation(name, source, verify) {
   const mutant = `${source}\n// isolated test mutant: ${name}`;
   const url = `data:text/javascript;base64,${Buffer.from(mutant).toString('base64')}`;
   const module = await import(url);
-  assert.equal(verify(module), false, `隔离源码反例必须被行为断言拦截：${name}`);
+  assert.equal(await verify(module), false, `隔离源码反例必须被行为断言拦截：${name}`);
   isolatedMutants++;
   console.log(`  ✓ 隔离源码反例被拦截：${name}`);
 }
@@ -453,7 +464,7 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
     },
     querySelectorAll: (selector) => selector === 'time'
       ? [{ getAttribute: () => '2026-10-11T04:01:09.000Z', closest: () => ({ getAttribute: () => '/thsottiaux/status/2109132167112782291' }) }]
-      : [{ getAttribute: () => '/thsottiaux/status/2109132167112782291' }],
+      : [],
   });
   for (const author of ['someone', '', 'thsottiaux']) {
     const [raw] = runInNewContext(expr, { document: { querySelectorAll: () => [article(author)] } });
@@ -475,6 +486,86 @@ section('雷达候选筛选：只把可能引来回复的推文送进详情页')
   /* ⛔ 票数**不许按英文词匹配**：实测界面语言是中文，页脚是「74,565 次投票 · 最终结果」。
    * 按 votes 匹配在中文界面下会静默取不到，而这类失效不会报错、只会少一个数字。 */
   check('票数不按语言相关的词匹配', !/votes|次投票/.test(code), '');
+}
+
+/* ==================== 置顶旧帖不能成为双流到界证据 ==================== */
+{
+  const floor = Date.parse('2026-11-01T00:00:00.000Z');
+  const pin = { id: '1', author: 'thsottiaux', text: 'Pinned post', time: '2026-10-01T00:00:00.000Z', hasSocialContext: true };
+  const recent = { id: '2', author: 'thsottiaux', text: 'Recent post', time: '2026-11-16T00:00:00.000Z' };
+  const older = { ...recent, id: '3', time: '2026-11-15T00:00:00.000Z' };
+  const boundary = { ...recent, id: '4', time: '2026-10-31T23:59:00.000Z' };
+  const article = (quoteOnly) => {
+    const marker = {};
+    const time = { getAttribute: () => recent.time, closest: () => ({ getAttribute: () => '/thsottiaux/status/2' }) };
+    const card = {
+      contains: (node) => node === marker,
+      querySelector: () => null,
+      innerText: '@someone',
+    };
+    return {
+      querySelector(selector) {
+        if (selector === '[data-testid="tweetText"]') return { innerText: recent.text };
+        if (selector === '[data-testid="User-Name"]') return { innerText: '@thsottiaux' };
+        if (selector === 'div[role="link"] [data-testid="tweetText"]' && quoteOnly) return { closest: () => card };
+        return null;
+      },
+      querySelectorAll: (selector) => selector === 'time' ? [time] : selector === '[data-testid="socialContext"]' ? [marker] : [],
+    };
+  };
+  const extract = (module, quoteOnly) => runInNewContext(module.harvestExpression('thsottiaux'), {
+    document: { querySelectorAll: () => [article(quoteOnly)] },
+  })[0];
+  const ownMarker = extract({ harvestExpression }, false);
+  const quoteMarker = extract({ harvestExpression }, true);
+  check('DOM 置顶/转发提示不依赖文案，引用卡内提示不影响本帖', ownMarker.hasSocialContext === true && quoteMarker.hasSocialContext === false);
+  check('有乱序提示的帖子仍正常保留正文与来源', normalizeTimelineItems([ownMarker], { handle: 'thsottiaux' })[0]?.hasSocialContext === true);
+  check('全部为置顶条目时没有普通时间线下界证据', earliestObservedTime([pin]) === null);
+
+  // 只替换等待与 CDP，执行生产 harvestStream 的真实循环，不重写停止/合并逻辑。
+  const instrument = (source) => source.replace(
+    'const sleep = (ms) => new Promise((r) => setTimeout(r, ms));', 'const sleep = async () => {};'
+  ) + '\nexport { harvestStream };';
+  const browser = await import(`data:text/javascript;base64,${Buffer.from(instrument(browserSource)).toString('base64')}`);
+  async function scan(module, path, reachFloor) {
+    const batches = [[pin, recent], [{ ...pin, hasSocialContext: false }, older], [boundary]];
+    let screen = 0;
+    const cdp = {
+      async send(method) {
+        if (method === 'Page.navigate') this.onEvent?.({ method: 'Page.loadEventFired' });
+        return { targetId: 'test-target', sessionId: 'test-session' };
+      },
+      async evalJs(expression) {
+        if (expression.includes('SideNav_AccountSwitcher_Button')) return { loggedIn: true };
+        if (expression.startsWith('window.scrollBy')) { screen++; return 1; }
+        return batches[screen];
+      },
+    };
+    return module.harvestStream(cdp, {
+      handle: 'thsottiaux', path, sinceMs: floor, known: new Set(), incremental: false,
+      knownScreensToStop: 2, maxSteps: reachFloor ? 3 : 2, settleMs: 0, stepRatio: 0.85,
+    });
+  }
+  const mainIncomplete = await scan(browser, '', false);
+  const replyIncomplete = await scan(browser, '/with_replies', false);
+  check('双流首屏旧置顶和重复屏提示消失均不能误报完成',
+    mainIncomplete.stoppedBy === 'exhausted' && replyIncomplete.stoppedBy === 'exhausted' &&
+    mainIncomplete.oldest === older.time && replyIncomplete.oldest === older.time &&
+    !assessFullScanCoverage(floor, mainIncomplete, replyIncomplete).complete);
+  const mainComplete = await scan(browser, '', true);
+  const replyComplete = await scan(browser, '/with_replies', true);
+  check('双流继续翻到普通条目越过下界才完成，途中帖子保留',
+    assessFullScanCoverage(floor, mainComplete, replyComplete).complete &&
+    mainComplete.oldest === boundary.time && mainComplete.tweets.map((t) => t.id).join(',') === '2,3' &&
+    replyComplete.tweets.map((t) => t.id).join(',') === '2,3');
+  await rejectBrowserMutation('丢失 DOM 乱序标记', browserSource.replace('hasSocialContext:social', 'hasSocialContext:false'),
+    (module) => extract(module, false).hasSocialContext === true);
+  await rejectBrowserMutation('引用卡标记污染本帖', browserSource.replace('if(!card||!card.contains(marker))social=true;', 'social=true;'),
+    (module) => extract(module, true).hasSocialContext === false);
+  await rejectBrowserMutation('置顶旧帖参与到界', instrument(browserSource.replace('if (item?.hasSocialContext) continue;', '')),
+    async (module) => (await scan(module, '', false)).stoppedBy === 'exhausted');
+  await rejectBrowserMutation('重复屏抹掉乱序标记', instrument(browserSource.replace('Boolean(prev.hasSocialContext || it.hasSocialContext)', 'Boolean(it.hasSocialContext)')),
+    async (module) => (await scan(module, '/with_replies', false)).stoppedBy === 'exhausted');
 }
 
 /* ==================== 增量停止判据（「已入库就停」） ==================== */

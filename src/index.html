@@ -411,17 +411,20 @@
   #observatory .hero-v .unit{color:var(--am-muted);font-size:10px}
   #observatory .am-main{grid-template-columns:minmax(0,1.85fr) minmax(320px,1fr);gap:22px;margin-top:0;align-items:stretch}
   #observatory .am-signal-slot{grid-column:1/-1;grid-row:1;min-width:0}
-  #observatory .am-focus{display:contents}
-  #observatory .am-focus>.pred{display:flex;flex-direction:column;grid-column:1;grid-row:2;min-width:0}
-  #observatory .am-focus>.pred>.pcard{flex:1}
-  #observatory .am-focus>:not(.pred){grid-column:1;grid-row:3;min-width:0}
+  /* 预测与依据在同一列连续排布；日历高度不能再撑出两者之间的空洞。 */
+  #observatory .am-focus{display:flex;flex-direction:column;gap:22px;grid-column:1;grid-row:2;min-width:0}
+  #observatory .am-focus>.pred{min-width:0;width:100%}
+  #observatory .am-focus>.am-basis{flex:none}
+  #observatory .am-focus>.pred>.pcard,#observatory .am-focus>.pred>.pcard .am-stage{flex:0 0 auto}
   #observatory .am-main>.reset-calendar{grid-column:2;grid-row:2}
-  /* 桌面两列各按内容定高，月历不再拉伸预测卡。 */
+  #observatory .am-main>.am-records{grid-column:1/-1;grid-row:3;margin:0}
   @media(min-width:851px){
     #observatory .am-main{align-items:start}
-    #observatory .am-focus>.pred{align-self:start;width:100%}
-    #observatory .am-focus>.pred>.pcard{flex:0 0 auto}
-    #observatory .am-focus>.pred>.pcard .am-stage{flex:0 0 auto}
+    #observatory .am-focus>.am-basis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:16px}
+    #observatory .am-basis h2,#observatory .am-basis-note{grid-column:1/-1}
+    #observatory .am-focus>.am-basis .am-basis-row{display:flex;flex-direction:column;align-items:flex-start;gap:8px;border:0;padding:10px 0}
+    #observatory .am-focus>.am-basis .am-basis-row+.am-basis-row{border-left:1px solid var(--am-line);padding-left:16px}
+    #observatory .am-basis-note{margin-top:4px}
   }
   #observatory .am-signal-details{margin:0;padding:16px 18px;border-radius:16px;background:#161c30;color:#a4adc8;font-size:12px}
   #observatory .am-signal-details>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:14px;min-height:28px}
@@ -431,8 +434,6 @@
   #observatory .signal-disclosure:after{content:'';width:6px;height:6px;border-right:1.5px solid;border-bottom:1.5px solid;transform:translateY(-2px) rotate(45deg)}
   #observatory .am-signal-details[open] .signal-disclosure:after{transform:translateY(2px) rotate(225deg)}
   #observatory .am-signal-details .sig{margin:16px 0 0;padding:16px 0 0;border-radius:0;border-top:1px solid var(--am-line);background:transparent}
-  #observatory .am-main>.am-side{grid-column:2;grid-row:3;gap:20px}
-  #observatory .am-side>.am-basis{flex:none}
   #observatory .am-main .pcard,#observatory[data-running="true"] .am-main .am-panel:hover{transform:none}
   #observatory .am-lower{display:block;margin-top:24px}
   #observatory .am-lower .am-trends{width:100%;margin:16px 0}
@@ -576,9 +577,12 @@
   #observatory .rc-month[hidden],#observatory .rc-month-nav[hidden]{display:none}
   #observatory .rc-month-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0}
   #observatory .rc-month-nav button,#observatory .rc-month-nav select{color:#d2c7ed;background:#20243a;border:1px solid #a99ae22b;border-radius:8px;height:36px;font:inherit}
-  #observatory .rc-month-nav button{width:36px;flex:none;font-size:24px;cursor:pointer}
+  #observatory .rc-month-nav button{width:36px;flex:none;display:grid;place-items:center;padding:0;line-height:1;cursor:pointer}
+  #observatory .rc-month-nav button svg{display:block;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   #observatory .rc-month-nav button:disabled{opacity:.3;cursor:default}
-  #observatory .rc-month-nav select{min-width:0;flex:1;padding:0 10px;text-align:center;font-size:13px;cursor:pointer;color-scheme:dark}
+  #observatory .rc-month-nav select{min-width:0;flex:1;padding:0 32px;text-align:center;text-align-last:center;font-size:13px;cursor:pointer;color-scheme:dark;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d2c7ed' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:14px}
+  #observatory .rc-month-fallback{margin:12px 0;text-align:center;color:#d2c7ed;font-size:13px}
+  #observatory .rc-month-nav:not([hidden])~.rc-month .rc-month-fallback{display:none}
   #observatory .rc-month-nav :focus-visible{outline:2px solid #c4b5fd;outline-offset:2px}
   #observatory .rc-range{margin:0 0 14px;color:#8996b2;font-size:10px;line-height:1.6}
   #observatory .rc-legend span:first-child{color:#a6edce}#observatory .rc-legend span:nth-child(2){color:#c9baff}#observatory .rc-legend span:nth-child(3){color:#bcb2e0}#observatory .rc-legend span:nth-child(4){color:#edc28a}
@@ -614,19 +618,12 @@
   #observatory .am-main>.reset-calendar .rc-heading{margin-bottom:10px}
   #observatory .am-main>.reset-calendar .rc-summary{margin-bottom:12px}
   #observatory .am-main>.reset-calendar .rc-cell{min-height:42px}
-  #observatory .am-side .is-arrival{padding:17px}
-  #observatory .am-side .is-arrival h2{margin-bottom:9px;font-size:14px}
-  #observatory .am-side .is-arrival .am-basis-row{padding:9px 0;font-size:11px}
-  #observatory .am-side .is-arrival .am-basis-row strong{font-size:14px}
-  #observatory .am-side .is-arrival .am-basis-note{margin-top:10px;font-size:10px;line-height:1.7}
+  #observatory .am-focus .is-arrival{padding:17px}
+  #observatory .am-focus .is-arrival h2{margin-bottom:9px;font-size:14px}
+  #observatory .am-focus .is-arrival .am-basis-row{padding:9px 0;font-size:11px}
+  #observatory .am-focus .is-arrival .am-basis-row strong{font-size:14px}
+  #observatory .am-focus .is-arrival .am-basis-note{margin-top:10px;font-size:10px;line-height:1.7}
 
-  #observatory .am-side .am-records{margin:0;display:flex;flex-direction:column;flex:1}
-  #observatory .am-side .am-record-grid{flex:1;grid-auto-rows:1fr;gap:0}
-  #observatory .am-side .am-record{display:flex;flex-direction:column;justify-content:center;padding:16px 0}
-  /* 竖排居中的是「原文 + 译文」这一列，不是链接本身 —— 链接要铺满才能点。 */
-  #observatory .am-side .am-record-link{display:block}
-  #observatory .am-side .am-record:first-child{padding-top:8px}
-  #observatory .am-side .am-record:last-child{padding-bottom:0}
   #observatory .am-main>.reset-calendar .rc-heading p,#observatory .am-main>.reset-calendar .rc-caption{font-size:10px}
   #observatory .am-main>.reset-calendar .rc-cell{min-height:46px}
   #observatory .am-main>.reset-calendar .rc-cell b{font-size:11px}
@@ -697,8 +694,21 @@
   #observatory .program-plan .sig-prog summary{font-size:11px;color:#99a5c0;min-height:32px}
   #observatory .program-plan .sig-prog .am-icon{width:26px;height:26px;border-radius:8px}
   @media(max-width:1000px){#observatory .am-main{grid-template-columns:minmax(0,1.6fr) minmax(300px,1fr)}#observatory .plan-cell small{display:none}#observatory .plan-cell i{display:block}}
-  @media(min-width:851px){#observatory .am-main>.am-side{grid-column:1/-1;grid-row:3;display:grid;grid-template-columns:inherit;align-items:start;gap:22px}}
-  @media(max-width:850px){#observatory .am-main{grid-template-columns:1fr}#observatory .am-signal-slot,#observatory .am-focus>.pred,#observatory .am-focus>:not(.pred),#observatory .am-main>.reset-calendar,#observatory .am-main>.am-side{grid-column:1;grid-row:auto}#observatory .am-main>.am-side{display:flex;align-items:stretch;margin-top:0}#observatory .plan-cell small{display:block}#observatory .plan-cell i{display:none}}
+  @media(min-width:851px){
+    #observatory .am-main>.am-records .am-record-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:23px}
+    #observatory .am-main>.am-records .am-record+.am-record{border-top:0;border-left:1px solid var(--am-line);padding:0 0 0 23px}
+  }
+  @media(max-width:850px){
+    #observatory .am-main{display:flex;flex-direction:column;align-items:stretch;gap:18px}
+    #observatory .am-focus{display:contents}
+    #observatory .am-signal-slot{order:0}
+    #observatory .am-focus>.pred{order:1}
+    #observatory .am-focus>.program-plan{order:2}
+    #observatory .am-main>.reset-calendar{order:3}
+    #observatory .am-focus>.am-basis{order:4}
+    #observatory .am-main>.am-records{order:5}
+    #observatory .plan-cell small{display:block}#observatory .plan-cell i{display:none}
+  }
   @media(max-width:700px){#observatory .am-main{display:flex;flex-direction:column;gap:18px}#observatory .am-focus{width:100%;gap:18px}#observatory .am-main>.am-side{display:flex;width:100%;margin-top:0;gap:18px}#observatory .program-plan{padding:20px 16px}#observatory .program-archive{margin-top:14px;padding:0 16px}#observatory .program-archive>summary{min-height:52px;font-size:13px}#observatory .program-archive .program-plan{margin:0 -16px}#observatory .plan-heading h2{font-size:16px}#observatory .plan-grid{gap:6px}#observatory .plan-cell{min-height:55px;border-radius:8px;gap:5px}#observatory .plan-cell small{display:none}#observatory .plan-cell i{display:block}#observatory .plan-cell b{font-size:12px}#observatory .plan-cell>span{font-size:9px}#observatory .plan-stats{gap:6px 12px;font-size:10px}#observatory .plan-entry-meta time{margin-left:0}#observatory .signal-summary{gap:7px}#observatory .signal-summary>span{font-size:11px}#observatory .signal-disclosure{font-size:10px}#observatory .am-signal-details{padding:14px}#observatory .am-lower .am-trends{margin:16px 0}}
 </style>
 
@@ -722,15 +732,13 @@
       <div class="am-focus">
         <!--__OUTLOOK__-->
         <!--__PROGRAM__-->
+        <!--__BASIS_SUMMARY__-->
       </div>
       <!--__RESET_CALENDAR__-->
-      <div class="am-side">
-        <!--__BASIS_SUMMARY__-->
-        <section class="am-panel am-records" id="records">
+      <section class="am-panel am-records" id="records">
           <div class="am-panel-head"><h2>最近记录</h2><span class="am-tiny am-muted">原文可追溯 ↗</span></div>
           <div class="am-record-grid"><!--__RECENT_RECORDS__--></div>
-        </section>
-      </div>
+      </section>
     </div>
     <!--__PROGRAM_HISTORY__-->
     <div class="am-lower">

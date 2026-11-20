@@ -113,6 +113,7 @@ export function normalizeTimelineItems(items, opts = {}) {
       // 丢了它，识别算法就只能看到他的半句话。
       ...(it.inReplyTo ? { inReplyTo: it.inReplyTo } : {}),
       ...(it.quotedTweet ? { quotedTweet: it.quotedTweet } : {}),
+      ...(it.hasSocialContext ? { hasSocialContext: true } : {}),
       // 民调同理：它是正文之外**唯一**带量化民意的字段（正文只有 "Vote" 一个词）。
       // 不带出来，采集侧就等于把这条民意扔了。
       ...(it.poll ? { poll: it.poll } : {}),
@@ -261,6 +262,11 @@ export function harvestExpression(handle) {
     // （2026-10-15 实测：「Done and dusted」被抽成「Landing within the next 2 hours」的 id）。
     var quoted=null,q=a.querySelector('div[role="link"] [data-testid="tweetText"]');
     var card=q?q.closest('div[role="link"]'):null;
+    // 置顶、转发等提示不依赖界面语言；这些帖子可收录，但不证明已按时间翻到下界。
+    var social=false;
+    a.querySelectorAll('[data-testid="socialContext"]').forEach(function(marker){
+      if(!card||!card.contains(marker))social=true;
+    });
     a.querySelectorAll('time').forEach(function(time){
       if(card&&card.contains(time))return;
       var l=time.closest('a'),href=l?(l.getAttribute('href')||''):'';
@@ -275,8 +281,18 @@ export function harvestExpression(handle) {
       if(t===q)t=null;
     }
     var more=!!a.querySelector('[data-testid="tweet-text-show-more-link"]');
-    out.push({id:id,url:url,time:tm?tm.getAttribute('datetime'):'',text:t?t.innerText.replace(/\\s+/g,' '):'',author:author,truncated:more,poll:pollOf(a),quotedTweet:quoted});
+    out.push({id:id,url:url,time:tm?tm.getAttribute('datetime'):'',text:t?t.innerText.replace(/\\s+/g,' '):'',author:author,truncated:more,poll:pollOf(a),quotedTweet:quoted,hasSocialContext:social});
   });return out;})()`;
+}
+
+/** 到界证据只取普通时间线条目；置顶旧帖不能让首屏直接宣告补采完成。 */
+export function earliestObservedTime(items) {
+  let oldest = null;
+  for (const item of items ?? []) {
+    if (item?.hasSocialContext) continue;
+    if (item?.time && (!oldest || item.time < oldest)) oldest = item.time;
+  }
+  return oldest;
 }
 
 /**
@@ -591,6 +607,7 @@ async function harvestStream(cdp, o) {
     let stagnant = 0;
     let knownStreak = 0;
     let stoppedBy = 'exhausted';
+    let oldestObserved = null;
     /**
      * 作者解析失败的条目（按文本去重）。回复流的配对全靠作者，
      * 静默失效等于「收了一堆没有上下文的半句话」，而这件事不看计数发现不了。
@@ -618,8 +635,11 @@ async function harvestStream(cdp, o) {
           const inReplyTo = prev.inReplyTo ?? it.inReplyTo ?? null;
           const quotedTweet = prev.quotedTweet ?? it.quotedTweet ?? null;
           const truncated = Boolean(prev.truncated || it.truncated);
-          if (inReplyTo !== prev.inReplyTo || quotedTweet !== prev.quotedTweet || truncated !== prev.truncated) {
-            harvested.set(it.id, { ...prev, inReplyTo, quotedTweet, truncated });
+          // 虚拟列表再次渲染时提示可能消失，曾经置顶过的证据不能被覆盖掉。
+          const hasSocialContext = Boolean(prev.hasSocialContext || it.hasSocialContext);
+          if (inReplyTo !== prev.inReplyTo || quotedTweet !== prev.quotedTweet || truncated !== prev.truncated ||
+            hasSocialContext !== prev.hasSocialContext) {
+            harvested.set(it.id, { ...prev, inReplyTo, quotedTweet, truncated, hasSocialContext });
           }
         }
       }
@@ -635,10 +655,8 @@ async function harvestStream(cdp, o) {
         stagnant = 0;
       }
 
-      const oldest = [...harvested.values()].reduce(
-        (min, x) => (x.time && x.time < min ? x.time : min),
-        '9999'
-      );
+      oldestObserved = earliestObservedTime(harvested.values());
+      const oldest = oldestObserved ?? '9999';
       if (onProgress) onProgress({ step, harvested: harvested.size, oldest, knownStreak });
 
       // 已经翻过下界，再往下翻都是浪费
@@ -671,7 +689,9 @@ async function harvestStream(cdp, o) {
       loggedIn: !!state.loggedIn,
       steps,
       path,
-      oldest: tweets.length ? tweets[tweets.length - 1].created_at : null,
+      // `tweets` 已按 sinceMs 裁掉下界之前的条目；完整覆盖判据需要保留
+      // 裁剪前实际看见的最早时刻，才能证明滚动确实越过了下界。
+      oldest: oldestObserved,
       mode: incremental ? 'incremental' : 'full',
       stoppedBy,
       // 作者解析失败的条目数：回复流的配对完全依赖它，静默失效等于「收了一堆

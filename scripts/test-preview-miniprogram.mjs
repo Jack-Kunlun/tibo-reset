@@ -88,7 +88,7 @@ try {
   preview.selectView('records');
   check('记录页预览将原生月份选择器映射为可操作的选择控件', () => {
     assert.match(preview.rootNode.innerHTML, /<select[^>]*tr-calendar-month-picker[^>]*data-preview-change="onSelectCalendarMonth"/);
-    assert.match(preview.rootNode.innerHTML, /<option value="0">2026年10月重置日历<\/option>/);
+    assert.match(preview.rootNode.innerHTML, /<option value="0">2026 年 10 月<\/option>/);
     assert.match(html, /\.preview-page select\.tr-calendar-month-picker\{[^}]*border:0[^}]*color:#f2f0fc[^}]*font:inherit/);
   });
   preview.handle('onSelectCalendarMonth', { detail: { value: 0 }, currentTarget: { dataset: {} } });

@@ -11,7 +11,7 @@ import config from '../config.js';
 import { loadState, snapshotState } from './api.js';
 import { copyText } from './clipboard.js';
 import { indexShareTitle, historyShareTitle, isSinglePage } from './share.js';
-import { buildGauge, buildSignal, buildMetrics, buildForecast, buildOutlookView, buildCalendarView, buildProgramPlanView, buildObservationSignal, buildTodayResetView, predCountdown, readoutParts } from './view.js';
+import { buildGauge, buildSignal, buildMetrics, buildForecast, buildOutlookView, buildCalendarView, calendarMonthLabel, buildProgramPlanView, buildObservationSignal, buildTodayResetView, predCountdown, readoutParts } from './view.js';
 import { survivalScene, stripScene, histogramScene, rhythmScene } from './scene.js';
 import { drawScene, setupCanvas } from './draw.js';
 import { buildProgramLifecycle } from './outlook.js';
@@ -163,7 +163,7 @@ function calendarMonthEntries(calendar) {
     ? calendar.months : calendar ? [calendar] : [];
   return months.map((item) => {
     const month = item.month || item.fromDate?.slice(0, 7) || calendar.currentMonth || '';
-    return { month, title: item.title || month };
+    return { month, title: calendarMonthLabel({ ...item, month }) };
   }).filter((item) => /^\d{4}-\d{2}$/.test(item.month));
 }
 
@@ -184,10 +184,6 @@ function defaultCalendarDate(calendar) {
     || calendar?.cells.find((cell) => cell.isToday)?.date
     || calendar?.cells[0]?.date
     || '';
-}
-
-function calendarRange(calendar) {
-  return calendar ? `${calendar.fromDate.slice(5).replace('-', '.')} — ${calendar.toDate.slice(5).replace('-', '.')}` : '';
 }
 
 function planSelection(planView, day) {
@@ -242,7 +238,6 @@ export function createDashboardPage(view = 'observe') {
     selectedPlanDay: 0,
     selectedPlan: null,
     expandedPlanEntry: '',
-    calendarRange: '',
     trend: [],
     trendCount: 0,
     trendFirst: '',
@@ -463,7 +458,6 @@ export function createDashboardPage(view = 'observe') {
         selectedPlanDay,
         selectedPlan,
         expandedPlanEntry,
-        calendarRange: calendarRange(calendar),
         selectedDate,
         selectedDay: calendarSelection(calendar, selectedDate),
         allRecords: records,
@@ -974,7 +968,6 @@ export function createDashboardPage(view = 'observe') {
       calendarMonthIndex: index,
       calendarCanPrev: index > 0,
       calendarCanNext: index < this.data.calendarMonthOptions.length - 1,
-      calendarRange: calendarRange(calendar),
       selectedDate,
       selectedDay: calendarSelection(calendar, selectedDate),
     });

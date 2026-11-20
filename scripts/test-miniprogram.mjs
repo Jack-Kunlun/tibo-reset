@@ -2387,7 +2387,7 @@ console.log('\n【13】分享（好友 · 朋友圈 · 单页模式）');
     r.includes('mode="selector"') && r.includes('range="{{calendarMonthOptions}}"') &&
     r.includes('bindchange="onSelectCalendarMonth"') && r.includes('data-direction="-1"') &&
     r.includes('data-direction="1"') && r.includes('disabled="{{!calendarCanPrev}}"') &&
-    r.includes('disabled="{{!calendarCanNext}}"') && r.includes('{{calendar.title}}'));
+    r.includes('disabled="{{!calendarCanNext}}"') && r.includes('{{calendar.monthLabel}}') && !r.includes('{{calendarRange}}'));
   check('记录页以默认收起的历史活动保留结束计划、28天和来源详情',
     r.includes('view === \'records\' && planView.show && planView.ended') &&
     r.includes('bindtap="onToggleHistoricalPlan"') && r.includes('aria-expanded="{{historicalPlanOpen}}"') &&

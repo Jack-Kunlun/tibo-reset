@@ -189,7 +189,8 @@ const RE_ANNOUNCE =
   /\b(?:a|an|the|another|one|this|that)\s+(?:full\s+|fresh\s+|banked\s+|surprise\s+|bonus\s+)?reset\b/i;
 
 /** 假设 / 条件 / 否定语境 —— 命中时「名词化的 reset」不能当既成事实。 */
-const RE_HYPOTHETICAL = /\b(?:if|unless|whether|would|could|might|should|suppose|imagine|unless)\b|\bwon'?t\s+reset\b/i;
+const RE_HYPOTHETICAL = /\b(?:if|unless|whether|would|could|might|should|suppose|imagine)\b|\bwon'?t\s+reset\b/i;
+const RE_TENTATIVE = /\b(?:perhaps|maybe)\b/i;
 
 /**
  * 否定 / 备选语境 —— 名词化的 reset 在**被否定**或**被摆成备选项**时不是既成事实。
@@ -262,7 +263,7 @@ function hasResetDayAnnouncement(text) {
   return splitSentences(text).some((s) =>
     /\b(?:it[’']s|it is|today is)\s+(?:a\s+)?reset\s+day(?:\s+today)?[.!]?$/i.test(s.trim()) &&
     !blockedResetSentence(s) && !RE_HYPOTHETICAL.test(s) &&
-    !/\b(?:maybe|hope|wish|yesterday|previously)\b/i.test(s));
+    !/\b(?:perhaps|maybe|hope|wish|yesterday|previously)\b/i.test(s));
 }
 // 活动日的独立宣告不等于完成；具体到达时间可能在下一条自回复里补充。
 function hasScheduledResetDeclaration(text) {
@@ -270,7 +271,7 @@ function hasScheduledResetDeclaration(text) {
   return splitSentences(text).some((s) =>
     /\b(?:that[’']s|that is|it[’']s|it is|today is)\s+(?:a\s+)?reset[.!]*$/i.test(s.trim()) &&
     !blockedResetSentence(s) && !RE_HYPOTHETICAL.test(s) &&
-    !/\b(?:maybe|hope|wish|demand|want|yesterday|previously)\b/i.test(s) && !s.trim().endsWith('?'));
+    !/\b(?:perhaps|maybe|hope|wish|demand|want|yesterday|previously)\b/i.test(s) && !s.trim().endsWith('?'));
 }
 function isTargetedCompensation(text) {
   return !RE_RESET.test(text) &&
@@ -305,11 +306,11 @@ function hasUntimedAnnouncement(text, viaContext) {
   // 日程标题按完整正文检查，否定、假设、疑问和回顾仍不能构成预告。
   if (RE_SCHEDULE_RESET.test(whole) && !blockedResetSentence(whole) &&
     !RE_HYPOTHETICAL.test(whole) && !whole.trim().endsWith('?') &&
-    !/\b(?:maybe|hope|wish|or|either|was|were|had|yesterday|previously)\b/i.test(whole)) return true;
+    !/\b(?:perhaps|maybe|hope|wish|or|either|was|were|had|yesterday|previously)\b/i.test(whole)) return true;
   return splitSentences(text).some((s) => {
     if (!RE_RESET.test(s) && !(viaContext && RE_CONTINUE.test(s))) return false;
     if (blockedResetSentence(s) || RE_HYPOTHETICAL.test(s) || s.trim().endsWith('?') ||
-      /\b(?:maybe|hope|wish|or|either|was|were|had|yesterday|previously)\b/i.test(s)) return false;
+      /\b(?:perhaps|maybe|hope|wish|or|either|was|were|had|yesterday|previously)\b/i.test(s)) return false;
     return RE_RESET_NOT_YET.test(s) ||
       RE_SCHEDULE_RESET.test(withoutUrls(s)) ||
       /\b(?:will|we[’']ll|i[’']ll|gonna|going\s+to|plan(?:ning)?\s+to|soon)\b/i.test(s) ||
@@ -347,7 +348,8 @@ const RE_FUTURE_PERFECT =
  * 就是「上次重置是什么时候」，把已发生的事实丢掉，等于不回答自己的主问题。
  */
 export function hasOccurredReset(text) {
-  const t = String(text ?? '');
+  // 试探句不提供到账证据，也不能否决同帖中独立、明确的完成公告。
+  const t = splitSentences(text).filter((s) => !RE_TENTATIVE.test(s)).join(' ');
   if (RE_OWN_RESET_DONE.test(withoutUrls(t)) || RE_SCHEDULE_RESET_DONE.test(withoutUrls(t))) return true;
   if (!RE_RESET.test(t)) return false;
   if (blockedResetSentence(t)) return false;
@@ -403,7 +405,16 @@ export function hasOccurredReset(text) {
  * 而被错当成「不在重置句里」。所以默认 0（不滤），只有 `hasOccurredPart` 传 12。
  */
 function splitSentences(text, minLen = 0) {
-  const parts = String(text ?? '').split(/(?<=[.!?])\s+|\n+/);
+  const parts = String(text ?? '').split(/(?<=[.!?])\s+|\n+/).flatMap((part) => {
+    // 完成公告后的另一个话题也可能只用逗号分隔；其 tomorrow 不属于重置窗口。
+    // 仅拆明确完成句，避免把「A reset, maybe tomorrow」拆成虚假的到账事实。
+    const m = part.match(/^(.+?)[,;]\s*((?:perhaps|maybe)\b.*)$/i);
+    // 尾随的「maybe? / maybe today / maybe to everyone」仍在修饰完成事实。
+    // 只接受明确另起的功能/发布话题，其余不确定片段保守留在原句中。
+    const independentTopic = m && /^(?:perhaps|maybe)\s+(?:(?:a|an|another|the|some|more)\s+)?(?:new\s+)?(?:features?|models?|updates?|releases?|improvements?)\b/i.test(m[2]);
+    return m && independentTopic && RE_PAST.test(m[1]) && !RE_TENTATIVE.test(m[1]) && !RE_RESET.test(m[2])
+      ? [m[1], m[2]] : [part];
+  });
   return minLen > 0 ? parts.filter((s) => s.trim().length > minLen) : parts;
 }
 
@@ -1388,7 +1399,10 @@ export function analyzeTweet(tweet, opts = {}) {
   // nevermind 句式），否则一律按发布说明降级为线索。
   const scheduleOnly = RE_SCHEDULE_PREFIX.test(text) && !RE_SCHEDULE_RESET.test(withoutUrls(text)) &&
     !hasResetDayAnnouncement(text) && !hasScheduledResetDeclaration(text);
-  const level = intent >= 3 && !scheduleOnly ? 'explicit' : 'hint';
+  // 日期只提供线索；「或许给一次重置」并未承诺，不能因时间明确就升级。
+  const tentativeReset = resetSentences.length > 0 &&
+    resetSentences.every((sentence) => RE_TENTATIVE.test(sentence));
+  const level = intent >= 3 && !scheduleOnly && !tentativeReset ? 'explicit' : 'hint';
   const win = describeWindow(w, sourceZone, userZone);
 
   return {
@@ -1429,7 +1443,7 @@ export function confirmedResetEvent(tweet, opts = {}) {
     parseTimes(s, refTs, sourceZone).some((w) => w.to < refTs);
   const direct = (s) => !blockedResetSentence(s) && !s.trim().endsWith('?') &&
     !/\b(?:yesterday|last\s+(?:week|month|year|night|monday|tuesday|wednesday|thursday|friday|saturday|sunday)|previous(?:ly)?)\b/i.test(s) &&
-    !RE_HYPOTHETICAL.test(s) && !RE_FUTURE_PERFECT.test(s) && !historicalDate(s);
+    !RE_HYPOTHETICAL.test(s) && !RE_TENTATIVE.test(s) && !RE_FUTURE_PERFECT.test(s) && !historicalDate(s);
   const partial = (s) => /\b(?:single|one\s+(?:account|of)|some|few|selected|subset|only|my|not\s+all|pro(?:\s+\d+)?|plus|team|enterprise|business)\b/i.test(s);
   const global = (s) => !partial(s) && /\b(?:all|everyone|everybody|global)\b/i.test(s);
   // 自动入库比信号分类更窄：只认可复核的完整完成句，未知修饰语留给上游补正。

@@ -185,6 +185,42 @@ const ST = JSON.stringify({
   errors: [],
 });
 
+const FULL_SCAN = JSON.stringify({
+  ...JSON.parse(ST),
+  full_scan: {
+    version: 1, status: 'complete', completed_at: '2026-11-15T00:24:07.177Z',
+    coverage_since: '2026-10-24T06:06:16.000Z',
+  },
+  full_scan_attempt: {
+    attempted_at: '2026-11-15T00:24:07.177Z',
+    requested_since: '2026-10-24T06:06:16.000Z', complete: false, reason: '回复流尚未到达下界',
+  },
+});
+
+check(
+  '全量证明与尝试的运行时间变化，但状态和覆盖范围不变 → 无实质变化',
+  verdict(['data/stats.json'], { 'data/stats.json': FULL_SCAN }, {
+    'data/stats.json': patch(FULL_SCAN, (j) => {
+      j.full_scan.completed_at = '2026-11-18T00:24:07.177Z';
+      j.full_scan_attempt.attempted_at = '2026-11-18T00:24:07.177Z';
+    }),
+  }).substantive.length === 0
+);
+
+for (const [name, update] of [
+  ['完成状态', (j) => { j.full_scan_attempt.complete = true; }],
+  ['失败原因', (j) => { j.full_scan_attempt.reason = '原创时间线尚未到达下界'; }],
+  ['请求下界', (j) => { j.full_scan_attempt.requested_since = '2026-10-23T06:06:16.000Z'; }],
+  ['已证明覆盖范围', (j) => { j.full_scan.coverage_since = '2026-10-23T06:06:16.000Z'; }],
+]) {
+  check(
+    `全量扫描${name}改变 → 有实质变化`,
+    verdict(['data/stats.json'], { 'data/stats.json': FULL_SCAN }, {
+      'data/stats.json': patch(FULL_SCAN, update),
+    }).substantive.length === 1,
+  );
+}
+
 check(
   'errors 从 [] 变成 [403] → 有实质变化（首次失败必须落档，否则横幅在仓库里没有痕迹）',
   verdict(['data/stats.json'], { 'data/stats.json': ST }, {
@@ -264,10 +300,11 @@ const hasPath = (obj, dotted) => {
 
 for (const [path, fields] of Object.entries(VOLATILE)) {
   const json = JSON.parse(await readFile(resolve(ROOT, path), 'utf8'));
+  const sample = path === 'data/stats.json' ? JSON.parse(FULL_SCAN) : json;
   for (const field of fields) {
     check(
       `清单有效：${path} 里确实有 ${field}`,
-      hasPath(json, field),
+      hasPath(sample, field),
       '字段改名后抹除会变成空操作，判据悄悄退回字节级'
     );
   }
@@ -279,6 +316,8 @@ const ALLOWED_VOLATILE = new Set([
   'data/stats.json:generated_at',
   'data/stats.json:last_full_at',
   'data/stats.json:stats.days_since_last',
+  'data/stats.json:full_scan.completed_at',
+  'data/stats.json:full_scan_attempt.attempted_at',
   'data/signal.json:generatedAt',
   'data/signal.json:windowFrom',
   'data/signal.json:windowTo',

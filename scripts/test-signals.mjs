@@ -13,7 +13,9 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { analyzeTweet, detectSignals, latestEventMs, hasOccurredPart, hasOccurredReset, detectProgram, classifyEvent, SOURCE_ZONE, USER_ZONE } from '../src/lib/signals.mjs';
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { analyzeTweet, detectSignals, latestEventMs, hasOccurredPart, hasOccurredReset, detectProgram, classifyEvent, confirmedResetEvent, SOURCE_ZONE, USER_ZONE } from '../src/lib/signals.mjs';
 import { renderSignal } from '../src/lib/render.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -194,6 +196,38 @@ console.log('\n【2】反例：绝不能误报');
   const r1 = run(denied, '2026-10-01T14:51:54.000Z');
   check('被否定的 reset（can’t really give a reset）不判 occurred', r1.level !== 'occurred', `实际 ${r1.level}`);
   check('它也不被反过来升级成预告', r1.level !== 'explicit', `实际 ${r1.level}`);
+
+  // 真实补采：试探性提议不能仅凭「a banked reset」变成到账事实。
+  for (const text of [
+    'Thursday is feeling codexy to me. Perhaps also a good time for a banked reset.',
+    'Perhaps a banked reset.',
+    'Maybe a reset.',
+    'Perhaps a reset tomorrow.',
+    'A reset, maybe tomorrow.',
+    'Perhaps reset all propagated.',
+    'Perhaps a reset is coming.',
+    'Reset all propagated, maybe?',
+    'Reset all propagated, maybe today.',
+    'Reset all propagated, maybe to everyone.',
+  ]) {
+    const suggestion = run(text, '2026-11-11T06:57:08.000Z');
+    check(`试探性重置提议不判 occurred：${text}`, suggestion.level !== 'occurred', `实际 ${suggestion.level}`);
+    check(`试探性提议不是明确预告：${text}`, suggestion.level !== 'explicit', `实际 ${suggestion.level}`);
+    check(`试探性提议不自动记入到账：${text}`,
+      confirmedResetEvent({ id: '1', text, account: 'thsottiaux', created_at: '2026-11-11T06:57:08.000Z' }) === null);
+  }
+  for (const text of [
+    'Reset all propagated. Maybe a new feature tomorrow.',
+    'Reset all propagated, maybe a new feature tomorrow.',
+    'Reset all propagated; perhaps a new feature tomorrow.',
+  ]) {
+    const tweet = { id: '1', text, account: 'thsottiaux', created_at: '2026-11-11T06:57:08.000Z' };
+    check(`独立试探话题不抹掉已完成事实或入库类型：${text}`,
+      analyzeTweet(tweet).level === 'occurred' && hasOccurredReset(text) && classifyEvent(text) === 'reset' &&
+      confirmedResetEvent(tweet)?.type === 'reset');
+  }
+  check('其他话题的试探语气不影响明确重置预告',
+    run('Reset tomorrow. Maybe a new feature as well.', '2026-11-11T06:57:08.000Z').level === 'explicit');
 
   // ② 备选项：在复述「每天要么给改进、要么给完整重置」这条规则，是回顾不是宣告。
   const either = 'Four updates or a reset. Or both. How was day 2.';
@@ -1826,6 +1860,37 @@ console.log('\n【17】已完成公告不能被 planned 降级');
     check(`未完成语境不判成已发生：${text}`, hasOccurredReset(text) === false,
       `occurred=${hasOccurredReset(text)}`);
   }
+}
+
+// 在内存加载源码变异，确认试探闸门与完成句隔离确实约束了行为。
+{
+  const path = new URL('../src/lib/signals.mjs', import.meta.url);
+  const source = await readFile(path, 'utf8');
+  const hash = (value) => createHash('sha256').update(value).digest('hex');
+  const at = '2026-11-11T06:57:08.000Z';
+  const analyze = (module, text) => module.analyzeTweet({ id: '1', text, account: 'thsottiaux', created_at: at });
+  const mutations = [
+    ['移除试探句到账闸门', '.filter((s) => !RE_TENTATIVE.test(s))', '',
+      (module) => analyze(module, 'Perhaps a banked reset.').level !== 'occurred'],
+    ['移除定时提议闸门', '&& !tentativeReset', '',
+      (module) => analyze(module, 'Perhaps a reset tomorrow.').level !== 'explicit'],
+    ['试探词再次全局否决完成', "const t = splitSentences(text).filter((s) => !RE_TENTATIVE.test(s)).join(' ');",
+      "const t = String(text ?? ''); if (RE_TENTATIVE.test(t)) return false;",
+      (module) => module.classifyEvent('Reset all propagated. Maybe a new feature tomorrow.') === 'reset'],
+    ['忽略逗号后的独立试探话题', '? [m[1], m[2]] : [part]', '? [part] : [part]',
+      (module) => analyze(module, 'Reset all propagated, maybe a new feature tomorrow.').level === 'occurred'],
+    ['把尾随不确定语气误当作独立话题', '&& independentTopic', '',
+      (module) => module.confirmedResetEvent({ id: '1', text: 'Reset all propagated, maybe to everyone.', account: 'thsottiaux', created_at: at }) === null],
+  ];
+  for (const [name, needle, replacement, verify] of mutations) {
+    assert.ok(source.includes(needle), `${name} 的变异点必须存在`);
+    const mutated = source.replace(needle, replacement).replace(/from '(\.\/[^']+)'/g,
+      (_, relative) => `from '${new URL(relative, path).href}'`);
+    const module = await import(`data:text/javascript;base64,${Buffer.from(mutated).toString('base64')}`);
+    assert.equal(verify(module), false, `${name} 必须被行为断言拦截`);
+    console.log(`  ✓ 隔离源码反例被拦截：${name}`);
+  }
+  assert.equal(hash(await readFile(path, 'utf8')), hash(source), '隔离变异不得修改工作区源码');
 }
 
 

@@ -29,6 +29,11 @@ export function readoutParts(value) {
   }));
 }
 
+export function calendarMonthLabel(calendar) {
+  const month = calendar?.month || calendar?.fromDate?.slice(0, 7) || '';
+  return /^\d{4}-\d{2}$/.test(month) ? `${Number(month.slice(0, 4))} 年 ${Number(month.slice(5))} 月` : '';
+}
+
 export function buildCalendarView(calendar) {
   if (!calendar) return null;
   const dataAt = toTs(calendar.dataAsOf);
@@ -36,6 +41,7 @@ export function buildCalendarView(calendar) {
   const freshness = snapshot ? '日历快照' : calendar.source === 'cache' ? '日历缓存' : '日历数据';
   return {
     ...calendar,
+    monthLabel: calendarMonthLabel(calendar),
     zoneLabel: calendar.zone === 'Asia/Shanghai' ? '北京时间' : 'UTC 日期',
     observedCount: calendar.observedCount ?? 0,
     awaitingCount: calendar.pendingCount + (calendar.datedCount ?? 0),
