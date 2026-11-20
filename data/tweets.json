@@ -1,6 +1,80 @@
 {
   "tweets": [
     {
+      "id": "2123867163345961285",
+      "text": "IS THIS HOW WE COMMUNICATE NOW?",
+      "created_at": "2026-11-20T19:52:45.000Z",
+      "url": "https://x.com/thsottiaux/status/2123867163345961285",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "DallenFrutchey",
+        "id": "",
+        "text": "STOP. USING. CUSTOM. TABBARS. PLEASE",
+        "created_at": "2026-11-20T01:01:38.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-20T22:02:11.946Z"
+    },
+    {
+      "id": "2123864112694509995",
+      "text": "First tweet from Akshay. Be nice to this one, he’s special.",
+      "created_at": "2026-11-20T19:40:38.000Z",
+      "url": "https://x.com/thsottiaux/status/2123864112694509995",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "akshaynathan_",
+        "text": "chatgpt app should feel much smoother. let us know where we can improve, lots more to do!",
+        "created_at": "2026-11-20T19:03:26.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-20T22:02:11.946Z"
+    },
+    {
+      "id": "2123861214644347122",
+      "text": "Team is locked in, upgrade your desktop app. Faster, simpler and a lot more pleasant to use.",
+      "created_at": "2026-11-20T19:29:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2123861214644347122",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "ajambrosino",
+        "text": "NEW: - ChatGPT Space for Plus! - new, simpler visual design across the app - huge performance improvements everywhere - completely rebuilt threads– better perf and design - redesigned Space home - much faster pages and slides - edit pages on mobile - more reliable Codex",
+        "created_at": "2026-11-20T18:08:03.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-20T22:02:11.946Z"
+    },
+    {
+      "id": "2123859787079426435",
+      "text": "Actual engineering going on here.",
+      "created_at": "2026-11-20T19:23:27.000Z",
+      "url": "https://x.com/thsottiaux/status/2123859787079426435",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "charliermarsh",
+        "id": "",
+        "text": "In Codex, we use a WebSocket for model requests, to send data incrementally over time. We’ve now increased the WebSocket size limit from 16 to 128 MB (8x), so large turns avoid falling back to HTTP (bad!). And if a request _does_ go over the limit, it’s now ~5x faster.",
+        "created_at": "2026-11-20T18:44:03.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-20T22:02:11.946Z"
+    },
+    {
       "id": "2123693044465906132",
       "text": "🫨",
       "created_at": "2026-11-20T08:20:52.000Z",
@@ -12038,7 +12112,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-20T10:09:11.440Z",
+  "updated_at": "2026-11-20T22:02:11.949Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
