@@ -1427,6 +1427,32 @@ jsdmirror（python3 urllib 通道）拉 4 文件、sha256 与本机 4/4 全等�
 vs 本机现算 `explicit`4/`occurred`11/`hint`76、两侧 `scanned`583 一致 ——
 同为 D-076 已知口径，非缺陷。
 
+### 第四十轮（2026-11-20 · `f13e992` / `amd64-d090`）—— D-093 双流到界证据 + 试探语气 + 布局
+
+**改动**：`src/` 5 文件（index.html、browser.mjs、collect.mjs、render.mjs、signals.mjs），
+无新增/删除 ⇒ 只覆盖不碰 `entrypoint.sh`。全量 check 首跑 2 红，均为**断言滞后**而非代码缺陷：
+① `test-announcement-deadline`「愿望或猜测不能升格」变异目标串被 D-093 改掉
+（`maybe|hope|…` → `perhaps|maybe|…`），且新代码是**双层闸门**（`hasResetDayAnnouncement` 词表 +
+主判定 `tentativeReset` 全句过滤），单点变异废不掉 ⇒ 变异循环扩展为支持多点（from/to 数组），
+该 case 同时废 `RE_TENTATIVE` 常量与词表行才构成有效反例；② `test-reset-calendar` 布局断言
+仍是侧栏时代口径（要求日历排在依据之前），按 D-093 新呈现（预测→计划→依据同列，日历整行居后）
+更新为 `OUTLOOK < PROGRAM < BASIS_SUMMARY < RESET_CALENDAR`。修复后 **2201 项全绿**。
+
+**发布链**：commit `f13e992` push → jsdmirror（python3 通道）直取 5 文件，
+sha256 **5/5 与本机全等**；容器旧值 5/5 = 8c02cc0 基线（diff 集假设成立）→
+`docker cp` 覆盖 → `docker commit` → `amd64-d090` → 腾名 prev(d089)→`archive-20261120a` →
+stop/rename/run 串一条 → nginx reload，墙钟 **0.51 秒**。
+
+**上线后验证**：health ok。**探针教训**：不能拿模板占位符当探针 —— `__OUTLOOK__` 等在渲染时
+被替换成内容，渲染产物里 indexOf 全是 -1，比较结果无意义。改用渲染产物中新 CSS 特征：
+`.am-focus>.am-basis{flex:none}` 与 `.am-main>.am-records{grid-column:1/-1}` 均命中 ⇒ 新代码生效。
+counts：`explicit`2/`occurred`16/`hint`74/`scanned`589。
+
+**遗留两步（属运行数据/端侧，换镜像不覆盖）**：
+① 11-13 人工账本条目 `reset→credit`：`correct-banked-reset.mjs --url=…` 预览已命中
+（entry `60f081ed`、revision 9），执行需显式 `--apply`（由用户拍板）；
+② 本机采集自动化要用新代码（工作区即新代码，下一轮采集自然生效）；小程序月份控件改动需重新发版。
+
 ### 6.2 用 jsdelivr 国内镜像直取文件（第四轮起改用，优于分块）
 
 ⚠ **先纠正本文一处旧结论**：此前写的「服务器**完全没有**出网」不准确。第四轮实测：
