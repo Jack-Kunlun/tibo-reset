@@ -1,6 +1,25 @@
 {
   "tweets": [
     {
+      "id": "2123901067272618336",
+      "text": "But is it true",
+      "created_at": "2026-11-20T22:07:29.000Z",
+      "url": "https://x.com/thsottiaux/status/2123901067272618336",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "theo",
+        "id": "",
+        "text": "Maria please, multiple investors have asked me about this 💀",
+        "created_at": "2026-11-20T21:06:33.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-21T04:08:15.475Z"
+    },
+    {
       "id": "2123867163345961285",
       "text": "IS THIS HOW WE COMMUNICATE NOW?",
       "created_at": "2026-11-20T19:52:45.000Z",
@@ -267,7 +286,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-20T10:09:11.436Z"
     },
     {
@@ -12112,7 +12131,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-20T22:02:11.949Z",
+  "updated_at": "2026-11-21T04:08:15.478Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
