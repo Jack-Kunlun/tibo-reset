@@ -1,6 +1,37 @@
 {
   "tweets": [
     {
+      "id": "2123998117561532424",
+      "text": "DYLAN, HI! 👋",
+      "created_at": "2026-11-21T04:33:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2123998117561532424",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "DylanMcD8",
+        "id": "",
+        "text": "I am SO tired of apps abandoning native tab bars STOP IT",
+        "created_at": "2026-11-20T03:03:19.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-21T10:06:05.060Z"
+    },
+    {
+      "id": "2123997735326232775",
+      "text": "We’ve been messing around a bit and inadvertently created an experience that’s a bit too fun internally and now everyone is just having fun instead of working. We might not recover from this.",
+      "created_at": "2026-11-21T04:31:36.000Z",
+      "url": "https://x.com/thsottiaux/status/2123997735326232775",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-21T10:06:05.060Z"
+    },
+    {
       "id": "2123901067272618336",
       "text": "But is it true",
       "created_at": "2026-11-20T22:07:29.000Z",
@@ -12131,7 +12162,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-21T04:08:15.478Z",
+  "updated_at": "2026-11-21T10:06:05.064Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }

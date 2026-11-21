@@ -1,11 +1,11 @@
 {
   "level": "explicit",
   "program": null,
-  "generatedAt": "2026-11-21T04:08:15.499Z",
-  "checkedTweets": 604,
+  "generatedAt": "2026-11-21T10:06:05.083Z",
+  "checkedTweets": 598,
   "lookbackDays": 60,
-  "windowFrom": "2026-09-22T04:08:15.499Z",
-  "windowTo": "2026-11-21T04:08:15.499Z",
+  "windowFrom": "2026-09-22T10:06:05.083Z",
+  "windowTo": "2026-11-21T10:06:05.083Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -15,36 +15,36 @@
       "zone": "Asia/Shanghai",
       "date": "2026.11.21",
       "weekday": "周六",
-      "time": "12:08",
-      "text": "2026.11.21（周六）12:08",
+      "time": "18:06",
+      "text": "2026.11.21（周六）18:06",
       "offset": "UTC+8"
     },
     "b": {
       "label": "Tibo 当地时间",
       "zone": "America/Los_Angeles",
-      "date": "2026.11.20",
-      "weekday": "周五",
-      "time": "20:08",
-      "text": "2026.11.20（周五）20:08",
+      "date": "2026.11.21",
+      "weekday": "周六",
+      "time": "02:06",
+      "text": "2026.11.21（周六）02:06",
       "offset": "UTC-8"
     },
     "diffHours": 16,
     "diffText": "北京时间比 Tibo 当地时间快 16 小时"
   },
   "latest": {
-    "id": "2123901067272618336",
+    "id": "2123998117561532424",
     "account": "thsottiaux",
-    "text": "But is it true",
-    "createdAt": "2026-11-20T22:07:29.000Z",
-    "url": "https://x.com/thsottiaux/status/2123901067272618336",
+    "text": "DYLAN, HI! 👋",
+    "createdAt": "2026-11-21T04:33:07.000Z",
+    "url": "https://x.com/thsottiaux/status/2123998117561532424",
     "reasons": [
-      "上下文：回复 @theo「Maria please, multiple investors hav…」"
+      "上下文：回复 @DylanMcD8「I am SO tired of apps abandoning nat…」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "theo",
+      "account": "DylanMcD8",
       "id": "",
-      "text": "Maria please, multiple investors have asked me about this 💀"
+      "text": "I am SO tired of apps abandoning native tab bars STOP IT"
     },
     "createdZones": {
       "a": {
@@ -52,8 +52,8 @@
         "zone": "Asia/Shanghai",
         "date": "2026.11.21",
         "weekday": "周六",
-        "time": "06:07",
-        "text": "2026.11.21（周六）06:07",
+        "time": "12:33",
+        "text": "2026.11.21（周六）12:33",
         "offset": "UTC+8"
       },
       "b": {
@@ -61,8 +61,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.11.20",
         "weekday": "周五",
-        "time": "14:07",
-        "text": "2026.11.20（周五）14:07",
+        "time": "20:33",
+        "text": "2026.11.20（周五）20:33",
         "offset": "UTC-8"
       },
       "diffText": "北京时间比 Tibo 当地时间快 16 小时"
@@ -1079,7 +1079,7 @@
         "from": "2026-11-12T08:00:00.000Z",
         "to": "2026-11-13T07:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-21T04:08:15.499Z"
+        "checkedAt": "2026-11-21T10:06:05.083Z"
       }
     },
     {
@@ -1650,7 +1650,7 @@
         "from": "2026-10-29T07:00:00.000Z",
         "to": "2026-10-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-21T04:08:15.499Z"
+        "checkedAt": "2026-11-21T10:06:05.083Z"
       }
     },
     {
@@ -3960,7 +3960,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-11-21T04:08:15.499Z"
+        "checkedAt": "2026-11-21T10:06:05.083Z"
       }
     },
     {
@@ -4549,6 +4549,84 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2123998117561532424",
+      "account": "thsottiaux",
+      "text": "DYLAN, HI! 👋",
+      "createdAt": "2026-11-21T04:33:07.000Z",
+      "url": "https://x.com/thsottiaux/status/2123998117561532424",
+      "reasons": [
+        "上下文：回复 @DylanMcD8「I am SO tired of apps abandoning nat…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "DylanMcD8",
+        "id": "",
+        "text": "I am SO tired of apps abandoning native tab bars STOP IT"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.21",
+          "weekday": "周六",
+          "time": "12:33",
+          "text": "2026.11.21（周六）12:33",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.20",
+          "weekday": "周五",
+          "time": "20:33",
+          "text": "2026.11.20（周五）20:33",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2123997735326232775",
+      "account": "thsottiaux",
+      "text": "We’ve been messing around a bit and inadvertently created an experience that’s a bit too fun internally and now everyone is just having fun instead of working. We might not recover from this.",
+      "createdAt": "2026-11-21T04:31:36.000Z",
+      "url": "https://x.com/thsottiaux/status/2123997735326232775",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.21",
+          "weekday": "周六",
+          "time": "12:31",
+          "text": "2026.11.21（周六）12:31",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.20",
+          "weekday": "周五",
+          "time": "20:31",
+          "text": "2026.11.20（周五）20:31",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2123901067272618336",
       "account": "thsottiaux",
@@ -12567,90 +12645,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2113009945134379213",
-      "account": "thsottiaux",
-      "text": "Congrats",
-      "createdAt": "2026-10-21T20:50:03.000Z",
-      "url": "https://x.com/thsottiaux/status/2113009945134379213",
-      "reasons": [
-        "上下文：回复 @theo「T3 Code users processed ~36.5 trilli…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "theo",
-        "id": "",
-        "text": "T3 Code users processed ~36.5 trillion tokens in the same window, 1.5x that of all Gemini 4 Argon demand globally 🤷"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.22",
-          "weekday": "周四",
-          "time": "04:50",
-          "text": "2026.10.22（周四）04:50",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.21",
-          "weekday": "周三",
-          "time": "13:50",
-          "text": "2026.10.21（周三）13:50",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2112992042465009736",
-      "account": "thsottiaux",
-      "text": "Dot, meet Duet. Duet, meet Dot. Be nice to each other.",
-      "createdAt": "2026-10-21T19:38:55.000Z",
-      "url": "https://x.com/thsottiaux/status/2112992042465009736",
-      "reasons": [
-        "上下文：回复 @claudeai「We’re opening a research preview of …」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "claudeai",
-        "id": "",
-        "text": "We’re opening a research preview of Claude Duet, a new app where Claude works as a proactive agent. It comes to you with what needs your attention, completes tasks you ask of it, keeps working when you step away, and checks with you before it acts on your behalf."
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.22",
-          "weekday": "周四",
-          "time": "03:38",
-          "text": "2026.10.22（周四）03:38",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.21",
-          "weekday": "周三",
-          "time": "12:38",
-          "text": "2026.10.21（周三）12:38",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12790,12 +12784,12 @@
     }
   ],
   "counts": {
-    "scanned": 604,
+    "scanned": 598,
     "explicit": 4,
     "occurred": 11,
     "hint": 76,
-    "none": 493,
-    "rejected": 493
+    "none": 488,
+    "rejected": 488
   },
   "truncated": true
 }
