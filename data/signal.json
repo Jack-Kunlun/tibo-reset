@@ -1,11 +1,11 @@
 {
   "level": "explicit",
   "program": null,
-  "generatedAt": "2026-11-21T10:06:05.083Z",
-  "checkedTweets": 598,
+  "generatedAt": "2026-11-22T04:12:46.251Z",
+  "checkedTweets": 589,
   "lookbackDays": 60,
-  "windowFrom": "2026-09-22T10:06:05.083Z",
-  "windowTo": "2026-11-21T10:06:05.083Z",
+  "windowFrom": "2026-09-23T04:12:46.251Z",
+  "windowTo": "2026-11-22T04:12:46.251Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -13,10 +13,10 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.11.21",
-      "weekday": "周六",
-      "time": "18:06",
-      "text": "2026.11.21（周六）18:06",
+      "date": "2026.11.22",
+      "weekday": "周日",
+      "time": "12:12",
+      "text": "2026.11.22（周日）12:12",
       "offset": "UTC+8"
     },
     "b": {
@@ -24,52 +24,48 @@
       "zone": "America/Los_Angeles",
       "date": "2026.11.21",
       "weekday": "周六",
-      "time": "02:06",
-      "text": "2026.11.21（周六）02:06",
+      "time": "20:12",
+      "text": "2026.11.21（周六）20:12",
       "offset": "UTC-8"
     },
     "diffHours": 16,
     "diffText": "北京时间比 Tibo 当地时间快 16 小时"
   },
   "latest": {
-    "id": "2123998117561532424",
+    "id": "2124322968499282388",
     "account": "thsottiaux",
-    "text": "DYLAN, HI! 👋",
-    "createdAt": "2026-11-21T04:33:07.000Z",
-    "url": "https://x.com/thsottiaux/status/2123998117561532424",
+    "text": "Team is already preparing another big update, but how are things since yesterday’s update to the ChatGPT/Codex desktop app? What still requires attention and is not quite there?",
+    "createdAt": "2026-11-22T02:03:58.000Z",
+    "url": "https://x.com/thsottiaux/status/2124322968499282388",
     "reasons": [
-      "上下文：回复 @DylanMcD8「I am SO tired of apps abandoning nat…」"
+      "命中「新额度」类词 fresh/new/top up"
     ],
     "viaContext": false,
-    "inReplyTo": {
-      "account": "DylanMcD8",
-      "id": "",
-      "text": "I am SO tired of apps abandoning native tab bars STOP IT"
-    },
+    "inReplyTo": null,
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.11.21",
-        "weekday": "周六",
-        "time": "12:33",
-        "text": "2026.11.21（周六）12:33",
+        "date": "2026.11.22",
+        "weekday": "周日",
+        "time": "10:03",
+        "text": "2026.11.22（周日）10:03",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.11.20",
-        "weekday": "周五",
-        "time": "20:33",
-        "text": "2026.11.20（周五）20:33",
+        "date": "2026.11.21",
+        "weekday": "周六",
+        "time": "18:03",
+        "text": "2026.11.21（周六）18:03",
         "offset": "UTC-8"
       },
       "diffText": "北京时间比 Tibo 当地时间快 16 小时"
     },
     "level": "none",
     "rejected": "无额度相关词",
-    "intent": 0,
+    "intent": 1,
     "window": null,
     "candidateWindow": null
   },
@@ -765,48 +761,6 @@
       "occurredAt": "2026-09-26T18:17:54.000Z",
       "window": null,
       "confidence": 0.7999999999999999
-    },
-    {
-      "id": "2102463847714247142",
-      "account": "thsottiaux",
-      "text": "GPT-6 Sol and Luna are out. Not only are they a very significant improvement across the board, but also in writing and general \"you know when you try it\" quality. We are also permanently reducing the API price by 50% making both of them viable for a ton of new usecases and making your usage go further too, even on the subscriptions. And one more thing. We are loading a banked reset into all accounts of our Plus, Pro and Business users. Let's go! https://t.co/00DRh1sRrO",
-      "createdAt": "2026-09-22T18:23:37.000Z",
-      "url": "https://x.com/thsottiaux/status/2102463847714247142",
-      "reasons": [
-        "命中重置词 reset",
-        "命中额度词 limits/usage/credits",
-        "命中「新额度」类词 fresh/new/top up",
-        "命中「A/the reset」名词化陈述"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.23",
-          "weekday": "周三",
-          "time": "02:23",
-          "text": "2026.09.23（周三）02:23",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.22",
-          "weekday": "周二",
-          "time": "11:23",
-          "text": "2026.09.22（周二）11:23",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "occurred",
-      "rejected": null,
-      "intent": 6,
-      "occurredAt": "2026-09-22T18:23:37.000Z",
-      "window": null,
-      "confidence": 0.86
     }
   ],
   "hints": [
@@ -1079,7 +1033,7 @@
         "from": "2026-11-12T08:00:00.000Z",
         "to": "2026-11-13T07:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-21T10:06:05.083Z"
+        "checkedAt": "2026-11-22T04:12:46.251Z"
       }
     },
     {
@@ -1650,7 +1604,7 @@
         "from": "2026-10-29T07:00:00.000Z",
         "to": "2026-10-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-21T10:06:05.083Z"
+        "checkedAt": "2026-11-22T04:12:46.251Z"
       }
     },
     {
@@ -3960,7 +3914,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-11-21T10:06:05.083Z"
+        "checkedAt": "2026-11-22T04:12:46.251Z"
       }
     },
     {
@@ -4549,6 +4503,82 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2124322968499282388",
+      "account": "thsottiaux",
+      "text": "Team is already preparing another big update, but how are things since yesterday’s update to the ChatGPT/Codex desktop app? What still requires attention and is not quite there?",
+      "createdAt": "2026-11-22T02:03:58.000Z",
+      "url": "https://x.com/thsottiaux/status/2124322968499282388",
+      "reasons": [
+        "命中「新额度」类词 fresh/new/top up"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.22",
+          "weekday": "周日",
+          "time": "10:03",
+          "text": "2026.11.22（周日）10:03",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.21",
+          "weekday": "周六",
+          "time": "18:03",
+          "text": "2026.11.21（周六）18:03",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 1,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2124277855131664869",
+      "account": "thsottiaux",
+      "text": "Going to check out this threads thing",
+      "createdAt": "2026-11-21T23:04:42.000Z",
+      "url": "https://x.com/thsottiaux/status/2124277855131664869",
+      "reasons": [
+        "含未来语气"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.22",
+          "weekday": "周日",
+          "time": "07:04",
+          "text": "2026.11.22（周日）07:04",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.21",
+          "weekday": "周六",
+          "time": "15:04",
+          "text": "2026.11.21（周六）15:04",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2123998117561532424",
       "account": "thsottiaux",
@@ -12561,90 +12591,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2113163458867032238",
-      "account": "thsottiaux",
-      "text": "Hefty",
-      "createdAt": "2026-10-22T07:00:03.000Z",
-      "url": "https://x.com/thsottiaux/status/2113163458867032238",
-      "reasons": [
-        "上下文：回复 @ebloch「Insane. My dot found an $8,300 mista…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "ebloch",
-        "id": "",
-        "text": "Insane. My dot found an $8,300 mistake in my tax return. The return was prepared by a tax firm that is best in class! People, if you’re not using ChatGPT for your Finances, you are definitely leaving money on the table."
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.22",
-          "weekday": "周四",
-          "time": "15:00",
-          "text": "2026.10.22（周四）15:00",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.22",
-          "weekday": "周四",
-          "time": "00:00",
-          "text": "2026.10.22（周四）00:00",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2113029655095836957",
-      "account": "thsottiaux",
-      "text": "Dot, Dotter, Dottest",
-      "createdAt": "2026-10-21T22:08:22.000Z",
-      "url": "https://x.com/thsottiaux/status/2113029655095836957",
-      "reasons": [
-        "上下文：回复 @ebloch「Insane. My dot found an $8,300 mista…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "ebloch",
-        "id": "",
-        "text": "Insane. My dot found an $8,300 mistake in my tax return. The return was prepared by a tax firm that is best in class! People, if you’re not using ChatGPT for your Finances, you are definitely leaving money on the table."
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.22",
-          "weekday": "周四",
-          "time": "06:08",
-          "text": "2026.10.22（周四）06:08",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.21",
-          "weekday": "周三",
-          "time": "15:08",
-          "text": "2026.10.21（周三）15:08",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12784,12 +12730,12 @@
     }
   ],
   "counts": {
-    "scanned": 598,
+    "scanned": 589,
     "explicit": 4,
-    "occurred": 11,
+    "occurred": 10,
     "hint": 76,
-    "none": 488,
-    "rejected": 488
+    "none": 480,
+    "rejected": 480
   },
   "truncated": true
 }
