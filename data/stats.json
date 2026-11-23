@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-25T06:06:16.000Z",
     "last_text": "It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ https://t.co/xKaK95EAly",
-    "days_since_last": 27.92118476851852,
+    "days_since_last": 29.663444386574074,
     "avg_interval_days": 6.201318376068373,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.358045775625218,
@@ -14,55 +14,31 @@
     "reset_count": 59,
     "hit_within_avg": 0.7230769230769231
   },
-  "generated_at": "2026-11-22T04:12:46.487Z",
+  "generated_at": "2026-11-23T22:01:37.717Z",
   "collect": {
-    "mode": "full",
+    "mode": "incremental",
     "source": "browser",
-    "stoppedBy": "floor",
-    "newTweets": 2,
-    "knownCount": 673,
+    "stoppedBy": "known",
+    "newTweets": 4,
+    "knownCount": 675,
     "reply": {
-      "mode": "full",
-      "stoppedBy": "floor",
+      "mode": "incremental",
+      "stoppedBy": "known",
       "loggedIn": true,
-      "oldest": "2026-10-23T23:12:31.000Z",
-      "steps": 176,
-      "harvested": 184,
-      "withContext": 142,
+      "oldest": "2026-11-20T03:56:08.000Z",
+      "steps": 9,
+      "harvested": 9,
+      "withContext": 7,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 11,
-      "attempted": 11,
-      "fetched": 11,
+      "candidates": 1,
+      "attempted": 1,
+      "fetched": 1,
       "skipped": 0,
       "missingReplyContext": [],
       "scanned": [
-        {
-          "id": "2115273253711409208",
-          "length": 22,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": true,
-          "replyContextStatus": "verified"
-        },
-        {
-          "id": "2114237083652882932",
-          "length": 75,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": true,
-          "replyContextStatus": "verified"
-        },
-        {
-          "id": "2114200291319124163",
-          "length": 15,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": true,
-          "replyContextStatus": "verified"
-        },
         {
           "id": "2123557171321561133",
           "length": 504,
@@ -70,91 +46,17 @@
           "networkMetadataStatus": "verified",
           "needsReplyContext": false,
           "replyContextStatus": "not-required"
-        },
-        {
-          "id": "2123556256392847657",
-          "length": 337,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": false,
-          "replyContextStatus": "not-required"
-        },
-        {
-          "id": "2123175166519992652",
-          "length": 297,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": false,
-          "replyContextStatus": "not-required"
-        },
-        {
-          "id": "2122929634916679820",
-          "length": 612,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": false,
-          "replyContextStatus": "not-required"
-        },
-        {
-          "id": "2117283124833055196",
-          "length": 271,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": false,
-          "replyContextStatus": "not-required"
-        },
-        {
-          "id": "2115850175868727621",
-          "length": 521,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": false,
-          "replyContextStatus": "not-required"
-        },
-        {
-          "id": "2115588390414581916",
-          "length": 273,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": false,
-          "replyContextStatus": "not-required"
-        },
-        {
-          "id": "2114800277677092936",
-          "length": 256,
-          "showMore": false,
-          "networkMetadataStatus": "verified",
-          "needsReplyContext": false,
-          "replyContextStatus": "not-required"
         }
       ]
     },
-    "fullScan": {
-      "complete": true,
-      "reason": null,
-      "requestedSince": "2026-10-24T06:06:16.000Z",
-      "main": {
-        "complete": true,
-        "loggedIn": true,
-        "mode": "full",
-        "stoppedBy": "floor",
-        "oldest": "2026-10-22T06:55:22.000Z"
-      },
-      "reply": {
-        "complete": true,
-        "loggedIn": true,
-        "mode": "full",
-        "stoppedBy": "floor",
-        "oldest": "2026-10-23T23:12:31.000Z"
-      }
-    }
+    "fullScan": null
   },
   "history": {
     "added": 0,
     "updated": 0,
     "removed": 0,
     "upstreamCount": 72,
-    "refreshedAt": "2026-11-22T04:04:28.858Z",
+    "refreshedAt": "2026-11-23T22:01:11.467Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,

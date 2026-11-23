@@ -736,5 +736,11 @@
     "text": "先说一声：我们开始向少量 ChatGPT Plus 用户测试 Dot 了。随着范围逐步扩大，期待大家持续给反馈——经过这阵子的多项改进，我最近听到的关于 Dot 主动性表现的正面评价明显多了起来。我们也会把 Dot 开放给所有 ChatGPT Business Standard 用户。今天开始上线。",
     "language": "zh-CN",
     "provider": "agent"
+  },
+  "2124922313019953319": {
+    "sourceHash": "7061ea81717a46bb4b1e2ffdd4f58e634c19a1a52b27ecb4b073997e2b82f009",
+    "text": "11 月 30 日前新建的 ChatGPT Business 工作区，所有席位类型的包含用量在 12 月 31 日前翻倍。已经在用 Business？我们也有礼物送给你，敬请期待 👀",
+    "language": "zh-CN",
+    "provider": "agent"
   }
 }
