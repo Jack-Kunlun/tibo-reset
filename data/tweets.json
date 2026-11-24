@@ -101,7 +101,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-23T22:01:37.430Z"
     },
     {
@@ -113,7 +113,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-23T22:01:37.430Z",
       "translation": {
         "text": "11 月 30 日前新建的 ChatGPT Business 工作区，所有席位类型的包含用量在 12 月 31 日前翻倍。已经在用 Business？我们也有礼物送给你，敬请期待 👀",
@@ -12314,7 +12314,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-24T10:01:28.641Z",
+  "updated_at": "2026-11-24T16:01:15.803Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }

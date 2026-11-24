@@ -1,11 +1,11 @@
 {
   "level": "explicit",
   "program": null,
-  "generatedAt": "2026-11-24T10:01:28.680Z",
+  "generatedAt": "2026-11-24T16:01:15.836Z",
   "checkedTweets": 589,
   "lookbackDays": 60,
-  "windowFrom": "2026-09-25T10:01:28.680Z",
-  "windowTo": "2026-11-24T10:01:28.680Z",
+  "windowFrom": "2026-09-25T16:01:15.836Z",
+  "windowTo": "2026-11-24T16:01:15.836Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -13,10 +13,10 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.11.24",
-      "weekday": "周二",
-      "time": "18:01",
-      "text": "2026.11.24（周二）18:01",
+      "date": "2026.11.25",
+      "weekday": "周三",
+      "time": "00:01",
+      "text": "2026.11.25（周三）00:01",
       "offset": "UTC+8"
     },
     "b": {
@@ -24,8 +24,8 @@
       "zone": "America/Los_Angeles",
       "date": "2026.11.24",
       "weekday": "周二",
-      "time": "02:01",
-      "text": "2026.11.24（周二）02:01",
+      "time": "08:01",
+      "text": "2026.11.24（周二）08:01",
       "offset": "UTC-8"
     },
     "diffHours": 16,
@@ -1119,7 +1119,7 @@
         "from": "2026-11-12T08:00:00.000Z",
         "to": "2026-11-13T07:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-24T10:01:28.680Z"
+        "checkedAt": "2026-11-24T16:01:15.836Z"
       }
     },
     {
@@ -1690,7 +1690,7 @@
         "from": "2026-10-29T07:00:00.000Z",
         "to": "2026-10-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-24T10:01:28.680Z"
+        "checkedAt": "2026-11-24T16:01:15.836Z"
       }
     },
     {
@@ -4000,7 +4000,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-11-24T10:01:28.680Z"
+        "checkedAt": "2026-11-24T16:01:15.836Z"
       }
     },
     {
