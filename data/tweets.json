@@ -1,6 +1,48 @@
 {
   "tweets": [
     {
+      "id": "2125299467691987445",
+      "text": "Sign up for ChatGPT Business:",
+      "created_at": "2026-11-24T18:44:13.000Z",
+      "url": "https://x.com/thsottiaux/status/2125299467691987445",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-24T22:01:28.275Z"
+    },
+    {
+      "id": "2125299248782778588",
+      "text": "To all the ChatGPT Business teams out there. We have two small things for you, a banked reset and fast mode at no extra charge through Dec 31. Have fun!",
+      "created_at": "2026-11-24T18:43:21.000Z",
+      "url": "https://x.com/thsottiaux/status/2125299248782778588",
+      "author_verified": true,
+      "kind": "credit",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-24T22:01:28.275Z",
+      "translation": {
+        "text": "致各位 ChatGPT Business 团队：我们给你们备了两个小福利——一次可储备的额度重置，以及到 12 月 31 日前不额外收费的快速模式。祝玩得开心！",
+        "sourceHash": "bcb8ce248b321738ed05b130c0e20af2c6faf9dc9856e6e9d1b0638bec1a563e",
+        "language": "zh-CN",
+        "provider": "agent"
+      }
+    },
+    {
+      "id": "2125284868414394550",
+      "text": "Hi. We’re beginning to roll out the combined Chat and Work experience to a small group of Pro users to learn from feedback before we roll out more broadly. Let us know what you think and where we can improve!",
+      "created_at": "2026-11-24T17:46:13.000Z",
+      "url": "https://x.com/thsottiaux/status/2125284868414394550",
+      "author_verified": true,
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-24T22:01:28.275Z"
+    },
+    {
       "id": "2125141302501417232",
       "text": "We’re working with Cisco on what we think are going to be key infrastructure primitives in the new era of cybersecurity. Everything needs to be built to be operated safely by aligned agents at machine speed.",
       "created_at": "2026-11-24T08:15:44.000Z",
@@ -113,7 +155,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "with-replies",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-11-23T22:01:37.430Z",
       "translation": {
         "text": "11 月 30 日前新建的 ChatGPT Business 工作区，所有席位类型的包含用量在 12 月 31 日前翻倍。已经在用 Business？我们也有礼物送给你，敬请期待 👀",
@@ -12314,7 +12356,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-24T16:01:15.803Z",
+  "updated_at": "2026-11-24T22:01:28.278Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }

@@ -1,11 +1,11 @@
 {
   "level": "explicit",
   "program": null,
-  "generatedAt": "2026-11-24T16:01:15.836Z",
-  "checkedTweets": 589,
+  "generatedAt": "2026-11-24T22:01:28.313Z",
+  "checkedTweets": 592,
   "lookbackDays": 60,
-  "windowFrom": "2026-09-25T16:01:15.836Z",
-  "windowTo": "2026-11-24T16:01:15.836Z",
+  "windowFrom": "2026-09-25T22:01:28.313Z",
+  "windowTo": "2026-11-24T22:01:28.313Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -15,8 +15,8 @@
       "zone": "Asia/Shanghai",
       "date": "2026.11.25",
       "weekday": "周三",
-      "time": "00:01",
-      "text": "2026.11.25（周三）00:01",
+      "time": "06:01",
+      "text": "2026.11.25（周三）06:01",
       "offset": "UTC+8"
     },
     "b": {
@@ -24,33 +24,30 @@
       "zone": "America/Los_Angeles",
       "date": "2026.11.24",
       "weekday": "周二",
-      "time": "08:01",
-      "text": "2026.11.24（周二）08:01",
+      "time": "14:01",
+      "text": "2026.11.24（周二）14:01",
       "offset": "UTC-8"
     },
     "diffHours": 16,
     "diffText": "北京时间比 Tibo 当地时间快 16 小时"
   },
   "latest": {
-    "id": "2125141302501417232",
+    "id": "2125299467691987445",
     "account": "thsottiaux",
-    "text": "We’re working with Cisco on what we think are going to be key infrastructure primitives in the new era of cybersecurity. Everything needs to be built to be operated safely by aligned agents at machine speed.",
-    "createdAt": "2026-11-24T08:15:44.000Z",
-    "url": "https://x.com/thsottiaux/status/2125141302501417232",
-    "reasons": [
-      "命中「新额度」类词 fresh/new/top up",
-      "含未来语气"
-    ],
+    "text": "Sign up for ChatGPT Business:",
+    "createdAt": "2026-11-24T18:44:13.000Z",
+    "url": "https://x.com/thsottiaux/status/2125299467691987445",
+    "reasons": [],
     "viaContext": false,
     "inReplyTo": null,
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.11.24",
-        "weekday": "周二",
-        "time": "16:15",
-        "text": "2026.11.24（周二）16:15",
+        "date": "2026.11.25",
+        "weekday": "周三",
+        "time": "02:44",
+        "text": "2026.11.25（周三）02:44",
         "offset": "UTC+8"
       },
       "b": {
@@ -58,19 +55,105 @@
         "zone": "America/Los_Angeles",
         "date": "2026.11.24",
         "weekday": "周二",
-        "time": "00:15",
-        "text": "2026.11.24（周二）00:15",
+        "time": "10:44",
+        "text": "2026.11.24（周二）10:44",
         "offset": "UTC-8"
       },
       "diffText": "北京时间比 Tibo 当地时间快 16 小时"
     },
     "level": "none",
     "rejected": "无额度相关词",
-    "intent": 1,
+    "intent": 0,
     "window": null,
     "candidateWindow": null
   },
   "signals": [
+    {
+      "id": "2125299248782778588",
+      "account": "thsottiaux",
+      "text": "To all the ChatGPT Business teams out there. We have two small things for you, a banked reset and fast mode at no extra charge through Dec 31. Have fun!",
+      "createdAt": "2026-11-24T18:43:21.000Z",
+      "url": "https://x.com/thsottiaux/status/2125299248782778588",
+      "reasons": [
+        "命中重置词 reset",
+        "命中额度词 limits/usage/credits",
+        "命中「新额度」类词 fresh/new/top up",
+        "命中「A/the reset」名词化陈述"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.25",
+          "weekday": "周三",
+          "time": "02:43",
+          "text": "2026.11.25（周三）02:43",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.24",
+          "weekday": "周二",
+          "time": "10:43",
+          "text": "2026.11.24（周二）10:43",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "explicit",
+      "rejected": null,
+      "intent": 6,
+      "timeWord": "dec 31",
+      "timeNote": null,
+      "precision": "day",
+      "candidateWindow": null,
+      "window": {
+        "from": "2026-12-31T08:00:00.000Z",
+        "to": "2027-01-01T07:59:00.000Z",
+        "dayNum": 20818,
+        "fromTs": 1798704000000,
+        "toTs": 1798790340000,
+        "userFrom": {
+          "y": "2026",
+          "m": "12",
+          "d": "31",
+          "hh": "16",
+          "mm": "00",
+          "weekdayCN": "周四"
+        },
+        "sourceZone": "2026.12.31（周四） 全天",
+        "userZone": "2026.12.31（周四）16:00 起",
+        "openText": "2026.12.31（周四）16:00",
+        "rangeNote": "窗口到北京 2027.01.01（周五）15:59 为止",
+        "crossesUserDay": true,
+        "zones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.12.31",
+            "weekday": "周四",
+            "time": "16:00",
+            "text": "2026.12.31（周四）16:00",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "Tibo 当地时间",
+            "zone": "America/Los_Angeles",
+            "date": "2026.12.31",
+            "weekday": "周四",
+            "time": "00:00",
+            "text": "2026.12.31（周四）00:00",
+            "offset": "UTC-8"
+          },
+          "diffHours": 16,
+          "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+        }
+      },
+      "confidence": 0.9299999999999999
+    },
     {
       "id": "2124922313019953319",
       "account": "thsottiaux",
@@ -1119,7 +1202,7 @@
         "from": "2026-11-12T08:00:00.000Z",
         "to": "2026-11-13T07:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-24T16:01:15.836Z"
+        "checkedAt": "2026-11-24T22:01:28.313Z"
       }
     },
     {
@@ -1690,7 +1773,7 @@
         "from": "2026-10-29T07:00:00.000Z",
         "to": "2026-10-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-24T16:01:15.836Z"
+        "checkedAt": "2026-11-24T22:01:28.313Z"
       }
     },
     {
@@ -4000,7 +4083,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-11-24T16:01:15.836Z"
+        "checkedAt": "2026-11-24T22:01:28.313Z"
       }
     },
     {
@@ -4496,6 +4579,80 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2125299467691987445",
+      "account": "thsottiaux",
+      "text": "Sign up for ChatGPT Business:",
+      "createdAt": "2026-11-24T18:44:13.000Z",
+      "url": "https://x.com/thsottiaux/status/2125299467691987445",
+      "reasons": [],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.25",
+          "weekday": "周三",
+          "time": "02:44",
+          "text": "2026.11.25（周三）02:44",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.24",
+          "weekday": "周二",
+          "time": "10:44",
+          "text": "2026.11.24（周二）10:44",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2125284868414394550",
+      "account": "thsottiaux",
+      "text": "Hi. We’re beginning to roll out the combined Chat and Work experience to a small group of Pro users to learn from feedback before we roll out more broadly. Let us know what you think and where we can improve!",
+      "createdAt": "2026-11-24T17:46:13.000Z",
+      "url": "https://x.com/thsottiaux/status/2125284868414394550",
+      "reasons": [
+        "命中「新额度」类词 fresh/new/top up"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.25",
+          "weekday": "周三",
+          "time": "01:46",
+          "text": "2026.11.25（周三）01:46",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.24",
+          "weekday": "周二",
+          "time": "09:46",
+          "text": "2026.11.24（周二）09:46",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 1,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2125141302501417232",
       "account": "thsottiaux",
@@ -12493,126 +12650,48 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2114074885622501706",
-      "account": "thsottiaux",
-      "text": "DM if you want to help scale dots to 1B users and have done similar things in the past",
-      "createdAt": "2026-10-24T19:21:45.000Z",
-      "url": "https://x.com/thsottiaux/status/2114074885622501706",
-      "reasons": [],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.25",
-          "weekday": "周日",
-          "time": "03:21",
-          "text": "2026.10.25（周日）03:21",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.24",
-          "weekday": "周六",
-          "time": "12:21",
-          "text": "2026.10.24（周六）12:21",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2114074317759938918",
-      "account": "thsottiaux",
-      "text": "No need for a bribe. What’s bothering you",
-      "createdAt": "2026-10-24T19:19:29.000Z",
-      "url": "https://x.com/thsottiaux/status/2114074317759938918",
-      "reasons": [
-        "上下文：回复 @can「can i bribe someone at @OpenAIDevs t…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "can",
-        "id": "",
-        "text": "can i bribe someone at @OpenAIDevs to remove \"mini\" from codex?"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.25",
-          "weekday": "周日",
-          "time": "03:19",
-          "text": "2026.10.25（周日）03:19",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.24",
-          "weekday": "周六",
-          "time": "12:19",
-          "text": "2026.10.24（周六）12:19",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
-    "dayNum": 20787,
-    "day": "2026.11.30（周一）",
+    "dayNum": 20818,
+    "day": "2026.12.31（周四）",
     "precision": "day",
     "window": {
-      "from": "2026-11-30T08:00:00.000Z",
-      "to": "2026-12-01T07:59:00.000Z",
-      "dayNum": 20787,
-      "fromTs": 1796025600000,
-      "toTs": 1796111940000,
+      "from": "2026-12-31T08:00:00.000Z",
+      "to": "2027-01-01T07:59:00.000Z",
+      "dayNum": 20818,
+      "fromTs": 1798704000000,
+      "toTs": 1798790340000,
       "userFrom": {
         "y": "2026",
-        "m": "11",
-        "d": "30",
+        "m": "12",
+        "d": "31",
         "hh": "16",
         "mm": "00",
-        "weekdayCN": "周一"
+        "weekdayCN": "周四"
       },
-      "sourceZone": "2026.11.30（周一） 全天",
-      "userZone": "2026.11.30（周一）16:00 起",
-      "openText": "2026.11.30（周一）16:00",
-      "rangeNote": "窗口到北京 2026.12.01（周二）15:59 为止",
+      "sourceZone": "2026.12.31（周四） 全天",
+      "userZone": "2026.12.31（周四）16:00 起",
+      "openText": "2026.12.31（周四）16:00",
+      "rangeNote": "窗口到北京 2027.01.01（周五）15:59 为止",
       "crossesUserDay": true,
       "zones": {
         "a": {
           "label": "北京时间",
           "zone": "Asia/Shanghai",
-          "date": "2026.11.30",
-          "weekday": "周一",
+          "date": "2026.12.31",
+          "weekday": "周四",
           "time": "16:00",
-          "text": "2026.11.30（周一）16:00",
+          "text": "2026.12.31（周四）16:00",
           "offset": "UTC+8"
         },
         "b": {
           "label": "Tibo 当地时间",
           "zone": "America/Los_Angeles",
-          "date": "2026.11.30",
-          "weekday": "周一",
+          "date": "2026.12.31",
+          "weekday": "周四",
           "time": "00:00",
-          "text": "2026.11.30（周一）00:00",
+          "text": "2026.12.31（周四）00:00",
           "offset": "UTC-8"
         },
         "diffHours": 16,
@@ -12628,19 +12707,19 @@
     },
     "evidence": [
       {
-        "id": "2124922313019953319",
-        "createdAt": "2026-11-23T17:45:33.000Z",
-        "text": "New ChatGPT Business workspaces created by Nov 30 get double the included usage for every seat type through Dec 31. Already on Business? We will have a gift for you, too. Stay tuned 👀",
-        "url": "https://x.com/thsottiaux/status/2124922313019953319",
+        "id": "2125299248782778588",
+        "createdAt": "2026-11-24T18:43:21.000Z",
+        "text": "To all the ChatGPT Business teams out there. We have two small things for you, a banked reset and fast mode at no extra charge through Dec 31. Have fun!",
+        "url": "https://x.com/thsottiaux/status/2125299248782778588",
         "via": "原创",
         "weight": "hard",
         "contributes": "承诺了这一天",
-        "timeWord": "nov 30",
+        "timeWord": "dec 31",
         "precision": "day",
         "ambiguous": false,
         "note": null,
-        "from": "2026-11-30T08:00:00.000Z",
-        "to": "2026-12-01T07:59:00.000Z"
+        "from": "2026-12-31T08:00:00.000Z",
+        "to": "2027-01-01T07:59:00.000Z"
       }
     ],
     "clockHints": []
@@ -12649,7 +12728,7 @@
     {
       "level": "explicit",
       "manual": false,
-      "day": "2026.11.30（周一）",
+      "day": null,
       "precision": "day",
       "window": {
         "from": "2026-11-30T08:00:00.000Z",
@@ -12751,6 +12830,109 @@
     {
       "level": "explicit",
       "manual": false,
+      "day": "2026.12.31（周四）",
+      "precision": "day",
+      "window": {
+        "from": "2026-12-31T08:00:00.000Z",
+        "to": "2027-01-01T07:59:00.000Z",
+        "dayNum": 20818,
+        "fromTs": 1798704000000,
+        "toTs": 1798790340000,
+        "userFrom": {
+          "y": "2026",
+          "m": "12",
+          "d": "31",
+          "hh": "16",
+          "mm": "00",
+          "weekdayCN": "周四"
+        },
+        "sourceZone": "2026.12.31（周四） 全天",
+        "userZone": "2026.12.31（周四）16:00 起",
+        "openText": "2026.12.31（周四）16:00",
+        "rangeNote": "窗口到北京 2027.01.01（周五）15:59 为止",
+        "crossesUserDay": true,
+        "zones": {
+          "a": {
+            "label": "北京时间",
+            "zone": "Asia/Shanghai",
+            "date": "2026.12.31",
+            "weekday": "周四",
+            "time": "16:00",
+            "text": "2026.12.31（周四）16:00",
+            "offset": "UTC+8"
+          },
+          "b": {
+            "label": "Tibo 当地时间",
+            "zone": "America/Los_Angeles",
+            "date": "2026.12.31",
+            "weekday": "周四",
+            "time": "00:00",
+            "text": "2026.12.31（周四）00:00",
+            "offset": "UTC-8"
+          },
+          "diffHours": 16,
+          "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+        },
+        "precision": "day"
+      },
+      "text": "To all the ChatGPT Business teams out there. We have two small things for you, a banked reset and fast mode at no extra charge through Dec 31. Have fun!",
+      "url": "https://x.com/thsottiaux/status/2125299248782778588",
+      "reasons": [
+        "命中重置词 reset",
+        "命中额度词 limits/usage/credits",
+        "命中「新额度」类词 fresh/new/top up",
+        "命中「A/the reset」名词化陈述"
+      ],
+      "timeNote": "",
+      "createdAt": "2026-11-24T18:43:21.000Z",
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.25",
+          "weekday": "周三",
+          "time": "02:43",
+          "text": "2026.11.25（周三）02:43",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.24",
+          "weekday": "周二",
+          "time": "10:43",
+          "text": "2026.11.24（周二）10:43",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "sources": 1,
+      "evidence": [
+        {
+          "id": "2125299248782778588",
+          "createdAt": "2026-11-24T18:43:21.000Z",
+          "text": "To all the ChatGPT Business teams out there. We have two small things for you, a banked reset and fast mode at no extra charge through Dec 31. Have fun!",
+          "url": "https://x.com/thsottiaux/status/2125299248782778588",
+          "via": "原创",
+          "weight": "hard",
+          "contributes": "承诺了这一天",
+          "timeWord": "dec 31",
+          "precision": "day",
+          "ambiguous": false,
+          "note": null,
+          "from": "2026-12-31T08:00:00.000Z",
+          "to": "2027-01-01T07:59:00.000Z"
+        }
+      ],
+      "counts": {
+        "hard": 1,
+        "soft": 0
+      },
+      "clockHints": []
+    },
+    {
+      "level": "explicit",
+      "manual": false,
       "timing": "pending",
       "window": null,
       "precision": null,
@@ -12812,12 +12994,12 @@
     }
   ],
   "counts": {
-    "scanned": 589,
-    "explicit": 5,
+    "scanned": 592,
+    "explicit": 6,
     "occurred": 10,
     "hint": 74,
-    "none": 481,
-    "rejected": 481
+    "none": 483,
+    "rejected": 483
   },
   "truncated": true
 }
