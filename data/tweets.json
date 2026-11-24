@@ -1,6 +1,24 @@
 {
   "tweets": [
     {
+      "id": "2125141302501417232",
+      "text": "We’re working with Cisco on what we think are going to be key infrastructure primitives in the new era of cybersecurity. Everything needs to be built to be operated safely by aligned agents at machine speed.",
+      "created_at": "2026-11-24T08:15:44.000Z",
+      "url": "https://x.com/thsottiaux/status/2125141302501417232",
+      "author_verified": true,
+      "quotedTweet": {
+        "account": "OpenAI",
+        "text": "We’re introducing Shirudo, an open-source Linux runtime allowing agents to defend systems without downtime. It lets agents write dynamic eBPF controls to shield systems from exploits, giving defenders more time to test and roll out patches. Built by @cisco together with OpenAI.",
+        "created_at": "2026-11-23T21:37:07.000Z",
+        "relation": "quote"
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-24T10:01:28.638Z"
+    },
+    {
       "id": "2125027477877887231",
       "text": "Worth listening to if you're curious what goes on in the minds of the people at OpenAI who are obsessively trying to patch all the flaws in OSS software and infrastructure we all rely on",
       "created_at": "2026-11-24T00:43:26.000Z",
@@ -12296,7 +12314,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-24T04:04:05.068Z",
+  "updated_at": "2026-11-24T10:01:28.641Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }

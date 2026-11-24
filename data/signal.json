@@ -1,11 +1,11 @@
 {
   "level": "explicit",
   "program": null,
-  "generatedAt": "2026-11-24T04:04:05.123Z",
+  "generatedAt": "2026-11-24T10:01:28.680Z",
   "checkedTweets": 589,
   "lookbackDays": 60,
-  "windowFrom": "2026-09-25T04:04:05.123Z",
-  "windowTo": "2026-11-24T04:04:05.123Z",
+  "windowFrom": "2026-09-25T10:01:28.680Z",
+  "windowTo": "2026-11-24T10:01:28.680Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -15,29 +15,32 @@
       "zone": "Asia/Shanghai",
       "date": "2026.11.24",
       "weekday": "周二",
-      "time": "12:04",
-      "text": "2026.11.24（周二）12:04",
+      "time": "18:01",
+      "text": "2026.11.24（周二）18:01",
       "offset": "UTC+8"
     },
     "b": {
       "label": "Tibo 当地时间",
       "zone": "America/Los_Angeles",
-      "date": "2026.11.23",
-      "weekday": "周一",
-      "time": "20:04",
-      "text": "2026.11.23（周一）20:04",
+      "date": "2026.11.24",
+      "weekday": "周二",
+      "time": "02:01",
+      "text": "2026.11.24（周二）02:01",
       "offset": "UTC-8"
     },
     "diffHours": 16,
     "diffText": "北京时间比 Tibo 当地时间快 16 小时"
   },
   "latest": {
-    "id": "2125027477877887231",
+    "id": "2125141302501417232",
     "account": "thsottiaux",
-    "text": "Worth listening to if you're curious what goes on in the minds of the people at OpenAI who are obsessively trying to patch all the flaws in OSS software and infrastructure we all rely on",
-    "createdAt": "2026-11-24T00:43:26.000Z",
-    "url": "https://x.com/thsottiaux/status/2125027477877887231",
-    "reasons": [],
+    "text": "We’re working with Cisco on what we think are going to be key infrastructure primitives in the new era of cybersecurity. Everything needs to be built to be operated safely by aligned agents at machine speed.",
+    "createdAt": "2026-11-24T08:15:44.000Z",
+    "url": "https://x.com/thsottiaux/status/2125141302501417232",
+    "reasons": [
+      "命中「新额度」类词 fresh/new/top up",
+      "含未来语气"
+    ],
     "viaContext": false,
     "inReplyTo": null,
     "createdZones": {
@@ -46,24 +49,24 @@
         "zone": "Asia/Shanghai",
         "date": "2026.11.24",
         "weekday": "周二",
-        "time": "08:43",
-        "text": "2026.11.24（周二）08:43",
+        "time": "16:15",
+        "text": "2026.11.24（周二）16:15",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.11.23",
-        "weekday": "周一",
-        "time": "16:43",
-        "text": "2026.11.23（周一）16:43",
+        "date": "2026.11.24",
+        "weekday": "周二",
+        "time": "00:15",
+        "text": "2026.11.24（周二）00:15",
         "offset": "UTC-8"
       },
       "diffText": "北京时间比 Tibo 当地时间快 16 小时"
     },
     "level": "none",
     "rejected": "无额度相关词",
-    "intent": 0,
+    "intent": 1,
     "window": null,
     "candidateWindow": null
   },
@@ -1116,7 +1119,7 @@
         "from": "2026-11-12T08:00:00.000Z",
         "to": "2026-11-13T07:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-24T04:04:05.123Z"
+        "checkedAt": "2026-11-24T10:01:28.680Z"
       }
     },
     {
@@ -1687,7 +1690,7 @@
         "from": "2026-10-29T07:00:00.000Z",
         "to": "2026-10-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-24T04:04:05.123Z"
+        "checkedAt": "2026-11-24T10:01:28.680Z"
       }
     },
     {
@@ -3997,7 +4000,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-11-24T04:04:05.123Z"
+        "checkedAt": "2026-11-24T10:01:28.680Z"
       }
     },
     {
@@ -4216,52 +4219,6 @@
           "weekday": "周日",
           "time": "13:54",
           "text": "2026.09.27（周日）13:54",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "hint",
-      "rejected": "含时间表达「tuesday」但没有额度相关词，不作为重置信号",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": {
-        "word": "tuesday",
-        "precision": "day",
-        "from": "2026-09-29T07:00:00.000Z",
-        "to": "2026-09-30T06:59:00.000Z",
-        "dayNum": 20725,
-        "spec": 86,
-        "note": null
-      }
-    },
-    {
-      "id": "2103375711797211460",
-      "account": "thsottiaux",
-      "text": "Been a bit quiet here because internal Slack has been hilarious lately and because we are all locked in on DevDay. Tuesday will be fun.",
-      "createdAt": "2026-09-25T06:47:03.000Z",
-      "url": "https://x.com/thsottiaux/status/2103375711797211460",
-      "reasons": [
-        "含未来语气"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.25",
-          "weekday": "周五",
-          "time": "14:47",
-          "text": "2026.09.25（周五）14:47",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.24",
-          "weekday": "周四",
-          "time": "23:47",
-          "text": "2026.09.24（周四）23:47",
           "offset": "UTC-7"
         },
         "diffText": "北京时间比 Tibo 当地时间快 15 小时"
@@ -4539,6 +4496,45 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2125141302501417232",
+      "account": "thsottiaux",
+      "text": "We’re working with Cisco on what we think are going to be key infrastructure primitives in the new era of cybersecurity. Everything needs to be built to be operated safely by aligned agents at machine speed.",
+      "createdAt": "2026-11-24T08:15:44.000Z",
+      "url": "https://x.com/thsottiaux/status/2125141302501417232",
+      "reasons": [
+        "命中「新额度」类词 fresh/new/top up",
+        "含未来语气"
+      ],
+      "viaContext": false,
+      "inReplyTo": null,
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.24",
+          "weekday": "周二",
+          "time": "16:15",
+          "text": "2026.11.24（周二）16:15",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.24",
+          "weekday": "周二",
+          "time": "00:15",
+          "text": "2026.11.24（周二）00:15",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 1,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2125027477877887231",
       "account": "thsottiaux",
@@ -12575,48 +12571,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2114073762895405067",
-      "account": "thsottiaux",
-      "text": "Hi 👋",
-      "createdAt": "2026-10-24T19:17:17.000Z",
-      "url": "https://x.com/thsottiaux/status/2114073762895405067",
-      "reasons": [
-        "上下文：回复 @TokenGremlin「Wait, are we seeing a wave of resign…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "TokenGremlin",
-        "id": "",
-        "text": "Wait, are we seeing a wave of resignations at OpenAI now too? Please don't tell me Tibo is next. Seriously, what the hell is going on?"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.25",
-          "weekday": "周日",
-          "time": "03:17",
-          "text": "2026.10.25（周日）03:17",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.24",
-          "weekday": "周六",
-          "time": "12:17",
-          "text": "2026.10.24（周六）12:17",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12861,9 +12815,9 @@
     "scanned": 589,
     "explicit": 5,
     "occurred": 10,
-    "hint": 75,
-    "none": 480,
-    "rejected": 480
+    "hint": 74,
+    "none": 481,
+    "rejected": 481
   },
   "truncated": true
 }
