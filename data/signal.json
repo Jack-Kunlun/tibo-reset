@@ -1,11 +1,11 @@
 {
   "level": "explicit",
   "program": null,
-  "generatedAt": "2026-11-25T08:00:15.448Z",
-  "checkedTweets": 593,
+  "generatedAt": "2026-11-25T22:02:35.511Z",
+  "checkedTweets": 588,
   "lookbackDays": 60,
-  "windowFrom": "2026-09-26T08:00:15.448Z",
-  "windowTo": "2026-11-25T08:00:15.448Z",
+  "windowFrom": "2026-09-26T22:02:35.511Z",
+  "windowTo": "2026-11-25T22:02:35.511Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -13,10 +13,10 @@
     "a": {
       "label": "北京时间",
       "zone": "Asia/Shanghai",
-      "date": "2026.11.25",
-      "weekday": "周三",
-      "time": "16:00",
-      "text": "2026.11.25（周三）16:00",
+      "date": "2026.11.26",
+      "weekday": "周四",
+      "time": "06:02",
+      "text": "2026.11.26（周四）06:02",
       "offset": "UTC+8"
     },
     "b": {
@@ -24,45 +24,45 @@
       "zone": "America/Los_Angeles",
       "date": "2026.11.25",
       "weekday": "周三",
-      "time": "00:00",
-      "text": "2026.11.25（周三）00:00",
+      "time": "14:02",
+      "text": "2026.11.25（周三）14:02",
       "offset": "UTC-8"
     },
     "diffHours": 16,
     "diffText": "北京时间比 Tibo 当地时间快 16 小时"
   },
   "latest": {
-    "id": "2125494608826372329",
+    "id": "2125678401541583217",
     "account": "thsottiaux",
-    "text": "very tool of you",
-    "createdAt": "2026-11-25T07:39:39.000Z",
-    "url": "https://x.com/thsottiaux/status/2125494608826372329",
+    "text": "This man is unstoppable",
+    "createdAt": "2026-11-25T19:49:58.000Z",
+    "url": "https://x.com/thsottiaux/status/2125678401541583217",
     "reasons": [
-      "上下文：回复 @jxnlco「so tool have have worked on this wit…」"
+      "上下文：回复 @charliermarsh「Over the past two weeks, we reduced …」"
     ],
     "viaContext": false,
     "inReplyTo": {
-      "account": "jxnlco",
+      "account": "charliermarsh",
       "id": "",
-      "text": "so tool have have worked on this with the team"
+      "text": "Over the past two weeks, we reduced baseline memory use in the ChatGPT desktop app by over 40%. Here's each release measured after five minutes on macOS."
     },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
-        "date": "2026.11.25",
-        "weekday": "周三",
-        "time": "15:39",
-        "text": "2026.11.25（周三）15:39",
+        "date": "2026.11.26",
+        "weekday": "周四",
+        "time": "03:49",
+        "text": "2026.11.26（周四）03:49",
         "offset": "UTC+8"
       },
       "b": {
         "label": "Tibo 当地时间",
         "zone": "America/Los_Angeles",
-        "date": "2026.11.24",
-        "weekday": "周二",
-        "time": "23:39",
-        "text": "2026.11.24（周二）23:39",
+        "date": "2026.11.25",
+        "weekday": "周三",
+        "time": "11:49",
+        "text": "2026.11.25（周三）11:49",
         "offset": "UTC-8"
       },
       "diffText": "北京时间比 Tibo 当地时间快 16 小时"
@@ -895,47 +895,6 @@
       "occurredAt": "2026-10-02T21:18:48.000Z",
       "window": null,
       "confidence": 0.7999999999999999
-    },
-    {
-      "id": "2103911959544610829",
-      "account": "thsottiaux",
-      "text": "Resets all propagated. That will be all. Have a fantastic weekend.",
-      "createdAt": "2026-09-26T18:17:54.000Z",
-      "url": "https://x.com/thsottiaux/status/2103911959544610829",
-      "reasons": [
-        "命中重置词 reset",
-        "含未来语气",
-        "命中「重置已完成」句式（reset all propagated 等）"
-      ],
-      "viaContext": false,
-      "inReplyTo": null,
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.09.27",
-          "weekday": "周日",
-          "time": "02:17",
-          "text": "2026.09.27（周日）02:17",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.09.26",
-          "weekday": "周六",
-          "time": "11:17",
-          "text": "2026.09.26（周六）11:17",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "occurred",
-      "rejected": null,
-      "intent": 3,
-      "occurredAt": "2026-09-26T18:17:54.000Z",
-      "window": null,
-      "confidence": 0.7999999999999999
     }
   ],
   "hints": [
@@ -1208,7 +1167,7 @@
         "from": "2026-11-12T08:00:00.000Z",
         "to": "2026-11-13T07:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-25T08:00:15.448Z"
+        "checkedAt": "2026-11-25T22:02:35.511Z"
       }
     },
     {
@@ -1779,7 +1738,7 @@
         "from": "2026-10-29T07:00:00.000Z",
         "to": "2026-10-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-25T08:00:15.448Z"
+        "checkedAt": "2026-11-25T22:02:35.511Z"
       }
     },
     {
@@ -4089,7 +4048,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-11-25T08:00:15.448Z"
+        "checkedAt": "2026-11-25T22:02:35.511Z"
       }
     },
     {
@@ -4585,6 +4544,90 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2125678401541583217",
+      "account": "thsottiaux",
+      "text": "This man is unstoppable",
+      "createdAt": "2026-11-25T19:49:58.000Z",
+      "url": "https://x.com/thsottiaux/status/2125678401541583217",
+      "reasons": [
+        "上下文：回复 @charliermarsh「Over the past two weeks, we reduced …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "charliermarsh",
+        "id": "",
+        "text": "Over the past two weeks, we reduced baseline memory use in the ChatGPT desktop app by over 40%. Here's each release measured after five minutes on macOS."
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.26",
+          "weekday": "周四",
+          "time": "03:49",
+          "text": "2026.11.26（周四）03:49",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.25",
+          "weekday": "周三",
+          "time": "11:49",
+          "text": "2026.11.25（周三）11:49",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2125678021848019454",
+      "account": "thsottiaux",
+      "text": "Welcome to the team! So much to do 👀",
+      "createdAt": "2026-11-25T19:48:28.000Z",
+      "url": "https://x.com/thsottiaux/status/2125678021848019454",
+      "reasons": [
+        "上下文：回复 @trq212「I've joined OpenAI! I'm very proud o…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "trq212",
+        "id": "",
+        "text": "I've joined OpenAI! I'm very proud of my time at Anthropic, and I'll continue to root for my former colleagues. Both companies have important roles to play in the future. There is a tremendous amount of work ahead of us to bring AI to the world, and it will demand the very best"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.26",
+          "weekday": "周四",
+          "time": "03:48",
+          "text": "2026.11.26（周四）03:48",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.25",
+          "weekday": "周三",
+          "time": "11:48",
+          "text": "2026.11.25（周三）11:48",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2125494608826372329",
       "account": "thsottiaux",
@@ -12573,90 +12616,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2114365873049993364",
-      "account": "thsottiaux",
-      "text": "Love to see it!!",
-      "createdAt": "2026-10-25T14:38:01.000Z",
-      "url": "https://x.com/thsottiaux/status/2114365873049993364",
-      "reasons": [
-        "上下文：回复 @theo「I made t3 code faster again btw…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "theo",
-        "id": "",
-        "text": "I made t3 code faster again btw"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.25",
-          "weekday": "周日",
-          "time": "22:38",
-          "text": "2026.10.25（周日）22:38",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.25",
-          "weekday": "周日",
-          "time": "07:38",
-          "text": "2026.10.25（周日）07:38",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2114237441250828563",
-      "account": "thsottiaux",
-      "text": ".com",
-      "createdAt": "2026-10-25T06:07:41.000Z",
-      "url": "https://x.com/thsottiaux/status/2114237441250828563",
-      "reasons": [
-        "上下文：回复 @ScriptedAlchemy「poteto…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "ScriptedAlchemy",
-        "id": "",
-        "text": "poteto"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.25",
-          "weekday": "周日",
-          "time": "14:07",
-          "text": "2026.10.25（周日）14:07",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.24",
-          "weekday": "周六",
-          "time": "23:07",
-          "text": "2026.10.24（周六）23:07",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -13001,12 +12960,12 @@
     }
   ],
   "counts": {
-    "scanned": 593,
+    "scanned": 588,
     "explicit": 6,
-    "occurred": 10,
+    "occurred": 9,
     "hint": 74,
-    "none": 485,
-    "rejected": 485
+    "none": 482,
+    "rejected": 482
   },
   "truncated": true
 }

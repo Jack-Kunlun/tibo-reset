@@ -1,6 +1,44 @@
 {
   "tweets": [
     {
+      "id": "2125678401541583217",
+      "text": "This man is unstoppable",
+      "created_at": "2026-11-25T19:49:58.000Z",
+      "url": "https://x.com/thsottiaux/status/2125678401541583217",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "charliermarsh",
+        "id": "",
+        "text": "Over the past two weeks, we reduced baseline memory use in the ChatGPT desktop app by over 40%. Here's each release measured after five minutes on macOS.",
+        "created_at": "2026-11-25T19:39:30.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-25T22:02:35.483Z"
+    },
+    {
+      "id": "2125678021848019454",
+      "text": "Welcome to the team! So much to do 👀",
+      "created_at": "2026-11-25T19:48:28.000Z",
+      "url": "https://x.com/thsottiaux/status/2125678021848019454",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "trq212",
+        "id": "",
+        "text": "I've joined OpenAI! I'm very proud of my time at Anthropic, and I'll continue to root for my former colleagues. Both companies have important roles to play in the future. There is a tremendous amount of work ahead of us to bring AI to the world, and it will demand the very best",
+        "created_at": "2026-11-25T19:38:35.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-25T22:02:35.483Z"
+    },
+    {
       "id": "2125494608826372329",
       "text": "very tool of you",
       "created_at": "2026-11-25T07:39:39.000Z",
@@ -219,7 +257,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "timeline-browser",
+      "foundVia": "with-replies",
       "first_seen": "2026-11-23T22:01:37.430Z"
     },
     {
@@ -12432,7 +12470,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-25T08:00:15.417Z",
+  "updated_at": "2026-11-25T22:02:35.486Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
