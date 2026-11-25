@@ -1,6 +1,82 @@
 {
   "tweets": [
     {
+      "id": "2125494608826372329",
+      "text": "very tool of you",
+      "created_at": "2026-11-25T07:39:39.000Z",
+      "url": "https://x.com/thsottiaux/status/2125494608826372329",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "jxnlco",
+        "id": "",
+        "text": "so tool have have worked on this with the team",
+        "created_at": "2026-11-24T18:52:30.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-25T08:00:15.405Z"
+    },
+    {
+      "id": "2125388306842255694",
+      "text": "Wait, is that true?",
+      "created_at": "2026-11-25T00:37:14.000Z",
+      "url": "https://x.com/thsottiaux/status/2125388306842255694",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "TokenGremlin",
+        "id": "",
+        "text": "NO FUCKING WAY. Bro left Anthropic, played WoW for several weeks, probably had some fun playing GTA 6, and then joined OpenAI. OpenAI now has two former KEY Anthropic employees. The creator of Claude Code for Desktop ( @amorriscode ) and Anthropic's former Tibo ( @trq212 ). The",
+        "created_at": "2026-11-24T21:39:35.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-25T08:00:15.405Z"
+    },
+    {
+      "id": "2125387147633189101",
+      "text": "👀",
+      "created_at": "2026-11-25T00:32:38.000Z",
+      "url": "https://x.com/thsottiaux/status/2125387147633189101",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "danshipper",
+        "id": "",
+        "text": "VIBE SHIFT: most of us @every have stopped using Duet... just not improving fast enough, and competitors like Dots are very good",
+        "created_at": "2026-11-24T23:28:00.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-25T08:00:15.405Z"
+    },
+    {
+      "id": "2125353693474365742",
+      "text": "Team is shipping",
+      "created_at": "2026-11-24T22:19:42.000Z",
+      "url": "https://x.com/thsottiaux/status/2125353693474365742",
+      "author_verified": true,
+      "inReplyTo": {
+        "account": "AzianMike",
+        "id": "",
+        "text": "🦃 This Thanksgiving, I'm thankful for the OpenAI team always shipping. We just launched 2 new things in the Agents API, right in time for Black Friday! 💸 Budget controls - Limit, monitor, and control your agent budgets on a per-session level with Agents API. Now you don’t have",
+        "created_at": "2026-11-24T20:09:53.000Z",
+        "url": ""
+      },
+      "kind": "other",
+      "account": "thsottiaux",
+      "role": "reply",
+      "foundVia": "with-replies",
+      "first_seen": "2026-11-25T08:00:15.405Z"
+    },
+    {
       "id": "2125299467691987445",
       "text": "Sign up for ChatGPT Business:",
       "created_at": "2026-11-24T18:44:13.000Z",
@@ -143,7 +219,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "with-replies",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-11-23T22:01:37.430Z"
     },
     {
@@ -12356,7 +12432,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-24T22:01:28.278Z",
+  "updated_at": "2026-11-25T08:00:15.417Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }

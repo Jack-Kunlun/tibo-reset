@@ -4,7 +4,7 @@
     "first_at": "2025-09-17T04:02:52.000Z",
     "last_at": "2026-10-25T06:06:16.000Z",
     "last_text": "It is all propagated. Enjoy some mad codexing tomorrow. Fun week ahead too. https://t.co/qOrzwSeIZZ https://t.co/xKaK95EAly",
-    "days_since_last": 30.663338368055555,
+    "days_since_last": 31.079161921296297,
     "avg_interval_days": 6.201318376068373,
     "median_interval_days": 3.011273148148148,
     "sd_interval_days": 10.358045775625218,
@@ -14,31 +14,55 @@
     "reset_count": 59,
     "hit_within_avg": 0.7230769230769231
   },
-  "generated_at": "2026-11-24T22:01:28.557Z",
+  "generated_at": "2026-11-25T08:00:15.733Z",
   "collect": {
-    "mode": "incremental",
+    "mode": "full",
     "source": "browser",
-    "stoppedBy": "known",
-    "newTweets": 3,
-    "knownCount": 682,
+    "stoppedBy": "floor",
+    "newTweets": 4,
+    "knownCount": 685,
     "reply": {
-      "mode": "incremental",
-      "stoppedBy": "known",
+      "mode": "full",
+      "stoppedBy": "floor",
       "loggedIn": true,
-      "oldest": "2026-11-20T19:52:45.000Z",
-      "steps": 8,
-      "harvested": 8,
-      "withContext": 4,
+      "oldest": "2026-10-23T23:12:31.000Z",
+      "steps": 188,
+      "harvested": 193,
+      "withContext": 147,
       "authorsMissing": 0
     },
     "replyError": null,
     "fullText": {
-      "candidates": 1,
-      "attempted": 1,
-      "fetched": 1,
+      "candidates": 12,
+      "attempted": 12,
+      "fetched": 12,
       "skipped": 0,
       "missingReplyContext": [],
       "scanned": [
+        {
+          "id": "2115273253711409208",
+          "length": 22,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": true,
+          "replyContextStatus": "verified"
+        },
+        {
+          "id": "2114237083652882932",
+          "length": 75,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": true,
+          "replyContextStatus": "verified"
+        },
+        {
+          "id": "2114200291319124163",
+          "length": 15,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": true,
+          "replyContextStatus": "verified"
+        },
         {
           "id": "2124998553856844186",
           "length": 297,
@@ -46,35 +70,117 @@
           "networkMetadataStatus": "verified",
           "needsReplyContext": false,
           "replyContextStatus": "not-required"
+        },
+        {
+          "id": "2123557171321561133",
+          "length": 504,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
+        },
+        {
+          "id": "2123556256392847657",
+          "length": 337,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
+        },
+        {
+          "id": "2123175166519992652",
+          "length": 297,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
+        },
+        {
+          "id": "2122929634916679820",
+          "length": 612,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
+        },
+        {
+          "id": "2117283124833055196",
+          "length": 271,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
+        },
+        {
+          "id": "2115850175868727621",
+          "length": 521,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
+        },
+        {
+          "id": "2115588390414581916",
+          "length": 273,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
+        },
+        {
+          "id": "2114800277677092936",
+          "length": 256,
+          "showMore": false,
+          "networkMetadataStatus": "verified",
+          "needsReplyContext": false,
+          "replyContextStatus": "not-required"
         }
       ]
     },
-    "fullScan": null
+    "fullScan": {
+      "complete": true,
+      "reason": null,
+      "requestedSince": "2026-10-24T06:06:16.000Z",
+      "main": {
+        "complete": true,
+        "loggedIn": true,
+        "mode": "full",
+        "stoppedBy": "floor",
+        "oldest": "2026-10-23T23:12:31.000Z"
+      },
+      "reply": {
+        "complete": true,
+        "loggedIn": true,
+        "mode": "full",
+        "stoppedBy": "floor",
+        "oldest": "2026-10-23T23:12:31.000Z"
+      }
+    }
   },
   "history": {
     "added": 0,
     "updated": 0,
     "removed": 0,
     "upstreamCount": 73,
-    "refreshedAt": "2026-11-24T22:01:03.739Z",
+    "refreshedAt": "2026-11-25T07:51:09.030Z",
     "error": null,
     "confirmedAdded": 0,
     "confirmedUpdated": 0,
     "changed": false,
     "patchedTexts": 0
   },
-  "last_full_at": "2026-11-22T04:12:46.487Z",
+  "last_full_at": "2026-11-25T08:00:15.733Z",
   "full_scan": {
     "version": 1,
     "status": "complete",
-    "completed_at": "2026-11-22T04:12:46.487Z",
+    "completed_at": "2026-11-25T08:00:15.733Z",
     "coverage_since": "2026-10-24T06:06:16.000Z",
     "main": {
       "complete": true,
       "loggedIn": true,
       "mode": "full",
       "stoppedBy": "floor",
-      "oldest": "2026-10-22T06:55:22.000Z"
+      "oldest": "2026-10-23T23:12:31.000Z"
     },
     "reply": {
       "complete": true,
@@ -85,7 +191,7 @@
     }
   },
   "full_scan_attempt": {
-    "attempted_at": "2026-11-22T04:04:28.859Z",
+    "attempted_at": "2026-11-25T07:51:09.031Z",
     "requested_since": "2026-10-24T06:06:16.000Z",
     "complete": true,
     "reason": null

@@ -1,11 +1,11 @@
 {
   "level": "explicit",
   "program": null,
-  "generatedAt": "2026-11-24T22:01:28.313Z",
-  "checkedTweets": 592,
+  "generatedAt": "2026-11-25T08:00:15.448Z",
+  "checkedTweets": 593,
   "lookbackDays": 60,
-  "windowFrom": "2026-09-25T22:01:28.313Z",
-  "windowTo": "2026-11-24T22:01:28.313Z",
+  "windowFrom": "2026-09-26T08:00:15.448Z",
+  "windowTo": "2026-11-25T08:00:15.448Z",
   "sourceZone": "America/Los_Angeles",
   "sourceZoneLabel": "太平洋时间",
   "userZone": "Asia/Shanghai",
@@ -15,39 +15,45 @@
       "zone": "Asia/Shanghai",
       "date": "2026.11.25",
       "weekday": "周三",
-      "time": "06:01",
-      "text": "2026.11.25（周三）06:01",
+      "time": "16:00",
+      "text": "2026.11.25（周三）16:00",
       "offset": "UTC+8"
     },
     "b": {
       "label": "Tibo 当地时间",
       "zone": "America/Los_Angeles",
-      "date": "2026.11.24",
-      "weekday": "周二",
-      "time": "14:01",
-      "text": "2026.11.24（周二）14:01",
+      "date": "2026.11.25",
+      "weekday": "周三",
+      "time": "00:00",
+      "text": "2026.11.25（周三）00:00",
       "offset": "UTC-8"
     },
     "diffHours": 16,
     "diffText": "北京时间比 Tibo 当地时间快 16 小时"
   },
   "latest": {
-    "id": "2125299467691987445",
+    "id": "2125494608826372329",
     "account": "thsottiaux",
-    "text": "Sign up for ChatGPT Business:",
-    "createdAt": "2026-11-24T18:44:13.000Z",
-    "url": "https://x.com/thsottiaux/status/2125299467691987445",
-    "reasons": [],
+    "text": "very tool of you",
+    "createdAt": "2026-11-25T07:39:39.000Z",
+    "url": "https://x.com/thsottiaux/status/2125494608826372329",
+    "reasons": [
+      "上下文：回复 @jxnlco「so tool have have worked on this wit…」"
+    ],
     "viaContext": false,
-    "inReplyTo": null,
+    "inReplyTo": {
+      "account": "jxnlco",
+      "id": "",
+      "text": "so tool have have worked on this with the team"
+    },
     "createdZones": {
       "a": {
         "label": "北京时间",
         "zone": "Asia/Shanghai",
         "date": "2026.11.25",
         "weekday": "周三",
-        "time": "02:44",
-        "text": "2026.11.25（周三）02:44",
+        "time": "15:39",
+        "text": "2026.11.25（周三）15:39",
         "offset": "UTC+8"
       },
       "b": {
@@ -55,8 +61,8 @@
         "zone": "America/Los_Angeles",
         "date": "2026.11.24",
         "weekday": "周二",
-        "time": "10:44",
-        "text": "2026.11.24（周二）10:44",
+        "time": "23:39",
+        "text": "2026.11.24（周二）23:39",
         "offset": "UTC-8"
       },
       "diffText": "北京时间比 Tibo 当地时间快 16 小时"
@@ -1202,7 +1208,7 @@
         "from": "2026-11-12T08:00:00.000Z",
         "to": "2026-11-13T07:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-24T22:01:28.313Z"
+        "checkedAt": "2026-11-25T08:00:15.448Z"
       }
     },
     {
@@ -1773,7 +1779,7 @@
         "from": "2026-10-29T07:00:00.000Z",
         "to": "2026-10-30T06:59:00.000Z",
         "why": "past",
-        "checkedAt": "2026-11-24T22:01:28.313Z"
+        "checkedAt": "2026-11-25T08:00:15.448Z"
       }
     },
     {
@@ -4083,7 +4089,7 @@
         "from": "2026-09-29T07:00:00.000Z",
         "to": "2026-09-30T06:59:00.000Z",
         "why": "fulfilled",
-        "checkedAt": "2026-11-24T22:01:28.313Z"
+        "checkedAt": "2026-11-25T08:00:15.448Z"
       }
     },
     {
@@ -4579,6 +4585,175 @@
     "sourceLabel": "维护者账号实测"
   },
   "rejected": [
+    {
+      "id": "2125494608826372329",
+      "account": "thsottiaux",
+      "text": "very tool of you",
+      "createdAt": "2026-11-25T07:39:39.000Z",
+      "url": "https://x.com/thsottiaux/status/2125494608826372329",
+      "reasons": [
+        "上下文：回复 @jxnlco「so tool have have worked on this wit…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "jxnlco",
+        "id": "",
+        "text": "so tool have have worked on this with the team"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.25",
+          "weekday": "周三",
+          "time": "15:39",
+          "text": "2026.11.25（周三）15:39",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.24",
+          "weekday": "周二",
+          "time": "23:39",
+          "text": "2026.11.24（周二）23:39",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2125388306842255694",
+      "account": "thsottiaux",
+      "text": "Wait, is that true?",
+      "createdAt": "2026-11-25T00:37:14.000Z",
+      "url": "https://x.com/thsottiaux/status/2125388306842255694",
+      "reasons": [
+        "上下文：回复 @TokenGremlin「NO FUCKING WAY. Bro left Anthropic, …」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "TokenGremlin",
+        "id": "",
+        "text": "NO FUCKING WAY. Bro left Anthropic, played WoW for several weeks, probably had some fun playing GTA 6, and then joined OpenAI. OpenAI now has two former KEY Anthropic employees. The creator of Claude Code for Desktop ( @amorriscode ) and Anthropic's former Tibo ( @trq212 ). The"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.25",
+          "weekday": "周三",
+          "time": "08:37",
+          "text": "2026.11.25（周三）08:37",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.24",
+          "weekday": "周二",
+          "time": "16:37",
+          "text": "2026.11.24（周二）16:37",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2125387147633189101",
+      "account": "thsottiaux",
+      "text": "👀",
+      "createdAt": "2026-11-25T00:32:38.000Z",
+      "url": "https://x.com/thsottiaux/status/2125387147633189101",
+      "reasons": [
+        "上下文：回复 @danshipper「VIBE SHIFT: most of us @every have s…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "danshipper",
+        "id": "",
+        "text": "VIBE SHIFT: most of us @every have stopped using Duet... just not improving fast enough, and competitors like Dots are very good"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.25",
+          "weekday": "周三",
+          "time": "08:32",
+          "text": "2026.11.25（周三）08:32",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.24",
+          "weekday": "周二",
+          "time": "16:32",
+          "text": "2026.11.24（周二）16:32",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
+    {
+      "id": "2125353693474365742",
+      "account": "thsottiaux",
+      "text": "Team is shipping",
+      "createdAt": "2026-11-24T22:19:42.000Z",
+      "url": "https://x.com/thsottiaux/status/2125353693474365742",
+      "reasons": [
+        "含发布/宣传语境（下调置信度）",
+        "上下文：回复 @AzianMike「🦃 This Thanksgiving, I'm thankful f…」"
+      ],
+      "viaContext": false,
+      "inReplyTo": {
+        "account": "AzianMike",
+        "id": "",
+        "text": "🦃 This Thanksgiving, I'm thankful for the OpenAI team always shipping. We just launched 2 new things in the Agents API, right in time for Black Friday! 💸 Budget controls - Limit, monitor, and control your agent budgets on a per-session level with Agents API. Now you don’t have"
+      },
+      "createdZones": {
+        "a": {
+          "label": "北京时间",
+          "zone": "Asia/Shanghai",
+          "date": "2026.11.25",
+          "weekday": "周三",
+          "time": "06:19",
+          "text": "2026.11.25（周三）06:19",
+          "offset": "UTC+8"
+        },
+        "b": {
+          "label": "Tibo 当地时间",
+          "zone": "America/Los_Angeles",
+          "date": "2026.11.24",
+          "weekday": "周二",
+          "time": "14:19",
+          "text": "2026.11.24（周二）14:19",
+          "offset": "UTC-8"
+        },
+        "diffText": "北京时间比 Tibo 当地时间快 16 小时"
+      },
+      "level": "none",
+      "rejected": "无额度相关词",
+      "intent": 0,
+      "window": null,
+      "candidateWindow": null
+    },
     {
       "id": "2125299467691987445",
       "account": "thsottiaux",
@@ -12482,174 +12657,6 @@
       "intent": 0,
       "window": null,
       "candidateWindow": null
-    },
-    {
-      "id": "2114199013176303641",
-      "account": "thsottiaux",
-      "text": "Congrats, that’s not a butt",
-      "createdAt": "2026-10-25T03:34:59.000Z",
-      "url": "https://x.com/thsottiaux/status/2114199013176303641",
-      "reasons": [
-        "上下文：回复 @alexandr_wang「someone should check in on tibo. hop…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "alexandr_wang",
-        "id": "",
-        "text": "someone should check in on tibo. hope everything is ok"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.25",
-          "weekday": "周日",
-          "time": "11:34",
-          "text": "2026.10.25（周日）11:34",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.24",
-          "weekday": "周六",
-          "time": "20:34",
-          "text": "2026.10.24（周六）20:34",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2114125878804545940",
-      "account": "thsottiaux",
-      "text": "I doubt they are on twitter",
-      "createdAt": "2026-10-24T22:44:22.000Z",
-      "url": "https://x.com/thsottiaux/status/2114125878804545940",
-      "reasons": [
-        "上下文：回复 @mitsuhiko「Saturday is for time with family.…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "mitsuhiko",
-        "id": "",
-        "text": "Saturday is for time with family."
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.25",
-          "weekday": "周日",
-          "time": "06:44",
-          "text": "2026.10.25（周日）06:44",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.24",
-          "weekday": "周六",
-          "time": "15:44",
-          "text": "2026.10.24（周六）15:44",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2114125293124542632",
-      "account": "thsottiaux",
-      "text": "Step 1: Quit posting butts and go buy containers Step 2: ??? Step 3: Celebrate your 12 users",
-      "createdAt": "2026-10-24T22:42:03.000Z",
-      "url": "https://x.com/thsottiaux/status/2114125293124542632",
-      "reasons": [
-        "上下文：回复 @alexandr_wang「oops you misspelled muse…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "alexandr_wang",
-        "id": "",
-        "text": "oops you misspelled muse"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.25",
-          "weekday": "周日",
-          "time": "06:42",
-          "text": "2026.10.25（周日）06:42",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.24",
-          "weekday": "周六",
-          "time": "15:42",
-          "text": "2026.10.24（周六）15:42",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
-    },
-    {
-      "id": "2114086171907428846",
-      "account": "thsottiaux",
-      "text": "Fortunately, this is fake",
-      "createdAt": "2026-10-24T20:06:35.000Z",
-      "url": "https://x.com/thsottiaux/status/2114086171907428846",
-      "reasons": [
-        "上下文：回复 @specialkdelslay「wtf does this even mean & why did th…」"
-      ],
-      "viaContext": false,
-      "inReplyTo": {
-        "account": "specialkdelslay",
-        "id": "",
-        "text": "wtf does this even mean & why did they start it off with congratulations lmao"
-      },
-      "createdZones": {
-        "a": {
-          "label": "北京时间",
-          "zone": "Asia/Shanghai",
-          "date": "2026.10.25",
-          "weekday": "周日",
-          "time": "04:06",
-          "text": "2026.10.25（周日）04:06",
-          "offset": "UTC+8"
-        },
-        "b": {
-          "label": "Tibo 当地时间",
-          "zone": "America/Los_Angeles",
-          "date": "2026.10.24",
-          "weekday": "周六",
-          "time": "13:06",
-          "text": "2026.10.24（周六）13:06",
-          "offset": "UTC-7"
-        },
-        "diffText": "北京时间比 Tibo 当地时间快 15 小时"
-      },
-      "level": "none",
-      "rejected": "无额度相关词",
-      "intent": 0,
-      "window": null,
-      "candidateWindow": null
     }
   ],
   "hypothesis": {
@@ -12994,12 +13001,12 @@
     }
   ],
   "counts": {
-    "scanned": 592,
+    "scanned": 593,
     "explicit": 6,
     "occurred": 10,
     "hint": 74,
-    "none": 483,
-    "rejected": 483
+    "none": 485,
+    "rejected": 485
   },
   "truncated": true
 }
