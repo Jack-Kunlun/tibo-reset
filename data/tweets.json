@@ -1,6 +1,19 @@
 {
   "tweets": [
     {
+      "id": "2125784147889393806",
+      "text": "We made a billing mistake at launch of GPT-6.2 that incorrectly discounted GPT-6.2 Astra and Sol usage for most users. We’ve fixed this now, so the same work will use more of your plan’s usage allowance. Comparing to last week, you will reach your limits 40% faster on GPT-6.2 Astra and 25% faster on Sol. You should still see these go further in usage compared to 6 Astra and 6.1 Sol. Other models weren’t affected, and we won’t charge you for the difference on past usage. As a small token to apologize for the mistake, we’ll be adding one banked reset for everyone on Go, Plus, Pro, and Business.",
+      "created_at": "2026-11-26T02:50:10.000Z",
+      "url": "https://x.com/thsottiaux/status/2125784147889393806",
+      "author_verified": true,
+      "text_full": true,
+      "kind": "credit",
+      "account": "thsottiaux",
+      "role": "post",
+      "foundVia": "timeline-browser",
+      "first_seen": "2026-11-26T04:02:04.697Z"
+    },
+    {
       "id": "2125678401541583217",
       "text": "This man is unstoppable",
       "created_at": "2026-11-25T19:49:58.000Z",
@@ -12470,7 +12483,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-25T22:02:35.486Z",
+  "updated_at": "2026-11-26T04:02:04.705Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
