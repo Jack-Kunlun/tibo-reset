@@ -288,7 +288,7 @@
       "kind": "other",
       "account": "thsottiaux",
       "role": "post",
-      "foundVia": "with-replies",
+      "foundVia": "timeline-browser",
       "first_seen": "2026-11-23T22:01:37.430Z"
     },
     {
@@ -12501,7 +12501,7 @@
       "first_seen": "2026-09-22T03:16:19.218Z"
     }
   ],
-  "updated_at": "2026-11-26T10:01:32.878Z",
+  "updated_at": "2026-11-28T10:11:10.629Z",
   "source": "browser",
   "coverage_since": "2026-10-24T06:06:16.000Z"
 }
